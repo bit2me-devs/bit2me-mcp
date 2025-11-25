@@ -103,7 +103,7 @@ Add `BREAKING CHANGE:` in commit body for major version bumps.
 
 ## [Links]
 
-- [Repository](https://github.com/yourusername/mcpBit2Me)
-- [Issues](https://github.com/yourusername/mcpBit2Me/issues)
-- [Pull Requests](https://github.com/yourusername/mcpBit2Me/pulls)
-- [Releases](https://github.com/yourusername/mcpBit2Me/releases)
+- [Repository](https://github.com/bit2me-devs/bit2me-mcp)
+- [Issues](https://github.com/bit2me-devs/bit2me-mcp/issues)
+- [Pull Requests](https://github.com/bit2me-devs/bit2me-mcp/pulls)
+- [Releases](https://github.com/bit2me-devs/bit2me-mcp/releases)

@@ -1,14 +1,14 @@
 # Bit2Me MCP Server
 
-[![CI](https://github.com/yourusername/mcpBit2Me/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/mcpBit2Me/actions/workflows/ci.yml)
-[![Deploy](https://github.com/yourusername/mcpBit2Me/actions/workflows/deploy.yml/badge.svg)](https://github.com/yourusername/mcpBit2Me/actions/workflows/deploy.yml)
+[![CI](https://github.com/bit2me-devs/bit2me-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/bit2me-devs/bit2me-mcp/actions/workflows/ci.yml)
+[![Deploy](https://github.com/bit2me-devs/bit2me-mcp/actions/workflows/deploy.yml/badge.svg)](https://github.com/bit2me-devs/bit2me-mcp/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
 
-> **Note:** Replace `yourusername` in the badge URLs with your actual GitHub username/organization.
-
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server to interact with the [Bit2Me](https://bit2me.com/) ecosystem. This server allows AI assistants like Claude to access real-time market data, manage wallets, execute trading operations, and query products like Earn and Loans.
+
+For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)**
 
 **Bit2Me** is a leading cryptocurrency exchange based in Spain, offering a wide range of services including trading, staking (Earn), and loans. This MCP server acts as a bridge, enabling LLMs to perform actions and retrieve data securely from your Bit2Me account.
 
@@ -125,7 +125,6 @@ All tool responses are **optimized for LLM consumption** with clean, consistent 
 ### 📖 Documentation Files
 
 - **[SCHEMA_MAPPING.md](./SCHEMA_MAPPING.md)** - Complete JSON response examples for all 47 tools
-- **[TypeScript Schema Coverage](./docs/TYPESCRIPT_SCHEMA_COVERAGE.md)** - TypeScript interface mapping for all tools
 
 ### Key Features
 
@@ -173,7 +172,7 @@ See [SCHEMA_MAPPING.md](./SCHEMA_MAPPING.md) for complete examples of all 47 too
 1. **Clone the repository:**
    ```bash
    git clone <repo-url>
-   cd mcp-bit2me
+   cd bit2me-mcp
    ```
 
 2. **Install dependencies:**
@@ -219,7 +218,7 @@ To use this server with the Claude Desktop application, add the following config
     "bit2me": {
       "command": "node",
       "args": [
-        "/absolute/path/to/mcp-bit2me/build/index.js"
+        "/absolute/path/to/bit2me-mcp/build/index.js"
       ],
       "env": {
         "BIT2ME_API_KEY": "your_api_key_here",
@@ -383,8 +382,8 @@ We welcome contributions to improve this MCP server! Whether it's fixing bugs, a
 1. **Fork the repository** to your own GitHub account.
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/yourusername/mcpBit2Me.git
-   cd mcpBit2Me
+   git clone https://github.com/bit2me-devs/bit2me-mcp.git
+   cd bit2me-mcp
    ```
 3. **Install dependencies:**
    ```bash
@@ -495,9 +494,9 @@ If any check fails, the commit will be blocked. Fix the issues and try again.
 
 ### Questions or Issues?
 
-- 🐛 **Found a bug?** [Open an issue](https://github.com/yourusername/mcpBit2Me/issues/new)
-- 💡 **Have an idea?** [Start a discussion](https://github.com/yourusername/mcpBit2Me/discussions)
-- ❓ **Need help?** Check existing [issues](https://github.com/yourusername/mcpBit2Me/issues) and [discussions](https://github.com/yourusername/mcpBit2Me/discussions)
+- 🐛 **Found a bug?** [Open an issue](https://github.com/bit2me-devs/bit2me-mcp/issues/new)
+- 💡 **Have an idea?** [Start a discussion](https://github.com/bit2me-devs/bit2me-mcp/discussions)
+- ❓ **Need help?** Check existing [issues](https://github.com/bit2me-devs/bit2me-mcp/issues) and [discussions](https://github.com/bit2me-devs/bit2me-mcp/discussions)
 
 ### Code of Conduct
 
