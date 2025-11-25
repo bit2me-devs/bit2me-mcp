@@ -187,6 +187,6 @@ export async function handleEarnTool(name: string, args: any) {
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
-    return null;
+    throw new Error(`Unknown earn tool: ${name}`);
 }
 

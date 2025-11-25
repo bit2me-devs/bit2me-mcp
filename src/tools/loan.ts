@@ -192,6 +192,6 @@ export async function handleLoanTool(name: string, args: any) {
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
-    return null;
+    throw new Error(`Unknown loan tool: ${name}`);
 }
 
