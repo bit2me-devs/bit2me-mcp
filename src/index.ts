@@ -13,10 +13,13 @@ import {
 
 import { getConfig } from "./config.js";
 import { initLogger, logger } from "./utils/logger.js";
-import { marketTools, handleMarketTool } from "./tools/market/index.js";
-import { assetTools, handleAssetTool } from "./tools/assets/index.js";
-import { operationTools, handleOperationTool } from "./tools/operations/index.js";
-import { aggregationTools, handleAggregationTool } from "./tools/aggregation/index.js";
+import { marketTools, handleMarketTool } from "./tools/market.js";
+import { aggregationTools, handleAggregationTool } from "./tools/aggregation.js";
+import { walletTools, handleWalletTool } from "./tools/wallet.js";
+import { earnTools, handleEarnTool } from "./tools/earn.js";
+import { loanTools, handleLoanTool } from "./tools/loan.js";
+import { proTools, handleProTool } from "./tools/pro.js";
+import { accountTools, handleAccountTool } from "./tools/account.js";
 import { prompts, handleGetPrompt } from "./prompts/index.js";
 
 // --- STARTUP VALIDATION ---
@@ -53,8 +56,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
         tools: [
             ...marketTools,
-            ...assetTools,
-            ...operationTools,
+            ...walletTools,
+            ...earnTools,
+            ...loanTools,
+            ...proTools,
+            ...accountTools,
             ...aggregationTools
         ]
     };
@@ -79,14 +85,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (marketTools.find(t => t.name === name)) {
             return await handleMarketTool(name, args);
         }
-        if (assetTools.find(t => t.name === name)) {
-            return await handleAssetTool(name, args);
-        }
-        if (operationTools.find(t => t.name === name)) {
-            return await handleOperationTool(name, args);
-        }
         if (aggregationTools.find(t => t.name === name)) {
             return await handleAggregationTool(name, args);
+        }
+        if (walletTools.find(t => t.name === name)) {
+            return await handleWalletTool(name, args);
+        }
+        if (earnTools.find(t => t.name === name)) {
+            return await handleEarnTool(name, args);
+        }
+        if (loanTools.find(t => t.name === name)) {
+            return await handleLoanTool(name, args);
+        }
+        if (proTools.find(t => t.name === name)) {
+            return await handleProTool(name, args);
+        }
+        if (accountTools.find(t => t.name === name)) {
+            return await handleAccountTool(name, args);
         }
 
         throw new Error(`Unknown tool: ${name}`);

@@ -155,7 +155,7 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ---
 
-## Wallet Tools (5 tools)
+## Wallet Tools (7 tools)
 
 ### wallet_get_pockets
 
@@ -273,7 +273,7 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ---
 
-## Earn Tools (10 tools)
+## Earn Tools (12 tools)
 
 ### earn_get_summary
 
@@ -409,7 +409,7 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ---
 
-## Loan Tools (6 tools)
+## Loan Tools (11 tools)
 
 ### loan_get_active
 
@@ -524,7 +524,7 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ---
 
-## Pro Trading Tools (4 tools)
+## Pro Trading Tools (8 tools)
 
 ### pro_get_balance
 

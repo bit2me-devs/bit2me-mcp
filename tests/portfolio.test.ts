@@ -21,7 +21,7 @@ describe('Meta-Tool: Portfolio Valuation', () => {
 
     it('should aggregate wallet + pro + earn and convert to EUR', async () => {
         const { bit2meRequest, getMarketPrice } = await import('../src/services/bit2me.js');
-        const { handleAggregationTool } = await import('../src/tools/aggregation/index.js');
+        const { handleAggregationTool } = await import('../src/tools/aggregation.js');
 
         // Mock API responses
         vi.mocked(bit2meRequest).mockImplementation(async (method: string, endpoint: string) => {
@@ -78,7 +78,7 @@ describe('Meta-Tool: Portfolio Valuation', () => {
 
     it('should handle API failures gracefully', async () => {
         const { bit2meRequest, getMarketPrice } = await import('../src/services/bit2me.js');
-        const { handleAggregationTool } = await import('../src/tools/aggregation/index.js');
+        const { handleAggregationTool } = await import('../src/tools/aggregation.js');
 
         // Mock some APIs failing
         vi.mocked(bit2meRequest).mockImplementation(async (method: string, endpoint: string) => {
@@ -107,7 +107,7 @@ describe('Meta-Tool: Portfolio Valuation', () => {
 
     it('should filter out dust (very small amounts)', async () => {
         const { bit2meRequest, getMarketPrice } = await import('../src/services/bit2me.js');
-        const { handleAggregationTool } = await import('../src/tools/aggregation/index.js');
+        const { handleAggregationTool } = await import('../src/tools/aggregation.js');
 
         // Mock wallet with dust amounts
         vi.mocked(bit2meRequest).mockImplementation(async (method: string, endpoint: string) => {
@@ -140,7 +140,7 @@ describe('Meta-Tool: Portfolio Valuation', () => {
 
     it('should sort assets by value (descending)', async () => {
         const { bit2meRequest, getMarketPrice } = await import('../src/services/bit2me.js');
-        const { handleAggregationTool } = await import('../src/tools/aggregation/index.js');
+        const { handleAggregationTool } = await import('../src/tools/aggregation.js');
 
         vi.mocked(bit2meRequest).mockImplementation(async (method: string, endpoint: string) => {
             if (endpoint === '/v1/wallet/pocket') {

@@ -151,6 +151,7 @@ export interface EarnTransactionResponse {
     amount: string;
     date: string;
     status: string;
+    message?: string;
 }
 
 // ============================================================================
@@ -496,3 +497,4 @@ export interface LoanPaybackResponse {
     status: string;
     message: string;
 }
+

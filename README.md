@@ -26,13 +26,16 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server to in
 The server provides **47 tools** organized into categories:
 
 - 8 Market Tools
-- 5 Wallet Tools
-- 10 Earn Tools
-- 6 Loan Tools
-- 4 Pro Trading Tools
+- 7 Wallet Tools (excluding operation tools)
+- 12 Earn Tools (excluding operation tools)
+- 11 Loan Tools (excluding operation tools)
+- 8 Pro Trading Tools (excluding operation tools)
 - 1 Account Tool
 - 1 Aggregation Tool
-- 12 Operation Tools
+- 12 Operation Tools (these perform actions and are also listed under their respective categories)
+
+*Note: Operation tools overlap with the categories above, so the sum of the numbers exceeds the total unique tools.*
+
 
 Below is a detailed list of tools and the Bit2Me API endpoints they use.
 
@@ -129,7 +132,7 @@ All tool responses are **optimized for LLM consumption** with clean, consistent 
 - ✅ **Consistent naming**: All fields use `snake_case` for better LLM readability
 - ✅ **Flattened structures**: Removed unnecessary nesting from API responses
 - ✅ **Filtered data**: Zero balances and irrelevant fields are removed
-- ✅ **Type-safe**: Full TypeScript interfaces in `src/types/schemas.ts`
+- ✅ **Type-safe**: Full TypeScript interfaces in `src/utils/schemas.ts`
 - ✅ **Well-documented**: Every tool has a concrete JSON example
 
 ### Example

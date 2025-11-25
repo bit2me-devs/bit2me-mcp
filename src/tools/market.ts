@@ -1,8 +1,8 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
-import { BIT2ME_GATEWAY_URL } from "../../config.js";
-import { getTicker } from "../../services/bit2me.js";
-import { mapTickerResponse, mapAssetsResponse, mapMarketConfigResponse, mapOrderBookResponse, mapPublicTradesResponse, mapCandlesResponse } from "../../utils/response-mappers.js";
+import { BIT2ME_GATEWAY_URL } from "../config.js";
+import { getTicker } from "../services/bit2me.js";
+import { mapTickerResponse, mapAssetsResponse, mapMarketConfigResponse, mapOrderBookResponse, mapPublicTradesResponse, mapCandlesResponse } from "../utils/response-mappers.js";
 
 const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
 
@@ -223,3 +223,4 @@ export async function handleMarketTool(name: string, args: any) {
 
     throw new Error(`Unknown market tool: ${name}`);
 }
+

@@ -1,6 +1,13 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest } from "../../services/bit2me.js";
-import { mapWalletAddressesResponse, mapWalletTransactionDetailsResponse, mapWalletPocketsResponse, mapWalletTransactionsResponse } from "../../utils/response-mappers.js";
+import { bit2meRequest } from "../services/bit2me.js";
+import {
+    mapWalletAddressesResponse,
+    mapWalletTransactionDetailsResponse,
+    mapWalletPocketsResponse,
+    mapWalletTransactionsResponse,
+    mapProformaResponse,
+    mapTransactionConfirmationResponse
+} from "../utils/response-mappers.js";
 
 export const walletTools: Tool[] = [
     {
@@ -56,6 +63,29 @@ export const walletTools: Tool[] = [
             },
             required: ["transactionId"]
         }
+    },
+    {
+        name: "wallet_create_proforma",
+        description: "STEP 1: Simulates/Quotes an operation in Simple Wallet. Returns Proforma ID and cost. REQUIRES subsequent confirmation.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                origin_pocket_id: { type: "string" },
+                destination_pocket_id: { type: "string" },
+                amount: { type: "string" },
+                currency: { type: "string" }
+            },
+            required: ["origin_pocket_id", "destination_pocket_id", "amount", "currency"]
+        }
+    },
+    {
+        name: "wallet_confirm_transaction",
+        description: "STEP 2: Executes the operation using the Proforma ID. Final action.",
+        inputSchema: {
+            type: "object",
+            properties: { proforma_id: { type: "string" } },
+            required: ["proforma_id"]
+        }
     }
 ];
 
@@ -103,5 +133,24 @@ export async function handleWalletTool(name: string, args: any) {
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
+    if (name === "wallet_create_proforma") {
+        const body = {
+            pocket: args.origin_pocket_id,
+            destination: { pocket: args.destination_pocket_id },
+            amount: args.amount,
+            currency: args.currency
+        };
+        const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
+        const optimized = mapProformaResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+
+    if (name === "wallet_confirm_transaction") {
+        const data = await bit2meRequest("POST", `/v2/wallet/transaction/${args.proforma_id}/confirm`);
+        const optimized = mapTransactionConfirmationResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+
     return null;
 }
+

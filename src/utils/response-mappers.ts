@@ -53,7 +53,7 @@ import type {
     LoanCreateResponse,
     LoanIncreaseGuaranteeResponse,
     LoanPaybackResponse,
-} from "../types/schemas.js";
+} from "./schemas.js";
 
 // ============================================================================
 // TYPE GUARDS

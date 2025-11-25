@@ -1,5 +1,5 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest } from "../../services/bit2me.js";
+import { bit2meRequest } from "../services/bit2me.js";
 import {
     mapEarnSummaryResponse,
     mapEarnAPYResponse,
@@ -10,8 +10,9 @@ import {
     mapEarnAssetsResponse,
     mapEarnRewardsConfigResponse,
     mapEarnWalletRewardsConfigResponse,
-    mapEarnWalletRewardsSummaryResponse
-} from "../../utils/response-mappers.js";
+    mapEarnWalletRewardsSummaryResponse,
+    mapEarnCreateTransactionResponse
+} from "../utils/response-mappers.js";
 
 export const earnTools: Tool[] = [
     {
@@ -57,6 +58,20 @@ export const earnTools: Tool[] = [
                 type: { type: "string", description: "Movement type (e.g., DEPOSIT, WITHDRAWAL)" }
             },
             required: ["type"]
+        }
+    },
+    {
+        name: "earn_create_transaction",
+        description: "Create deposit or withdrawal in Earn (Staking).",
+        inputSchema: {
+            type: "object",
+            properties: {
+                pocketId: { type: "string", description: "Source pocket UUID (for deposit) or destination (for withdrawal)" },
+                currency: { type: "string", description: "Currency (e.g., BTC, EUR)" },
+                amount: { type: "string", description: "Amount" },
+                type: { type: "string", enum: ["deposit", "withdrawal"], description: "Operation type" }
+            },
+            required: ["pocketId", "currency", "amount", "type"]
         }
     },
     {
@@ -132,6 +147,16 @@ export async function handleEarnTool(name: string, args: any) {
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
+    if (name === "earn_create_transaction") {
+        const data = await bit2meRequest("POST", `/v1/earn/wallets/${args.pocketId}/movements`, {
+            currency: args.currency,
+            amount: args.amount,
+            type: args.type
+        });
+        const optimized = mapEarnCreateTransactionResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+
     if (name === "earn_get_assets") {
         const data = await bit2meRequest("GET", "/v2/earn/assets");
         const optimized = mapEarnAssetsResponse(data);
@@ -164,3 +189,4 @@ export async function handleEarnTool(name: string, args: any) {
 
     return null;
 }
+

@@ -1,6 +1,15 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest } from "../../services/bit2me.js";
-import { mapLoanOrdersResponse, mapLoanTransactionsResponse, mapLoanConfigResponse, mapLoanLTVResponse, mapLoanOrderDetailsResponse } from "../../utils/response-mappers.js";
+import { bit2meRequest } from "../services/bit2me.js";
+import {
+    mapLoanOrdersResponse,
+    mapLoanTransactionsResponse,
+    mapLoanConfigResponse,
+    mapLoanLTVResponse,
+    mapLoanOrderDetailsResponse,
+    mapLoanCreateResponse,
+    mapLoanIncreaseGuaranteeResponse,
+    mapLoanPaybackResponse
+} from "../utils/response-mappers.js";
 
 export const loanTools: Tool[] = [
     {
@@ -61,6 +70,44 @@ export const loanTools: Tool[] = [
             },
             required: ["orderId"]
         }
+    },
+    {
+        name: "loan_create",
+        description: "Create a new loan.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                guaranteeCurrency: { type: "string", description: "Guarantee currency (e.g., BTC)" },
+                guaranteeAmount: { type: "string", description: "Guarantee amount" },
+                loanCurrency: { type: "string", description: "Loan currency (e.g., EUR)" },
+                loanAmount: { type: "string", description: "Loan amount" }
+            },
+            required: ["guaranteeCurrency", "guaranteeAmount", "loanCurrency", "loanAmount"]
+        }
+    },
+    {
+        name: "loan_increase_guarantee",
+        description: "Increase guarantee for an existing loan.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                orderId: { type: "string", description: "Loan order ID" },
+                guaranteeAmount: { type: "string", description: "Additional guarantee amount" }
+            },
+            required: ["orderId", "guaranteeAmount"]
+        }
+    },
+    {
+        name: "loan_payback",
+        description: "Pay back (return) part or all of a loan.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                orderId: { type: "string", description: "Loan order ID" },
+                paybackAmount: { type: "string", description: "Amount to pay back" }
+            },
+            required: ["orderId", "paybackAmount"]
+        }
     }
 ];
 
@@ -81,7 +128,8 @@ export async function handleLoanTool(name: string, args: any) {
         if (args.loanAmount) params.loanAmount = args.loanAmount;
 
         const data = await bit2meRequest("GET", "/v1/loan/ltv", params);
-        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+        const optimized = mapLoanLTVResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
     if (name === "loan_get_config") {
@@ -117,5 +165,33 @@ export async function handleLoanTool(name: string, args: any) {
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
+    if (name === "loan_create") {
+        const data = await bit2meRequest("POST", "/v1/loan", {
+            guaranteeCurrency: args.guaranteeCurrency,
+            guaranteeAmount: args.guaranteeAmount,
+            loanCurrency: args.loanCurrency,
+            loanAmount: args.loanAmount
+        });
+        const optimized = mapLoanCreateResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+
+    if (name === "loan_increase_guarantee") {
+        const data = await bit2meRequest("POST", `/v1/loan/${args.orderId}/guarantee/increase`, {
+            guaranteeAmount: args.guaranteeAmount
+        });
+        const optimized = mapLoanIncreaseGuaranteeResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+
+    if (name === "loan_payback") {
+        const data = await bit2meRequest("POST", `/v1/loan/${args.orderId}/payback`, {
+            paybackAmount: args.paybackAmount
+        });
+        const optimized = mapLoanPaybackResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+
     return null;
 }
+

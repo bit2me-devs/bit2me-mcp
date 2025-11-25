@@ -1,6 +1,6 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest, getMarketPrice } from "../../services/bit2me.js";
-import { MIN_DUST_VALUE } from "../../constants.js";
+import { bit2meRequest, getMarketPrice } from "../services/bit2me.js";
+import { MIN_DUST_VALUE } from "../constants.js";
 
 export const aggregationTools: Tool[] = [
     {
@@ -98,3 +98,4 @@ export async function handleAggregationTool(name: string, args: any) {
 
     throw new Error(`Unknown aggregation tool: ${name}`);
 }
+

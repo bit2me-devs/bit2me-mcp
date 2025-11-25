@@ -1,6 +1,6 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest } from "../../services/bit2me.js";
-import { mapAccountInfoResponse } from "../../utils/response-mappers.js";
+import { bit2meRequest } from "../services/bit2me.js";
+import { mapAccountInfoResponse } from "../utils/response-mappers.js";
 
 export const accountTools: Tool[] = [
     {
@@ -19,3 +19,4 @@ export async function handleAccountTool(name: string, args: any) {
 
     return null;
 }
+
