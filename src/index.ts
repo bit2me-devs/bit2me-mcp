@@ -32,7 +32,7 @@ try {
     initLogger(config.LOG_LEVEL);
 
     logger.info('Bit2Me MCP Server initializing...', {
-        version: '1.0.0',
+        version: '1.1.0',
         timeout: config.REQUEST_TIMEOUT,
         maxRetries: config.MAX_RETRIES,
         logLevel: config.LOG_LEVEL,
@@ -46,7 +46,7 @@ try {
 // --- MCP SERVER DEFINITION ---
 
 const server = new Server(
-    { name: "bit2me-mcp-server", version: "1.0.0" },
+    { name: "bit2me-mcp-server", version: "1.1.0" },
     { capabilities: { tools: {}, prompts: {} } }
 );
 
