@@ -1,0 +1,26 @@
+# Ignorar landing page y documentación
+landing/
+docs/
+.github/
+CHANGELOG.md
+SCHEMA_MAPPING.md
+
+# Ignorar fuentes (solo subimos la compilación en build/)
+src/
+tests/
+tsconfig.json
+.gitignore
+.env
+.env.example
+
+# Configuración de herramientas
+eslint.config.js
+vitest.config.ts
+.prettierrc
+.prettierignore
+.husky/
+
+# Logs y otros
+npm-debug.log
+terminals/
+

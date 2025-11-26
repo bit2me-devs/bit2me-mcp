@@ -7,7 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-11-26
+
 ### Added
+- **Landing Page Enhancements**:
+  - Predictive search with suggestions and auto-scroll.
+  - New "Tools Reference" section name (previously API Reference).
+  - Added "Parameters & Validation" and "Server & Maintenance" troubleshooting guides.
+  - Improved JSON example indentation and visualization.
+  - Updated footer links (GitHub, Bit2Me Website, API Docs).
+- **Documentation**:
+  - Added GitHub repository button with logo in Hero section.
+  - Updated all repository references to `bit2me-devs/bit2me-mcp`.
+
+### Changed
+- **Code Refactoring**:
+  - Flattened `src/tools` directory structure (removed `assets`, `market`, `aggregation` subfolders).
+  - Moved `schemas.ts` from `src/types/` to `src/utils/`.
+  - Updated import paths across the project to reflect new structure.
+- **Tool Logic**:
+  - Unified return types in tool handlers (replaced `null` returns with explicit Errors for MCP SDK compatibility).
+
+### Fixed
+- Corrected argument definitions in landing page examples for `wallet_create_proforma`, `earn_create_transaction`, `loan_get_ltv`, and others.
+- Fixed build errors related to strict type checking in tool handlers.
+- Resolved test import path issues after directory restructuring.
+
+### Added (Previous)
 - Complete mapper coverage (47/47 tools with optimized responses)
 - TypeScript strict mode enforcement
 - ESLint configuration with TypeScript rules
