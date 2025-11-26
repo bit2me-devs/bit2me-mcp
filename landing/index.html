@@ -291,14 +291,18 @@
 
         <div class="p-4 bg-slate-50 dark:bg-slate-900 sticky top-0 z-10">
             <div class="relative mb-3">
-                <input type="text" id="toolSearch" placeholder="Filter 48 tools..."
-                    class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 dark:text-white shadow-sm transition-all placeholder-slate-400"
-                    onkeyup="renderTools(this.value)">
+                <input type="text" id="toolSearch" placeholder="Search 48 tools..." autocomplete="off"
+                    class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 dark:text-white shadow-sm transition-all placeholder-slate-400">
                 <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
+
+                <!-- Suggestions Dropdown -->
+                <div id="searchSuggestions" class="absolute left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto hidden">
+                    <!-- Suggestions will be injected here -->
+                </div>
             </div>
 
             <!-- Filter Chips -->
@@ -331,7 +335,7 @@
             </div>
 
             <div>
-                <div class="px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">API Reference</div>
+                <div class="px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Tools Reference</div>
                 <ul class="space-y-1">
                     <li><a href="#cat-market"
                             class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-100 transition">📊
@@ -427,8 +431,19 @@
                             </svg>
                         </button>
                     </h1>
-                    <img src="https://img.shields.io/npm/v/bit2me-mcp-server?style=flat-square&color=0075FF&labelColor=slate-900"
-                        alt="NPM Version" class="h-7 mt-1">
+                    <div class="flex items-center gap-3 mt-2 md:mt-0">
+                        <a href="https://github.com/bit2me-devs/bit2me-mcp" target="_blank"
+                            class="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:opacity-90 transition">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd"
+                                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            GitHub
+                        </a>
+                        <img src="https://img.shields.io/npm/v/bit2me-mcp-server?style=flat-square&color=0075FF&labelColor=slate-900"
+                            alt="NPM Version" class="h-7">
+                    </div>
                 </div>
 
                 <p class="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-3xl">
@@ -1039,7 +1054,7 @@
                             <div class="flex gap-3 text-sm">
                                 <span class="font-bold text-purple-600 dark:text-purple-400">Tool:</span>
                                 <code
-                                    class="font-mono text-xs bg-white dark:bg-slate-900 border border-purple-100 dark:border-purple-900 px-2 py-0.5 rounded text-purple-700 dark:text-purple-300">loan_get_ltv({ guaranteeCurrency: "BTC", loanCurrency: "EUR" })</code>
+                                    class="font-mono text-xs bg-white dark:bg-slate-900 border border-purple-100 dark:border-purple-900 px-2 py-0.5 rounded text-purple-700 dark:text-purple-300">loan_get_ltv({ guaranteeCurrency: "BTC", loanCurrency: "EUR", userCurrency: "EUR" })</code>
                             </div>
                             <div class="flex gap-3 text-sm">
                                 <span class="font-bold text-green-600 dark:text-green-400">AI:</span>
@@ -1144,6 +1159,56 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Parameters & Validation -->
+                    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                        <div class="bg-orange-50 px-6 py-3 border-b border-orange-100 flex items-center gap-2">
+                            <span class="text-orange-700 font-bold">⚠️ Parameters & Validation</span>
+                        </div>
+                        <div class="p-6 grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 text-sm">Error 400: Bad Request</h4>
+                                <p class="text-sm text-slate-600">Missing or invalid arguments.</p>
+                                <ul class="list-disc list-inside text-xs text-slate-500 mt-2 space-y-1">
+                                    <li>Verify data types (string vs number)</li>
+                                    <li>Ensure required fields are present</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 text-sm">"Invalid Amount"</h4>
+                                <p class="text-sm text-slate-600">Amount format is incorrect.</p>
+                                <ul class="list-disc list-inside text-xs text-slate-500 mt-2 space-y-1">
+                                    <li>Use dot (.) for decimals, not comma</li>
+                                    <li>Check min/max limits in <code>market_get_config</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Server & Maintenance -->
+                    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                        <div class="bg-purple-50 px-6 py-3 border-b border-purple-100 flex items-center gap-2">
+                            <span class="text-purple-700 font-bold">🔧 Server & Maintenance</span>
+                        </div>
+                        <div class="p-6 grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 text-sm">Error 500/502</h4>
+                                <p class="text-sm text-slate-600">Server-side temporary issue.</p>
+                                <ul class="list-disc list-inside text-xs text-slate-500 mt-2 space-y-1">
+                                    <li>Bit2Me API might be experiencing load</li>
+                                    <li>Retry request after a few seconds</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-2 text-sm">Maintenance Mode</h4>
+                                <p class="text-sm text-slate-600">System is under scheduled maintenance.</p>
+                                <ul class="list-disc list-inside text-xs text-slate-500 mt-2 space-y-1">
+                                    <li>Check <a href="https://status.bit2me.com" target="_blank" class="text-blue-500 hover:underline">status.bit2me.com</a></li>
+                                    <li>Trading might be paused temporarily</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -1160,11 +1225,11 @@
                     <div>
                         <h4 class="font-bold text-slate-900 dark:text-white mb-4">Resources</h4>
                         <ul class="space-y-2 text-sm text-slate-500">
-                            <li><a href="https://developers.bit2me.com" target="_blank"
-                                    class="hover:text-blue-600 transition">Developers</a></li>
-                            <li><a href="https://github.com/bit2me" target="_blank"
+                            <li><a href="https://bit2me.com" target="_blank"
+                                    class="hover:text-blue-600 transition">Bit2Me Website</a></li>
+                            <li><a href="https://github.com/bit2me-devs/bit2me-mcp" target="_blank"
                                     class="hover:text-blue-600 transition">GitHub</a></li>
-                            <li><a href="https://bit2me.com/api-doc" target="_blank"
+                            <li><a href="https://api.bit2me.com" target="_blank"
                                     class="hover:text-blue-600 transition">API Documentation</a></li>
                         </ul>
                     </div>
@@ -1295,12 +1360,12 @@
                 tools: [
                     { name: "market_get_ticker", type: "READ", desc: "Current price and 24h data.", args: { symbol: "string (BTC/EUR)", currency: "string" } },
                     { name: "market_get_chart", type: "READ", desc: "Historical OHLCV candles.", args: { ticker: "string", timeframe: "1h, 1d, 1w..." } },
-                    { name: "market_get_assets", type: "READ", desc: "List available assets.", args: { includeTestnet: "boolean" } },
-                    { name: "market_get_asset_details", type: "READ", desc: "Technical asset info.", args: { symbol: "string" } },
+                    { name: "market_get_assets", type: "READ", desc: "List available assets.", args: { includeTestnet: "boolean", showExchange: "boolean" } },
+                    { name: "market_get_asset_details", type: "READ", desc: "Technical asset info.", args: { symbol: "string", showExchange: "boolean" } },
                     { name: "market_get_config", type: "READ", desc: "Market limits and precision.", args: { symbol: "string" } },
                     { name: "market_get_order_book", type: "READ", desc: "Order Book (Bids/Asks).", args: { symbol: "string" } },
-                    { name: "market_get_public_trades", type: "READ", desc: "Latest public trades.", args: { symbol: "string", limit: "number" } },
-                    { name: "market_get_candles", type: "READ", desc: "Trading Pro engine candles.", args: { symbol: "string", timeframe: "1m, 5m, 1h..." } }
+                    { name: "market_get_public_trades", type: "READ", desc: "Latest public trades.", args: { symbol: "string", limit: "number", sort: "ASC/DESC" } },
+                    { name: "market_get_candles", type: "READ", desc: "Trading Pro engine candles.", args: { symbol: "string", timeframe: "1m, 5m, 1h...", limit: "number" } }
                 ]
             },
             // --- WALLET ---
@@ -1312,9 +1377,9 @@
                     { name: "wallet_get_pockets", type: "READ", desc: "Balances and Pocket UUIDs.", args: { currency: "string" } },
                     { name: "wallet_get_pocket_details", type: "READ", desc: "Deep pocket details.", args: { pocketId: "string (UUID)" } },
                     { name: "wallet_get_pocket_addresses", type: "READ", desc: "Crypto deposit addresses.", args: { pocketId: "string", network: "string" } },
-                    { name: "wallet_get_transactions", type: "READ", desc: "Transaction history.", args: { limit: "string", currency: "string" } },
+                    { name: "wallet_get_transactions", type: "READ", desc: "Transaction history.", args: { limit: "string", currency: "string", offset: "string" } },
                     { name: "wallet_get_transaction_details", type: "READ", desc: "Transaction details.", args: { transactionId: "string" } },
-                    { name: "wallet_create_proforma", type: "WRITE", desc: "STEP 1: Prepare operation.", args: { origin_pocket_id: "string", destination_pocket_id: "string", amount: "string" } },
+                    { name: "wallet_create_proforma", type: "WRITE", desc: "STEP 1: Prepare operation.", args: { origin_pocket_id: "string", destination_pocket_id: "string", amount: "string", currency: "string" } },
                     { name: "wallet_confirm_transaction", type: "WRITE", desc: "STEP 2: Execute operation.", args: { proforma_id: "string" } }
                 ]
             },
@@ -1326,10 +1391,10 @@
                 tools: [
                     { name: "pro_get_balance", type: "READ", desc: "Trading account balance.", args: {} },
                     { name: "pro_get_open_orders", type: "READ", desc: "Pending orders.", args: { symbol: "string" } },
-                    { name: "pro_get_transactions", type: "READ", desc: "My executions.", args: { symbol: "string" } },
+                    { name: "pro_get_transactions", type: "READ", desc: "My executions.", args: { symbol: "string", limit: "number", offset: "number", sort: "ASC/DESC" } },
                     { name: "pro_get_order_trades", type: "READ", desc: "Fills of an order.", args: { orderId: "string" } },
                     { name: "pro_get_order_details", type: "READ", desc: "Order status.", args: { orderId: "string" } },
-                    { name: "pro_create_order", type: "WRITE", desc: "Place Limit/Market order.", args: { symbol: "string", side: "buy/sell", type: "limit/market", amount: "number", price: "number" } },
+                    { name: "pro_create_order", type: "WRITE", desc: "Place Limit/Market order.", args: { symbol: "string", side: "buy/sell", type: "limit/market", amount: "number", price: "number", stopPrice: "number" } },
                     { name: "pro_cancel_order", type: "WRITE", desc: "Cancel order.", args: { orderId: "string" } },
                     { name: "pro_cancel_all_orders", type: "WRITE", desc: "Cancel ALL.", args: { symbol: "string" } },
                     { name: "pro_deposit", type: "WRITE", desc: "Move Wallet -> Pro.", args: { currency: "string", amount: "string" } },
@@ -1345,14 +1410,14 @@
                     { name: "earn_get_summary", type: "READ", desc: "Earnings summary.", args: {} },
                     { name: "earn_get_wallets", type: "READ", desc: "Active positions.", args: {} },
                     { name: "earn_get_wallet_details", type: "READ", desc: "Position details.", args: { walletId: "string" } },
-                    { name: "earn_get_transactions", type: "READ", desc: "Interest payments.", args: { walletId: "string" } },
+                    { name: "earn_get_transactions", type: "READ", desc: "Interest payments.", args: { walletId: "string", limit: "string", offset: "string" } },
                     { name: "earn_get_transactions_summary", type: "READ", desc: "Summary by type.", args: { type: "string" } },
                     { name: "earn_get_assets", type: "READ", desc: "Supported cryptos.", args: {} },
                     { name: "earn_get_apy", type: "READ", desc: "APY Rates.", args: {} },
                     { name: "earn_get_rewards_config", type: "READ", desc: "Rewards config.", args: {} },
                     { name: "earn_get_wallet_rewards_config", type: "READ", desc: "Wallet rewards config.", args: { walletId: "string" } },
                     { name: "earn_get_wallet_rewards_summary", type: "READ", desc: "Wallet rewards summary.", args: { walletId: "string" } },
-                    { name: "earn_create_transaction", type: "WRITE", desc: "Deposit/Withdraw.", args: { pocketId: "string", amount: "string", type: "deposit/withdrawal" } }
+                    { name: "earn_create_transaction", type: "WRITE", desc: "Deposit/Withdraw.", args: { pocketId: "string", amount: "string", currency: "string", type: "deposit/withdrawal" } }
                 ]
             },
             // --- LOANS ---
@@ -1362,12 +1427,12 @@
                 icon: "🏦",
                 tools: [
                     { name: "loan_get_active", type: "READ", desc: "Active loans.", args: {} },
-                    { name: "loan_get_ltv", type: "READ", desc: "LTV Calculator.", args: { guaranteeCurrency: "string", loanCurrency: "string" } },
+                    { name: "loan_get_ltv", type: "READ", desc: "LTV Calculator.", args: { guaranteeCurrency: "string", loanCurrency: "string", userCurrency: "string", guaranteeAmount: "string", loanAmount: "string" } },
                     { name: "loan_get_config", type: "READ", desc: "Loans Config.", args: {} },
-                    { name: "loan_get_transactions", type: "READ", desc: "Loan movements.", args: { orderId: "string" } },
-                    { name: "loan_get_orders", type: "READ", desc: "List orders.", args: {} },
+                    { name: "loan_get_transactions", type: "READ", desc: "Loan movements.", args: { orderId: "string", limit: "number", offset: "number" } },
+                    { name: "loan_get_orders", type: "READ", desc: "List orders.", args: { limit: "number", offset: "number" } },
                     { name: "loan_get_order_details", type: "READ", desc: "Order details.", args: { orderId: "string" } },
-                    { name: "loan_create", type: "WRITE", desc: "Request loan.", args: { guaranteeCurrency: "string", loanAmount: "string" } },
+                    { name: "loan_create", type: "WRITE", desc: "Request loan.", args: { guaranteeCurrency: "string", loanCurrency: "string", guaranteeAmount: "string", loanAmount: "string" } },
                     { name: "loan_increase_guarantee", type: "WRITE", desc: "Add collateral.", args: { orderId: "string", guaranteeAmount: "string" } },
                     { name: "loan_payback", type: "WRITE", desc: "Repay loan.", args: { orderId: "string", paybackAmount: "string" } }
                 ]
@@ -1405,16 +1470,14 @@
 
         // Render tools function
         function renderTools(textFilter = '') {
-            currentFilterText = textFilter;
+            // textFilter is ignored for main list rendering now
             const container = document.getElementById('tools-container');
             container.innerHTML = '';
 
             toolsData.forEach(cat => {
                 const filteredTools = cat.tools.filter(tool => {
-                    const matchesText = tool.name.toLowerCase().includes(textFilter.toLowerCase()) ||
-                        tool.desc.toLowerCase().includes(textFilter.toLowerCase());
                     const matchesType = currentFilterType === 'ALL' || tool.type === currentFilterType;
-                    return matchesText && matchesType;
+                    return matchesType;
                 });
 
                 if (filteredTools.length === 0) return;
@@ -1437,8 +1500,13 @@
                             ${filteredTools.map(tool => {
                     const badgeClass = tool.type === 'READ' ? 'badge-read' : tool.type === 'WRITE' ? 'badge-write' : 'badge-meta';
                     const argsExample = formatArgsExample(tool.args);
+                    const jsonExample = JSON.stringify({
+                        name: tool.name,
+                        arguments: argsExample
+                    }, null, 2);
+                    
                     return `
-                                <details class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg transition hover:border-blue-300 dark:hover:border-blue-700">
+                                <details id="tool-${tool.name}" class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg transition hover:border-blue-300 dark:hover:border-blue-700">
                                     <summary class="flex items-center justify-between p-4 cursor-pointer select-none">
                                         <div class="flex items-center gap-3">
                                             <span class="badge ${badgeClass}">${tool.type}</span>
@@ -1465,10 +1533,7 @@
                                         ` : ''}
                                         <div>
                                             <h5 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Example Usage</h5>
-                                            <pre class="bg-slate-900 dark:bg-black rounded p-3 overflow-x-auto text-xs" translate="no"><code class="language-json">{
-  "name": "${tool.name}",
-  "arguments": ${JSON.stringify(argsExample, null, 2)}
-}</code></pre>
+                                            <pre class="bg-slate-900 dark:bg-black rounded p-3 overflow-x-auto text-xs" translate="no"><code class="language-json">${jsonExample}</code></pre>
                                         </div>
                                     </div>
                                 </details>
@@ -1506,6 +1571,12 @@
             });
 
             renderTools(currentFilterText);
+
+            // Scroll to tools section
+            const referenceSection = document.getElementById('reference');
+            if (referenceSection) {
+                referenceSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         };
 
         // Tab Logic
@@ -1669,6 +1740,81 @@
         } else {
             html.classList.remove('dark');
         }
+
+        // Search & Suggestion Logic
+        const searchInput = document.getElementById('toolSearch');
+        const suggestionsBox = document.getElementById('searchSuggestions');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            if (query.length < 1) {
+                suggestionsBox.classList.add('hidden');
+                return;
+            }
+
+            // Flatten all tools into a single array for searching
+            const allTools = toolsData.flatMap(cat => cat.tools.map(t => ({...t, category: cat.category})));
+            
+            const matches = allTools.filter(tool => 
+                tool.name.toLowerCase().includes(query) || 
+                tool.desc.toLowerCase().includes(query)
+            );
+
+            if (matches.length > 0) {
+                suggestionsBox.innerHTML = matches.map(tool => `
+                    <div class="p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer border-b border-slate-100 dark:border-slate-700/50 last:border-0 transition-colors" 
+                         onclick="scrollToTool('${tool.name}')">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">${tool.name}</span>
+                            <span class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded">${tool.category}</span>
+                        </div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">${tool.desc}</div>
+                    </div>
+                `).join('');
+                suggestionsBox.classList.remove('hidden');
+            } else {
+                suggestionsBox.innerHTML = `
+                    <div class="p-3 text-xs text-slate-400 text-center">No tools found</div>
+                `;
+                suggestionsBox.classList.remove('hidden');
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.classList.add('hidden');
+            }
+        });
+
+        // Scroll to specific tool
+        window.scrollToTool = function(toolName) {
+            const toolElement = document.getElementById(`tool-${toolName}`);
+            if (toolElement) {
+                // Close suggestions
+                suggestionsBox.classList.add('hidden');
+                searchInput.value = ''; // Optional: clear search
+
+                // Open the details element
+                toolElement.open = true;
+
+                // Scroll to element with offset
+                const offset = 100; // Adjust for sticky header
+                const elementPosition = toolElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                // Scroll main container instead of window if layout uses specific scrolling container
+                // Using scrollIntoView for simplicity as it handles nested scrolling contexts better usually
+                toolElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight effect
+                toolElement.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2', 'dark:ring-offset-slate-900');
+                setTimeout(() => {
+                    toolElement.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2', 'dark:ring-offset-slate-900');
+                }, 2000);
+            }
+        };
     </script>
 </body>
 
