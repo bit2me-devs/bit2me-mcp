@@ -26,15 +26,15 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 The server provides **47 tools** organized into categories:
 
 - 8 Market Tools
-- 7 Wallet Tools (excluding operation tools)
-- 12 Earn Tools (excluding operation tools)
-- 11 Loan Tools (excluding operation tools)
-- 8 Pro Trading Tools (excluding operation tools)
+- 7 Wallet Tools
+- 11 Earn Tools
+- 9 Loan Tools
+- 10 Pro Trading Tools
 - 1 Account Tool
 - 1 Aggregation Tool
-- 12 Operation Tools (these perform actions and are also listed under their respective categories)
+- 11 Operation Tools (these perform actions and are also listed under their respective categories)
 
-*Note: Operation tools overlap with the categories above, so the sum of the numbers exceeds the total unique tools.*
+*Note: Operation tools are included in the categories above.*
 
 
 Below is a detailed list of tools and the Bit2Me API endpoints they use.
@@ -166,12 +166,19 @@ See [SCHEMA_MAPPING.md](./SCHEMA_MAPPING.md) for complete examples of all 47 too
 
 ### Prerequisites
 - **Node.js**: v18 or higher.
-- **Bit2Me API Keys**: You need a Bit2Me account. Generate your keys in the [Bit2Me API Dashboard](https://developers.bit2me.com/).
+- **Bit2Me Account**: You need a verified Bit2Me account.
+
+### 🔑 Generating API Keys
+
+1. Go to your **[Bit2Me API Dashboard](https://app.bit2me.com/profile/api)**.
+2. Click on **"New Key"**.
+3. Select the permissions you need (e.g., Wallets, Trading, Earn, Loans).
+   > **⚠️ Security Note:** This MCP server does **NOT** support crypto withdrawals to external addresses. For security best practices, please **DO NOT** enable "Withdrawal" permissions on your API Key.
 
 ### Steps
 1. **Clone the repository:**
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/bit2me-devs/bit2me-mcp.git
    cd bit2me-mcp
    ```
 
@@ -187,8 +194,8 @@ See [SCHEMA_MAPPING.md](./SCHEMA_MAPPING.md) for complete examples of all 47 too
    ```
    Edit `.env` and add your keys:
    ```env
-   BIT2ME_API_KEY=your_api_key_here
-   BIT2ME_API_SECRET=your_api_secret_here
+   BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
+   BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
    
    # Optional Configuration
    BIT2ME_REQUEST_TIMEOUT=30000     # Request timeout in ms (default: 30000)
@@ -221,8 +228,8 @@ To use this server with the Claude Desktop application, add the following config
         "/absolute/path/to/bit2me-mcp/build/index.js"
       ],
       "env": {
-        "BIT2ME_API_KEY": "your_api_key_here",
-        "BIT2ME_API_SECRET": "your_api_secret_here"
+        "BIT2ME_API_KEY": "YOUR_BIT2ME_ACCOUNT_API_KEY",
+        "BIT2ME_API_SECRET": "YOUR_BIT2ME_ACCOUNT_API_SECRET"
       }
     }
   }
@@ -286,8 +293,8 @@ npm install -g @modelcontextprotocol/inspector
 3. **Configure your API credentials:**
    Set your environment variables before starting:
    ```bash
-   export BIT2ME_API_KEY=your_api_key_here
-   export BIT2ME_API_SECRET=your_api_secret_here
+   export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
+   export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
    npx @modelcontextprotocol/inspector node build/index.js
    ```
 

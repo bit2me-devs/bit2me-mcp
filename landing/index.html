@@ -9,7 +9,7 @@
     <title>Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio</title>
     <meta name="title" content="Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio">
     <meta name="description"
-        content="Official MCP server for Bit2Me. Connect Claude, Cursor, or any MCP client to manage your crypto wallet, trade, stake, and get loans using natural language. 48+ tools available.">
+        content="Official MCP server for Bit2Me. Connect Claude, Cursor, or any MCP client to manage your crypto wallet, trade, stake, and get loans using natural language. 47 tools available.">
     <meta name="keywords"
         content="Bit2Me, MCP, Model Context Protocol, Claude AI, Crypto API, Bitcoin, Cryptocurrency, Trading, Wallet, Staking, DeFi, AI Trading, Anthropic">
     <meta name="author" content="Bit2Me">
@@ -29,7 +29,7 @@
     <meta property="twitter:url" content="https://bit2me.com/mcp-server">
     <meta property="twitter:title" content="Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio">
     <meta property="twitter:description"
-        content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 48+ tools for trading, staking, and portfolio management.">
+        content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 47 tools for trading, staking, and portfolio management.">
     <meta property="twitter:image" content="https://bit2me.com/mcp-server-twitter.png">
 
     <!-- Favicon -->
@@ -291,7 +291,7 @@
 
         <div class="p-4 bg-slate-50 dark:bg-slate-900 sticky top-0 z-10">
             <div class="relative mb-3">
-                <input type="text" id="toolSearch" placeholder="Search 48 tools..." autocomplete="off"
+                <input type="text" id="toolSearch" placeholder="Search 47 tools..." autocomplete="off"
                     class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 dark:text-white shadow-sm transition-all placeholder-slate-400">
                 <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
@@ -590,6 +590,48 @@
 
             <hr class="border-slate-100 dark:border-slate-800 my-16">
 
+            <!-- Prerequisites -->
+            <section id="prerequisites" class="mb-20 scroll-mt-10">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 group flex items-center gap-2">
+                    Prerequisites
+                    <button onclick="copySectionLink('prerequisites', this)"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-blue-600"
+                        title="Copy Link">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
+                            </path>
+                        </svg>
+                    </button>
+                </h2>
+                
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+                    <h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                        <span class="flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full text-blue-600 dark:text-blue-400 text-xs">1</span>
+                        Get your API Keys
+                    </h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">
+                        Before installing, go to your <strong><a href="https://app.bit2me.com/profile/api" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Bit2Me API Dashboard</a></strong> and generate a new key.
+                    </p>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-lg p-4">
+                        <h4 class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-3">Recommended Permissions</h4>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded flex items-center gap-1">✅ Wallets</span>
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded flex items-center gap-1">✅ Trading</span>
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded flex items-center gap-1">✅ Earn</span>
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded flex items-center gap-1">✅ Loans</span>
+                        </div>
+                        <div class="pt-3 border-t border-blue-100 dark:border-blue-900/50">
+                            <span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold rounded flex items-center gap-1 inline-flex">❌ Withdrawals</span>
+                            <span class="text-[10px] text-blue-700 dark:text-blue-400 ml-2">Do not enable (Security Best Practice)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <hr class="border-slate-100 dark:border-slate-800 my-16">
+
             <!-- Install -->
             <section id="install" class="mb-20 scroll-mt-10">
                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 group flex items-center gap-2">
@@ -606,13 +648,22 @@
                 </h2>
 
                 <!-- Tabs -->
-                <div class="flex border-b border-slate-200 dark:border-slate-800 mb-6">
+                <div class="flex border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto">
                     <button
-                        class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-950"
+                        class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-950 whitespace-nowrap"
                         onclick="openTab(event, 'claude')">Claude Desktop</button>
                     <button
-                        class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                        class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 whitespace-nowrap"
                         onclick="openTab(event, 'cursor')">Cursor IDE</button>
+                    <button
+                        class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 whitespace-nowrap"
+                        onclick="openTab(event, 'windsurf')">Windsurf</button>
+                    <button
+                        class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 whitespace-nowrap"
+                        onclick="openTab(event, 'gemini')">Gemini CLI</button>
+                    <button
+                        class="tab-btn px-6 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 whitespace-nowrap"
+                        onclick="openTab(event, 'vscode')">VS Code</button>
                 </div>
 
                 <!-- Claude Content -->
@@ -623,19 +674,7 @@
                                 class="absolute -left-3 flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full ring-8 ring-white dark:ring-slate-950">
                                 <span class="text-blue-600 dark:text-blue-400 font-bold text-xs">1</span>
                             </span>
-                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Get your API Keys</h3>
-                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">Go to <a
-                                    href="https://developers.bit2me.com" target="_blank"
-                                    class="text-blue-600 dark:text-blue-400 hover:underline">Bit2Me Developers</a> and
-                                generate
-                                your keys.</p>
-                        </li>
-                        <li class="ml-6">
-                            <span
-                                class="absolute -left-3 flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full ring-8 ring-white dark:ring-slate-950">
-                                <span class="text-blue-600 dark:text-blue-400 font-bold text-xs">2</span>
-                            </span>
-                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Edit Config</h3>
+                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Configure Server</h3>
                             <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">Open the file:</p>
                             <div
                                 class="bg-slate-100 dark:bg-slate-900 rounded p-2 mb-3 text-xs font-mono text-slate-600 dark:text-slate-400">
@@ -648,8 +687,8 @@
       "command": "npx",
       "args": ["-y", "@bit2me/mcp-server"],
       "env": {
-        "BIT2ME_API_KEY": "YOUR_API_KEY",
-        "BIT2ME_API_SECRET": "YOUR_API_SECRET"
+        "BIT2ME_API_KEY": "YOUR_BIT2ME_ACCOUNT_API_KEY",
+        "BIT2ME_API_SECRET": "YOUR_BIT2ME_ACCOUNT_API_SECRET"
       }
     }
   }
@@ -699,16 +738,110 @@
                             </div>
                         </li>
                         <li class="ml-6">
+                            <span
+                                class="absolute -left-3 flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full ring-8 ring-white dark:ring-slate-950">
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-xs">3</span>
+                            </span>
+                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Configure API Keys</h3>
                             <div
                                 class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/50 rounded-lg text-sm text-yellow-800 dark:text-yellow-200 flex gap-3">
                                 <span class="text-lg">⚠️</span>
                                 <div>
                                     <strong>Important:</strong> Cursor does not allow configuring environment variables
                                     (`env`) from the UI.
-                                    You must create a <code>.env</code> file in the root of your open project with
-                                    <code>BIT2ME_API_KEY</code> and <code>BIT2ME_API_SECRET</code>.
                                 </div>
                             </div>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mt-3 mb-3">
+                                You must create a <code>.env</code> file in the <strong>root of your open project</strong> with your keys:
+                            </p>
+                            <pre class="bg-slate-900 dark:bg-black rounded-lg p-4 overflow-x-auto text-sm" translate="no"><code class="language-bash">BIT2ME_API_KEY=your_api_key_here
+BIT2ME_API_SECRET=your_api_secret_here</code></pre>
+                        </li>
+                    </ol>
+                </div>
+
+                <!-- Windsurf Content -->
+                <div id="windsurf" class="tab-content hidden">
+                    <ol class="space-y-6 relative border-l border-slate-200 dark:border-slate-800 ml-3">
+                        <li class="ml-6">
+                            <span
+                                class="absolute -left-3 flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full ring-8 ring-white dark:ring-slate-950">
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-xs">1</span>
+                            </span>
+                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Configure MCP Server</h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">Open your Windsurf MCP configuration file:</p>
+                            <div
+                                class="bg-slate-100 dark:bg-slate-900 rounded p-2 mb-3 text-xs font-mono text-slate-600 dark:text-slate-400">
+                                ~/.codeium/windsurf/mcp_config.json
+                            </div>
+                            <pre class="bg-slate-900 dark:bg-black rounded-lg p-4 overflow-x-auto text-sm"
+                                translate="no"><code class="language-json">{
+  "mcpServers": {
+    "bit2me": {
+      "command": "npx",
+      "args": ["-y", "@bit2me/mcp-server"],
+      "env": {
+        "BIT2ME_API_KEY": "YOUR_BIT2ME_ACCOUNT_API_KEY",
+        "BIT2ME_API_SECRET": "YOUR_BIT2ME_ACCOUNT_API_SECRET"
+      }
+    }
+  }
+}</code></pre>
+                        </li>
+                    </ol>
+                </div>
+
+                <!-- Gemini Content -->
+                <div id="gemini" class="tab-content hidden">
+                    <ol class="space-y-6 relative border-l border-slate-200 dark:border-slate-800 ml-3">
+                         <li class="ml-6">
+                            <span
+                                class="absolute -left-3 flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full ring-8 ring-white dark:ring-slate-950">
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-xs">1</span>
+                            </span>
+                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Run with Gemini CLI</h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">Set your environment variables and run the server:</p>
+                            <pre class="bg-slate-900 dark:bg-black rounded-lg p-4 overflow-x-auto text-sm" translate="no"><code class="language-bash">export BIT2ME_API_KEY=your_key
+export BIT2ME_API_SECRET=your_secret
+
+npx -y @bit2me/mcp-server</code></pre>
+                        </li>
+                    </ol>
+                </div>
+
+                <!-- VS Code Content -->
+                <div id="vscode" class="tab-content hidden">
+                    <ol class="space-y-6 relative border-l border-slate-200 dark:border-slate-800 ml-3">
+                        <li class="ml-6">
+                            <span
+                                class="absolute -left-3 flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full ring-8 ring-white dark:ring-slate-950">
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-xs">1</span>
+                            </span>
+                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Install Extension</h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">
+                                Install the <strong><a href="https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">Cline</a></strong> extension (formerly Claude Dev) or any MCP-compatible extension.
+                            </p>
+                        </li>
+                        <li class="ml-6">
+                            <span
+                                class="absolute -left-3 flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full ring-8 ring-white dark:ring-slate-950">
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-xs">2</span>
+                            </span>
+                            <h3 class="font-bold text-slate-900 dark:text-white mb-2">Configure MCP Server</h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm mb-3">Click the "MCP Servers" icon in the extension sidebar and add:</p>
+                            <pre class="bg-slate-900 dark:bg-black rounded-lg p-4 overflow-x-auto text-sm"
+                                translate="no"><code class="language-json">{
+  "mcpServers": {
+    "bit2me": {
+      "command": "npx",
+      "args": ["-y", "@bit2me/mcp-server"],
+      "env": {
+        "BIT2ME_API_KEY": "YOUR_BIT2ME_ACCOUNT_API_KEY",
+        "BIT2ME_API_SECRET": "YOUR_BIT2ME_ACCOUNT_API_SECRET"
+      }
+    }
+  }
+}</code></pre>
                         </li>
                     </ol>
                 </div>
@@ -718,7 +851,7 @@
 
             <section id="reference" class="mb-20">
                 <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Tool Reference</h2>
-                <p class="text-slate-500 dark:text-slate-400 mb-8">Complete list of the 48 available tools. Use the
+                <p class="text-slate-500 dark:text-slate-400 mb-8">Complete list of the 47 available tools. Use the
                     sidebar search to
                     filter.
                 </p>

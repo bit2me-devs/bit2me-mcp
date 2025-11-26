@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2025-11-26
+
+### Added
+- **Landing Page Improvements**:
+  - New "Prerequisites" section explaining how to obtain API Keys.
+  - Tabbed installation instructions for **Claude Desktop**, **Cursor IDE**, **Windsurf**, **Gemini CLI**, and **VS Code**.
+  - Detailed `mcp_config.json` examples for each platform.
+  - Explicit warning about Cursor's environment variable limitations (requires `.env` file).
+
+### Fixed
+- **Documentation Accuracy**:
+  - Corrected total tool count from 48 to **47** in both `landing/index.html` and `README.md`.
+  - Updated tool breakdown list in `README.md` to match the actual implementation (8 Market, 7 Wallet, 11 Earn, 9 Loan, 10 Pro, 1 Account, 1 Aggregation).
+
 ## [1.1.1] - 2025-11-26
 
 ### Fixed
