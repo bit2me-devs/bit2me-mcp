@@ -1,0 +1,34 @@
+# Gitleaks configuration for Bit2Me MCP Server
+title = "Bit2Me MCP Secret Detection"
+
+[extend]
+# Use default Gitleaks rules
+useDefault = true
+
+[allowlist]
+description = "Allowlist for known false positives and test files"
+
+# Allow test fixtures and mock data
+paths = [
+    '''tests/.*''',
+    '''\.test\.ts$''',
+    '''\.spec\.ts$''',
+    '''coverage/.*''',
+    '''build/.*''',
+    '''node_modules/.*''',
+    '''\.env\.example$''',
+]
+
+# Allow example API keys in documentation (they are clearly marked as examples)
+commits = [
+    '''example.*api.*key''',
+    '''YOUR.*API.*KEY''',
+    '''test.*key''',
+]
+
+# Allow common test patterns
+regexes = [
+    '''test.*[a-zA-Z0-9]{32}''',
+    '''example.*[a-zA-Z0-9]{32}''',
+]
+

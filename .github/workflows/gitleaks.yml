@@ -1,0 +1,36 @@
+name: Gitleaks Secret Scanning
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main]
+    schedule:
+        # Run secret scanning weekly on Mondays at 01:00 UTC
+        - cron: "0 1 * * 1"
+    workflow_dispatch:
+
+jobs:
+    scan:
+        name: Gitleaks Secret Scan
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            security-events: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0 # Fetch all history for better detection
+
+            - name: Run Gitleaks
+              uses: gitleaks/gitleaks-action@v2
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  config-path: .gitleaks.toml
+                  no-git: false
+                  verbose: true
+                  redact: true
+
