@@ -7,6 +7,7 @@ import {
     mapPublicTradesResponse,
     mapCandlesResponse,
     mapWalletPocketsResponse,
+    mapWalletNetworksResponse,
     mapWalletAddressesResponse,
     mapWalletTransactionsResponse,
     mapWalletTransactionDetailsResponse,
@@ -230,6 +231,28 @@ describe("Response Mappers", () => {
                     currency: undefined,
                     tag: "",
                     created_at: "",
+                },
+            ]);
+        });
+
+        it("should map wallet networks response", () => {
+            expect(mapWalletNetworksResponse(null)).toEqual([]);
+            const valid = [
+                {
+                    id: "bitcoin",
+                    name: "Bitcoin",
+                    nativeCurrencyCode: "BTC",
+                    feeCurrencyCode: "BTC",
+                    hasTag: false,
+                },
+            ];
+            expect(mapWalletNetworksResponse(valid)).toEqual([
+                {
+                    id: "bitcoin",
+                    name: "Bitcoin",
+                    native_currency_code: "BTC",
+                    fee_currency_code: "BTC",
+                    has_tag: false,
                 },
             ]);
         });

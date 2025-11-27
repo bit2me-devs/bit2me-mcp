@@ -21,6 +21,7 @@ import type {
     WalletPocketResponse,
     WalletPocketDetailsResponse,
     WalletTransactionResponse,
+    WalletNetworkResponse,
     // Account
     AccountInfoResponse,
     // Earn
@@ -360,6 +361,23 @@ export function mapWalletTransactionDetailsResponse(raw: unknown): WalletTransac
               }
             : undefined,
     };
+}
+
+/**
+ * Maps raw wallet networks response to optimized schema
+ */
+export function mapWalletNetworksResponse(raw: unknown): WalletNetworkResponse[] {
+    if (!isValidArray(raw)) {
+        return [];
+    }
+
+    return raw.map((network: any) => ({
+        id: network.id || "",
+        name: network.name || "",
+        native_currency_code: network.nativeCurrencyCode || "",
+        fee_currency_code: network.feeCurrencyCode || "",
+        has_tag: network.hasTag || false,
+    }));
 }
 
 /**

@@ -12,7 +12,7 @@
         "provenance": true
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc -p tsconfig.build.json",
         "prepublishOnly": "npm run build",
         "start": "node build/index.js",
         "dev": "node build/index.js",

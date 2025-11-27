@@ -390,6 +390,133 @@ src/
 
 ---
 
+## Adding a New Tool
+
+To add a new tool to the MCP server, follow this comprehensive checklist to ensure consistency, quality, and proper documentation.
+
+### 1. Implementation (`src/tools/`)
+
+1.  **Identify the category**: Choose an existing category (e.g., `wallet`, `market`, `earn`) or create a new one if necessary.
+2.  **Create/Update file**: Edit `src/tools/<category>.ts`.
+3.  **Define Tool Definition**: Add the tool definition to the `tools` array.
+4.  **Implement Handler**: Add the logic to the `handle<Category>Tool` function.
+
+```typescript
+// src/tools/example.ts
+
+export const exampleTools: Tool[] = [
+    {
+        name: "example_get_data",
+        description: "Get example data from Bit2Me API",
+        inputSchema: {
+            type: "object",
+            properties: {
+                id: { type: "string", description: "Resource ID" },
+            },
+            required: ["id"],
+        },
+    },
+];
+
+export async function handleExampleTool(name: string, args: any) {
+    if (name === "example_get_data") {
+        const { id } = args;
+        const data = await bit2meRequest("GET", `/v1/example/${id}`);
+        const optimized = mapExampleResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+    throw new Error(`Unknown tool: ${name}`);
+}
+```
+
+### 2. Response Mapping (`src/utils/`)
+
+1.  **Define Schema**: Add the TypeScript interface in `src/utils/schemas.ts`.
+2.  **Create Mapper**: Add the mapper function in `src/utils/response-mappers.ts`.
+
+```typescript
+// src/utils/schemas.ts
+export interface ExampleResponse {
+    id: string;
+    value: string;
+    created_at: string;
+}
+
+// src/utils/response-mappers.ts
+export function mapExampleResponse(raw: any): ExampleResponse {
+    if (!isValidObject(raw)) throw new ValidationError("Invalid response");
+
+    return {
+        id: raw.id || "",
+        value: raw.val || raw.value || "0",
+        created_at: raw.createdAt || "",
+    };
+}
+```
+
+### 3. Registration (`src/index.ts`)
+
+1.  **Import**: Import the tools array and handler.
+2.  **List Tools**: Add `...exampleTools` to `ListToolsRequestSchema`.
+3.  **Handle Call**: Add the handler condition to `CallToolRequestSchema`.
+
+```typescript
+// src/index.ts
+import { exampleTools, handleExampleTool } from "./tools/example.js";
+
+// ... inside ListToolsRequestSchema
+tools: [
+    // ...
+    ...exampleTools,
+];
+
+// ... inside CallToolRequestSchema
+if (exampleTools.find((t) => t.name === name)) {
+    return await handleExampleTool(name, args);
+}
+```
+
+### 4. Testing (`tests/`)
+
+1.  **Mapper Tests**: Add test cases in `tests/mappers.test.ts`.
+2.  **Tool Tests**: Create `tests/tools/example.test.ts`.
+
+```typescript
+// tests/tools/example.test.ts
+import { describe, it, expect, vi } from "vitest";
+import { handleExampleTool } from "../../src/tools/example.js";
+import { bit2meRequest } from "../../src/services/bit2me.js";
+
+vi.mock("../../src/services/bit2me.js");
+
+describe("Example Tools", () => {
+    it("should handle example_get_data", async () => {
+        vi.mocked(bit2meRequest).mockResolvedValue({ id: "123", val: "test" });
+
+        const result = await handleExampleTool("example_get_data", { id: "123" });
+        const content = JSON.parse(result.content[0].text);
+
+        expect(content.id).toBe("123");
+    });
+});
+```
+
+### 5. Documentation
+
+1.  **SCHEMA_MAPPING.md**: Add the JSON response example.
+2.  **README.md**: Add the tool to the list of available tools.
+3.  **Landing Page**: Update `landing/index.html` if it lists features/tools.
+4.  **Product Documentation**: Update `docs/PRODUCT.md` (if applicable).
+5.  **Schema Coverage**: Update `docs/TYPESCRIPT_SCHEMA_COVERAGE.md` to map the new tool to its TypeScript interface.
+
+### 6. Verification
+
+1.  Run `npm test` to ensure all tests pass.
+2.  Run `npm run build` to verify TypeScript compilation.
+3.  (Optional) Run the server locally and test with a client.
+
+---
+
 ## Quick Reference
 
 ### Common Commands

@@ -25,7 +25,8 @@ export const walletTools: Tool[] = [
     },
     {
         name: "wallet_get_pocket_details",
-        description: "Gets details of a specific wallet (Pocket) by its ID.",
+        description:
+            "Gets detailed information of a specific wallet (Pocket) by its ID. Returns balance, available funds, blocked funds, currency, name, and creation date. Use wallet_get_pockets first to get the pocket ID.",
         inputSchema: {
             type: "object",
             properties: {
@@ -36,7 +37,8 @@ export const walletTools: Tool[] = [
     },
     {
         name: "wallet_get_pocket_addresses",
-        description: "Lists deposit addresses for a wallet on a specific network.",
+        description:
+            "Lists deposit addresses for a wallet (Pocket) on a specific network. Use wallet_get_networks first to see available networks for a currency. Each network may have different addresses. Returns address, network, and creation date. Use this address to receive deposits on the specified network.",
         inputSchema: {
             type: "object",
             properties: {
@@ -48,7 +50,8 @@ export const walletTools: Tool[] = [
     },
     {
         name: "wallet_get_networks",
-        description: "Lists available networks for a specific currency.",
+        description:
+            "Lists available networks for a specific currency. Use this before wallet_get_pocket_addresses to see which networks support deposits for a currency (e.g., bitcoin, ethereum, binanceSmartChain). Returns network ID, name, native currency, fee currency, and whether it requires a tag/memo.",
         inputSchema: {
             type: "object",
             properties: {
@@ -59,7 +62,8 @@ export const walletTools: Tool[] = [
     },
     {
         name: "wallet_get_transactions",
-        description: "History of past Wallet operations (deposits, withdrawals, swaps, purchases).",
+        description:
+            "History of past Wallet operations (deposits, withdrawals, swaps, purchases). Optional currency filter. Use limit and offset for pagination (default limit: 10). Returns transaction list with type, amount, currency, status, and timestamp.",
         inputSchema: {
             type: "object",
             properties: {
@@ -71,7 +75,8 @@ export const walletTools: Tool[] = [
     },
     {
         name: "wallet_get_transaction_details",
-        description: "Gets details of a specific transaction by its ID.",
+        description:
+            "Gets detailed information of a specific transaction by its ID. Returns complete transaction data including type, amount, currency, status, fees, timestamps, and related pocket IDs. Use wallet_get_transactions first to get transaction IDs.",
         inputSchema: {
             type: "object",
             properties: {
