@@ -18,23 +18,29 @@ const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
 export const marketTools: Tool[] = [
     {
         name: "market_get_ticker",
-        description: "Gets current price, 24h volume, market highs and lows.",
+        description:
+            "Gets current market data for a cryptocurrency, including price, 24h volume, highs, and lows. Use this to get a quick snapshot of asset performance. Symbol format: Simple ticker like 'BTC', 'ETH', 'DOGE'.",
         inputSchema: {
             type: "object",
             properties: {
                 symbol: { type: "string", description: "Crypto symbol (e.g., BTC, ETH, DOGE)" },
-                currency: { type: "string", description: "Base currency (e.g., EUR, USD)", default: "EUR" },
+                currency: {
+                    type: "string",
+                    description: "Base currency for price valuation (e.g., EUR, USD)",
+                    default: "EUR",
+                },
             },
             required: ["symbol"],
         },
     },
     {
         name: "market_get_chart",
-        description: "Gets price history (candles/chart) with timestamp, USD price, and Fiat price.",
+        description:
+            "Retrieves historical price data (candles/chart) for a trading pair. Returns timestamps, USD prices, and Fiat prices. Essential for analyzing price trends over time. Supported timeframes: one-hour, one-day, one-week, one-month, one-year.",
         inputSchema: {
             type: "object",
             properties: {
-                ticker: { type: "string", description: "Pair (e.g., BTC/EUR)" },
+                ticker: { type: "string", description: "Trading pair symbol (e.g., BTC/EUR, ETH/USD)" },
                 timeframe: { type: "string", enum: ["one-hour", "one-day", "one-week", "one-month", "one-year"] },
             },
             required: ["ticker", "timeframe"],
@@ -42,7 +48,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_assets",
-        description: "Gets all available assets.",
+        description:
+            "Lists all available cryptocurrencies and assets on the platform. Use this to discover supported assets or verify if a symbol exists before querying details.",
         inputSchema: {
             type: "object",
             properties: {
@@ -53,7 +60,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_asset_details",
-        description: "Gets details of a specific asset by its symbol.",
+        description:
+            "Gets detailed information about a specific asset by its symbol. Includes metadata, precision, and other configuration details.",
         inputSchema: {
             type: "object",
             properties: {
@@ -65,7 +73,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_config",
-        description: "Gets market configuration (precision, minimums, status).",
+        description:
+            "Retrieves market configuration settings such as precision limits, minimum order sizes, and market status. Critical for validating orders before submission.",
         inputSchema: {
             type: "object",
             properties: {
@@ -75,7 +84,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_order_book",
-        description: "Gets the order book for a market.",
+        description:
+            "Fetches the current order book (bids and asks) for a specific market pair. Shows market depth and liquidity. Useful for deciding optimal entry/exit prices.",
         inputSchema: {
             type: "object",
             properties: {
@@ -86,12 +96,13 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_public_trades",
-        description: "Gets the latest public trades for a market.",
+        description:
+            "Gets a list of the most recent public trades executed for a market pair. Shows real-time market activity.",
         inputSchema: {
             type: "object",
             properties: {
                 symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" },
-                limit: { type: "number", description: "Result limit (max 100)" },
+                limit: { type: "number", description: "Number of trades to retrieve (max 100)" },
                 sort: { type: "string", enum: ["ASC", "DESC"], description: "Sort order" },
             },
             required: ["symbol"],
@@ -99,7 +110,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_candles",
-        description: "Gets OHLCV candles for Trading Pro.",
+        description:
+            "Gets OHLCV (Open, High, Low, Close, Volume) candle data for Pro Trading analysis. Use this for technical analysis and charting. Timeframes range from 1 minute to 1 month.",
         inputSchema: {
             type: "object",
             properties: {
@@ -109,7 +121,7 @@ export const marketTools: Tool[] = [
                     enum: ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1M"],
                     description: "Timeframe",
                 },
-                limit: { type: "number", description: "Candle limit" },
+                limit: { type: "number", description: "Number of candles to retrieve" },
             },
             required: ["symbol", "timeframe"],
         },

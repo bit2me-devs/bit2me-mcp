@@ -5,7 +5,8 @@ import { mapAccountInfoResponse } from "../utils/response-mappers.js";
 export const accountTools: Tool[] = [
     {
         name: "account_get_info",
-        description: "View user profile and levels.",
+        description:
+            "Retrieves detailed profile information for the authenticated user. Returns user level, account limits, KYC status, and other account-related metadata. Use this to verify user identity and permissions.",
         inputSchema: { type: "object", properties: {} },
     },
 ];

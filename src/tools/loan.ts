@@ -15,97 +15,106 @@ import {
 export const loanTools: Tool[] = [
     {
         name: "loan_get_active",
-        description: "View active loans (Simple alias for get_loan_orders).",
+        description:
+            "Retrieves all active loan orders for the user. Use this to monitor outstanding loans and their status. Alias for get_loan_orders.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "loan_get_ltv",
-        description: "Calculate LTV (Loan To Value).",
+        description:
+            "Calculates the Loan-To-Value (LTV) ratio and liquidation price for a potential loan. Use this simulator BEFORE creating a loan to understand collateral requirements.",
         inputSchema: {
             type: "object",
             properties: {
-                guaranteeCurrency: { type: "string", description: "Guarantee currency (e.g., BTC)" },
-                loanCurrency: { type: "string", description: "Loan currency (e.g., EUR)" },
-                userCurrency: { type: "string", description: "User's fiat currency (e.g., EUR)" },
-                guaranteeAmount: { type: "string", description: "Guarantee amount (optional if loanAmount is given)" },
-                loanAmount: { type: "string", description: "Loan amount (optional if guaranteeAmount is given)" },
+                guaranteeCurrency: { type: "string", description: "Currency to be used as collateral (e.g., BTC)" },
+                loanCurrency: { type: "string", description: "Currency to be borrowed (e.g., EUR)" },
+                userCurrency: { type: "string", description: "User's reference fiat currency (e.g., EUR)" },
+                guaranteeAmount: {
+                    type: "string",
+                    description: "Amount of collateral (optional if loanAmount is given)",
+                },
+                loanAmount: { type: "string", description: "Amount to borrow (optional if guaranteeAmount is given)" },
             },
             required: ["guaranteeCurrency", "loanCurrency", "userCurrency"],
         },
     },
     {
         name: "loan_get_config",
-        description: "Get currency configuration for loans.",
+        description:
+            "Gets configuration parameters for the Loan service, including supported currencies, limits, and interest rates.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "loan_get_transactions",
-        description: "Get loan movements.",
+        description: "Fetches history of loan-related transactions (disbursements, repayments, liquidations).",
         inputSchema: {
             type: "object",
             properties: {
-                orderId: { type: "string", description: "Filter by order ID" },
-                limit: { type: "number" },
-                offset: { type: "number" },
+                orderId: { type: "string", description: "Filter by specific loan order ID" },
+                limit: { type: "number", description: "Number of records to return" },
+                offset: { type: "number", description: "Pagination offset" },
             },
         },
     },
     {
         name: "loan_get_orders",
-        description: "Get user's loan orders.",
+        description: "Lists all loan orders (active, closed, liquidated) associated with the user account.",
         inputSchema: {
             type: "object",
             properties: {
-                limit: { type: "number" },
-                offset: { type: "number" },
+                limit: { type: "number", description: "Number of records to return" },
+                offset: { type: "number", description: "Pagination offset" },
             },
         },
     },
     {
         name: "loan_get_order_details",
-        description: "Get details of a specific loan order.",
+        description:
+            "Retrieves full details for a specific loan order, including current LTV, liquidation price, and repayment status.",
         inputSchema: {
             type: "object",
             properties: {
-                orderId: { type: "string", description: "Order ID" },
+                orderId: { type: "string", description: "Loan order ID" },
             },
             required: ["orderId"],
         },
     },
     {
         name: "loan_create",
-        description: "Create a new loan.",
+        description:
+            "Creates a new cryptocurrency-backed loan. Requires specified collateral (guarantee) and loan amounts.",
         inputSchema: {
             type: "object",
             properties: {
-                guaranteeCurrency: { type: "string", description: "Guarantee currency (e.g., BTC)" },
-                guaranteeAmount: { type: "string", description: "Guarantee amount" },
-                loanCurrency: { type: "string", description: "Loan currency (e.g., EUR)" },
-                loanAmount: { type: "string", description: "Loan amount" },
+                guaranteeCurrency: { type: "string", description: "Currency provided as collateral (e.g., BTC)" },
+                guaranteeAmount: { type: "string", description: "Amount of collateral to lock" },
+                loanCurrency: { type: "string", description: "Currency to borrow (e.g., EUR)" },
+                loanAmount: { type: "string", description: "Amount to borrow" },
             },
             required: ["guaranteeCurrency", "guaranteeAmount", "loanCurrency", "loanAmount"],
         },
     },
     {
         name: "loan_increase_guarantee",
-        description: "Increase guarantee for an existing loan.",
+        description: "Adds more collateral to an existing loan to lower the LTV and avoid liquidation.",
         inputSchema: {
             type: "object",
             properties: {
                 orderId: { type: "string", description: "Loan order ID" },
-                guaranteeAmount: { type: "string", description: "Additional guarantee amount" },
+                guaranteeAmount: { type: "string", description: "Additional amount to add to collateral" },
             },
             required: ["orderId", "guaranteeAmount"],
         },
     },
     {
         name: "loan_payback",
-        description: "Pay back (return) part or all of a loan.",
+        description:
+            "Repays a portion or the entirety of an active loan. Funds will be deducted from the user's wallet.",
         inputSchema: {
             type: "object",
             properties: {
                 orderId: { type: "string", description: "Loan order ID" },
-                paybackAmount: { type: "string", description: "Amount to pay back" },
+                paybackAmount: { type: "string", description: "Amount to repay" },
             },
             required: ["orderId", "paybackAmount"],
         },

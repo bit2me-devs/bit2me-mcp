@@ -18,17 +18,20 @@ import {
 export const earnTools: Tool[] = [
     {
         name: "earn_get_summary",
-        description: "View summary of accumulated rewards in Staking/Earn.",
+        description:
+            "Gets a consolidated summary of all accumulated rewards across all Earn (Staking) strategies. Returns total rewards earned by currency.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_wallets",
-        description: "List active Earn wallets/strategies with their current APY.",
+        description:
+            "Lists all active Earn strategies/wallets for the user. Returns current APY, balance, and status for each strategy. Use this to see where funds are staked.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_wallet_details",
-        description: "Details of a specific Earn wallet.",
+        description:
+            "Retrieves specific details for a single Earn strategy/wallet identified by its UUID. Includes performance metrics and configuration.",
         inputSchema: {
             type: "object",
             properties: {
@@ -39,31 +42,33 @@ export const earnTools: Tool[] = [
     },
     {
         name: "earn_get_transactions",
-        description: "Movements of an Earn wallet.",
+        description:
+            "Fetches transaction history (deposits, withdrawals, rewards) for a specific Earn wallet. Useful for auditing movements within a strategy.",
         inputSchema: {
             type: "object",
             properties: {
                 walletId: { type: "string", description: "Earn wallet UUID" },
-                limit: { type: "string", description: "Result limit" },
-                offset: { type: "string", description: "Offset" },
+                limit: { type: "string", description: "Number of records to retrieve" },
+                offset: { type: "string", description: "Pagination offset" },
             },
             required: ["walletId"],
         },
     },
     {
         name: "earn_get_transactions_summary",
-        description: "Summary of movements by type.",
+        description: "Gets a summary of Earn transactions grouped by type (e.g., total deposits, total withdrawals).",
         inputSchema: {
             type: "object",
             properties: {
-                type: { type: "string", description: "Movement type (e.g., DEPOSIT, WITHDRAWAL)" },
+                type: { type: "string", description: "Movement type filter (e.g., DEPOSIT, WITHDRAWAL)" },
             },
             required: ["type"],
         },
     },
     {
         name: "earn_create_transaction",
-        description: "Create deposit or withdrawal in Earn (Staking).",
+        description:
+            "Initiates a deposit or withdrawal operation for an Earn (Staking) strategy. REQUIRES a valid pocketId as source (for deposits) or destination (for withdrawals).",
         inputSchema: {
             type: "object",
             properties: {
@@ -71,8 +76,8 @@ export const earnTools: Tool[] = [
                     type: "string",
                     description: "Source pocket UUID (for deposit) or destination (for withdrawal)",
                 },
-                currency: { type: "string", description: "Currency (e.g., BTC, EUR)" },
-                amount: { type: "string", description: "Amount" },
+                currency: { type: "string", description: "Currency symbol (e.g., BTC, EUR)" },
+                amount: { type: "string", description: "Amount to transfer" },
                 type: { type: "string", enum: ["deposit", "withdrawal"], description: "Operation type" },
             },
             required: ["pocketId", "currency", "amount", "type"],
@@ -80,22 +85,24 @@ export const earnTools: Tool[] = [
     },
     {
         name: "earn_get_assets",
-        description: "Assets supported in Earn.",
+        description:
+            "Lists all assets supported by the Earn service. Use this to check which cryptocurrencies can be staked.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_apy",
-        description: "Current Earn APYs.",
+        description:
+            "Retrieves current Annual Percentage Yields (APY) for all supported Earn assets. Use this to compare staking returns.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_rewards_config",
-        description: "Global rewards configuration.",
+        description: "Gets the global configuration settings for Earn rewards distribution.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_wallet_rewards_config",
-        description: "Rewards configuration for a wallet.",
+        description: "Gets specific reward configuration for a single Earn wallet.",
         inputSchema: {
             type: "object",
             properties: {
@@ -106,7 +113,7 @@ export const earnTools: Tool[] = [
     },
     {
         name: "earn_get_wallet_rewards_summary",
-        description: "Rewards summary for a wallet.",
+        description: "Gets a summary of rewards earned specifically by a single Earn wallet.",
         inputSchema: {
             type: "object",
             properties: {

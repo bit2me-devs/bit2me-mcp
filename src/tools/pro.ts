@@ -14,94 +14,101 @@ import {
 export const proTools: Tool[] = [
     {
         name: "pro_get_balance",
-        description: "Gets specific balances from PRO Trading account (separate from Simple Wallet).",
+        description:
+            "Retrieves balances specifically for the PRO Trading account. NOTE: These are SEPARATE from the Simple Wallet balances. Funds must be deposited into Pro before trading.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "pro_get_transactions",
-        description: "Gets the user's trade history in Pro.",
+        description:
+            "Fetches the history of executed trades in the Pro Trading platform. Filters by symbol and date are supported.",
         inputSchema: {
             type: "object",
             properties: {
-                symbol: { type: "string", description: "Filter by symbol" },
-                limit: { type: "number" },
-                offset: { type: "number" },
-                sort: { type: "string", enum: ["ASC", "DESC"] },
+                symbol: { type: "string", description: "Filter by market symbol (e.g., BTC/EUR)" },
+                limit: { type: "number", description: "Number of trades to return" },
+                offset: { type: "number", description: "Pagination offset" },
+                sort: { type: "string", enum: ["ASC", "DESC"], description: "Sort order" },
             },
         },
     },
     {
         name: "pro_get_order_trades",
-        description: "Gets trades associated with a specific order.",
+        description:
+            "Gets all trade executions associated with a specific Pro order ID. An order may be filled in multiple partial trades.",
         inputSchema: {
             type: "object",
             properties: {
-                orderId: { type: "string", description: "Order ID" },
+                orderId: { type: "string", description: "Pro Order UUID" },
             },
             required: ["orderId"],
         },
     },
     {
         name: "pro_get_order_details",
-        description: "Gets details of a specific Pro order.",
+        description:
+            "Retrieves the status and details of a specific order in Pro Trading (e.g., filled amount, average price, status).",
         inputSchema: {
             type: "object",
             properties: {
-                orderId: { type: "string", description: "Order ID" },
+                orderId: { type: "string", description: "Pro Order UUID" },
             },
             required: ["orderId"],
         },
     },
     {
         name: "pro_get_open_orders",
-        description: "View open trading orders in PRO.",
+        description: "Lists all currently open (active) orders in Pro Trading. Can be filtered by market symbol.",
         inputSchema: {
             type: "object",
-            properties: { symbol: { type: "string" } },
+            properties: { symbol: { type: "string", description: "Filter by market symbol (e.g., BTC/EUR)" } },
         },
     },
     {
         name: "pro_create_order",
-        description: "Create Limit/Market/Stop order in PRO Trading.",
+        description:
+            "Places a new trading order in the Pro platform. Supports Limit, Market, and Stop-Limit orders. Ensure sufficient Pro balance before placing.",
         inputSchema: {
             type: "object",
             properties: {
-                symbol: { type: "string" },
-                side: { type: "string", enum: ["buy", "sell"] },
-                type: { type: "string", enum: ["limit", "market", "stop-limit"] },
-                amount: { type: "number" },
-                price: { type: "number", description: "Required for Limit/Stop" },
-                stopPrice: { type: "number", description: "Required for Stop-Limit" },
+                symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" },
+                side: { type: "string", enum: ["buy", "sell"], description: "Order side" },
+                type: { type: "string", enum: ["limit", "market", "stop-limit"], description: "Order type" },
+                amount: { type: "number", description: "Amount to buy/sell" },
+                price: { type: "number", description: "Limit price (Required for Limit/Stop orders)" },
+                stopPrice: { type: "number", description: "Trigger price (Required for Stop-Limit orders)" },
             },
             required: ["symbol", "side", "type", "amount"],
         },
     },
     {
         name: "pro_cancel_order",
-        description: "Cancel a PRO order by ID.",
+        description: "Cancels a specific open order in Pro Trading by its ID.",
         inputSchema: {
             type: "object",
-            properties: { orderId: { type: "string" } },
+            properties: { orderId: { type: "string", description: "Pro Order UUID" } },
             required: ["orderId"],
         },
     },
     {
         name: "pro_cancel_all_orders",
-        description: "Cancel all open orders in Pro (optionally filtering by symbol).",
+        description:
+            "Cancels ALL open orders in Pro Trading. Can be restricted to a specific market symbol. Use with caution.",
         inputSchema: {
             type: "object",
             properties: {
-                symbol: { type: "string", description: "Filter by symbol (e.g., BTC/EUR)" },
+                symbol: { type: "string", description: "Filter cancellation by symbol (e.g., BTC/EUR)" },
             },
         },
     },
     {
         name: "pro_deposit",
-        description: "Deposit funds from main Wallet to Pro Trading.",
+        description:
+            "Transfers funds FROM the main Simple Wallet TO the Pro Trading account. Necessary before placing Pro orders.",
         inputSchema: {
             type: "object",
             properties: {
-                currency: { type: "string", description: "Currency (e.g., EUR, BTC)" },
+                currency: { type: "string", description: "Currency to transfer (e.g., EUR, BTC)" },
                 amount: { type: "string", description: "Amount to transfer" },
             },
             required: ["currency", "amount"],
@@ -109,11 +116,11 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_withdraw",
-        description: "Withdraw funds from Pro Trading to main Wallet.",
+        description: "Transfers funds FROM the Pro Trading account back TO the main Simple Wallet.",
         inputSchema: {
             type: "object",
             properties: {
-                currency: { type: "string", description: "Currency (e.g., EUR, BTC)" },
+                currency: { type: "string", description: "Currency to transfer (e.g., EUR, BTC)" },
                 amount: { type: "string", description: "Amount to transfer" },
             },
             required: ["currency", "amount"],
