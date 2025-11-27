@@ -39,7 +39,7 @@ describe("Wallet Tools Handler", () => {
         const mockAddresses = [{ address: "abc", network: "bitcoin" }];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockAddresses);
 
-        const result = await handleWalletTool("wallet_get_pocket_addresses", { pocketId: "1", network: "bitcoin" });
+        await handleWalletTool("wallet_get_pocket_addresses", { pocketId: "1", network: "bitcoin" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/wallet/pocket/1/bitcoin/address");
     });
@@ -48,7 +48,7 @@ describe("Wallet Tools Handler", () => {
         const mockTxs = [{ id: "tx1", amount: "100" }];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockTxs);
 
-        const result = await handleWalletTool("wallet_get_transactions", { currency: "EUR", limit: "5" });
+        await handleWalletTool("wallet_get_transactions", { currency: "EUR", limit: "5" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/transaction", {
             currency: "EUR",
@@ -60,7 +60,7 @@ describe("Wallet Tools Handler", () => {
         const mockTx = { id: "tx1", status: "completed" };
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockTx);
 
-        const result = await handleWalletTool("wallet_get_transaction_details", { transactionId: "tx1" });
+        await handleWalletTool("wallet_get_transaction_details", { transactionId: "tx1" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/transaction/tx1");
     });
@@ -70,7 +70,7 @@ describe("Wallet Tools Handler", () => {
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockProforma);
 
         const args = { origin_pocket_id: "p1", destination_pocket_id: "p2", amount: "100", currency: "EUR" };
-        const result = await handleWalletTool("wallet_create_proforma", args);
+        await handleWalletTool("wallet_create_proforma", args);
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "POST",
@@ -83,7 +83,7 @@ describe("Wallet Tools Handler", () => {
         const mockConfirm = { status: "confirmed" };
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockConfirm);
 
-        const result = await handleWalletTool("wallet_confirm_transaction", { proforma_id: "pf1" });
+        await handleWalletTool("wallet_confirm_transaction", { proforma_id: "pf1" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("POST", "/v2/wallet/transaction/pf1/confirm");
     });

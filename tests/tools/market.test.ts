@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleMarketTool } from "../../src/tools/market.js";
 import axios from "axios";
@@ -93,7 +94,7 @@ describe("Market Tools Handler", () => {
         };
         vi.mocked(axios.get).mockResolvedValue({ data: mockConfig });
 
-        const result = await handleMarketTool("market_get_config", { symbol: "BTC/EUR" });
+        await handleMarketTool("market_get_config", { symbol: "BTC/EUR" });
 
         expect(axios.get).toHaveBeenCalledWith(
             expect.stringContaining("/v1/trading/market-config"),
@@ -105,7 +106,7 @@ describe("Market Tools Handler", () => {
         const mockBook = { bids: [], asks: [] };
         vi.mocked(axios.get).mockResolvedValue({ data: mockBook });
 
-        const result = await handleMarketTool("market_get_order_book", { symbol: "BTC/EUR" });
+        await handleMarketTool("market_get_order_book", { symbol: "BTC/EUR" });
 
         expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/v2/trading/order-book"), expect.any(Object));
     });
@@ -114,7 +115,7 @@ describe("Market Tools Handler", () => {
         const mockTrades = [{ id: "1", price: "50000", amount: "0.1", side: "buy" }];
         vi.mocked(axios.get).mockResolvedValue({ data: mockTrades });
 
-        const result = await handleMarketTool("market_get_public_trades", { symbol: "BTC/EUR" });
+        await handleMarketTool("market_get_public_trades", { symbol: "BTC/EUR" });
 
         expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/v1/trading/trade/last"), expect.any(Object));
     });
@@ -123,7 +124,7 @@ describe("Market Tools Handler", () => {
         const mockCandles = [[1630000000, 50000, 51000, 49000, 50500, 100]];
         vi.mocked(axios.get).mockResolvedValue({ data: mockCandles });
 
-        const result = await handleMarketTool("market_get_candles", { symbol: "BTC/EUR", timeframe: "1h" });
+        await handleMarketTool("market_get_candles", { symbol: "BTC/EUR", timeframe: "1h" });
 
         expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/v1/trading/candle"), expect.any(Object));
     });

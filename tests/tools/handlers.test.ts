@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleAccountTool } from "../../src/tools/account.js";
 import { handleAggregationTool } from "../../src/tools/aggregation.js";
@@ -5,7 +6,6 @@ import { handleEarnTool } from "../../src/tools/earn.js";
 import { handleLoanTool } from "../../src/tools/loan.js";
 import { handleProTool } from "../../src/tools/pro.js";
 import * as bit2meService from "../../src/services/bit2me.js";
-import axios from "axios";
 
 vi.mock("../../src/services/bit2me.js");
 vi.mock("axios");

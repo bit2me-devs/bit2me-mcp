@@ -10,7 +10,7 @@ export const accountTools: Tool[] = [
     },
 ];
 
-export async function handleAccountTool(name: string, args: any) {
+export async function handleAccountTool(name: string, _args: unknown) {
     if (name === "account_get_info") {
         const data = await bit2meRequest("GET", "/v1/account");
         const optimized = mapAccountInfoResponse(data);

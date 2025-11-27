@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
 import {
@@ -136,7 +137,7 @@ export async function handleEarnTool(name: string, args: any) {
     }
 
     if (name === "earn_get_transactions") {
-        const params: any = {};
+        const params: Record<string, any> = {};
         if (args.limit) params.limit = args.limit;
         if (args.offset) params.offset = args.offset;
         const data = await bit2meRequest("GET", `/v1/earn/wallets/${args.walletId}/movements`, params);

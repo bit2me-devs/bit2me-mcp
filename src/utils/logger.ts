@@ -40,7 +40,7 @@ class Logger {
     /**
      * Sanitize sensitive data from objects
      */
-    private sanitize(data: any): any {
+    private sanitize(data: unknown): unknown {
         if (!data) return data;
 
         // Handle primitive types
@@ -52,8 +52,9 @@ class Logger {
         }
 
         // Handle objects
-        const sanitized: any = {};
-        for (const [key, value] of Object.entries(data)) {
+        const sanitized: Record<string, unknown> = {};
+        const obj = data as Record<string, unknown>;
+        for (const [key, value] of Object.entries(obj)) {
             const keyLower = key.toLowerCase();
             const isSensitive = this.sensitiveKeys.some((k) => keyLower.includes(k));
 
@@ -71,7 +72,7 @@ class Logger {
     /**
      * Format log message with timestamp and level
      */
-    private format(level: LogLevel, message: string, context?: any): string {
+    private format(level: LogLevel, message: string, context?: unknown): string {
         const timestamp = new Date().toISOString();
         const levelUpper = level.toUpperCase().padEnd(5);
 
@@ -88,7 +89,7 @@ class Logger {
     /**
      * Internal log method
      */
-    private log(level: LogLevel, message: string, context?: any): void {
+    private log(level: LogLevel, message: string, context?: unknown): void {
         if (LOG_LEVELS[level] < LOG_LEVELS[this.level]) {
             return; // Skip if below current log level
         }
@@ -102,28 +103,28 @@ class Logger {
     /**
      * Log debug message
      */
-    debug(message: string, context?: any): void {
+    debug(message: string, context?: unknown): void {
         this.log("debug", message, context);
     }
 
     /**
      * Log info message
      */
-    info(message: string, context?: any): void {
+    info(message: string, context?: unknown): void {
         this.log("info", message, context);
     }
 
     /**
      * Log warning message
      */
-    warn(message: string, context?: any): void {
+    warn(message: string, context?: unknown): void {
         this.log("warn", message, context);
     }
 
     /**
      * Log error message
      */
-    error(message: string, context?: any): void {
+    error(message: string, context?: unknown): void {
         this.log("error", message, context);
     }
 }

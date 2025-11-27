@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest, getMarketPrice } from "../services/bit2me.js";
 import { MIN_DUST_VALUE } from "../constants.js";
@@ -27,10 +28,10 @@ export async function handleAggregationTool(name: string, args: any) {
             bit2meRequest("GET", "/v1/loan/orders"), // 3
         ]);
 
-        const wallet = results[0].status === "fulfilled" ? results[0].value : [];
-        const pro = results[1].status === "fulfilled" ? results[1].value : [];
-        const earn = results[2].status === "fulfilled" ? results[2].value : [];
-        const loans = results[3].status === "fulfilled" ? results[3].value : {};
+        const wallet: any = results[0].status === "fulfilled" ? results[0].value : [];
+        const pro: any = results[1].status === "fulfilled" ? results[1].value : [];
+        const earn: any = results[2].status === "fulfilled" ? results[2].value : [];
+        const loans: any = results[3].status === "fulfilled" ? results[3].value : {};
 
         // Errors are logged but not thrown to allow partial portfolio view
 
@@ -77,7 +78,7 @@ export async function handleAggregationTool(name: string, args: any) {
             const val = amount * price;
             totalVal += val;
 
-            if (val > 0.01) {
+            if (val > MIN_DUST_VALUE) {
                 // Filter dust
                 breakdown.push({
                     asset: symbol,

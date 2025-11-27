@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
 import { BIT2ME_GATEWAY_URL } from "../config.js";
@@ -148,7 +149,7 @@ export async function handleMarketTool(name: string, args: any) {
                 return { content: [{ type: "text", text: JSON.stringify({ error: "No data available" }) }] };
             }
 
-            const [crypto, fiat] = args.ticker.split("/");
+            const [, fiat] = args.ticker.split("/");
 
             const processedData = rawData.map((entry: any[]) => {
                 const timestamp = entry[0];
