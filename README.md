@@ -41,91 +41,91 @@ Below is a detailed list of tools and the Bit2Me API endpoints they use.
 
 ### 📊 Market Tools (Public Data)
 
-| Tool                       | Endpoint                          | Description                                    |
-| -------------------------- | --------------------------------- | ---------------------------------------------- |
-| `market_get_ticker`        | `GET /v3/currency/ticker/:symbol` | Current price, volume, high/low.               |
-| `market_get_chart`         | `GET /v3/currency/chart`          | Historical price candles.                      |
-| `market_get_assets`        | `GET /v2/currency/assets`         | List of all assets.                            |
-| `market_get_asset_details` | `GET /v2/currency/assets/:symbol` | Specific asset details.                        |
-| `market_get_order_book`    | `GET /v2/trading/order-book`      | Market depth (bids/asks).                      |
-| `market_get_public_trades` | `GET /v1/trading/trade/last`      | Recent trades.                                 |
-| `market_get_config`        | `GET /v1/trading/market-config`   | Market configuration (min amounts, precision). |
-| `market_get_candles`       | `GET /v1/trading/candle`          | OHLCV candles for Pro Trading.                 |
+| Tool                       | Endpoint                          | Description                                                                                                                                                                                                                                                                               |
+| -------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `market_get_ticker`        | `GET /v3/currency/ticker/:symbol` | Gets current price, 24h volume, market highs and lows for a cryptocurrency. Specify symbol (e.g., BTC) and optional base currency (default: EUR). Returns price, volume, market cap, and supply information.                                                                              |
+| `market_get_chart`         | `GET /v3/currency/chart`          | Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires ticker pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns last 30 data points with dates and prices in both USD and the fiat currency from the ticker. |
+| `market_get_assets`        | `GET /v2/currency/assets`         | Gets all available assets (cryptocurrencies) supported by Bit2Me. Returns symbol, name, asset type, network, trading status, and supported pairs. Use this to discover available currencies before trading or checking prices.                                                            |
+| `market_get_asset_details` | `GET /v2/currency/assets/:symbol` | Gets detailed information of a specific asset by its symbol. Returns asset type, network, trading status, loan availability, and supported trading pairs. Use this to verify if an asset is tradeable or loanable before operations.                                                      |
+| `market_get_order_book`    | `GET /v2/trading/order-book`      | Gets the order book (market depth) for a market showing current buy and sell orders. Returns bids (buy orders) and asks (sell orders) with prices and amounts. Useful for analyzing market liquidity and determining optimal order prices.                                                |
+| `market_get_public_trades` | `GET /v1/trading/trade/last`      | Gets the latest public trades (executed orders) for a market. Returns recent transactions with price, amount, side (buy/sell), and timestamp. Optional limit (max 100) and sort order (ASC/DESC). Useful for seeing recent market activity.                                               |
+| `market_get_config`        | `GET /v1/trading/market-config`   | Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional symbol filter for a specific market. Use this before placing orders to ensure amounts meet requirements.                                                            |
+| `market_get_candles`       | `GET /v1/trading/candle`          | Gets OHLCV (Open, High, Low, Close, Volume) candles for Trading Pro. Returns price data in specified timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M). Optional limit to control number of candles. Essential for technical analysis and charting.                                        |
 
 ### 💼 Wallet Tools (Private)
 
-| Tool                             | Endpoint                         | Description                      |
-| -------------------------------- | -------------------------------- | -------------------------------- |
-| `wallet_get_pockets`             | `GET /v1/wallet/pocket`          | List of wallets/pockets.         |
-| `wallet_get_pocket_details`      | `GET /v1/wallet/pocket`          | Specific wallet info.            |
-| `wallet_get_transactions`        | `GET /v2/wallet/transaction`     | Transaction history.             |
-| `wallet_get_pocket_addresses`    | `GET /v2/wallet/pocket/...`      | Deposit addresses.               |
-| `wallet_get_networks`            | `GET /v1/wallet/currency/...`    | Supported networks for currency. |
-| `wallet_get_transaction_details` | `GET /v1/wallet/transaction/:id` | Specific transaction details.    |
+| Tool                             | Endpoint                         | Description                                                                                                                                                                                                                                                                                                                                                            |
+| -------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wallet_get_pockets`             | `GET /v1/wallet/pocket`          | Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. Multiple pockets can exist for the same currency. After getting the response, filter by the 'currency' field client-side if needed. Look for pockets with meaningful names or non-zero balances to identify the active one. |
+| `wallet_get_pocket_details`      | `GET /v1/wallet/pocket`          | Gets detailed information of a specific wallet (Pocket) by its ID. Returns balance, available funds, blocked funds, currency, name, and creation date. Use wallet_get_pockets first to get the pocket ID.                                                                                                                                                              |
+| `wallet_get_transactions`        | `GET /v2/wallet/transaction`     | History of past Wallet operations (deposits, withdrawals, swaps, purchases). Optional currency filter. Use limit and offset for pagination (default limit: 10). Returns transaction list with type, amount, currency, status, and timestamp.                                                                                                                           |
+| `wallet_get_pocket_addresses`    | `GET /v2/wallet/pocket/...`      | Lists deposit addresses for a wallet (Pocket) on a specific network. Use wallet_get_networks first to see available networks for a currency. Each network may have different addresses. Returns address, network, and creation date. Use this address to receive deposits on the specified network.                                                                    |
+| `wallet_get_networks`            | `GET /v1/wallet/currency/...`    | Lists available networks for a specific currency. Use this before wallet_get_pocket_addresses to see which networks support deposits for a currency (e.g., bitcoin, ethereum, binanceSmartChain). Returns network ID, name, native currency, fee currency, and whether it requires a tag/memo.                                                                         |
+| `wallet_get_transaction_details` | `GET /v1/wallet/transaction/:id` | Gets detailed information of a specific transaction by its ID. Returns complete transaction data including type, amount, currency, status, fees, timestamps, and related pocket IDs. Use wallet_get_transactions first to get transaction IDs.                                                                                                                         |
 
 ### 💰 Earn (Staking) Tools
 
-| Tool                              | Endpoint                                   | Description                      |
-| --------------------------------- | ------------------------------------------ | -------------------------------- |
-| `earn_get_summary`                | `GET /v1/earn/summary`                     | Total accumulated rewards.       |
-| `earn_get_wallets`                | `GET /v2/earn/wallets`                     | Active strategies/wallets.       |
-| `earn_get_wallet_details`         | `GET /v1/earn/wallets/:id`                 | Specific Earn wallet details.    |
-| `earn_get_transactions`           | `GET /v1/earn/wallets/:id/movements`       | Earn transaction history.        |
-| `earn_get_transactions_summary`   | `GET /v1/earn/movements/:type/summary`     | Summary of movements by type.    |
-| `earn_get_assets`                 | `GET /v2/earn/assets`                      | Supported Earn assets.           |
-| `earn_get_apy`                    | `GET /v2/earn/apy`                         | Current APYs.                    |
-| `earn_get_rewards_config`         | `GET /v1/earn/wallets/rewards/config`      | Global rewards configuration.    |
-| `earn_get_wallet_rewards_config`  | `GET /v1/earn/wallets/:id/rewards/config`  | Wallet specific rewards config.  |
-| `earn_get_wallet_rewards_summary` | `GET /v1/earn/wallets/:id/rewards/summary` | Wallet specific rewards summary. |
+| Tool                              | Endpoint                                   | Description                                                                                                                                                                                                                           |
+| --------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `earn_get_summary`                | `GET /v1/earn/summary`                     | View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn wallets, breakdown by currency, and overall performance. Use this to see your total staking rewards.                                |
+| `earn_get_wallets`                | `GET /v2/earn/wallets`                     | List active Earn wallets/strategies with their current APY (Annual Percentage Yield). Returns wallet ID, currency, balance, APY, and status. Use this to see available staking options and their returns before depositing.           |
+| `earn_get_wallet_details`         | `GET /v1/earn/wallets/:id`                 | Get detailed information of a specific Earn wallet. Returns balance, APY, total rewards, status, and configuration. Use earn_get_wallets first to get the wallet ID.                                                                  |
+| `earn_get_transactions`           | `GET /v1/earn/wallets/:id/movements`       | Get transaction history (movements) of an Earn wallet. Returns deposits, withdrawals, and reward payments with amounts, dates, and status. Optional limit and offset for pagination. Use earn_get_wallets first to get the wallet ID. |
+| `earn_get_transactions_summary`   | `GET /v1/earn/movements/:type/summary`     | Get summary statistics of Earn movements filtered by type (DEPOSIT, WITHDRAWAL, etc.). Returns total count, total amounts, and aggregated data for the specified movement type across all Earn wallets.                               |
+| `earn_get_assets`                 | `GET /v2/earn/assets`                      | Get list of assets (cryptocurrencies) supported in Earn/Staking. Returns available currencies with their staking options. Use this to discover which assets can be staked before creating Earn transactions.                          |
+| `earn_get_apy`                    | `GET /v2/earn/apy`                         | Get current APY (Annual Percentage Yield) rates for all Earn/Staking options. Returns APY percentages per asset and strategy. Use this to compare returns before choosing where to stake your assets.                                 |
+| `earn_get_rewards_config`         | `GET /v1/earn/wallets/rewards/config`      | Get global rewards configuration for Earn/Staking. Returns reward calculation rules, distribution schedules, and general staking parameters. Use this to understand how rewards are calculated.                                       |
+| `earn_get_wallet_rewards_config`  | `GET /v1/earn/wallets/:id/rewards/config`  | Get rewards configuration for a specific Earn wallet. Returns reward calculation rules, APY details, and wallet-specific staking parameters. Use earn_get_wallets first to get the wallet ID.                                         |
+| `earn_get_wallet_rewards_summary` | `GET /v1/earn/wallets/:id/rewards/summary` | Get rewards summary for a specific Earn wallet. Returns total rewards earned, pending rewards, reward history, and performance metrics. Use earn_get_wallets first to get the wallet ID.                                              |
 
 ### 🏦 Loan Tools
 
-| Tool                     | Endpoint                              | Description                      |
-| ------------------------ | ------------------------------------- | -------------------------------- |
-| `loan_get_active`        | `GET /v1/loan/orders`                 | Active loans.                    |
-| `loan_get_ltv`           | `GET /v1/loan/ltv`                    | LTV (Loan To Value) Calculation. |
-| `loan_get_config`        | `GET /v1/loan/currency/configuration` | Loan currencies configuration.   |
-| `loan_get_transactions`  | `GET /v1/loan/movements`              | Loan transaction history.        |
-| `loan_get_orders`        | `GET /v1/loan/orders`                 | All loan orders.                 |
-| `loan_get_order_details` | `GET /v1/loan/orders/:id`             | Specific loan order details.     |
+| Tool                     | Endpoint                              | Description                                                                                                                                                                                                                                                                                                                    |
+| ------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `loan_get_active`        | `GET /v1/loan/orders`                 | View all active loans. Returns list of current loans with guarantee amounts, loan amounts, LTV ratios, currencies, and status. Use this to monitor your active loan positions.                                                                                                                                                 |
+| `loan_get_ltv`           | `GET /v1/loan/ltv`                    | Calculate LTV (Loan To Value) ratio for a loan scenario. LTV represents the loan amount as a percentage of the guarantee value. Lower LTV means lower risk. Provide either guaranteeAmount or loanAmount (the other will be calculated). Returns LTV percentage and risk level. Use this before loan_create to plan your loan. |
+| `loan_get_config`        | `GET /v1/loan/currency/configuration` | Get currency configuration for loans including supported guarantee currencies, loan currencies, LTV limits, interest rates, and requirements. Use this before creating a loan to understand available options and limits.                                                                                                      |
+| `loan_get_transactions`  | `GET /v1/loan/movements`              | Get loan transaction history (movements) including payments, interest accruals, and guarantee changes. Optional orderId filter to see movements for a specific loan. Use limit and offset for pagination.                                                                                                                      |
+| `loan_get_orders`        | `GET /v1/loan/orders`                 | Get all loan orders (both active and closed) for the user. Returns loans with guarantee amounts, loan amounts, LTV ratios, currencies, status, and dates. Optional limit and offset for pagination.                                                                                                                            |
+| `loan_get_order_details` | `GET /v1/loan/orders/:id`             | Get detailed information of a specific loan order. Returns guarantee amount, loan amount, LTV, interest rate, status, creation date, and payment history. Use loan_get_active or loan_get_orders first to get the order ID.                                                                                                    |
 
 ### 📈 Pro Trading Tools
 
-| Tool                    | Endpoint                           | Description                      |
-| ----------------------- | ---------------------------------- | -------------------------------- |
-| `pro_get_balance`       | `GET /v1/trading/wallet/balance`   | Pro account balance.             |
-| `pro_get_open_orders`   | `GET /v1/trading/order`            | Open orders.                     |
-| `pro_get_transactions`  | `GET /v1/trading/trade`            | Trade history.                   |
-| `pro_get_order_trades`  | `GET /v1/trading/order/:id/trades` | Trades associated with an order. |
-| `pro_get_order_details` | `GET /v1/trading/order/:id`        | Specific order details.          |
+| Tool                    | Endpoint                           | Description                                                                                                                                                                                                                                       |
+| ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pro_get_balance`       | `GET /v1/trading/wallet/balance`   | Gets balances from PRO Trading account. This is separate from Simple Wallet - funds must be transferred using pro_deposit/pro_withdraw. Returns available and blocked balances per currency for trading.                                          |
+| `pro_get_open_orders`   | `GET /v1/trading/order`            | View open trading orders in PRO. Returns all active orders (pending, partially filled). Optional symbol filter to see orders for a specific market. Use this to monitor order status after pro_create_order.                                      |
+| `pro_get_transactions`  | `GET /v1/trading/trade`            | Gets the user's trade history in Pro Trading. Returns executed trades with price, amount, side (buy/sell), fees, and timestamp. Optional filters: symbol, limit, offset, and sort order (ASC/DESC). Use this to review past trading activity.     |
+| `pro_get_order_trades`  | `GET /v1/trading/order/:id/trades` | Gets all individual trades (executions) associated with a specific order. Returns detailed execution data including price, amount, fees, and timestamp for each fill. Useful for analyzing how a large order was executed across multiple trades. |
+| `pro_get_order_details` | `GET /v1/trading/order/:id`        | Gets detailed information of a specific Pro order. Returns order type, symbol, side, amount, price, status, filled amount, creation time, and execution details. Use pro_get_open_orders or pro_get_transactions first to get the order ID.       |
 
 ### 👤 Account Tools
 
-| Tool               | Endpoint          | Description                           |
-| ------------------ | ----------------- | ------------------------------------- |
-| `account_get_info` | `GET /v1/account` | User profile and verification levels. |
+| Tool               | Endpoint          | Description                                                                                                                                                                                               |
+| ------------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `account_get_info` | `GET /v1/account` | View user account information including profile details, verification levels, account status, and user settings. Returns account metadata useful for understanding account capabilities and restrictions. |
 
 ### 📊 Aggregation Tools
 
-| Tool                      | Endpoint   | Description                             |
-| ------------------------- | ---------- | --------------------------------------- |
-| `portfolio_get_valuation` | `GET /...` | Aggregates Wallet + Pro + Earn + Loans. |
+| Tool                      | Endpoint   | Description                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `portfolio_get_valuation` | `GET /...` | Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat currency (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations. Filters out dust amounts below minimum threshold. |
 
 ### ⚡ Operations (Write Actions)
 
-| Tool                         | Endpoint                                      | Description                                                 |
-| ---------------------------- | --------------------------------------------- | ----------------------------------------------------------- |
-| `wallet_create_proforma`     | `POST /v1/wallet/transaction/proforma`        | **Step 1**: Quote a swap/transfer. Returns a `proforma_id`. |
-| `wallet_confirm_transaction` | `POST /v1/wallet/transaction`                 | **Step 2**: Execute the operation using `proforma_id`.      |
-| `pro_create_order`           | `POST /v1/trading/order`                      | Place a Limit/Market/Stop order in Pro.                     |
-| `pro_cancel_order`           | `DELETE /v1/trading/order/:id`                | Cancel a specific order.                                    |
-| `pro_cancel_all_orders`      | `DELETE /v1/trading/order`                    | Cancel all open orders.                                     |
-| `pro_deposit`                | `POST /v1/trading/wallet/deposit`             | Transfer from Wallet to Pro.                                |
-| `pro_withdraw`               | `POST /v1/trading/wallet/withdraw`            | Transfer from Pro to Wallet.                                |
-| `earn_create_transaction`    | `POST /v1/wallet/earn/movements`              | Deposit/Withdraw from Earn.                                 |
-| `loan_create`                | `POST /v1/loan/orders`                        | Request a new loan.                                         |
-| `loan_increase_guarantee`    | `POST /v1/loan/orders/:id/guarantee/increase` | Add collateral to loan.                                     |
-| `loan_payback`               | `POST /v1/loan/orders/:id/payback`            | Repay loan.                                                 |
+| Tool                         | Endpoint                                      | Description                                                                                                                                                                                                                                                                                |
+| ---------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `wallet_create_proforma`     | `POST /v1/wallet/transaction/proforma`        | **Step 1**: Simulates/Quotes an operation in Simple Wallet. Returns Proforma ID and cost. REQUIRES subsequent confirmation.                                                                                                                                                                |
+| `wallet_confirm_transaction` | `POST /v1/wallet/transaction`                 | **Step 2**: Executes the operation using the Proforma ID. Final action.                                                                                                                                                                                                                    |
+| `pro_create_order`           | `POST /v1/trading/order`                      | Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stopPrice' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status.               |
+| `pro_cancel_order`           | `DELETE /v1/trading/order/:id`                | Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled.                                                                                                             |
+| `pro_cancel_all_orders`      | `DELETE /v1/trading/order`                    | Cancel all open orders in Pro Trading. Optional symbol filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders.                                                                                         |
+| `pro_deposit`                | `POST /v1/trading/wallet/deposit`             | Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit.                                                                                 |
+| `pro_withdraw`               | `POST /v1/trading/wallet/withdraw`            | Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal.                                                                                |
+| `earn_create_transaction`    | `POST /v1/wallet/earn/movements`              | Create deposit or withdrawal in Earn (Staking). For deposits, funds move from Simple Wallet pocket to Earn. For withdrawals, funds return from Earn to the specified pocket. Returns transaction details with status. Use earn_get_wallets to see available Earn strategies first.         |
+| `loan_create`                | `POST /v1/loan/orders`                        | Create a new loan by providing cryptocurrency as guarantee (collateral) to receive fiat currency. The guarantee amount determines the maximum loan amount based on LTV (Loan To Value) ratio. Use loan_get_ltv first to calculate optimal amounts. Returns loan order details with status. |
+| `loan_increase_guarantee`    | `POST /v1/loan/orders/:id/guarantee/increase` | Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_active first to get the order ID.                                                                                                |
+| `loan_payback`               | `POST /v1/loan/orders/:id/payback`            | Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_active first to get the order ID and check current loan amount.                                                                       |
 
 ## 📋 Response Schemas
 
