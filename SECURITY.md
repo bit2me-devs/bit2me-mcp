@@ -1,12 +1,12 @@
 # Reporting Security Issues
 
-The Bit2Me MCP team takes security bugs seriously. We appreciate your efforts to responsibly disclose your findings, and will make every effort to acknowledge your contributions.
+The Bit2Me team takes security bugs seriously. We appreciate your efforts to responsibly disclose your findings, and will make every effort to acknowledge your contributions.
 
 ## How to Report Security Issues
 
 To report a security issue, please use the GitHub Security Advisory ["Report a Vulnerability"](https://github.com/bit2me-devs/bit2me-mcp/security/advisories/new) tab.
 
-The Bit2Me MCP team will send a response indicating the next steps in handling your report. After the initial reply to your report, the security team will keep you informed of the progress towards a fix and full announcement, and may ask for additional information or guidance.
+The Bit2Me team will send a response indicating the next steps in handling your report. After the initial reply to your report, the security team will keep you informed of the progress towards a fix and full announcement, and may ask for additional information or guidance.
 
 ## Reporting Security Bugs in Dependencies
 
@@ -14,7 +14,7 @@ Report security bugs in third-party modules to the person or team maintaining th
 
 ## Escalation
 
-If you do not receive an acknowledgement of your report within 6 business days, or if you cannot find a private security contact for the project, you may escalate by opening a public issue with the `security` label.
+If you do not receive an acknowledgement of your report within 6 business days, or if you cannot find a private security contact for the project, you may escalate by opening a ticket in ["Bit2Me Support Platform"](https://support.bit2me.com/en/support/tickets/new).
 
 If the project acknowledges your report but does not provide any further response or engagement within 14 days, escalation is also appropriate.
 
@@ -24,7 +24,6 @@ When using the Bit2Me MCP server, please follow these security best practices:
 
 - **API Keys**: Never commit API keys to version control. Use environment variables or secure configuration files.
 - **Permissions**: Only grant the minimum necessary permissions to your API keys. Do not enable "Withdrawal" permissions unless absolutely necessary.
-- **Network**: Use secure connections (HTTPS) when communicating with the Bit2Me API.
 - **Updates**: Keep the MCP server and its dependencies up to date to receive security patches.
 
 ## What We Consider Security Issues
