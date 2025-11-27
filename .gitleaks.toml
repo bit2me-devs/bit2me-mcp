@@ -6,29 +6,33 @@ title = "Bit2Me MCP Secret Detection"
 useDefault = true
 
 [allowlist]
-description = "Allowlist for known false positives and test files"
-
-# Allow test fixtures and mock data
-paths = [
-    '''tests/.*''',
-    '''\.test\.ts$''',
-    '''\.spec\.ts$''',
-    '''coverage/.*''',
-    '''build/.*''',
-    '''node_modules/.*''',
-    '''\.env\.example$''',
-]
+description = "Allowlist for known false positives (paths are excluded via .gitleaksignore)"
 
 # Allow example API keys in documentation (they are clearly marked as examples)
 commits = [
     '''example.*api.*key''',
     '''YOUR.*API.*KEY''',
     '''test.*key''',
+    '''your.*api.*key''',
+    '''your.*secret''',
 ]
 
-# Allow common test patterns
+# Allow common test patterns and documentation placeholders
 regexes = [
     '''test.*[a-zA-Z0-9]{32}''',
     '''example.*[a-zA-Z0-9]{32}''',
+    '''YOUR_BIT2ME_ACCOUNT_API_KEY''',
+    '''YOUR_BIT2ME_ACCOUNT_API_SECRET''',
+    '''your_api_key_here''',
+    '''your_api_secret_here''',
+    '''your_key''',
+    '''your_secret''',
+    '''test-api-key''',
+    '''test-api-secret''',
+    '''test-key''',
+    '''test-secret''',
+    '''test_secret_key_for_testing''',
+    '''BIT2ME_API_KEY.*=.*YOUR''',
+    '''BIT2ME_API_SECRET.*=.*YOUR''',
 ]
 

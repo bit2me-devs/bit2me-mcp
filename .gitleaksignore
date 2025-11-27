@@ -1,0 +1,28 @@
+# Gitleaks ignore file for Bit2Me MCP Server
+# This file excludes paths from secret scanning
+
+# Test files and fixtures
+tests/
+*.test.ts
+*.spec.ts
+
+# Build artifacts
+build/
+coverage/
+dist/
+node_modules/
+
+# Documentation files (contain example placeholders)
+README.md
+landing/index.html
+docs/
+*.md
+
+# Example configuration files
+.env.example
+*.example
+
+# Lock files (may contain dependency checksums that look like secrets)
+package-lock.json
+yarn.lock
+
