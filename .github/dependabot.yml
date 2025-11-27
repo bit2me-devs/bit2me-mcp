@@ -1,43 +1,77 @@
 version: 2
 updates:
-  # Enable version updates for npm
+  # ---------------------------------------------------------
+  # 1. NPM (Project dependencies)
+  # ---------------------------------------------------------
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    open-pull-requests-limit: 5
+      timezone: "Europe/Madrid"
+    
+    # Limits to avoid cluttering the PR list
+    open-pull-requests-limit: 10
+    
+    # Automatic assignment
     reviewers:
-      - "bit2me-dev"  
+      - "bit2me-dev"
     assignees:
-      - "bit2me-dev"  
+      - "bit2me-dev"
+      
+    # Labels for easy filtering in GitHub
     labels:
       - "dependencies"
-      - "automated"
+      - "npm"
+
+    # Commit Message Configuration for Semantic Release compatibility
     commit-message:
-      prefix: "chore"
-      include: "scope"
-    # Group all patch updates together
+      prefix: "chore"       # Result: chore(deps): bump...
+      prefix-development: "chore" 
+      include: "scope"      # Includes package name in the scope
+
+    # GROUPING STRATEGY (Reduces notification noise)
     groups:
-      patch-updates:
+      # Group 1: All 'devDependencies' (testing, linting, husky) together
+      # This turns multiple small PRs into a single weekly PR.
+      dev-dependencies:
+        dependency-type: "development"
         patterns:
           - "*"
         update-types:
+          - "minor"
           - "patch"
-    # Auto-merge minor and patch updates for known safe packages
-    # (Requires enabling GitHub auto-merge feature)
-    
-  # Enable version updates for GitHub Actions
+          
+      # Group 2: 'Safe' production dependencies (patches only)
+      # Critical runtime dependencies are grouped for easier review.
+      production-patches:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+
+  # ---------------------------------------------------------
+  # 2. GitHub Actions (Workflows)
+  # ---------------------------------------------------------
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "Europe/Madrid"
+    
     labels:
       - "dependencies"
       - "github-actions"
+
+    # Prefix 'ci' ensures Semantic Release treats this as an infrastructure change
     commit-message:
-      prefix: "ci"
+      prefix: "ci"          # Result: ci(deps): bump actions/checkout...
       include: "scope"
+
+    # Group ALL actions into a single PR
+    groups:
+      all-actions:
+        patterns:
+          - "*"
