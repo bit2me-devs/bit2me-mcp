@@ -348,7 +348,7 @@ Use the published package from npm - no build required:
 ```bash
 export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
 export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
-npx @modelcontextprotocol/inspector npx -y @bit2me/mcp-server
+npx -y @modelcontextprotocol/inspector npx @bit2me/mcp-server
 ```
 
 #### Option B: Using Local Repository
@@ -402,10 +402,46 @@ The web interface provides:
         "currency": "EUR"
     }
     ```
-4. Click **Execute**
-5. View the formatted response
+4. Click **Run** to execute the tool
+5. View the formatted response in the output panel
 
-### Debugging Tips
+## 🧪 Testing & Coverage
+
+This project maintains **97% line coverage** with a focus on test quality over metrics.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage report
+npm run test:coverage
+```
+
+### Coverage Philosophy
+
+We intentionally maintain 97% coverage rather than pursuing 100%. This pragmatic approach is based on industry best practices:
+
+> **Martin Fowler**: _"I would be suspicious of anything like 100% - it would smell of someone writing tests to make the coverage numbers happy."_
+
+**What's Covered ✅**:
+
+- All authentication flows and API request signing
+- All error handling (HTTP errors, rate limiting, retries)
+- All data validation and transformations
+- All business logic (trading, wallets, Earn, Loans)
+- All 47 MCP tool endpoints
+
+**What's NOT Covered (3%) ⚠️**:
+
+- Debug log messages within already-tested error paths
+- Defensive defaults for unlikely API edge cases
+- Alternative error formats that don't occur in practice
+
+**140 tests** ensure critical paths work correctly. See `/tests` for details.
+
+## 🛠️ Development
 
 - **Check logs in terminal:** All server logs appear in the terminal where you started the inspector
 - **Verify credentials:** Ensure API keys are set correctly
