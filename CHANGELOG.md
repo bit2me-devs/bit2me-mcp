@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.3.0...v1.3.1) (2025-11-27)
+
+### Bug Fixes
+
+- reorganizar importaciones en wallet.ts para coincidir con orden de exportaciones ([969cf5b](https://github.com/bit2me-devs/bit2me-mcp/commit/969cf5b9562a84753c516f0ddf627b3e12b1b7f3))
+
 # [1.3.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.2.0...v1.3.0) (2025-11-27)
 
 ### Bug Fixes
