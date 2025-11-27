@@ -1,4 +1,5 @@
 {
+    "repositoryUrl": "https://github.com/bit2me-devs/bit2me-mcp.git",
     "branches": ["main"],
     "plugins": [
         [
