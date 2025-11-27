@@ -10,6 +10,7 @@ import {
     mapOrderBookResponse,
     mapPublicTradesResponse,
     mapCandlesResponse,
+    wrapResponseWithRaw,
 } from "../utils/response-mappers.js";
 
 const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
@@ -124,7 +125,8 @@ export async function handleMarketTool(name: string, args: any) {
             const tickerData = await getTicker(symbol, currency);
             if (tickerData) {
                 const optimized = mapTickerResponse(tickerData);
-                return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+                const wrapped = wrapResponseWithRaw(optimized, tickerData);
+                return { content: [{ type: "text", text: JSON.stringify(wrapped, null, 2) }] };
             }
             return { content: [{ type: "text", text: "Ticker not found" }] };
         } catch (error: any) {
