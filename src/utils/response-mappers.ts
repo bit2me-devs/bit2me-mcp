@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Response mapping utilities with type guards
  * Maps raw API responses to optimized schemas with validation
@@ -12,6 +13,7 @@ import type {
     MarketOrderBookResponse,
     PublicTradeResponse,
     CandleResponse,
+
     // Wallet
     WalletAddressResponse,
     WalletTransactionDetailsResponse,
@@ -41,7 +43,6 @@ import type {
     ProOrderResponse,
     ProOpenOrdersResponse,
     ProOrderTradesResponse,
-    ProTradeResponse,
     // Operations
     ProformaResponse,
     TransactionConfirmationResponse,
@@ -59,7 +60,7 @@ import type {
 // TYPE GUARDS
 // ============================================================================
 
-function isValidTickerResponse(data: unknown): data is any {
+function isValidTickerResponse(data: unknown): data is Record<string, any> {
     return typeof data === "object" && data !== null && "price" in data && "time" in data;
 }
 
@@ -237,7 +238,7 @@ export function mapWalletTransactionsResponse(raw: unknown): WalletTransactionRe
     }
 
     return raw.map((tx: any, index: number) => {
-        const originRate = tx.origin?.rate?.rate?.value || tx.origin?.rate?.value;
+        // const originRate = tx.origin?.rate?.rate?.value || tx.origin?.rate?.value;
 
         return {
             id: tx.id || `tx_${index}`,

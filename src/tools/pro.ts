@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
 import {
     mapProBalanceResponse,
-    mapProOpenOrdersResponse,
     mapProOrderTradesResponse,
     mapProOrderResponse,
     mapProCancelOrderResponse,

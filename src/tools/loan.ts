@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
 import {
@@ -119,7 +120,7 @@ export async function handleLoanTool(name: string, args: any) {
     }
 
     if (name === "loan_get_ltv") {
-        const params: any = {
+        const params: Record<string, any> = {
             guaranteeCurrency: args.guaranteeCurrency,
             loanCurrency: args.loanCurrency,
             userCurrency: args.userCurrency,
@@ -139,7 +140,7 @@ export async function handleLoanTool(name: string, args: any) {
     }
 
     if (name === "loan_get_transactions") {
-        const params: any = {};
+        const params: Record<string, any> = {};
         if (args.orderId) params.orderId = args.orderId;
         if (args.limit) params.limit = args.limit;
         if (args.offset) params.offset = args.offset;
@@ -150,7 +151,7 @@ export async function handleLoanTool(name: string, args: any) {
     }
 
     if (name === "loan_get_orders") {
-        const params: any = {};
+        const params: Record<string, any> = {};
         if (args.limit) params.limit = args.limit;
         if (args.offset) params.offset = args.offset;
 

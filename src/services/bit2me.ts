@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import crypto from "crypto";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import { config, BIT2ME_GATEWAY_URL, getConfig } from "../config.js";
@@ -54,12 +55,12 @@ function calculateBackoffDelay(retryAttempt: number, baseDelay: number, maxDelay
  * Centralized wrapper for API calls.
  * Handles headers, signature, nonce, timeouts, retry logic with exponential backoff, and errors.
  */
-export async function bit2meRequest(
+export async function bit2meRequest<T = any>(
     method: "GET" | "POST" | "DELETE",
     endpoint: string,
     params?: any,
     retries?: number
-): Promise<any> {
+): Promise<T> {
     const appConfig = getConfig();
     const maxRetries = retries ?? appConfig.MAX_RETRIES;
     const baseDelay = appConfig.RETRY_BASE_DELAY;
@@ -124,10 +125,10 @@ export async function bit2meRequest(
         const response = await axios(requestConfig);
         logger.debug(`API Response: ${method} ${urlToSign} - Status ${response.status}`);
         return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
         const axiosError = error as AxiosError;
         const status = axiosError.response?.status;
-        const data: any = axiosError.response?.data;
+        const data = axiosError.response?.data as any;
 
         // Better error handling to see what Bit2Me actually returns
         const errorMsg = data?.message || JSON.stringify(data) || axiosError.message;
@@ -182,7 +183,7 @@ export async function getMarketPrice(cryptoSymbol: string, fiatCurrency: string)
         const tickerData = await getTicker(cryptoSymbol, fiatCurrency);
         const priceData = tickerData?.price || 0;
         return parseFloat(priceData) || 0;
-    } catch (e) {
+    } catch {
         // Silent to avoid saturating logs if an exotic coin fails
         return 0;
     }
