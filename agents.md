@@ -34,7 +34,10 @@ This document contains all the rules, conventions, and practices learned for man
     - `style:` - Code style changes
     - `refactor:` - Code refactoring
     - `test:` - Test changes
-- **Commit messages MUST be in English**
+- **CRITICAL: All commit messages MUST be written in English**
+    - Subject line must be in English
+    - Body (if present) must be in English
+    - No exceptions - this ensures consistency and compatibility with tools
 - **Commitlint** validates all commits via Husky pre-commit hook
 
 ### Examples

@@ -8,24 +8,24 @@
 
 ### Features
 
-- añadir Google Analytics a la landing page ([ec61650](https://github.com/bit2me-devs/bit2me-mcp/commit/ec616502fcf21206b45f2b2becd4c8e416353af4))
+- add Google Analytics to landing page ([ec61650](https://github.com/bit2me-devs/bit2me-mcp/commit/ec616502fcf21206b45f2b2becd4c8e416353af4))
 
 ## [1.3.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.3.0...v1.3.1) (2025-11-27)
 
 ### Bug Fixes
 
-- reorganizar importaciones en wallet.ts para coincidir con orden de exportaciones ([969cf5b](https://github.com/bit2me-devs/bit2me-mcp/commit/969cf5b9562a84753c516f0ddf627b3e12b1b7f3))
+- reorganize imports in wallet.ts to match export order ([969cf5b](https://github.com/bit2me-devs/bit2me-mcp/commit/969cf5b9562a84753c516f0ddf627b3e12b1b7f3))
 
 # [1.3.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.2.0...v1.3.0) (2025-11-27)
 
 ### Bug Fixes
 
-- eliminar líneas deprecadas de husky ([545c3eb](https://github.com/bit2me-devs/bit2me-mcp/commit/545c3eba36fbe3d2bf4577b66479f083961f2730))
+- remove deprecated husky lines ([545c3eb](https://github.com/bit2me-devs/bit2me-mcp/commit/545c3eba36fbe3d2bf4577b66479f083961f2730))
 - remove currency parameter from wallet_get_pockets ([0c74d73](https://github.com/bit2me-devs/bit2me-mcp/commit/0c74d73b6b967e14bf7375ae46fb83ca5e515585))
 
 ### Features
 
-- actualizar herramientas, mappers y documentación ([34af228](https://github.com/bit2me-devs/bit2me-mcp/commit/34af228ca9acfeb0f6b33c77b7c26f23aaccbe02))
+- update tools, mappers and documentation ([34af228](https://github.com/bit2me-devs/bit2me-mcp/commit/34af228ca9acfeb0f6b33c77b7c26f23aaccbe02))
 
 # [1.2.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.1.1...v1.2.0) (2025-11-27)
 
