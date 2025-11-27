@@ -9,10 +9,10 @@ export const aggregationTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                fiat_currency: { type: "string", description: "Base currency (e.g., EUR, USD)", default: "EUR" }
-            }
-        }
-    }
+                fiat_currency: { type: "string", description: "Base currency (e.g., EUR, USD)", default: "EUR" },
+            },
+        },
+    },
 ];
 
 export async function handleAggregationTool(name: string, args: any) {
@@ -21,48 +21,52 @@ export async function handleAggregationTool(name: string, args: any) {
 
         // 1. Parallel call to all balance services
         const results = await Promise.allSettled([
-            bit2meRequest("GET", "/v1/wallet/pocket"),          // 0
+            bit2meRequest("GET", "/v1/wallet/pocket"), // 0
             bit2meRequest("GET", "/v1/trading/wallet/balance"), // 1
-            bit2meRequest("GET", "/v1/earn/summary"),           // 2
-            bit2meRequest("GET", "/v1/loan/orders")             // 3
+            bit2meRequest("GET", "/v1/earn/summary"), // 2
+            bit2meRequest("GET", "/v1/loan/orders"), // 3
         ]);
 
-        const wallet = results[0].status === 'fulfilled' ? results[0].value : [];
-        const pro = results[1].status === 'fulfilled' ? results[1].value : [];
-        const earn = results[2].status === 'fulfilled' ? results[2].value : [];
-        const loans = results[3].status === 'fulfilled' ? results[3].value : {};
+        const wallet = results[0].status === "fulfilled" ? results[0].value : [];
+        const pro = results[1].status === "fulfilled" ? results[1].value : [];
+        const earn = results[2].status === "fulfilled" ? results[2].value : [];
+        const loans = results[3].status === "fulfilled" ? results[3].value : {};
 
         // Errors are logged but not thrown to allow partial portfolio view
 
         const assets: Record<string, number> = {};
 
         // Process Wallet
-        if (Array.isArray(wallet)) wallet.forEach((p: any) => {
-            const val = parseFloat(p.balance || "0");
-            if (val > 0) assets[p.currency] = (assets[p.currency] || 0) + val;
-        });
+        if (Array.isArray(wallet))
+            wallet.forEach((p: any) => {
+                const val = parseFloat(p.balance || "0");
+                if (val > 0) assets[p.currency] = (assets[p.currency] || 0) + val;
+            });
 
         // Process Pro
-        if (Array.isArray(pro)) pro.forEach((w: any) => {
-            const val = parseFloat(w.balance || "0") + parseFloat(w.blockedBalance || "0");
-            if (val > 0) assets[w.currency] = (assets[w.currency] || 0) + val;
-        });
+        if (Array.isArray(pro))
+            pro.forEach((w: any) => {
+                const val = parseFloat(w.balance || "0") + parseFloat(w.blockedBalance || "0");
+                if (val > 0) assets[w.currency] = (assets[w.currency] || 0) + val;
+            });
 
         // Process Earn
-        if (Array.isArray(earn)) earn.forEach((e: any) => {
-            const val = parseFloat(e.totalBalance || "0");
-            if (val > 0) assets[e.currency] = (assets[e.currency] || 0) + val;
-        });
+        if (Array.isArray(earn))
+            earn.forEach((e: any) => {
+                const val = parseFloat(e.totalBalance || "0");
+                if (val > 0) assets[e.currency] = (assets[e.currency] || 0) + val;
+            });
 
         // Process Loans
-        if (loans?.data && Array.isArray(loans.data)) loans.data.forEach((l: any) => {
-            const val = parseFloat(l.guaranteeAmount || "0");
-            if (val > 0) assets[l.guaranteeCurrency] = (assets[l.guaranteeCurrency] || 0) + val;
-        });
+        if (loans?.data && Array.isArray(loans.data))
+            loans.data.forEach((l: any) => {
+                const val = parseFloat(l.guaranteeAmount || "0");
+                if (val > 0) assets[l.guaranteeCurrency] = (assets[l.guaranteeCurrency] || 0) + val;
+            });
 
         // 2. Valuation
         const uniqueSymbols = Object.keys(assets);
-        const prices = await Promise.all(uniqueSymbols.map(s => getMarketPrice(s, fiat)));
+        const prices = await Promise.all(uniqueSymbols.map((s) => getMarketPrice(s, fiat)));
 
         const breakdown: any[] = [];
         let totalVal = 0;
@@ -73,12 +77,13 @@ export async function handleAggregationTool(name: string, args: any) {
             const val = amount * price;
             totalVal += val;
 
-            if (val > 0.01) { // Filter dust
+            if (val > 0.01) {
+                // Filter dust
                 breakdown.push({
                     asset: symbol,
                     amount: amount,
                     price_unit: price,
-                    value_fiat: parseFloat(val.toFixed(2))
+                    value_fiat: parseFloat(val.toFixed(2)),
                 });
             }
         });
@@ -86,16 +91,22 @@ export async function handleAggregationTool(name: string, args: any) {
         breakdown.sort((a, b) => b.value_fiat - a.value_fiat);
 
         return {
-            content: [{
-                type: "text", text: JSON.stringify({
-                    currency: fiat,
-                    total_value: parseFloat(totalVal.toFixed(2)),
-                    details: breakdown
-                }, null, 2)
-            }]
+            content: [
+                {
+                    type: "text",
+                    text: JSON.stringify(
+                        {
+                            currency: fiat,
+                            total_value: parseFloat(totalVal.toFixed(2)),
+                            details: breakdown,
+                        },
+                        null,
+                        2
+                    ),
+                },
+            ],
         };
     }
 
     throw new Error(`Unknown aggregation tool: ${name}`);
 }
-

@@ -2,7 +2,14 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
 import { BIT2ME_GATEWAY_URL } from "../config.js";
 import { getTicker } from "../services/bit2me.js";
-import { mapTickerResponse, mapAssetsResponse, mapMarketConfigResponse, mapOrderBookResponse, mapPublicTradesResponse, mapCandlesResponse } from "../utils/response-mappers.js";
+import {
+    mapTickerResponse,
+    mapAssetsResponse,
+    mapMarketConfigResponse,
+    mapOrderBookResponse,
+    mapPublicTradesResponse,
+    mapCandlesResponse,
+} from "../utils/response-mappers.js";
 
 const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
 
@@ -14,10 +21,10 @@ export const marketTools: Tool[] = [
             type: "object",
             properties: {
                 symbol: { type: "string", description: "Crypto symbol (e.g., BTC, ETH, DOGE)" },
-                currency: { type: "string", description: "Base currency (e.g., EUR, USD)", default: "EUR" }
+                currency: { type: "string", description: "Base currency (e.g., EUR, USD)", default: "EUR" },
             },
-            required: ["symbol"]
-        }
+            required: ["symbol"],
+        },
     },
     {
         name: "market_get_chart",
@@ -26,10 +33,10 @@ export const marketTools: Tool[] = [
             type: "object",
             properties: {
                 ticker: { type: "string", description: "Pair (e.g., BTC/EUR)" },
-                timeframe: { type: "string", enum: ["one-hour", "one-day", "one-week", "one-month", "one-year"] }
+                timeframe: { type: "string", enum: ["one-hour", "one-day", "one-week", "one-month", "one-year"] },
             },
-            required: ["ticker", "timeframe"]
-        }
+            required: ["ticker", "timeframe"],
+        },
     },
     {
         name: "market_get_assets",
@@ -38,9 +45,9 @@ export const marketTools: Tool[] = [
             type: "object",
             properties: {
                 includeTestnet: { type: "boolean", description: "Include testnet assets" },
-                showExchange: { type: "boolean", description: "Include exchange property" }
-            }
-        }
+                showExchange: { type: "boolean", description: "Include exchange property" },
+            },
+        },
     },
     {
         name: "market_get_asset_details",
@@ -49,10 +56,10 @@ export const marketTools: Tool[] = [
             type: "object",
             properties: {
                 symbol: { type: "string", description: "Asset symbol (e.g., BTC, ETH)" },
-                showExchange: { type: "boolean", description: "Include exchange property" }
+                showExchange: { type: "boolean", description: "Include exchange property" },
             },
-            required: ["symbol"]
-        }
+            required: ["symbol"],
+        },
     },
     {
         name: "market_get_config",
@@ -60,9 +67,9 @@ export const marketTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                symbol: { type: "string", description: "Filter by market symbol (e.g., BTC/EUR)" }
-            }
-        }
+                symbol: { type: "string", description: "Filter by market symbol (e.g., BTC/EUR)" },
+            },
+        },
     },
     {
         name: "market_get_order_book",
@@ -70,10 +77,10 @@ export const marketTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" }
+                symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" },
             },
-            required: ["symbol"]
-        }
+            required: ["symbol"],
+        },
     },
     {
         name: "market_get_public_trades",
@@ -83,10 +90,10 @@ export const marketTools: Tool[] = [
             properties: {
                 symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" },
                 limit: { type: "number", description: "Result limit (max 100)" },
-                sort: { type: "string", enum: ["ASC", "DESC"], description: "Sort order" }
+                sort: { type: "string", enum: ["ASC", "DESC"], description: "Sort order" },
             },
-            required: ["symbol"]
-        }
+            required: ["symbol"],
+        },
     },
     {
         name: "market_get_candles",
@@ -95,12 +102,16 @@ export const marketTools: Tool[] = [
             type: "object",
             properties: {
                 symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" },
-                timeframe: { type: "string", enum: ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1M"], description: "Timeframe" },
-                limit: { type: "number", description: "Candle limit" }
+                timeframe: {
+                    type: "string",
+                    enum: ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1M"],
+                    description: "Timeframe",
+                },
+                limit: { type: "number", description: "Candle limit" },
             },
-            required: ["symbol", "timeframe"]
-        }
-    }
+            required: ["symbol", "timeframe"],
+        },
+    },
 ];
 
 export async function handleMarketTool(name: string, args: any) {
@@ -123,7 +134,7 @@ export async function handleMarketTool(name: string, args: any) {
     if (name === "market_get_chart") {
         try {
             const res = await axios.get(`${BIT2ME_BASE_URL}/v3/currency/chart`, {
-                params: { ticker: args.ticker, temporality: args.timeframe }
+                params: { ticker: args.ticker, temporality: args.timeframe },
             });
 
             // Process chart data to make it more readable
@@ -137,7 +148,7 @@ export async function handleMarketTool(name: string, args: any) {
                 return { content: [{ type: "text", text: JSON.stringify({ error: "No data available" }) }] };
             }
 
-            const [crypto, fiat] = args.ticker.split('/');
+            const [crypto, fiat] = args.ticker.split("/");
 
             const processedData = rawData.map((entry: any[]) => {
                 const timestamp = entry[0];
@@ -149,16 +160,16 @@ export async function handleMarketTool(name: string, args: any) {
 
                 // Calculate price in target currency
                 let priceFiat = priceUSD;
-                if (fiat === 'EUR') {
+                if (fiat === "EUR") {
                     priceFiat = priceUSD * eurUsdRate;
                 }
 
                 return {
                     timestamp: timestamp,
-                    date: new Date(timestamp).toISOString().split('T')[0],
+                    date: new Date(timestamp).toISOString().split("T")[0],
                     price_usd: parseFloat(priceUSD.toFixed(2)),
                     price_fiat: parseFloat(priceFiat.toFixed(2)),
-                    currency: fiat
+                    currency: fiat,
                 };
             });
 
@@ -223,4 +234,3 @@ export async function handleMarketTool(name: string, args: any) {
 
     throw new Error(`Unknown market tool: ${name}`);
 }
-

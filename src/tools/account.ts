@@ -6,8 +6,8 @@ export const accountTools: Tool[] = [
     {
         name: "account_get_info",
         description: "View user profile and levels.",
-        inputSchema: { type: "object", properties: {} }
-    }
+        inputSchema: { type: "object", properties: {} },
+    },
 ];
 
 export async function handleAccountTool(name: string, args: any) {
@@ -19,4 +19,3 @@ export async function handleAccountTool(name: string, args: any) {
 
     throw new Error(`Unknown account tool: ${name}`);
 }
-

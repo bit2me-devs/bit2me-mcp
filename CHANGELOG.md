@@ -10,49 +10,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.2] - 2025-11-26
 
 ### Added
+
 - **Landing Page Improvements**:
-  - New "Prerequisites" section explaining how to obtain API Keys.
-  - Tabbed installation instructions for **Claude Desktop**, **Cursor IDE**, **Windsurf**, **Gemini CLI**, and **VS Code**.
-  - Detailed `mcp_config.json` examples for each platform.
-  - Explicit warning about Cursor's environment variable limitations (requires `.env` file).
+    - New "Prerequisites" section explaining how to obtain API Keys.
+    - Tabbed installation instructions for **Claude Desktop**, **Cursor IDE**, **Windsurf**, **Gemini CLI**, and **VS Code**.
+    - Detailed `mcp_config.json` examples for each platform.
+    - Explicit warning about Cursor's environment variable limitations (requires `.env` file).
 
 ### Fixed
+
 - **Documentation Accuracy**:
-  - Corrected total tool count from 48 to **47** in both `landing/index.html` and `README.md`.
-  - Updated tool breakdown list in `README.md` to match the actual implementation (8 Market, 7 Wallet, 11 Earn, 9 Loan, 10 Pro, 1 Account, 1 Aggregation).
+    - Corrected total tool count from 48 to **47** in both `landing/index.html` and `README.md`.
+    - Updated tool breakdown list in `README.md` to match the actual implementation (8 Market, 7 Wallet, 11 Earn, 9 Loan, 10 Pro, 1 Account, 1 Aggregation).
 
 ## [1.1.1] - 2025-11-26
 
 ### Fixed
+
 - Added missing `repository` field to `package.json` for NPM metadata.
 
 ## [1.1.0] - 2025-11-26
 
 ### Added
+
 - **Landing Page Enhancements**:
-  - Predictive search with suggestions and auto-scroll.
-  - New "Tools Reference" section name (previously API Reference).
-  - Added "Parameters & Validation" and "Server & Maintenance" troubleshooting guides.
-  - Improved JSON example indentation and visualization.
-  - Updated footer links (GitHub, Bit2Me Website, API Docs).
+    - Predictive search with suggestions and auto-scroll.
+    - New "Tools Reference" section name (previously API Reference).
+    - Added "Parameters & Validation" and "Server & Maintenance" troubleshooting guides.
+    - Improved JSON example indentation and visualization.
+    - Updated footer links (GitHub, Bit2Me Website, API Docs).
 - **Documentation**:
-  - Added GitHub repository button with logo in Hero section.
-  - Updated all repository references to `bit2me-devs/bit2me-mcp`.
+    - Added GitHub repository button with logo in Hero section.
+    - Updated all repository references to `bit2me-devs/bit2me-mcp`.
 
 ### Changed
+
 - **Code Refactoring**:
-  - Flattened `src/tools` directory structure (removed `assets`, `market`, `aggregation` subfolders).
-  - Moved `schemas.ts` from `src/types/` to `src/utils/`.
-  - Updated import paths across the project to reflect new structure.
+    - Flattened `src/tools` directory structure (removed `assets`, `market`, `aggregation` subfolders).
+    - Moved `schemas.ts` from `src/types/` to `src/utils/`.
+    - Updated import paths across the project to reflect new structure.
 - **Tool Logic**:
-  - Unified return types in tool handlers (replaced `null` returns with explicit Errors for MCP SDK compatibility).
+    - Unified return types in tool handlers (replaced `null` returns with explicit Errors for MCP SDK compatibility).
 
 ### Fixed
+
 - Corrected argument definitions in landing page examples for `wallet_create_proforma`, `earn_create_transaction`, `loan_get_ltv`, and others.
 - Fixed build errors related to strict type checking in tool handlers.
 - Resolved test import path issues after directory restructuring.
 
 ### Added (Previous)
+
 - Complete mapper coverage (47/47 tools with optimized responses)
 - TypeScript strict mode enforcement
 - ESLint configuration with TypeScript rules
@@ -67,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code coverage reporting
 
 ### Changed
+
 - Consolidated API service layer (merged `api.ts` and `auth.ts` into `services/bit2me.ts`)
 - Internationalized all code comments and documentation to English
 - Enhanced error handling with custom error classes
@@ -74,11 +82,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated deployment workflow with pre-deployment validation
 
 ### Fixed
+
 - Missing mapper for `pro_get_order_details` tool
 - Exponential backoff implementation with configurable limits
 - Rate limit handling with proper retry logic
 
 ### Security
+
 - Sanitized sensitive data in logs (API keys, signatures)
 - Strict TypeScript type checking
 - Input validation with type guards on all mappers
@@ -88,29 +98,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-11-25
 
 ### Added
+
 - Initial release of Bit2Me MCP Server
 - 47 tools across 8 categories:
-  - 8 Market tools (public data)
-  - 7 Wallet tools (private)
-  - 12 Earn/Staking tools
-  - 11 Loan tools
-  - 8 Pro Trading tools
-  - 1 Account tool
-  - 1 Portfolio aggregation tool
-  - 11 Operation tools (write actions)
+    - 8 Market tools (public data)
+    - 7 Wallet tools (private)
+    - 12 Earn/Staking tools
+    - 11 Loan tools
+    - 8 Pro Trading tools
+    - 1 Account tool
+    - 1 Portfolio aggregation tool
+    - 11 Operation tools (write actions)
 - Automatic retry mechanism for rate-limited requests
 - Exponential backoff with jitter
 - Comprehensive test suite (31 tests)
 - Documentation:
-  - Complete README with all 47 tools
-  - SCHEMA_MAPPING.md with JSON examples
-  - TypeScript schema coverage documentation
-  - Product marketing documentation
+    - Complete README with all 47 tools
+    - SCHEMA_MAPPING.md with JSON examples
+    - TypeScript schema coverage documentation
+    - Product marketing documentation
 - Landing page with GitHub Pages deployment
 - Environment-based configuration
 - MCP SDK integration
 
 ### Security
+
 - Secure API authentication with signature generation
 - Environment variable validation with Zod
 - No hardcoded credentials
@@ -120,16 +132,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Release Notes
 
 ### Version Numbering
+
 This project follows [Semantic Versioning](https://semver.org/):
+
 - **MAJOR** version for incompatible API changes
 - **MINOR** version for new functionality in a backwards compatible manner
 - **PATCH** version for backwards compatible bug fixes
 
 ### Automated Releases
+
 Releases are automated using [semantic-release](https://github.com/semantic-release/semantic-release).
 Version bumps are determined by commit message conventions.
 
 ### Commit Convention
+
 We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 - `feat:` - New features (minor version bump)

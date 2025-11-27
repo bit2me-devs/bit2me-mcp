@@ -5,20 +5,13 @@
         "sourceType": "module",
         "project": "./tsconfig.json"
     },
-    "plugins": [
-        "@typescript-eslint"
-    ],
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended"
-    ],
+    "plugins": ["@typescript-eslint"],
+    "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
     "rules": {
         "no-console": [
             "warn",
             {
-                "allow": [
-                    "error"
-                ]
+                "allow": ["error"]
             }
         ],
         "@typescript-eslint/no-explicit-any": "warn",
@@ -34,9 +27,5 @@
         "node": true,
         "es2022": true
     },
-    "ignorePatterns": [
-        "build/",
-        "node_modules/",
-        "*.js"
-    ]
+    "ignorePatterns": ["build/", "node_modules/", "*.js"]
 }

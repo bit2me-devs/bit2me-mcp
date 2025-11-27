@@ -13,7 +13,7 @@ export class Bit2MeAPIError extends Error {
         public endpoint: string
     ) {
         super(`Bit2Me API Error (${status}): ${message}`);
-        this.name = 'Bit2MeAPIError';
+        this.name = "Bit2MeAPIError";
         Error.captureStackTrace(this, this.constructor);
     }
 }
@@ -26,8 +26,8 @@ export class RateLimitError extends Bit2MeAPIError {
         endpoint: string,
         public retryAfter?: number
     ) {
-        super(429, 'Rate limit exceeded', endpoint);
-        this.name = 'RateLimitError';
+        super(429, "Rate limit exceeded", endpoint);
+        this.name = "RateLimitError";
     }
 }
 
@@ -36,8 +36,8 @@ export class RateLimitError extends Bit2MeAPIError {
  */
 export class AuthenticationError extends Bit2MeAPIError {
     constructor(endpoint: string) {
-        super(401, 'Authentication failed', endpoint);
-        this.name = 'AuthenticationError';
+        super(401, "Authentication failed", endpoint);
+        this.name = "AuthenticationError";
     }
 }
 
@@ -51,7 +51,7 @@ export class ValidationError extends Error {
         public receivedValue?: unknown
     ) {
         super(field ? `${message} (field: ${field})` : message);
-        this.name = 'ValidationError';
+        this.name = "ValidationError";
         Error.captureStackTrace(this, this.constructor);
     }
 }
@@ -62,7 +62,7 @@ export class ValidationError extends Error {
 export class BadRequestError extends Bit2MeAPIError {
     constructor(endpoint: string, message: string) {
         super(400, message, endpoint);
-        this.name = 'BadRequestError';
+        this.name = "BadRequestError";
     }
 }
 
@@ -71,8 +71,8 @@ export class BadRequestError extends Bit2MeAPIError {
  */
 export class NotFoundError extends Bit2MeAPIError {
     constructor(endpoint: string, resource?: string) {
-        const message = resource ? `${resource} not found` : 'Resource not found';
+        const message = resource ? `${resource} not found` : "Resource not found";
         super(404, message, endpoint);
-        this.name = 'NotFoundError';
+        this.name = "NotFoundError";
     }
 }

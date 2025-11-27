@@ -8,14 +8,14 @@ import {
     mapLoanOrderDetailsResponse,
     mapLoanCreateResponse,
     mapLoanIncreaseGuaranteeResponse,
-    mapLoanPaybackResponse
+    mapLoanPaybackResponse,
 } from "../utils/response-mappers.js";
 
 export const loanTools: Tool[] = [
     {
         name: "loan_get_active",
         description: "View active loans (Simple alias for get_loan_orders).",
-        inputSchema: { type: "object", properties: {} }
+        inputSchema: { type: "object", properties: {} },
     },
     {
         name: "loan_get_ltv",
@@ -27,15 +27,15 @@ export const loanTools: Tool[] = [
                 loanCurrency: { type: "string", description: "Loan currency (e.g., EUR)" },
                 userCurrency: { type: "string", description: "User's fiat currency (e.g., EUR)" },
                 guaranteeAmount: { type: "string", description: "Guarantee amount (optional if loanAmount is given)" },
-                loanAmount: { type: "string", description: "Loan amount (optional if guaranteeAmount is given)" }
+                loanAmount: { type: "string", description: "Loan amount (optional if guaranteeAmount is given)" },
             },
-            required: ["guaranteeCurrency", "loanCurrency", "userCurrency"]
-        }
+            required: ["guaranteeCurrency", "loanCurrency", "userCurrency"],
+        },
     },
     {
         name: "loan_get_config",
         description: "Get currency configuration for loans.",
-        inputSchema: { type: "object", properties: {} }
+        inputSchema: { type: "object", properties: {} },
     },
     {
         name: "loan_get_transactions",
@@ -45,9 +45,9 @@ export const loanTools: Tool[] = [
             properties: {
                 orderId: { type: "string", description: "Filter by order ID" },
                 limit: { type: "number" },
-                offset: { type: "number" }
-            }
-        }
+                offset: { type: "number" },
+            },
+        },
     },
     {
         name: "loan_get_orders",
@@ -56,9 +56,9 @@ export const loanTools: Tool[] = [
             type: "object",
             properties: {
                 limit: { type: "number" },
-                offset: { type: "number" }
-            }
-        }
+                offset: { type: "number" },
+            },
+        },
     },
     {
         name: "loan_get_order_details",
@@ -66,10 +66,10 @@ export const loanTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                orderId: { type: "string", description: "Order ID" }
+                orderId: { type: "string", description: "Order ID" },
             },
-            required: ["orderId"]
-        }
+            required: ["orderId"],
+        },
     },
     {
         name: "loan_create",
@@ -80,10 +80,10 @@ export const loanTools: Tool[] = [
                 guaranteeCurrency: { type: "string", description: "Guarantee currency (e.g., BTC)" },
                 guaranteeAmount: { type: "string", description: "Guarantee amount" },
                 loanCurrency: { type: "string", description: "Loan currency (e.g., EUR)" },
-                loanAmount: { type: "string", description: "Loan amount" }
+                loanAmount: { type: "string", description: "Loan amount" },
             },
-            required: ["guaranteeCurrency", "guaranteeAmount", "loanCurrency", "loanAmount"]
-        }
+            required: ["guaranteeCurrency", "guaranteeAmount", "loanCurrency", "loanAmount"],
+        },
     },
     {
         name: "loan_increase_guarantee",
@@ -92,10 +92,10 @@ export const loanTools: Tool[] = [
             type: "object",
             properties: {
                 orderId: { type: "string", description: "Loan order ID" },
-                guaranteeAmount: { type: "string", description: "Additional guarantee amount" }
+                guaranteeAmount: { type: "string", description: "Additional guarantee amount" },
             },
-            required: ["orderId", "guaranteeAmount"]
-        }
+            required: ["orderId", "guaranteeAmount"],
+        },
     },
     {
         name: "loan_payback",
@@ -104,11 +104,11 @@ export const loanTools: Tool[] = [
             type: "object",
             properties: {
                 orderId: { type: "string", description: "Loan order ID" },
-                paybackAmount: { type: "string", description: "Amount to pay back" }
+                paybackAmount: { type: "string", description: "Amount to pay back" },
             },
-            required: ["orderId", "paybackAmount"]
-        }
-    }
+            required: ["orderId", "paybackAmount"],
+        },
+    },
 ];
 
 export async function handleLoanTool(name: string, args: any) {
@@ -122,7 +122,7 @@ export async function handleLoanTool(name: string, args: any) {
         const params: any = {
             guaranteeCurrency: args.guaranteeCurrency,
             loanCurrency: args.loanCurrency,
-            userCurrency: args.userCurrency
+            userCurrency: args.userCurrency,
         };
         if (args.guaranteeAmount) params.guaranteeAmount = args.guaranteeAmount;
         if (args.loanAmount) params.loanAmount = args.loanAmount;
@@ -170,7 +170,7 @@ export async function handleLoanTool(name: string, args: any) {
             guaranteeCurrency: args.guaranteeCurrency,
             guaranteeAmount: args.guaranteeAmount,
             loanCurrency: args.loanCurrency,
-            loanAmount: args.loanAmount
+            loanAmount: args.loanAmount,
         });
         const optimized = mapLoanCreateResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
@@ -178,7 +178,7 @@ export async function handleLoanTool(name: string, args: any) {
 
     if (name === "loan_increase_guarantee") {
         const data = await bit2meRequest("POST", `/v1/loan/${args.orderId}/guarantee/increase`, {
-            guaranteeAmount: args.guaranteeAmount
+            guaranteeAmount: args.guaranteeAmount,
         });
         const optimized = mapLoanIncreaseGuaranteeResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
@@ -186,7 +186,7 @@ export async function handleLoanTool(name: string, args: any) {
 
     if (name === "loan_payback") {
         const data = await bit2meRequest("POST", `/v1/loan/${args.orderId}/payback`, {
-            paybackAmount: args.paybackAmount
+            paybackAmount: args.paybackAmount,
         });
         const optimized = mapLoanPaybackResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
@@ -194,4 +194,3 @@ export async function handleLoanTool(name: string, args: any) {
 
     throw new Error(`Unknown loan tool: ${name}`);
 }
-

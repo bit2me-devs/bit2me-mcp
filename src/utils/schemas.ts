@@ -497,4 +497,3 @@ export interface LoanPaybackResponse {
     status: string;
     message: string;
 }
-
