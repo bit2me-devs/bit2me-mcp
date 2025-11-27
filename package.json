@@ -8,7 +8,8 @@
         "bit2me-mcp-server": "./build/index.js"
     },
     "publishConfig": {
-        "access": "public"
+        "access": "public",
+        "provenance": true
     },
     "scripts": {
         "build": "tsc",
@@ -34,7 +35,7 @@
         "url": "git+https://github.com/bit2me-devs/bit2me-mcp.git"
     },
     "homepage": "https://mcp.bit2me.com",
-    "author": "",
+    "author": "Bit2Me",
     "license": "MIT",
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.22.0",
