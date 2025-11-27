@@ -1,11 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-    MOCK_WALLET_POCKETS,
-    MOCK_PRO_WALLETS,
-    MOCK_EARN_POSITIONS,
-    MOCK_TICKER_BTC_EUR,
-    MOCK_TICKER_ETH_EUR,
-} from "./fixtures.js";
+import { MOCK_WALLET_POCKETS, MOCK_PRO_WALLETS, MOCK_EARN_POSITIONS } from "./fixtures.js";
 
 // Mock the API module
 vi.mock("../src/services/bit2me.js", () => ({
@@ -41,7 +35,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         });
 
         // Mock market prices
-        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string, fiat: string) => {
+        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string, _fiat: string) => {
             if (crypto === "EUR") return 1;
             if (crypto === "BTC") return 50000;
             if (crypto === "ETH") return 3000;
@@ -89,7 +83,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             throw new Error("API Error");
         });
 
-        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string, fiat: string) => {
+        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string, _fiat: string) => {
             if (crypto === "EUR") return 1;
             if (crypto === "BTC") return 50000;
             if (crypto === "ETH") return 3000;
@@ -120,7 +114,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             return [];
         });
 
-        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string, fiat: string) => {
+        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string, _fiat: string) => {
             if (crypto === "BTC") return 50000;
             if (crypto === "DUST") return 0.0001; // Very small value
             return 0;
@@ -153,7 +147,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             return [];
         });
 
-        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string, fiat: string) => {
+        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string, _fiat: string) => {
             if (crypto === "EUR") return 1;
             if (crypto === "BTC") return 50000; // 0.1 * 50000 = 5000
             if (crypto === "ETH") return 3000; // 1 * 3000 = 3000

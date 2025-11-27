@@ -1,6 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { getConfig } from "../src/config.js";
-import { z } from "zod";
 
 // Mock environment variables
 const mockEnv = (env: Record<string, string>) => {
@@ -42,7 +40,7 @@ describe("Config - Validation and Defaults", () => {
 
         try {
             const { getConfig } = await import("../src/config.js");
-            const config = getConfig();
+            getConfig();
 
             // If we get here, the test should fail because we expected an error
             expect.fail("Expected getConfig to throw, but it did not");

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
 // Mocks must be hoisted or defined before imports
@@ -79,15 +79,14 @@ describe("Server Entry Point", () => {
 
     it("should handle ListTools request", async () => {
         await import("../src/index.js");
+        const { ListToolsRequestSchema } = await import("@modelcontextprotocol/sdk/types.js");
         const listToolsHandler = mockSetRequestHandler.mock.calls.find(
-            (call) =>
-                call[0]?.name === "ListToolsRequestSchema" ||
-                call[0] === require("@modelcontextprotocol/sdk/types.js").ListToolsRequestSchema
+            (call) => call[0]?.name === "ListToolsRequestSchema" || call[0] === ListToolsRequestSchema
         )?.[1];
 
         // In the mock, we might not be able to easily identify the schema by object identity if modules are reset.
         // But we know the order: ListTools is the first setRequestHandler call.
-        const handler = mockSetRequestHandler.mock.calls[0][1];
+        const handler = listToolsHandler || mockSetRequestHandler.mock.calls[0][1];
         const result = await handler();
         expect(result.tools).toBeDefined();
         expect(result.tools).toContainEqual({ name: "market_get_ticker" });
@@ -230,7 +229,7 @@ describe("Server Entry Point", () => {
 
         try {
             await import("../src/index.js");
-        } catch (e) {
+        } catch {
             // Ignore import error if any
         }
 
