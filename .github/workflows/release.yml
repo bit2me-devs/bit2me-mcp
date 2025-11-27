@@ -48,6 +48,7 @@ jobs:
                       exit 1
                   else
                       echo "✅ NPM_TOKEN está configurado"
+                      echo "Token length: ${#NPM_TOKEN}"
                   fi
 
             - name: Semantic Release
