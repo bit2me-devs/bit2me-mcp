@@ -24,13 +24,23 @@ jobs:
               with:
                   fetch-depth: 0 # Fetch all history for better detection
 
+            - name: Download Gitleaks
+              run: |
+                  GITLEAKS_VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+                  wget -qO- https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz | tar -xz
+                  chmod +x gitleaks
+                  sudo mv gitleaks /usr/local/bin/
+                  gitleaks version
+
             - name: Run Gitleaks
-              uses: gitleaks/gitleaks-action@v2
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  config-path: .gitleaks.toml
-                  no-git: false
-                  verbose: true
-                  redact: true
+              run: |
+                  # Run Gitleaks detection
+                  # Exit code 1 means secrets were found (workflow will fail)
+                  # Exit code 0 means no secrets found (workflow passes)
+                  gitleaks detect \
+                    --source . \
+                    --config-path .gitleaks.toml \
+                    --verbose \
+                    --redact \
+                    --no-banner
 
