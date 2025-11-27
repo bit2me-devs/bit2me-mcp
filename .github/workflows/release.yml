@@ -40,6 +40,16 @@ jobs:
             - name: Test
               run: npm test
 
+            - name: Verify NPM Token
+              run: |
+                  if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+                      echo "⚠️  NPM_TOKEN no está configurado en GitHub Secrets"
+                      echo "Por favor, configura NPM_TOKEN en Settings > Secrets > Actions"
+                      exit 1
+                  else
+                      echo "✅ NPM_TOKEN está configurado"
+                  fi
+
             - name: Semantic Release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
