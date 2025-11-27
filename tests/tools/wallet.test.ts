@@ -19,9 +19,9 @@ describe("Wallet Tools Handler", () => {
         const mockPockets = [{ id: "1", currency: "BTC", amount: "1.5" }];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockPockets);
 
-        const result = await handleWalletTool("wallet_get_pockets", { currency: "BTC" });
+        const result = await handleWalletTool("wallet_get_pockets", {});
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", { currency: "BTC" });
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", {});
         expect(JSON.parse(result.content[0].text)).toHaveLength(1);
     });
 
@@ -48,6 +48,32 @@ describe("Wallet Tools Handler", () => {
         await handleWalletTool("wallet_get_pocket_addresses", { pocketId: "1", network: "bitcoin" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/wallet/pocket/1/bitcoin/address");
+    });
+
+    it("should handle wallet_get_networks", async () => {
+        const mockNetworks = [
+            {
+                id: "bitcoin",
+                name: "bitcoin",
+                nativeCurrencyCode: "BTC",
+                feeCurrencyCode: "BTC",
+                hasTag: false,
+            },
+        ];
+        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockNetworks);
+
+        const result = await handleWalletTool("wallet_get_networks", { currency: "BTC" });
+
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/currency/BTC/network");
+        const content = JSON.parse(result.content[0].text);
+        expect(content).toHaveLength(1);
+        expect(content[0]).toEqual({
+            id: "bitcoin",
+            name: "bitcoin",
+            native_currency_code: "BTC",
+            fee_currency_code: "BTC",
+            has_tag: false,
+        });
     });
 
     it("should handle wallet_get_transactions", async () => {

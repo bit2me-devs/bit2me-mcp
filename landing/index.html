@@ -1572,7 +1572,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                     <span class="font-bold text-purple-600 dark:text-purple-400">Tool:</span>
                                     <code
                                         class="font-mono text-xs bg-white dark:bg-slate-900 border border-purple-100 dark:border-purple-900 px-2 py-0.5 rounded text-purple-700 dark:text-purple-300"
-                                        >wallet_get_pockets({ currency: "BTC" })</code
+                                        >wallet_get_pockets()</code
                                     >
                                 </div>
                                 <div class="flex gap-3 text-sm">
@@ -2389,7 +2389,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             name: "wallet_get_pockets",
                             type: "READ",
                             desc: "Balances and Pocket UUIDs.",
-                            args: { currency: "string" },
+                            args: {},
                         },
                         {
                             name: "wallet_get_pocket_details",
@@ -2402,6 +2402,12 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             type: "READ",
                             desc: "Crypto deposit addresses.",
                             args: { pocketId: "string", network: "string" },
+                        },
+                        {
+                            name: "wallet_get_networks",
+                            type: "READ",
+                            desc: "Supported networks for currency.",
+                            args: { currency: "string" },
                         },
                         {
                             name: "wallet_get_transactions",

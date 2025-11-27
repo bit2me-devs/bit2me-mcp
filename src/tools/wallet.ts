@@ -3,6 +3,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
 import {
     mapWalletAddressesResponse,
+    mapWalletNetworksResponse,
     mapWalletTransactionDetailsResponse,
     mapWalletPocketsResponse,
     mapWalletPocketDetailsResponse,
@@ -16,10 +17,10 @@ export const walletTools: Tool[] = [
     {
         name: "wallet_get_pockets",
         description:
-            "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance.",
+            "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. Multiple pockets can exist for the same currency. After getting the response, filter by the 'currency' field client-side if needed. Look for pockets with meaningful names or non-zero balances to identify the active one.",
         inputSchema: {
             type: "object",
-            properties: { currency: { type: "string" } },
+            properties: {},
         },
     },
     {
@@ -43,6 +44,17 @@ export const walletTools: Tool[] = [
                 network: { type: "string", description: "Address network (e.g., bitcoin, ethereum, bsc)" },
             },
             required: ["pocketId", "network"],
+        },
+    },
+    {
+        name: "wallet_get_networks",
+        description: "Lists available networks for a specific currency.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                currency: { type: "string", description: "Currency symbol (e.g., BTC, ETH)" },
+            },
+            required: ["currency"],
         },
     },
     {
@@ -96,9 +108,7 @@ export const walletTools: Tool[] = [
 
 export async function handleWalletTool(name: string, args: any) {
     if (name === "wallet_get_pockets") {
-        const params: any = {};
-        if (args.currency) params.currency = args.currency;
-        const data = await bit2meRequest("GET", "/v1/wallet/pocket", params);
+        const data = await bit2meRequest("GET", "/v1/wallet/pocket", {});
         const optimized = mapWalletPocketsResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
@@ -122,6 +132,13 @@ export async function handleWalletTool(name: string, args: any) {
         const optimized = mapWalletAddressesResponse(data);
         const wrapped = wrapResponseWithRaw(optimized, data);
         return { content: [{ type: "text", text: JSON.stringify(wrapped, null, 2) }] };
+    }
+
+    if (name === "wallet_get_networks") {
+        const { currency } = args;
+        const data = await bit2meRequest("GET", `/v1/wallet/currency/${currency}/network`);
+        const optimized = mapWalletNetworksResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
     if (name === "wallet_get_transactions") {
