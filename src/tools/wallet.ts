@@ -5,9 +5,11 @@ import {
     mapWalletAddressesResponse,
     mapWalletTransactionDetailsResponse,
     mapWalletPocketsResponse,
+    mapWalletPocketDetailsResponse,
     mapWalletTransactionsResponse,
     mapProformaResponse,
     mapTransactionConfirmationResponse,
+    wrapResponseWithRaw,
 } from "../utils/response-mappers.js";
 
 export const walletTools: Tool[] = [
@@ -109,14 +111,17 @@ export async function handleWalletTool(name: string, args: any) {
             return { content: [{ type: "text", text: "Pocket not found." }] };
         }
 
-        return { content: [{ type: "text", text: JSON.stringify(pocket, null, 2) }] };
+        const optimized = mapWalletPocketDetailsResponse(pocket);
+        const wrapped = wrapResponseWithRaw(optimized, pocket);
+        return { content: [{ type: "text", text: JSON.stringify(wrapped, null, 2) }] };
     }
 
     if (name === "wallet_get_pocket_addresses") {
         const { pocketId, network } = args;
         const data = await bit2meRequest("GET", `/v2/wallet/pocket/${pocketId}/${network}/address`);
         const optimized = mapWalletAddressesResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+        const wrapped = wrapResponseWithRaw(optimized, data);
+        return { content: [{ type: "text", text: JSON.stringify(wrapped, null, 2) }] };
     }
 
     if (name === "wallet_get_transactions") {
