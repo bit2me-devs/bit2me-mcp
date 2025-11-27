@@ -1,3 +1,23 @@
+# [1.2.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.1.1...v1.2.0) (2025-11-27)
+
+### Bug Fixes
+
+- add config mock to wallet tests ([84048b4](https://github.com/bit2me-devs/bit2me-mcp/commit/84048b49d24e74200803429edfb254372445b707))
+- configure npm registry authentication before semantic-release ([15fe81f](https://github.com/bit2me-devs/bit2me-mcp/commit/15fe81f8bebe146c5bbec932333b36694bf4adb0))
+- configure semantic-release workflow with proper credentials ([235d49c](https://github.com/bit2me-devs/bit2me-mcp/commit/235d49c0bda41e08b5c7bb1ea651f6502e8e1e6d))
+- correct wallet address mapper and add pocket details mapper ([b392a69](https://github.com/bit2me-devs/bit2me-mcp/commit/b392a6968a80d6f59c76e0e3936088a2bf2fd016))
+- improve npm token verification in release workflow ([1e89869](https://github.com/bit2me-devs/bit2me-mcp/commit/1e89869d850c8e2c307102c624a53e5e9e0a2071))
+- improve semantic-release configuration ([88ea71c](https://github.com/bit2me-devs/bit2me-mcp/commit/88ea71c4ff0b0e753f6806ded20a9532097af6f0))
+- **landing:** update github link in sidebar ([d11afe1](https://github.com/bit2me-devs/bit2me-mcp/commit/d11afe1d52e5cc66d5c18151726c45fe7ef7cae2))
+- remove workaround from semantic-release workflow ([0043544](https://github.com/bit2me-devs/bit2me-mcp/commit/00435447f72dd6986215b175f078de4c6e256a5c))
+- resolve all eslint warnings and improve type safety ([823d262](https://github.com/bit2me-devs/bit2me-mcp/commit/823d26293d5dda49a2f5b3eb8ef7351aed5005a0))
+- update Node.js version to 22 for semantic-release compatibility ([f78f88f](https://github.com/bit2me-devs/bit2me-mcp/commit/f78f88f2b292290abc5910dfdfeffc5e013e0e56))
+
+### Features
+
+- add optional raw_response support in mapped responses ([623413b](https://github.com/bit2me-devs/bit2me-mcp/commit/623413b5b69cbd7629ea96e1f3aae381d5bfb871))
+- improve landing page and git hooks management ([bbb1364](https://github.com/bit2me-devs/bit2me-mcp/commit/bbb1364b5d3bff5ca8ad8809dedb8da30493787c))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
