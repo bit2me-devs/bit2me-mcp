@@ -15,12 +15,14 @@ import {
 export const loanTools: Tool[] = [
     {
         name: "loan_get_active",
-        description: "View active loans (Simple alias for get_loan_orders).",
+        description:
+            "View all active loans. Returns list of current loans with guarantee amounts, loan amounts, LTV ratios, currencies, and status. Use this to monitor your active loan positions.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "loan_get_ltv",
-        description: "Calculate LTV (Loan To Value).",
+        description:
+            "Calculate LTV (Loan To Value) ratio for a loan scenario. LTV represents the loan amount as a percentage of the guarantee value. Lower LTV means lower risk. Provide either guaranteeAmount or loanAmount (the other will be calculated). Returns LTV percentage and risk level. Use this before loan_create to plan your loan.",
         inputSchema: {
             type: "object",
             properties: {
@@ -35,12 +37,14 @@ export const loanTools: Tool[] = [
     },
     {
         name: "loan_get_config",
-        description: "Get currency configuration for loans.",
+        description:
+            "Get currency configuration for loans including supported guarantee currencies, loan currencies, LTV limits, interest rates, and requirements. Use this before creating a loan to understand available options and limits.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "loan_get_transactions",
-        description: "Get loan movements.",
+        description:
+            "Get loan transaction history (movements) including payments, interest accruals, and guarantee changes. Optional orderId filter to see movements for a specific loan. Use limit and offset for pagination.",
         inputSchema: {
             type: "object",
             properties: {
@@ -52,7 +56,8 @@ export const loanTools: Tool[] = [
     },
     {
         name: "loan_get_orders",
-        description: "Get user's loan orders.",
+        description:
+            "Get all loan orders (both active and closed) for the user. Returns loans with guarantee amounts, loan amounts, LTV ratios, currencies, status, and dates. Optional limit and offset for pagination.",
         inputSchema: {
             type: "object",
             properties: {
@@ -63,7 +68,8 @@ export const loanTools: Tool[] = [
     },
     {
         name: "loan_get_order_details",
-        description: "Get details of a specific loan order.",
+        description:
+            "Get detailed information of a specific loan order. Returns guarantee amount, loan amount, LTV, interest rate, status, creation date, and payment history. Use loan_get_active or loan_get_orders first to get the order ID.",
         inputSchema: {
             type: "object",
             properties: {
@@ -74,7 +80,8 @@ export const loanTools: Tool[] = [
     },
     {
         name: "loan_create",
-        description: "Create a new loan.",
+        description:
+            "Create a new loan by providing cryptocurrency as guarantee (collateral) to receive fiat currency. The guarantee amount determines the maximum loan amount based on LTV (Loan To Value) ratio. Use loan_get_ltv first to calculate optimal amounts. Returns loan order details with status.",
         inputSchema: {
             type: "object",
             properties: {
@@ -88,7 +95,8 @@ export const loanTools: Tool[] = [
     },
     {
         name: "loan_increase_guarantee",
-        description: "Increase guarantee for an existing loan.",
+        description:
+            "Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_active first to get the order ID.",
         inputSchema: {
             type: "object",
             properties: {
@@ -100,7 +108,8 @@ export const loanTools: Tool[] = [
     },
     {
         name: "loan_payback",
-        description: "Pay back (return) part or all of a loan.",
+        description:
+            "Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_active first to get the order ID and check current loan amount.",
         inputSchema: {
             type: "object",
             properties: {

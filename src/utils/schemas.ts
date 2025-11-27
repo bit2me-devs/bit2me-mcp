@@ -119,6 +119,14 @@ export interface WalletAddressResponse {
     created_at: string;
 }
 
+export interface WalletNetworkResponse {
+    id: string;
+    name: string;
+    native_currency_code: string;
+    fee_currency_code: string;
+    has_tag: boolean;
+}
+
 // ============================================================================
 // EARN TOOLS
 // ============================================================================

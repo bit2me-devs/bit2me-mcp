@@ -5,7 +5,7 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ## Tool Count (47 total)
 
 - 8 Market Tools
-- 5 Wallet Tools
+- 6 Wallet Tools
 - 10 Earn Tools
 - 6 Loan Tools
 - 4 Pro Trading Tools
@@ -200,6 +200,20 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
         "network": "bitcoin",
         "currency": "BTC",
         "createdAt": "2021-01-19T20:24:59.209Z"
+    }
+]
+```
+
+### wallet_get_networks
+
+```json
+[
+    {
+        "id": "bitcoin",
+        "name": "bitcoin",
+        "native_currency_code": "BTC",
+        "fee_currency_code": "BTC",
+        "has_tag": false
     }
 ]
 ```

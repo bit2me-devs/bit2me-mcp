@@ -18,7 +18,8 @@ const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
 export const marketTools: Tool[] = [
     {
         name: "market_get_ticker",
-        description: "Gets current price, 24h volume, market highs and lows.",
+        description:
+            "Gets current price, 24h volume, market highs and lows for a cryptocurrency. Specify symbol (e.g., BTC) and optional base currency (default: EUR). Returns price, volume, market cap, and supply information.",
         inputSchema: {
             type: "object",
             properties: {
@@ -30,7 +31,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_chart",
-        description: "Gets price history (candles/chart) with timestamp, USD price, and Fiat price.",
+        description:
+            "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires ticker pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns last 30 data points with dates and prices in both USD and the fiat currency from the ticker.",
         inputSchema: {
             type: "object",
             properties: {
@@ -42,7 +44,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_assets",
-        description: "Gets all available assets.",
+        description:
+            "Gets all available assets (cryptocurrencies) supported by Bit2Me. Returns symbol, name, asset type, network, trading status, and supported pairs. Use this to discover available currencies before trading or checking prices.",
         inputSchema: {
             type: "object",
             properties: {
@@ -53,7 +56,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_asset_details",
-        description: "Gets details of a specific asset by its symbol.",
+        description:
+            "Gets detailed information of a specific asset by its symbol. Returns asset type, network, trading status, loan availability, and supported trading pairs. Use this to verify if an asset is tradeable or loanable before operations.",
         inputSchema: {
             type: "object",
             properties: {
@@ -65,7 +69,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_config",
-        description: "Gets market configuration (precision, minimums, status).",
+        description:
+            "Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional symbol filter for a specific market. Use this before placing orders to ensure amounts meet requirements.",
         inputSchema: {
             type: "object",
             properties: {
@@ -75,7 +80,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_order_book",
-        description: "Gets the order book for a market.",
+        description:
+            "Gets the order book (market depth) for a market showing current buy and sell orders. Returns bids (buy orders) and asks (sell orders) with prices and amounts. Useful for analyzing market liquidity and determining optimal order prices.",
         inputSchema: {
             type: "object",
             properties: {
@@ -86,7 +92,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_public_trades",
-        description: "Gets the latest public trades for a market.",
+        description:
+            "Gets the latest public trades (executed orders) for a market. Returns recent transactions with price, amount, side (buy/sell), and timestamp. Optional limit (max 100) and sort order (ASC/DESC). Useful for seeing recent market activity.",
         inputSchema: {
             type: "object",
             properties: {
@@ -99,7 +106,8 @@ export const marketTools: Tool[] = [
     },
     {
         name: "market_get_candles",
-        description: "Gets OHLCV candles for Trading Pro.",
+        description:
+            "Gets OHLCV (Open, High, Low, Close, Volume) candles for Trading Pro. Returns price data in specified timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M). Optional limit to control number of candles. Essential for technical analysis and charting.",
         inputSchema: {
             type: "object",
             properties: {

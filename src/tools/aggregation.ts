@@ -6,7 +6,8 @@ import { MIN_DUST_VALUE } from "../constants.js";
 export const aggregationTools: Tool[] = [
     {
         name: "portfolio_get_valuation",
-        description: "Calculates the total value of all assets (Wallet + Pro + Earn + Loans) in the chosen currency.",
+        description:
+            "Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat currency (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations. Filters out dust amounts below minimum threshold.",
         inputSchema: {
             type: "object",
             properties: {

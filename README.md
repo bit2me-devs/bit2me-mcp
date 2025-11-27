@@ -54,13 +54,14 @@ Below is a detailed list of tools and the Bit2Me API endpoints they use.
 
 ### 💼 Wallet Tools (Private)
 
-| Tool                             | Endpoint                         | Description                   |
-| -------------------------------- | -------------------------------- | ----------------------------- |
-| `wallet_get_pockets`             | `GET /v1/wallet/pocket`          | List of wallets/pockets.      |
-| `wallet_get_pocket_details`      | `GET /v1/wallet/pocket`          | Specific wallet info.         |
-| `wallet_get_transactions`        | `GET /v2/wallet/transaction`     | Transaction history.          |
-| `wallet_get_pocket_addresses`    | `GET /v2/wallet/pocket/...`      | Deposit addresses.            |
-| `wallet_get_transaction_details` | `GET /v1/wallet/transaction/:id` | Specific transaction details. |
+| Tool                             | Endpoint                         | Description                      |
+| -------------------------------- | -------------------------------- | -------------------------------- |
+| `wallet_get_pockets`             | `GET /v1/wallet/pocket`          | List of wallets/pockets.         |
+| `wallet_get_pocket_details`      | `GET /v1/wallet/pocket`          | Specific wallet info.            |
+| `wallet_get_transactions`        | `GET /v2/wallet/transaction`     | Transaction history.             |
+| `wallet_get_pocket_addresses`    | `GET /v2/wallet/pocket/...`      | Deposit addresses.               |
+| `wallet_get_networks`            | `GET /v1/wallet/currency/...`    | Supported networks for currency. |
+| `wallet_get_transaction_details` | `GET /v1/wallet/transaction/:id` | Specific transaction details.    |
 
 ### 💰 Earn (Staking) Tools
 

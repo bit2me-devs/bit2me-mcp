@@ -14,12 +14,14 @@ import {
 export const proTools: Tool[] = [
     {
         name: "pro_get_balance",
-        description: "Gets specific balances from PRO Trading account (separate from Simple Wallet).",
+        description:
+            "Gets balances from PRO Trading account. This is separate from Simple Wallet - funds must be transferred using pro_deposit/pro_withdraw. Returns available and blocked balances per currency for trading.",
         inputSchema: { type: "object", properties: {} },
     },
     {
         name: "pro_get_transactions",
-        description: "Gets the user's trade history in Pro.",
+        description:
+            "Gets the user's trade history in Pro Trading. Returns executed trades with price, amount, side (buy/sell), fees, and timestamp. Optional filters: symbol, limit, offset, and sort order (ASC/DESC). Use this to review past trading activity.",
         inputSchema: {
             type: "object",
             properties: {
@@ -32,7 +34,8 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_get_order_trades",
-        description: "Gets trades associated with a specific order.",
+        description:
+            "Gets all individual trades (executions) associated with a specific order. Returns detailed execution data including price, amount, fees, and timestamp for each fill. Useful for analyzing how a large order was executed across multiple trades.",
         inputSchema: {
             type: "object",
             properties: {
@@ -43,7 +46,8 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_get_order_details",
-        description: "Gets details of a specific Pro order.",
+        description:
+            "Gets detailed information of a specific Pro order. Returns order type, symbol, side, amount, price, status, filled amount, creation time, and execution details. Use pro_get_open_orders or pro_get_transactions first to get the order ID.",
         inputSchema: {
             type: "object",
             properties: {
@@ -54,7 +58,8 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_get_open_orders",
-        description: "View open trading orders in PRO.",
+        description:
+            "View open trading orders in PRO. Returns all active orders (pending, partially filled). Optional symbol filter to see orders for a specific market. Use this to monitor order status after pro_create_order.",
         inputSchema: {
             type: "object",
             properties: { symbol: { type: "string" } },
@@ -62,7 +67,8 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_create_order",
-        description: "Create Limit/Market/Stop order in PRO Trading.",
+        description:
+            "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stopPrice' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status.",
         inputSchema: {
             type: "object",
             properties: {
@@ -78,7 +84,8 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_cancel_order",
-        description: "Cancel a PRO order by ID.",
+        description:
+            "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled.",
         inputSchema: {
             type: "object",
             properties: { orderId: { type: "string" } },
@@ -87,7 +94,8 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_cancel_all_orders",
-        description: "Cancel all open orders in Pro (optionally filtering by symbol).",
+        description:
+            "Cancel all open orders in Pro Trading. Optional symbol filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders.",
         inputSchema: {
             type: "object",
             properties: {
@@ -97,7 +105,8 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_deposit",
-        description: "Deposit funds from main Wallet to Pro Trading.",
+        description:
+            "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit.",
         inputSchema: {
             type: "object",
             properties: {
@@ -109,7 +118,8 @@ export const proTools: Tool[] = [
     },
     {
         name: "pro_withdraw",
-        description: "Withdraw funds from Pro Trading to main Wallet.",
+        description:
+            "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal.",
         inputSchema: {
             type: "object",
             properties: {
