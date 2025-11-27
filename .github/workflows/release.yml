@@ -27,7 +27,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v6
               with:
-                  node-version: "20"
+                  node-version: "22"
                   cache: "npm"
                   registry-url: "https://registry.npmjs.org"
 
@@ -41,8 +41,10 @@ jobs:
               run: npm test
 
             - name: Verify NPM Token
+              env:
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: |
-                  if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+                  if [ -z "$NPM_TOKEN" ]; then
                       echo "⚠️  NPM_TOKEN no está configurado en GitHub Secrets"
                       echo "Por favor, configura NPM_TOKEN en Settings > Secrets > Actions"
                       exit 1
