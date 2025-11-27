@@ -5,6 +5,7 @@
  */
 
 import { ValidationError } from "./errors.js";
+import { getConfig } from "../config.js";
 import type {
     // Market
     MarketTickerResponse,
@@ -55,6 +56,29 @@ import type {
     LoanIncreaseGuaranteeResponse,
     LoanPaybackResponse,
 } from "./schemas.js";
+
+// ============================================================================
+// RESPONSE WRAPPER
+// ============================================================================
+
+/**
+ * Wraps a mapped response with optional raw_response field for debugging.
+ * Only includes raw_response if BIT2ME_INCLUDE_RAW_RESPONSE=true in config.
+ *
+ * @param mappedResponse - The mapped/optimized response
+ * @param rawResponse - The original raw API response
+ * @returns Response with optional raw_response field
+ */
+export function wrapResponseWithRaw<T>(mappedResponse: T, rawResponse: unknown): T & { raw_response?: unknown } {
+    const config = getConfig();
+    if (config.INCLUDE_RAW_RESPONSE) {
+        return {
+            ...mappedResponse,
+            raw_response: rawResponse,
+        };
+    }
+    return mappedResponse;
+}
 
 // ============================================================================
 // TYPE GUARDS

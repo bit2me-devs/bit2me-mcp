@@ -8,6 +8,7 @@ const envSchema = z.object({
     BIT2ME_LOG_LEVEL: z.string().optional().default("info"),
     BIT2ME_MAX_RETRIES: z.string().optional().default("3"),
     BIT2ME_RETRY_BASE_DELAY: z.string().optional().default("1000"),
+    BIT2ME_INCLUDE_RAW_RESPONSE: z.string().optional().default("false"),
 });
 
 export type Config = z.infer<typeof envSchema> & {
@@ -15,6 +16,7 @@ export type Config = z.infer<typeof envSchema> & {
     LOG_LEVEL: string;
     MAX_RETRIES: number;
     RETRY_BASE_DELAY: number;
+    INCLUDE_RAW_RESPONSE: boolean;
 };
 
 let cachedConfig: Config | null = null;
@@ -51,6 +53,7 @@ export function getConfig(): Config {
             LOG_LEVEL: parsed.BIT2ME_LOG_LEVEL || "info",
             MAX_RETRIES: parseInt(parsed.BIT2ME_MAX_RETRIES || "3", 10),
             RETRY_BASE_DELAY: parseInt(parsed.BIT2ME_RETRY_BASE_DELAY || "1000", 10),
+            INCLUDE_RAW_RESPONSE: parsed.BIT2ME_INCLUDE_RAW_RESPONSE === "true",
         };
 
         console.error("[Config] Credentials validated successfully");
