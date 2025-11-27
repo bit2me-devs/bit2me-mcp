@@ -201,15 +201,35 @@ describe("Response Mappers", () => {
 
         it("should map wallet addresses response", () => {
             expect(mapWalletAddressesResponse(null)).toEqual([]);
-            const valid = [{ address: "addr1", network: "btc", currency: "BTC", tag: "tag1" }];
-            expect(mapWalletAddressesResponse(valid)).toEqual(valid);
+            const valid = [
+                {
+                    id: "addr-id-123",
+                    address: "addr1",
+                    network: "btc",
+                    currency: "BTC",
+                    tag: "tag1",
+                    createdAt: "2023-01-01T00:00:00Z",
+                },
+            ];
+            expect(mapWalletAddressesResponse(valid)).toEqual([
+                {
+                    id: "addr-id-123",
+                    address: "addr1",
+                    network: "btc",
+                    currency: "BTC",
+                    tag: "tag1",
+                    created_at: "2023-01-01T00:00:00Z",
+                },
+            ]);
             // Test defaults
             expect(mapWalletAddressesResponse([{}])).toEqual([
                 {
+                    id: "",
                     address: "",
                     network: "",
-                    currency: "",
-                    tag: undefined,
+                    currency: undefined,
+                    tag: "",
+                    created_at: "",
                 },
             ]);
         });

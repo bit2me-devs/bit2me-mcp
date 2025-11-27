@@ -19,6 +19,7 @@ import type {
     WalletAddressResponse,
     WalletTransactionDetailsResponse,
     WalletPocketResponse,
+    WalletPocketDetailsResponse,
     WalletTransactionResponse,
     // Account
     AccountInfoResponse,
@@ -75,9 +76,9 @@ export function wrapResponseWithRaw<T>(mappedResponse: T, rawResponse: unknown):
         return {
             ...mappedResponse,
             raw_response: rawResponse,
-        };
+        } as T & { raw_response?: unknown };
     }
-    return mappedResponse;
+    return mappedResponse as T & { raw_response?: unknown };
 }
 
 // ============================================================================
@@ -238,18 +239,41 @@ export function mapWalletPocketsResponse(raw: unknown): WalletPocketResponse[] {
 }
 
 /**
+ * Maps raw wallet pocket details response to optimized schema
+ * Includes all important fields: id, currency, balance, available, blocked, name, created_at
+ */
+export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetailsResponse {
+    if (!isValidObject(raw)) {
+        throw new ValidationError("Invalid wallet pocket details response structure");
+    }
+
+    return {
+        id: raw.id || "",
+        currency: raw.currency || "",
+        balance: raw.balance || "0",
+        available: raw.available || "0",
+        blocked: raw.blocked || raw.blockedBalance || "0",
+        name: raw.name,
+        created_at: raw.createdAt || raw.created_at || "",
+    };
+}
+
+/**
  * Maps raw wallet addresses response to optimized schema
+ * According to Swagger: id, createdAt, address, network, tag are required fields
  */
 export function mapWalletAddressesResponse(raw: unknown): WalletAddressResponse[] {
     if (!isValidArray(raw)) {
         return [];
     }
 
-    return raw.map((addr) => ({
+    return raw.map((addr: any) => ({
+        id: addr.id || "",
         address: addr.address || "",
         network: addr.network || "",
-        currency: addr.currency || "",
-        tag: addr.tag || addr.memo || undefined,
+        currency: addr.currency || undefined,
+        tag: addr.tag || "",
+        created_at: addr.createdAt || addr.created_at || "",
     }));
 }
 

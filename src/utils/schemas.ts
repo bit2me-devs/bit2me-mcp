@@ -111,10 +111,12 @@ export interface WalletTransactionResponse {
 }
 
 export interface WalletAddressResponse {
+    id: string;
     address: string;
     network: string;
-    currency: string;
-    tag?: string;
+    currency?: string;
+    tag: string;
+    created_at: string;
 }
 
 // ============================================================================
