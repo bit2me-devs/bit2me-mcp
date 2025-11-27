@@ -62,9 +62,24 @@
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
         />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
+            integrity="sha384-F/bZzf7p3Joyp5psL90p/p89AZJsndkSoGwRpXcZhleCWhd8SnRuoYo4d0yirjJp"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"
+            integrity="sha384-RbRhXcXx5VHUdUaC5R0oV+XBXA5GhkaVCUzK8xN19K3FmtWSHyGVgulK92XnhBsI"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"
+            integrity="sha384-OqfnIfpOmAlErKRs2a525ZcwLuZ8Z1x8hPdIwBcMtHkJBbHnpJ6wX5/LVzASHkD5"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        ></script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -2914,15 +2929,11 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
 
             // Highlight Active Sidebar Link on Scroll
             const sidebarLinks = document.querySelectorAll(".sidebar-link");
-            console.log("Sidebar links found:", sidebarLinks.length);
-            console.log("Main content element:", mainContent);
 
             function updateActiveLink() {
                 // Get all sections with IDs
                 const sections = Array.from(document.querySelectorAll('section[id], div[id^="cat-"]'));
                 const scrollPosition = mainContent.scrollTop;
-
-                console.log("Scroll position:", scrollPosition, "Sections:", sections.length);
 
                 let currentSection = "";
 
@@ -2933,7 +2944,6 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
 
                     if (scrollPosition >= sectionTop) {
                         currentSection = section.getAttribute("id");
-                        console.log("Current section:", currentSection, "at position:", sectionTop);
                         break;
                     }
                 }
@@ -3130,11 +3140,6 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     toolElement.open = true;
 
                     // Scroll to element with offset
-                    const offset = 100; // Adjust for sticky header
-                    const elementPosition = toolElement.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-                    // Scroll main container instead of window if layout uses specific scrolling container
                     // Using scrollIntoView for simplicity as it handles nested scrolling contexts better usually
                     toolElement.scrollIntoView({ behavior: "smooth", block: "center" });
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { bit2meRequest } from "../src/services/bit2me.js";
-import { MOCK_WALLET_POCKETS, MOCK_PRO_WALLETS, MOCK_TICKER_BTC_EUR } from "./fixtures.js";
+import { MOCK_WALLET_POCKETS, MOCK_TICKER_BTC_EUR } from "./fixtures.js";
 
 // Mock axios module
 vi.mock("axios", () => {
@@ -77,7 +77,7 @@ describe("Tools - Asset Management", () => {
             data: { orderId: "uuid-order-123", status: "PENDING" },
         });
 
-        const result = await bit2meRequest("POST", "/v1/trading/order", orderData);
+        await bit2meRequest("POST", "/v1/trading/order", orderData);
 
         expect(axios).toHaveBeenCalledTimes(1);
 
@@ -151,9 +151,7 @@ describe("Tools - Asset Management", () => {
                 data: MOCK_WALLET_POCKETS,
             });
 
-        const startTime = Date.now();
         const result = await bit2meRequest("GET", "/v1/wallet/pocket");
-        const totalTime = Date.now() - startTime;
 
         // Should have been called 3 times (initial + 2 retries)
         expect(axios).toHaveBeenCalledTimes(3);
