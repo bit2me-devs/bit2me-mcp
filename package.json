@@ -15,14 +15,16 @@
         "build": "tsc",
         "prepublishOnly": "npm run build",
         "start": "node build/index.js",
-        "dev": "node --loader ts-node/esm src/index.ts",
+        "dev": "node build/index.js",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
-        "lint": "tsc --noEmit",
+        "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src/**/*.ts tests/**/*.ts --fix",
         "lint:fix": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
-        "eslint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+        "eslint": "ESLINT_USE_FLAT_CONFIG=false eslint",
+        "eslint:legacy": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
         "eslint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
+        "prettier": "prettier --write .",
         "prepare": "husky install"
     },
     "keywords": [
@@ -63,7 +65,7 @@
     },
     "lint-staged": {
         "*.ts": [
-            "eslint --fix",
+            "npm run eslint -- --fix",
             "prettier --write",
             "vitest related --run"
         ],
