@@ -2,12 +2,12 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
 import {
-    mapWalletAddressesResponse,
-    mapWalletNetworksResponse,
-    mapWalletTransactionDetailsResponse,
     mapWalletPocketsResponse,
     mapWalletPocketDetailsResponse,
+    mapWalletAddressesResponse,
     mapWalletTransactionsResponse,
+    mapWalletTransactionDetailsResponse,
+    mapWalletNetworksResponse,
     mapProformaResponse,
     mapTransactionConfirmationResponse,
     wrapResponseWithRaw,
