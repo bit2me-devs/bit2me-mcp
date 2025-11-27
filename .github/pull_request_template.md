@@ -1,7 +1,9 @@
 ## Description
+
 <!-- Provide a brief description of your changes -->
 
 ## Type of Change
+
 <!-- Mark the relevant option with an 'x' -->
 
 - [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
@@ -13,10 +15,11 @@
 - [ ] 🎨 Style/formatting update
 
 ## Related Issues
+
 <!-- Link to related issues, e.g., "Fixes #123" or "Closes #456" -->
 
-
 ## Changes Made
+
 <!-- Provide a detailed list of changes -->
 
 -
@@ -24,6 +27,7 @@
 -
 
 ## Testing
+
 <!-- Describe the testing you've done -->
 
 - [ ] All existing tests pass (`npm test`)
@@ -31,6 +35,7 @@
 - [ ] Manual testing completed
 
 ## Checklist
+
 <!-- Mark completed items with an 'x' -->
 
 - [ ] ✅ Code builds successfully (`npm run build`)
@@ -42,9 +47,9 @@
 - [ ] ♿ Accessibility considered (if applicable)
 
 ## Screenshots (if applicable)
+
 <!-- Add screenshots to help explain your changes -->
 
-
 ## Additional Notes
-<!-- Any additional information that reviewers should know -->
 
+<!-- Any additional information that reviewers should know -->

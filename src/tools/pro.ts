@@ -8,14 +8,14 @@ import {
     mapProCancelOrderResponse,
     mapProCancelAllOrdersResponse,
     mapProDepositResponse,
-    mapProWithdrawResponse
+    mapProWithdrawResponse,
 } from "../utils/response-mappers.js";
 
 export const proTools: Tool[] = [
     {
         name: "pro_get_balance",
         description: "Gets specific balances from PRO Trading account (separate from Simple Wallet).",
-        inputSchema: { type: "object", properties: {} }
+        inputSchema: { type: "object", properties: {} },
     },
     {
         name: "pro_get_transactions",
@@ -26,9 +26,9 @@ export const proTools: Tool[] = [
                 symbol: { type: "string", description: "Filter by symbol" },
                 limit: { type: "number" },
                 offset: { type: "number" },
-                sort: { type: "string", enum: ["ASC", "DESC"] }
-            }
-        }
+                sort: { type: "string", enum: ["ASC", "DESC"] },
+            },
+        },
     },
     {
         name: "pro_get_order_trades",
@@ -36,10 +36,10 @@ export const proTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                orderId: { type: "string", description: "Order ID" }
+                orderId: { type: "string", description: "Order ID" },
             },
-            required: ["orderId"]
-        }
+            required: ["orderId"],
+        },
     },
     {
         name: "pro_get_order_details",
@@ -47,18 +47,18 @@ export const proTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                orderId: { type: "string", description: "Order ID" }
+                orderId: { type: "string", description: "Order ID" },
             },
-            required: ["orderId"]
-        }
+            required: ["orderId"],
+        },
     },
     {
         name: "pro_get_open_orders",
         description: "View open trading orders in PRO.",
         inputSchema: {
             type: "object",
-            properties: { symbol: { type: "string" } }
-        }
+            properties: { symbol: { type: "string" } },
+        },
     },
     {
         name: "pro_create_order",
@@ -71,10 +71,10 @@ export const proTools: Tool[] = [
                 type: { type: "string", enum: ["limit", "market", "stop-limit"] },
                 amount: { type: "number" },
                 price: { type: "number", description: "Required for Limit/Stop" },
-                stopPrice: { type: "number", description: "Required for Stop-Limit" }
+                stopPrice: { type: "number", description: "Required for Stop-Limit" },
             },
-            required: ["symbol", "side", "type", "amount"]
-        }
+            required: ["symbol", "side", "type", "amount"],
+        },
     },
     {
         name: "pro_cancel_order",
@@ -82,8 +82,8 @@ export const proTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: { orderId: { type: "string" } },
-            required: ["orderId"]
-        }
+            required: ["orderId"],
+        },
     },
     {
         name: "pro_cancel_all_orders",
@@ -91,9 +91,9 @@ export const proTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                symbol: { type: "string", description: "Filter by symbol (e.g., BTC/EUR)" }
-            }
-        }
+                symbol: { type: "string", description: "Filter by symbol (e.g., BTC/EUR)" },
+            },
+        },
     },
     {
         name: "pro_deposit",
@@ -102,10 +102,10 @@ export const proTools: Tool[] = [
             type: "object",
             properties: {
                 currency: { type: "string", description: "Currency (e.g., EUR, BTC)" },
-                amount: { type: "string", description: "Amount to transfer" }
+                amount: { type: "string", description: "Amount to transfer" },
             },
-            required: ["currency", "amount"]
-        }
+            required: ["currency", "amount"],
+        },
     },
     {
         name: "pro_withdraw",
@@ -114,11 +114,11 @@ export const proTools: Tool[] = [
             type: "object",
             properties: {
                 currency: { type: "string", description: "Currency (e.g., EUR, BTC)" },
-                amount: { type: "string", description: "Amount to transfer" }
+                amount: { type: "string", description: "Amount to transfer" },
             },
-            required: ["currency", "amount"]
-        }
-    }
+            required: ["currency", "amount"],
+        },
+    },
 ];
 
 export async function handleProTool(name: string, args: any) {
@@ -149,7 +149,6 @@ export async function handleProTool(name: string, args: any) {
         const optimized = mapProOrderResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
-
 
     if (name === "pro_get_open_orders") {
         const params: any = { status: "open" };
@@ -183,7 +182,7 @@ export async function handleProTool(name: string, args: any) {
             orderType: args.type,
             amount: args.amount,
             price: args.price,
-            stopPrice: args.stopPrice
+            stopPrice: args.stopPrice,
         };
         const data = await bit2meRequest("POST", "/v1/trading/order", body);
         const optimized = mapProOrderResponse(data);
@@ -206,7 +205,7 @@ export async function handleProTool(name: string, args: any) {
     if (name === "pro_deposit") {
         const data = await bit2meRequest("POST", "/v1/trading/wallet/deposit", {
             currency: args.currency,
-            amount: args.amount
+            amount: args.amount,
         });
         const optimized = mapProDepositResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
@@ -215,7 +214,7 @@ export async function handleProTool(name: string, args: any) {
     if (name === "pro_withdraw") {
         const data = await bit2meRequest("POST", "/v1/trading/wallet/withdraw", {
             currency: args.currency,
-            amount: args.amount
+            amount: args.amount,
         });
         const optimized = mapProWithdrawResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
@@ -223,4 +222,3 @@ export async function handleProTool(name: string, args: any) {
 
     throw new Error(`Unknown pro tool: ${name}`);
 }
-

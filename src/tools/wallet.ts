@@ -6,17 +6,18 @@ import {
     mapWalletPocketsResponse,
     mapWalletTransactionsResponse,
     mapProformaResponse,
-    mapTransactionConfirmationResponse
+    mapTransactionConfirmationResponse,
 } from "../utils/response-mappers.js";
 
 export const walletTools: Tool[] = [
     {
         name: "wallet_get_pockets",
-        description: "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance.",
+        description:
+            "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance.",
         inputSchema: {
             type: "object",
-            properties: { currency: { type: "string" } }
-        }
+            properties: { currency: { type: "string" } },
+        },
     },
     {
         name: "wallet_get_pocket_details",
@@ -24,10 +25,10 @@ export const walletTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                pocketId: { type: "string", description: "Pocket UUID" }
+                pocketId: { type: "string", description: "Pocket UUID" },
             },
-            required: ["pocketId"]
-        }
+            required: ["pocketId"],
+        },
     },
     {
         name: "wallet_get_pocket_addresses",
@@ -36,10 +37,10 @@ export const walletTools: Tool[] = [
             type: "object",
             properties: {
                 pocketId: { type: "string", description: "Pocket UUID" },
-                network: { type: "string", description: "Address network (e.g., bitcoin, ethereum, bsc)" }
+                network: { type: "string", description: "Address network (e.g., bitcoin, ethereum, bsc)" },
             },
-            required: ["pocketId", "network"]
-        }
+            required: ["pocketId", "network"],
+        },
     },
     {
         name: "wallet_get_transactions",
@@ -49,9 +50,9 @@ export const walletTools: Tool[] = [
             properties: {
                 currency: { type: "string" },
                 limit: { type: "string", description: "Amount to show (default: 10)" },
-                offset: { type: "string", description: "Offset for pagination (default: 0)" }
-            }
-        }
+                offset: { type: "string", description: "Offset for pagination (default: 0)" },
+            },
+        },
     },
     {
         name: "wallet_get_transaction_details",
@@ -59,24 +60,25 @@ export const walletTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                transactionId: { type: "string", description: "Transaction UUID" }
+                transactionId: { type: "string", description: "Transaction UUID" },
             },
-            required: ["transactionId"]
-        }
+            required: ["transactionId"],
+        },
     },
     {
         name: "wallet_create_proforma",
-        description: "STEP 1: Simulates/Quotes an operation in Simple Wallet. Returns Proforma ID and cost. REQUIRES subsequent confirmation.",
+        description:
+            "STEP 1: Simulates/Quotes an operation in Simple Wallet. Returns Proforma ID and cost. REQUIRES subsequent confirmation.",
         inputSchema: {
             type: "object",
             properties: {
                 origin_pocket_id: { type: "string" },
                 destination_pocket_id: { type: "string" },
                 amount: { type: "string" },
-                currency: { type: "string" }
+                currency: { type: "string" },
             },
-            required: ["origin_pocket_id", "destination_pocket_id", "amount", "currency"]
-        }
+            required: ["origin_pocket_id", "destination_pocket_id", "amount", "currency"],
+        },
     },
     {
         name: "wallet_confirm_transaction",
@@ -84,9 +86,9 @@ export const walletTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: { proforma_id: { type: "string" } },
-            required: ["proforma_id"]
-        }
-    }
+            required: ["proforma_id"],
+        },
+    },
 ];
 
 export async function handleWalletTool(name: string, args: any) {
@@ -138,7 +140,7 @@ export async function handleWalletTool(name: string, args: any) {
             pocket: args.origin_pocket_id,
             destination: { pocket: args.destination_pocket_id },
             amount: args.amount,
-            currency: args.currency
+            currency: args.currency,
         };
         const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
         const optimized = mapProformaResponse(data);
@@ -153,4 +155,3 @@ export async function handleWalletTool(name: string, args: any) {
 
     throw new Error(`Unknown wallet tool: ${name}`);
 }
-

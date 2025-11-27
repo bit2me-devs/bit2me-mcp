@@ -11,19 +11,19 @@ import {
     mapEarnRewardsConfigResponse,
     mapEarnWalletRewardsConfigResponse,
     mapEarnWalletRewardsSummaryResponse,
-    mapEarnCreateTransactionResponse
+    mapEarnCreateTransactionResponse,
 } from "../utils/response-mappers.js";
 
 export const earnTools: Tool[] = [
     {
         name: "earn_get_summary",
         description: "View summary of accumulated rewards in Staking/Earn.",
-        inputSchema: { type: "object", properties: {} }
+        inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_wallets",
         description: "List active Earn wallets/strategies with their current APY.",
-        inputSchema: { type: "object", properties: {} }
+        inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_wallet_details",
@@ -31,10 +31,10 @@ export const earnTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                walletId: { type: "string", description: "Earn wallet UUID" }
+                walletId: { type: "string", description: "Earn wallet UUID" },
             },
-            required: ["walletId"]
-        }
+            required: ["walletId"],
+        },
     },
     {
         name: "earn_get_transactions",
@@ -44,10 +44,10 @@ export const earnTools: Tool[] = [
             properties: {
                 walletId: { type: "string", description: "Earn wallet UUID" },
                 limit: { type: "string", description: "Result limit" },
-                offset: { type: "string", description: "Offset" }
+                offset: { type: "string", description: "Offset" },
             },
-            required: ["walletId"]
-        }
+            required: ["walletId"],
+        },
     },
     {
         name: "earn_get_transactions_summary",
@@ -55,10 +55,10 @@ export const earnTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                type: { type: "string", description: "Movement type (e.g., DEPOSIT, WITHDRAWAL)" }
+                type: { type: "string", description: "Movement type (e.g., DEPOSIT, WITHDRAWAL)" },
             },
-            required: ["type"]
-        }
+            required: ["type"],
+        },
     },
     {
         name: "earn_create_transaction",
@@ -66,28 +66,31 @@ export const earnTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                pocketId: { type: "string", description: "Source pocket UUID (for deposit) or destination (for withdrawal)" },
+                pocketId: {
+                    type: "string",
+                    description: "Source pocket UUID (for deposit) or destination (for withdrawal)",
+                },
                 currency: { type: "string", description: "Currency (e.g., BTC, EUR)" },
                 amount: { type: "string", description: "Amount" },
-                type: { type: "string", enum: ["deposit", "withdrawal"], description: "Operation type" }
+                type: { type: "string", enum: ["deposit", "withdrawal"], description: "Operation type" },
             },
-            required: ["pocketId", "currency", "amount", "type"]
-        }
+            required: ["pocketId", "currency", "amount", "type"],
+        },
     },
     {
         name: "earn_get_assets",
         description: "Assets supported in Earn.",
-        inputSchema: { type: "object", properties: {} }
+        inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_apy",
         description: "Current Earn APYs.",
-        inputSchema: { type: "object", properties: {} }
+        inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_rewards_config",
         description: "Global rewards configuration.",
-        inputSchema: { type: "object", properties: {} }
+        inputSchema: { type: "object", properties: {} },
     },
     {
         name: "earn_get_wallet_rewards_config",
@@ -95,10 +98,10 @@ export const earnTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                walletId: { type: "string", description: "Earn wallet UUID" }
+                walletId: { type: "string", description: "Earn wallet UUID" },
             },
-            required: ["walletId"]
-        }
+            required: ["walletId"],
+        },
     },
     {
         name: "earn_get_wallet_rewards_summary",
@@ -106,11 +109,11 @@ export const earnTools: Tool[] = [
         inputSchema: {
             type: "object",
             properties: {
-                walletId: { type: "string", description: "Earn wallet UUID" }
+                walletId: { type: "string", description: "Earn wallet UUID" },
             },
-            required: ["walletId"]
-        }
-    }
+            required: ["walletId"],
+        },
+    },
 ];
 
 export async function handleEarnTool(name: string, args: any) {
@@ -151,7 +154,7 @@ export async function handleEarnTool(name: string, args: any) {
         const data = await bit2meRequest("POST", `/v1/earn/wallets/${args.pocketId}/movements`, {
             currency: args.currency,
             amount: args.amount,
-            type: args.type
+            type: args.type,
         });
         const optimized = mapEarnCreateTransactionResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
@@ -189,4 +192,3 @@ export async function handleEarnTool(name: string, args: any) {
 
     throw new Error(`Unknown earn tool: ${name}`);
 }
-

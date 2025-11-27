@@ -31,15 +31,15 @@ try {
     // Initialize logger with configured level
     initLogger(config.LOG_LEVEL);
 
-    logger.info('Bit2Me MCP Server initializing...', {
-        version: '1.1.1',
+    logger.info("Bit2Me MCP Server initializing...", {
+        version: "1.1.1",
         timeout: config.REQUEST_TIMEOUT,
         maxRetries: config.MAX_RETRIES,
         logLevel: config.LOG_LEVEL,
     });
 } catch (error) {
-    console.error('❌ Server startup failed - Invalid configuration');
-    console.error('Please check your .env file or environment variables');
+    console.error("❌ Server startup failed - Invalid configuration");
+    console.error("Please check your .env file or environment variables");
     process.exit(1);
 }
 
@@ -61,8 +61,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             ...loanTools,
             ...proTools,
             ...accountTools,
-            ...aggregationTools
-        ]
+            ...aggregationTools,
+        ],
     };
 });
 
@@ -82,30 +82,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
 
     try {
-        if (marketTools.find(t => t.name === name)) {
+        if (marketTools.find((t) => t.name === name)) {
             return await handleMarketTool(name, args);
         }
-        if (aggregationTools.find(t => t.name === name)) {
+        if (aggregationTools.find((t) => t.name === name)) {
             return await handleAggregationTool(name, args);
         }
-        if (walletTools.find(t => t.name === name)) {
+        if (walletTools.find((t) => t.name === name)) {
             return await handleWalletTool(name, args);
         }
-        if (earnTools.find(t => t.name === name)) {
+        if (earnTools.find((t) => t.name === name)) {
             return await handleEarnTool(name, args);
         }
-        if (loanTools.find(t => t.name === name)) {
+        if (loanTools.find((t) => t.name === name)) {
             return await handleLoanTool(name, args);
         }
-        if (proTools.find(t => t.name === name)) {
+        if (proTools.find((t) => t.name === name)) {
             return await handleProTool(name, args);
         }
-        if (accountTools.find(t => t.name === name)) {
+        if (accountTools.find((t) => t.name === name)) {
             return await handleAccountTool(name, args);
         }
 
         throw new Error(`Unknown tool: ${name}`);
-
     } catch (error: any) {
         logger.error(`Error executing tool: ${name}`, { error: error.message });
         return {

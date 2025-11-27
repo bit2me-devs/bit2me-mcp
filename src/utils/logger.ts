@@ -3,7 +3,7 @@
  * Automatically sanitizes sensitive data and provides configurable log levels
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 const LOG_LEVELS: Record<LogLevel, number> = {
     debug: 0,
@@ -15,18 +15,18 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 class Logger {
     private level: LogLevel;
     private sensitiveKeys = [
-        'x-api-key',
-        'api-signature',
-        'authorization',
-        'password',
-        'secret',
-        'token',
-        'apikey',
-        'api_key',
-        'api_secret',
+        "x-api-key",
+        "api-signature",
+        "authorization",
+        "password",
+        "secret",
+        "token",
+        "apikey",
+        "api_key",
+        "api_secret",
     ];
 
-    constructor(level: LogLevel = 'info') {
+    constructor(level: LogLevel = "info") {
         this.level = level;
     }
 
@@ -44,22 +44,22 @@ class Logger {
         if (!data) return data;
 
         // Handle primitive types
-        if (typeof data !== 'object') return data;
+        if (typeof data !== "object") return data;
 
         // Handle arrays
         if (Array.isArray(data)) {
-            return data.map(item => this.sanitize(item));
+            return data.map((item) => this.sanitize(item));
         }
 
         // Handle objects
         const sanitized: any = {};
         for (const [key, value] of Object.entries(data)) {
             const keyLower = key.toLowerCase();
-            const isSensitive = this.sensitiveKeys.some(k => keyLower.includes(k));
+            const isSensitive = this.sensitiveKeys.some((k) => keyLower.includes(k));
 
-            if (isSensitive && typeof value === 'string') {
-                sanitized[key] = '***REDACTED***';
-            } else if (typeof value === 'object' && value !== null) {
+            if (isSensitive && typeof value === "string") {
+                sanitized[key] = "***REDACTED***";
+            } else if (typeof value === "object" && value !== null) {
                 sanitized[key] = this.sanitize(value);
             } else {
                 sanitized[key] = value;
@@ -79,7 +79,7 @@ class Logger {
 
         if (context) {
             const sanitizedContext = this.sanitize(context);
-            formatted += ' ' + JSON.stringify(sanitizedContext);
+            formatted += " " + JSON.stringify(sanitizedContext);
         }
 
         return formatted;
@@ -103,28 +103,28 @@ class Logger {
      * Log debug message
      */
     debug(message: string, context?: any): void {
-        this.log('debug', message, context);
+        this.log("debug", message, context);
     }
 
     /**
      * Log info message
      */
     info(message: string, context?: any): void {
-        this.log('info', message, context);
+        this.log("info", message, context);
     }
 
     /**
      * Log warning message
      */
     warn(message: string, context?: any): void {
-        this.log('warn', message, context);
+        this.log("warn", message, context);
     }
 
     /**
      * Log error message
      */
     error(message: string, context?: any): void {
-        this.log('error', message, context);
+        this.log("error", message, context);
     }
 }
 
@@ -135,14 +135,14 @@ export const logger = new Logger();
  * Initialize logger with environment configuration
  */
 export function initLogger(level?: string): void {
-    const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
-    const logLevel = (level?.toLowerCase() || 'info') as LogLevel;
+    const validLevels: LogLevel[] = ["debug", "info", "warn", "error"];
+    const logLevel = (level?.toLowerCase() || "info") as LogLevel;
 
     if (validLevels.includes(logLevel)) {
         logger.setLevel(logLevel);
         logger.info(`Logger initialized with level: ${logLevel}`);
     } else {
-        logger.setLevel('info');
+        logger.setLevel("info");
         logger.warn(`Invalid log level '${level}', defaulting to 'info'`);
     }
 }

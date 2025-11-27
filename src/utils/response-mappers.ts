@@ -3,7 +3,7 @@
  * Maps raw API responses to optimized schemas with validation
  */
 
-import { ValidationError } from './errors.js';
+import { ValidationError } from "./errors.js";
 import type {
     // Market
     MarketTickerResponse,
@@ -60,14 +60,11 @@ import type {
 // ============================================================================
 
 function isValidTickerResponse(data: unknown): data is any {
-    return typeof data === 'object' &&
-        data !== null &&
-        'price' in data &&
-        'time' in data;
+    return typeof data === "object" && data !== null && "price" in data && "time" in data;
 }
 
 function isValidAssetRecord(data: unknown): data is Record<string, any> {
-    return typeof data === 'object' && data !== null;
+    return typeof data === "object" && data !== null;
 }
 
 function isValidArray(data: unknown): data is any[] {
@@ -75,7 +72,7 @@ function isValidArray(data: unknown): data is any[] {
 }
 
 function isValidObject(data: unknown): data is Record<string, any> {
-    return typeof data === 'object' && data !== null && !Array.isArray(data);
+    return typeof data === "object" && data !== null && !Array.isArray(data);
 }
 
 // ============================================================================
@@ -87,7 +84,7 @@ function isValidObject(data: unknown): data is Record<string, any> {
  */
 export function mapTickerResponse(raw: unknown): MarketTickerResponse {
     if (!isValidTickerResponse(raw)) {
-        throw new ValidationError('Invalid ticker response structure');
+        throw new ValidationError("Invalid ticker response structure");
     }
     return {
         time: raw.time,
@@ -104,7 +101,7 @@ export function mapTickerResponse(raw: unknown): MarketTickerResponse {
  */
 export function mapAssetsResponse(raw: unknown): MarketAssetResponse[] {
     if (!isValidAssetRecord(raw)) {
-        throw new ValidationError('Invalid assets response structure');
+        throw new ValidationError("Invalid assets response structure");
     }
     return Object.entries(raw).map(([symbol, asset]) => ({
         symbol,
@@ -141,7 +138,7 @@ export function mapMarketConfigResponse(raw: unknown): MarketConfigResponse[] {
  */
 export function mapOrderBookResponse(raw: unknown): MarketOrderBookResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid order book response structure');
+        throw new ValidationError("Invalid order book response structure");
     }
 
     return {
@@ -203,7 +200,7 @@ export function mapCandlesResponse(raw: unknown): CandleResponse[] {
  */
 export function mapWalletPocketsResponse(raw: unknown): WalletPocketResponse[] {
     if (!isValidArray(raw)) {
-        throw new ValidationError('Invalid wallet pockets response structure');
+        throw new ValidationError("Invalid wallet pockets response structure");
     }
 
     return raw.map((p: any) => ({
@@ -211,7 +208,7 @@ export function mapWalletPocketsResponse(raw: unknown): WalletPocketResponse[] {
         currency: p.currency,
         balance: p.balance,
         available: p.available,
-        name: p.name
+        name: p.name,
     }));
 }
 
@@ -250,20 +247,26 @@ export function mapWalletTransactionsResponse(raw: unknown): WalletTransactionRe
             status: tx.status,
             amount: tx.denomination?.amount || "0",
             currency: tx.denomination?.currency || "",
-            origin: tx.origin ? {
-                amount: tx.origin.amount,
-                currency: tx.origin.currency,
-                class: tx.origin.class,
-            } : undefined,
-            destination: tx.destination ? {
-                amount: tx.destination.amount,
-                currency: tx.destination.currency,
-                class: tx.destination.class,
-            } : undefined,
-            fee: tx.fee ? {
-                amount: tx.fee.mercantile?.amount || tx.fee.network?.amount || "0",
-                currency: tx.fee.mercantile?.currency || tx.fee.network?.currency || "",
-            } : undefined,
+            origin: tx.origin
+                ? {
+                      amount: tx.origin.amount,
+                      currency: tx.origin.currency,
+                      class: tx.origin.class,
+                  }
+                : undefined,
+            destination: tx.destination
+                ? {
+                      amount: tx.destination.amount,
+                      currency: tx.destination.currency,
+                      class: tx.destination.class,
+                  }
+                : undefined,
+            fee: tx.fee
+                ? {
+                      amount: tx.fee.mercantile?.amount || tx.fee.network?.amount || "0",
+                      currency: tx.fee.mercantile?.currency || tx.fee.network?.currency || "",
+                  }
+                : undefined,
         };
     });
 }
@@ -273,7 +276,7 @@ export function mapWalletTransactionsResponse(raw: unknown): WalletTransactionRe
  */
 export function mapWalletTransactionDetailsResponse(raw: unknown): WalletTransactionDetailsResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid transaction details response structure');
+        throw new ValidationError("Invalid transaction details response structure");
     }
 
     const originRate = raw.origin?.rate?.rate?.value || raw.origin?.rate?.value;
@@ -286,21 +289,27 @@ export function mapWalletTransactionDetailsResponse(raw: unknown): WalletTransac
         status: raw.status,
         amount: raw.denomination?.amount || "0",
         currency: raw.denomination?.currency || "",
-        origin: raw.origin ? {
-            amount: raw.origin.amount,
-            currency: raw.origin.currency,
-            class: raw.origin.class,
-            rate_applied: originRate,
-        } : undefined,
-        destination: raw.destination ? {
-            amount: raw.destination.amount,
-            currency: raw.destination.currency,
-            class: raw.destination.class,
-        } : undefined,
-        fee: raw.fee ? {
-            amount: raw.fee.mercantile?.amount || raw.fee.network?.amount || "0",
-            currency: raw.fee.mercantile?.currency || raw.fee.network?.currency || "",
-        } : undefined,
+        origin: raw.origin
+            ? {
+                  amount: raw.origin.amount,
+                  currency: raw.origin.currency,
+                  class: raw.origin.class,
+                  rate_applied: originRate,
+              }
+            : undefined,
+        destination: raw.destination
+            ? {
+                  amount: raw.destination.amount,
+                  currency: raw.destination.currency,
+                  class: raw.destination.class,
+              }
+            : undefined,
+        fee: raw.fee
+            ? {
+                  amount: raw.fee.mercantile?.amount || raw.fee.network?.amount || "0",
+                  currency: raw.fee.mercantile?.currency || raw.fee.network?.currency || "",
+              }
+            : undefined,
     };
 }
 
@@ -309,7 +318,7 @@ export function mapWalletTransactionDetailsResponse(raw: unknown): WalletTransac
  */
 export function mapProformaResponse(raw: unknown): ProformaResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid proforma response structure');
+        throw new ValidationError("Invalid proforma response structure");
     }
 
     return {
@@ -476,7 +485,7 @@ export function mapProBalanceResponse(raw: unknown): ProBalanceResponse[] {
  */
 export function mapProOrderResponse(raw: unknown): ProOrderResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid Pro order response structure');
+        throw new ValidationError("Invalid Pro order response structure");
     }
 
     return {
@@ -502,7 +511,7 @@ export function mapProOrderResponse(raw: unknown): ProOrderResponse {
  */
 export function mapAccountInfoResponse(raw: unknown): AccountInfoResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid account info response structure');
+        throw new ValidationError("Invalid account info response structure");
     }
 
     return {
@@ -528,7 +537,7 @@ export function mapAccountInfoResponse(raw: unknown): AccountInfoResponse {
  */
 export function mapEarnWalletDetailsResponse(raw: unknown): EarnWalletDetailsResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid earn wallet details response structure');
+        throw new ValidationError("Invalid earn wallet details response structure");
     }
 
     return {
@@ -547,7 +556,7 @@ export function mapEarnWalletDetailsResponse(raw: unknown): EarnWalletDetailsRes
  */
 export function mapEarnTransactionsSummaryResponse(raw: unknown): EarnTransactionsSummaryResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid earn transactions summary response structure');
+        throw new ValidationError("Invalid earn transactions summary response structure");
     }
 
     return {
@@ -577,7 +586,7 @@ export function mapEarnAssetsResponse(raw: unknown): EarnAssetsResponse {
  */
 export function mapEarnRewardsConfigResponse(raw: unknown): EarnRewardsConfigResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid earn rewards config response structure');
+        throw new ValidationError("Invalid earn rewards config response structure");
     }
 
     return {
@@ -592,7 +601,7 @@ export function mapEarnRewardsConfigResponse(raw: unknown): EarnRewardsConfigRes
  */
 export function mapEarnWalletRewardsConfigResponse(raw: unknown): EarnWalletRewardsConfigResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid earn wallet rewards config response structure');
+        throw new ValidationError("Invalid earn wallet rewards config response structure");
     }
 
     return {
@@ -608,7 +617,7 @@ export function mapEarnWalletRewardsConfigResponse(raw: unknown): EarnWalletRewa
  */
 export function mapEarnWalletRewardsSummaryResponse(raw: unknown): EarnWalletRewardsSummaryResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid earn wallet rewards summary response structure');
+        throw new ValidationError("Invalid earn wallet rewards summary response structure");
     }
 
     return {
@@ -647,7 +656,7 @@ export function mapLoanConfigResponse(raw: unknown): LoanConfigResponse[] {
  */
 export function mapLoanLTVResponse(raw: unknown): LoanLTVResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid loan LTV response structure');
+        throw new ValidationError("Invalid loan LTV response structure");
     }
 
     return {
@@ -663,7 +672,7 @@ export function mapLoanLTVResponse(raw: unknown): LoanLTVResponse {
  */
 export function mapLoanOrderDetailsResponse(raw: unknown): LoanOrderDetailsResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid loan order details response structure');
+        throw new ValidationError("Invalid loan order details response structure");
     }
 
     return {
@@ -679,12 +688,14 @@ export function mapLoanOrderDetailsResponse(raw: unknown): LoanOrderDetailsRespo
         liquidation_price: raw.liquidationPriceReference || raw.liquidationPrice || "0",
         created_at: raw.createdAt || raw.created_at || "",
         expires_at: raw.expiresAt || raw.expires_at || "",
-        apr_details: raw.aprDetails ? {
-            base_apr: raw.aprDetails.baseApr || "0",
-            final_apr: raw.aprDetails.finalApr || "0",
-            user_discount: raw.aprDetails.userDiscount || "0",
-            total_discount: raw.aprDetails.totalDiscount || "0",
-        } : undefined,
+        apr_details: raw.aprDetails
+            ? {
+                  base_apr: raw.aprDetails.baseApr || "0",
+                  final_apr: raw.aprDetails.finalApr || "0",
+                  user_discount: raw.aprDetails.userDiscount || "0",
+                  total_discount: raw.aprDetails.totalDiscount || "0",
+              }
+            : undefined,
     };
 }
 
@@ -752,7 +763,7 @@ export function mapProOrderTradesResponse(raw: unknown): ProOrderTradesResponse 
  */
 export function mapTransactionConfirmationResponse(raw: unknown): TransactionConfirmationResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid transaction confirmation response structure');
+        throw new ValidationError("Invalid transaction confirmation response structure");
     }
 
     return {
@@ -767,7 +778,7 @@ export function mapTransactionConfirmationResponse(raw: unknown): TransactionCon
  */
 export function mapEarnCreateTransactionResponse(raw: unknown): EarnCreateTransactionResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid earn transaction response structure');
+        throw new ValidationError("Invalid earn transaction response structure");
     }
 
     return {
@@ -785,7 +796,7 @@ export function mapEarnCreateTransactionResponse(raw: unknown): EarnCreateTransa
  */
 export function mapProDepositResponse(raw: unknown): ProDepositResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid Pro deposit response structure');
+        throw new ValidationError("Invalid Pro deposit response structure");
     }
 
     return {
@@ -802,7 +813,7 @@ export function mapProDepositResponse(raw: unknown): ProDepositResponse {
  */
 export function mapProWithdrawResponse(raw: unknown): ProWithdrawResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid Pro withdraw response structure');
+        throw new ValidationError("Invalid Pro withdraw response structure");
     }
 
     return {
@@ -819,7 +830,7 @@ export function mapProWithdrawResponse(raw: unknown): ProWithdrawResponse {
  */
 export function mapProCancelOrderResponse(raw: unknown): ProCancelOrderResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid Pro cancel order response structure');
+        throw new ValidationError("Invalid Pro cancel order response structure");
     }
 
     return {
@@ -848,7 +859,7 @@ export function mapProCancelAllOrdersResponse(raw: unknown): ProCancelAllOrdersR
  */
 export function mapLoanCreateResponse(raw: unknown): LoanCreateResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid loan create response structure');
+        throw new ValidationError("Invalid loan create response structure");
     }
 
     return {
@@ -869,7 +880,7 @@ export function mapLoanCreateResponse(raw: unknown): LoanCreateResponse {
  */
 export function mapLoanIncreaseGuaranteeResponse(raw: unknown): LoanIncreaseGuaranteeResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid loan increase guarantee response structure');
+        throw new ValidationError("Invalid loan increase guarantee response structure");
     }
 
     return {
@@ -886,7 +897,7 @@ export function mapLoanIncreaseGuaranteeResponse(raw: unknown): LoanIncreaseGuar
  */
 export function mapLoanPaybackResponse(raw: unknown): LoanPaybackResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError('Invalid loan payback response structure');
+        throw new ValidationError("Invalid loan payback response structure");
     }
 
     return {

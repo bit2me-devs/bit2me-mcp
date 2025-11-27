@@ -1,9 +1,15 @@
-import crypto from 'crypto';
-import axios, { AxiosRequestConfig, AxiosError } from 'axios';
-import { config, BIT2ME_GATEWAY_URL, getConfig } from '../config.js';
-import { logger } from '../utils/logger.js';
-import { Bit2MeAPIError, RateLimitError, AuthenticationError, BadRequestError, NotFoundError } from '../utils/errors.js';
-import { MAX_BACKOFF_DELAY, BACKOFF_JITTER_MS } from '../constants.js';
+import crypto from "crypto";
+import axios, { AxiosRequestConfig, AxiosError } from "axios";
+import { config, BIT2ME_GATEWAY_URL, getConfig } from "../config.js";
+import { logger } from "../utils/logger.js";
+import {
+    Bit2MeAPIError,
+    RateLimitError,
+    AuthenticationError,
+    BadRequestError,
+    NotFoundError,
+} from "../utils/errors.js";
+import { MAX_BACKOFF_DELAY, BACKOFF_JITTER_MS } from "../constants.js";
 
 const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
 
@@ -21,15 +27,13 @@ export function generateSignature(nonce: number, endpoint: string, data: any, se
     const hasBody = !!data && Object.keys(data).length > 0;
 
     // The body must be stringified if it exists (if not already a string)
-    const bodyString = hasBody ? (typeof data === 'string' ? data : JSON.stringify(data)) : '';
+    const bodyString = hasBody ? (typeof data === "string" ? data : JSON.stringify(data)) : "";
 
-    const message = hasBody
-        ? `${nonce}:${endpoint}:${bodyString}`
-        : `${nonce}:${endpoint}`;
+    const message = hasBody ? `${nonce}:${endpoint}:${bodyString}` : `${nonce}:${endpoint}`;
 
     // 2. Double hash algorithm: SHA256 (binary) -> HMAC-SHA512 (base64)
-    const hash = crypto.createHash('sha256').update(message).digest('binary');
-    return crypto.createHmac('sha512', secret).update(hash, 'binary').digest('base64');
+    const hash = crypto.createHash("sha256").update(message).digest("binary");
+    return crypto.createHmac("sha512", secret).update(hash, "binary").digest("base64");
 }
 
 // ============================================================================
@@ -50,7 +54,12 @@ function calculateBackoffDelay(retryAttempt: number, baseDelay: number, maxDelay
  * Centralized wrapper for API calls.
  * Handles headers, signature, nonce, timeouts, retry logic with exponential backoff, and errors.
  */
-export async function bit2meRequest(method: "GET" | "POST" | "DELETE", endpoint: string, params?: any, retries?: number): Promise<any> {
+export async function bit2meRequest(
+    method: "GET" | "POST" | "DELETE",
+    endpoint: string,
+    params?: any,
+    retries?: number
+): Promise<any> {
     const appConfig = getConfig();
     const maxRetries = retries ?? appConfig.MAX_RETRIES;
     const baseDelay = appConfig.RETRY_BASE_DELAY;
@@ -70,8 +79,8 @@ export async function bit2meRequest(method: "GET" | "POST" | "DELETE", endpoint:
         headers: {
             "x-api-key": apiKey,
             "x-nonce": nonce.toString(),
-            "Content-Type": "application/json"
-        }
+            "Content-Type": "application/json",
+        },
     };
 
     let signatureData = undefined; // For body in POST/DELETE
@@ -86,7 +95,6 @@ export async function bit2meRequest(method: "GET" | "POST" | "DELETE", endpoint:
         // We tell Axios to use the full URL we just built.
         // We do NOT use requestConfig.params to avoid Axios re-encoding differently than us.
         requestConfig.url = `${BIT2ME_BASE_URL}${urlToSign}`;
-
     } else if ((method === "POST" || method === "DELETE") && params) {
         // POST/DELETE CASE: Params go in the body
         requestConfig.url = `${BIT2ME_BASE_URL}${endpoint}`;
@@ -137,7 +145,7 @@ export async function bit2meRequest(method: "GET" | "POST" | "DELETE", endpoint:
             const delay = calculateBackoffDelay(retryAttempt, baseDelay);
 
             logger.warn(`Rate limit hit. Retrying in ${Math.round(delay)}ms... (${maxRetries} retries left)`);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
             return bit2meRequest(method, endpoint, params, maxRetries - 1);
         }
 
@@ -185,7 +193,7 @@ export async function getMarketPrice(cryptoSymbol: string, fiatCurrency: string)
  */
 export async function getTicker(cryptoSymbol: string, fiatCurrency: string): Promise<any> {
     const response = await axios.get(`${BIT2ME_BASE_URL}/v3/currency/ticker/${cryptoSymbol}`, {
-        params: { rateCurrency: fiatCurrency }
+        params: { rateCurrency: fiatCurrency },
     });
     // Structure is { "EUR": { "BTC": [ { price: "..." } ] } }
     return response.data?.[fiatCurrency]?.[cryptoSymbol]?.[0];
