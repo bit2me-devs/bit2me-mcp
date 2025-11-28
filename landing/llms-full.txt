@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2025-11-28T00:16:55.305Z
+> Generated on 2025-11-28T01:07:11.434Z
 
 
 ==================================================
@@ -26,10 +26,10 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 
 ## 🛠️ Available Tools & API Endpoints
 
-The server provides **47 tools** organized into categories:
+The server provides **48 tools** organized into categories:
 
 - 8 Market Tools
-- 7 Wallet Tools
+- 8 Wallet Tools
 - 11 Earn Tools
 - 9 Loan Tools
 - 10 Pro Trading Tools
@@ -261,9 +261,11 @@ To use this server with the Claude Desktop application, add the following config
 ## 🛡️ Security
 
 ### Security Policy
+
 For detailed information about reporting vulnerabilities and our security policy, please see [SECURITY.md](./SECURITY.md).
 
 ### Best Practices
+
 - **API Keys**: Never commit API keys to version control.
 - **Permissions**: Use minimal permissions. Avoid "Withdrawal" permissions for MCP usage.
 - **Logging**: The server automatically sanitizes sensitive data in logs.
@@ -419,77 +421,6 @@ The web interface provides:
 4. Click **Run** to execute the tool
 5. View the formatted response in the output panel
 
-## 🧪 Testing & Coverage
-
-This project maintains **97% line coverage** with a focus on test quality over metrics.
-
-### Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage report
-npm run test:coverage
-```
-
-### Coverage Philosophy
-
-We intentionally maintain 97% coverage rather than pursuing 100%. This pragmatic approach is based on industry best practices:
-
-> **Martin Fowler**: _"I would be suspicious of anything like 100% - it would smell of someone writing tests to make the coverage numbers happy."_
-
-**What's Covered ✅**:
-
-- All authentication flows and API request signing
-- All error handling (HTTP errors, rate limiting, retries)
-- All data validation and transformations
-- All business logic (trading, wallets, Earn, Loans)
-- All 47 MCP tool endpoints
-
-**What's NOT Covered (3%) ⚠️**:
-
-- Debug log messages within already-tested error paths
-- Defensive defaults for unlikely API edge cases
-- Alternative error formats that don't occur in practice
-
-**140 tests** ensure critical paths work correctly. See `/tests` for details.
-
-## 🛠️ Development
-
-- **Check logs in terminal:** All server logs appear in the terminal where you started the inspector
-- **Verify credentials:** Ensure API keys are set correctly
-- **Test market tools first:** Use public tools like `market_get_ticker` to verify basic functionality
-- **Compare responses:** Use Inspector to compare raw API responses vs. mapped responses
-
-### Inspector vs Claude Desktop
-
-| Feature       | Inspector           | Claude Desktop |
-| ------------- | ------------------- | -------------- |
-| **Purpose**   | Testing & debugging | Production use |
-| **Interface** | Web UI              | Chat interface |
-| **Testing**   | Individual tools    | Conversational |
-| **Logs**      | Visible in terminal | Hidden         |
-| **Best for**  | Development         | End users      |
-
-### Common Inspector Use Cases
-
-✅ **Verify tool configuration** before deploying to Claude  
-✅ **Test authentication** with Bit2Me API  
-✅ **Debug response mappings** and schemas  
-✅ **Validate input parameters** for each tool  
-✅ **Check error handling** with invalid inputs
-
-## 🧪 Testing
-
-The project includes a comprehensive test suite using Vitest.
-
-```bash
-npm test
-```
-
-Tests cover authentication, tool functionality, and rate limit handling using mocked responses.
-
 ## 🌐 Landing Page Deployment
 
 The project's landing page is located in the `/landing` directory.
@@ -508,132 +439,29 @@ The `/landing/CNAME` file manages the custom domain configuration.
 
 We welcome contributions to improve this MCP server! Whether it's fixing bugs, adding new tools, or improving documentation, your help is appreciated.
 
-### Getting Started
+Please read our **[Contributing Guidelines](./CONTRIBUTING.md)** for details on:
 
-1. **Fork the repository** to your own GitHub account.
-2. **Clone your fork** locally:
+- Setting up your development environment
+- Running tests
+- Commit conventions (Conventional Commits)
+- Pull Request process
+
+### Quick Start
+
+1.  **Fork and Clone**:
     ```bash
     git clone https://github.com/bit2me-devs/bit2me-mcp.git
-    cd bit2me-mcp
     ```
-3. **Install dependencies:**
+2.  **Install Dependencies**:
     ```bash
     npm install
     ```
-4. **Create a new branch** for your feature or bugfix:
+3.  **Create a Branch**:
     ```bash
-    git checkout -b feature/amazing-feature
-    # or
-    git checkout -b fix/bug-description
+    git checkout -b feat/amazing-feature
     ```
 
-### Development Workflow
-
-1. **Make your changes** following our coding standards
-2. **Write or update tests** for your changes
-3. **Run the test suite:**
-    ```bash
-    npm test              # Run all tests
-    npm run test:watch    # Run tests in watch mode
-    npm run test:coverage # Generate coverage report
-    ```
-4. **Ensure code quality:**
-    ```bash
-    npm run build         # TypeScript compilation
-    npm run lint          # Type checking
-    npm run eslint        # Linting
-    npm run lint:fix      # Auto-format code with Prettier
-    ```
-5. **Commit your changes** using [Conventional Commits](https://www.conventionalcommits.org/):
-    ```bash
-    git commit -m "feat: add new market analysis tool"
-    git commit -m "fix: resolve rate limit handling issue"
-    git commit -m "docs: update API endpoint documentation"
-    ```
-
-### Commit Convention
-
-We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
-- `feat:` - New features (triggers minor version bump)
-- `fix:` - Bug fixes (triggers patch version bump)
-- `docs:` - Documentation only changes
-- `style:` - Code style changes (formatting, missing semi-colons, etc.)
-- `refactor:` - Code refactoring without changing functionality
-- `perf:` - Performance improvements
-- `test:` - Adding or updating tests
-- `chore:` - Build process or auxiliary tool changes
-- `ci:` - CI/CD configuration changes
-
-**For breaking changes**, add `BREAKING CHANGE:` in the commit body or append `!` after the type:
-
-```bash
-git commit -m "feat!: redesign authentication flow
-
-BREAKING CHANGE: API key format has changed"
-```
-
-### Code Quality Standards
-
-**All contributions must:**
-
-- ✅ Pass all tests (`npm test`)
-- ✅ Pass TypeScript compilation (`npm run build`)
-- ✅ Pass linting (`npm run eslint`)
-- ✅ Be properly formatted (`npm run lint:fix`)
-- ✅ Include tests for new features
-- ✅ Update documentation as needed
-- ✅ Follow existing code style and patterns
-
-**Pre-commit hooks will automatically:**
-
-- Run type checking
-- Run all tests
-- Lint your code
-
-If any check fails, the commit will be blocked. Fix the issues and try again.
-
-### Pull Request Process
-
-1. **Update documentation** if you've changed APIs or added features
-2. **Update CHANGELOG.md** in the "Unreleased" section (if significant change)
-3. **Push to your branch:**
-    ```bash
-    git push origin feature/amazing-feature
-    ```
-4. **Open a Pull Request** to the `main` branch
-5. **Fill out the PR template** completely
-6. **Wait for review** - A maintainer will review your PR
-7. **Address feedback** if any changes are requested
-8. **Celebrate** when your PR is merged! 🎉
-
-### What to Contribute
-
-**Good first issues:**
-
-- 🐛 Bug fixes
-- 📝 Documentation improvements
-- ✨ New test cases
-- 🎨 Code formatting and style improvements
-
-**More involved contributions:**
-
-- 🚀 New MCP tools
-- ⚡ Performance optimizations
-- 🔐 Security enhancements
-- 🧪 Test coverage improvements
-
-**Before starting major work:**
-
-- 💬 Open an issue to discuss your idea
-- 📣 Get feedback from maintainers
-- 🎯 Ensure it aligns with project goals
-
-### Questions or Issues?
-
-- 🐛 **Found a bug?** [Open an issue](https://github.com/bit2me-devs/bit2me-mcp/issues/new)
-- 💡 **Have an idea?** [Start a discussion](https://github.com/bit2me-devs/bit2me-mcp/discussions)
-- ❓ **Need help?** Check existing [issues](https://github.com/bit2me-devs/bit2me-mcp/issues) and [discussions](https://github.com/bit2me-devs/bit2me-mcp/discussions)
+For full details, check the [CONTRIBUTING.md](./CONTRIBUTING.md) file.
 
 ### Code of Conduct
 
@@ -1223,6 +1051,36 @@ git commit -m "chore: update deps"     # No release
 ==================================================
 FILE: CHANGELOG.md (Changelog)
 ==================================================
+
+## [1.6.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.2...v1.6.3) (2025-11-28)
+
+### Bug Fixes
+
+- address incomplete sanitization alert using replacement loop ([f020b6e](https://github.com/bit2me-devs/bit2me-mcp/commit/f020b6e75446778416dc6705c2d0b8b45f002b08))
+
+## [1.6.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.1...v1.6.2) (2025-11-28)
+
+### Bug Fixes
+
+- address remaining security scanning alerts ([730dab4](https://github.com/bit2me-devs/bit2me-mcp/commit/730dab4b3c66d2bc416c20f000dac444a606da71))
+
+## [1.6.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.0...v1.6.1) (2025-11-28)
+
+### Bug Fixes
+
+- resolve high severity security alerts ([fcaa6f0](https://github.com/bit2me-devs/bit2me-mcp/commit/fcaa6f07ae0d4535c79ddf3b730055ca47c4f0f5))
+
+# [1.6.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.5.0...v1.6.0) (2025-11-28)
+
+### Features
+
+- add robots.txt to landing page ([f13294b](https://github.com/bit2me-devs/bit2me-mcp/commit/f13294bb0a6182bff892d7e763b721a787dd43e1))
+
+# [1.5.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.4.1...v1.5.0) (2025-11-28)
+
+### Features
+
+- implement automatic generation of llms.txt and llms-full.txt ([9b95992](https://github.com/bit2me-devs/bit2me-mcp/commit/9b959924d235ef440c11704be4286c782f015fa8))
 
 ## [1.4.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.4.0...v1.4.1) (2025-11-27)
 
