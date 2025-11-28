@@ -2385,21 +2385,21 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             response: [
                                 {
                                     timestamp: 1732492800000,
-                                    date: "2024-11-25",
+                                    date: "2024-11-25T10:30:00.000Z",
                                     price_usd: 75869.89,
                                     price_fiat: 72145.32,
                                     currency: "EUR",
                                 },
                                 {
                                     timestamp: 1732579200000,
-                                    date: "2024-11-26",
+                                    date: "2024-11-26T14:45:00.000Z",
                                     price_usd: 76234.12,
                                     price_fiat: 72489.56,
                                     currency: "EUR",
                                 },
                             ],
                             type: "READ",
-                            desc: "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires ticker pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns last 30 data points with dates and prices in both USD and the fiat currency from the ticker.",
+                            desc: "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires ticker pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns last 30 data points with full ISO 8601 date/time and prices in both USD and the fiat currency from the ticker.",
                             args: {
                                 ticker: { type: "string", desc: "Pair (e.g., BTC/EUR)" },
                                 timeframe: {
