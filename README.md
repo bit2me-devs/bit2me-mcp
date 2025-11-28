@@ -509,134 +509,29 @@ The `/landing/CNAME` file manages the custom domain configuration.
 
 We welcome contributions to improve this MCP server! Whether it's fixing bugs, adding new tools, or improving documentation, your help is appreciated.
 
-### Getting Started
+Please read our **[Contributing Guidelines](./CONTRIBUTING.md)** for details on:
 
-1. **Fork the repository** to your own GitHub account.
-2. **Clone your fork** locally:
+- Setting up your development environment
+- Running tests
+- Commit conventions (Conventional Commits)
+- Pull Request process
+
+### Quick Start
+
+1.  **Fork and Clone**:
     ```bash
     git clone https://github.com/bit2me-devs/bit2me-mcp.git
-    cd bit2me-mcp
     ```
-3. **Install dependencies:**
+2.  **Install Dependencies**:
     ```bash
     npm install
     ```
-4. **Create a new branch** for your feature or bugfix:
+3.  **Create a Branch**:
     ```bash
-    git checkout -b feature/amazing-feature
-    # or
-    git checkout -b fix/bug-description
+    git checkout -b feat/amazing-feature
     ```
 
-### Development Workflow
-
-1. **Make your changes** following our coding standards
-2. **Write or update tests** for your changes
-3. **Run the test suite:**
-    ```bash
-    npm test              # Run all tests
-    npm run test:watch    # Run tests in watch mode
-    npm run test:coverage # Generate coverage report
-    ```
-4. **Ensure code quality:**
-    ```bash
-    npm run build         # TypeScript compilation
-    npm run lint          # Type checking
-    npm run eslint        # Linting
-    npm run lint:fix      # Auto-format code with Prettier
-    ```
-5. **Commit your changes** using [Conventional Commits](https://www.conventionalcommits.org/):
-    ```bash
-    git commit -m "feat: add new market analysis tool"
-    git commit -m "fix: resolve rate limit handling issue"
-    git commit -m "docs: update API endpoint documentation"
-    ```
-
-### Commit Convention
-
-We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
-- `feat:` - New features (triggers minor version bump)
-- `fix:` - Bug fixes (triggers patch version bump)
-- `docs:` - Documentation only changes
-- `style:` - Code style changes (formatting, missing semi-colons, etc.)
-- `refactor:` - Code refactoring without changing functionality
-- `perf:` - Performance improvements
-- `test:` - Adding or updating tests
-- `chore:` - Build process or auxiliary tool changes
-- `ci:` - CI/CD configuration changes
-
-**For breaking changes**, add `BREAKING CHANGE:` in the commit body or append `!` after the type:
-
-```bash
-git commit -m "feat!: redesign authentication flow
-
-BREAKING CHANGE: API key format has changed"
-```
-
-### Code Quality Standards
-
-**All contributions must:**
-
-- ✅ Pass all tests (`npm test`)
-- ✅ Pass TypeScript compilation (`npm run build`)
-- ✅ Pass linting (`npm run eslint`)
-- ✅ Be properly formatted (`npm run lint:fix`)
-- ✅ Include tests for new features
-- ✅ Update documentation as needed
-- ✅ Follow existing code style and patterns
-
-**Pre-commit hooks will automatically:**
-
-- Run type checking
-- Run all tests
-- Lint your code
-- Scan for secrets (if Gitleaks is installed)
-- Audit dependencies for vulnerabilities (on package changes)
-
-If any check fails, the commit will be blocked. Fix the issues and try again.
-
-### Pull Request Process
-
-1. **Update documentation** if you've changed APIs or added features
-2. **Update CHANGELOG.md** in the "Unreleased" section (if significant change)
-3. **Push to your branch:**
-    ```bash
-    git push origin feature/amazing-feature
-    ```
-4. **Open a Pull Request** to the `main` branch
-5. **Fill out the PR template** completely
-6. **Wait for review** - A maintainer will review your PR
-7. **Address feedback** if any changes are requested
-8. **Celebrate** when your PR is merged! 🎉
-
-### What to Contribute
-
-**Good first issues:**
-
-- 🐛 Bug fixes
-- 📝 Documentation improvements
-- ✨ New test cases
-- 🎨 Code formatting and style improvements
-
-**More involved contributions:**
-
-- 🚀 New MCP tools
-- ⚡ Performance optimizations
-- 🔐 Security enhancements
-- 🧪 Test coverage improvements
-
-**Before starting major work:**
-
-- 💬 Open an issue to discuss your idea
-- 📣 Get feedback from maintainers
-- 🎯 Ensure it aligns with project goals
-
-### Questions or Issues?
-
-- 🐛 **Found a bug?** [Open an issue](https://github.com/bit2me-devs/bit2me-mcp/issues/new)
-- 💡 **Have an idea?** [Start a discussion](https://github.com/bit2me-devs/bit2me-mcp/discussions)
-- ❓ **Need help?** Check existing [issues](https://github.com/bit2me-devs/bit2me-mcp/issues) and [discussions](https://github.com/bit2me-devs/bit2me-mcp/discussions)
+For full details, check the [CONTRIBUTING.md](./CONTRIBUTING.md) file.
 
 ### Code of Conduct
 
