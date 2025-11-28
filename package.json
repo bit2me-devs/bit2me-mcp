@@ -26,6 +26,8 @@
         "eslint:legacy": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
         "eslint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
         "prettier": "prettier --write .",
+        "audit": "npm audit --audit-level=high",
+        "secret-scan": "bash -c 'if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose --redact; else echo \"⚠️ Gitleaks not found, skipping secret scan. Install it for better security.\"; fi' --",
         "prepare": "husky install"
     },
     "keywords": [
@@ -68,6 +70,15 @@
         "vitest": "^4.0.13"
     },
     "lint-staged": {
+        "*": [
+            "npm run secret-scan"
+        ],
+        "package.json": [
+            "npm run audit"
+        ],
+        "package-lock.json": [
+            "npm run audit"
+        ],
         "*.ts": [
             "npm run eslint -- --fix",
             "prettier --write",

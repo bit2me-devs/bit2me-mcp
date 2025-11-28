@@ -591,6 +591,8 @@ BREAKING CHANGE: API key format has changed"
 - Run type checking
 - Run all tests
 - Lint your code
+- Scan for secrets (if Gitleaks is installed)
+- Audit dependencies for vulnerabilities (on package changes)
 
 If any check fails, the commit will be blocked. Fix the issues and try again.
 
