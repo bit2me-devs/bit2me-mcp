@@ -36,14 +36,14 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 [
     {
         "timestamp": 1732492800000,
-        "date": "2024-11-25T00:00:00.000Z",
+        "date": "2024-11-25T10:30:00.000Z",
         "price_usd": 75869.89,
         "price_fiat": 72145.32,
         "currency": "EUR"
     },
     {
         "timestamp": 1732579200000,
-        "date": "2024-11-26T00:00:00.000Z",
+        "date": "2024-11-26T14:45:00.000Z",
         "price_usd": 76234.12,
         "price_fiat": 72489.56,
         "currency": "EUR"
