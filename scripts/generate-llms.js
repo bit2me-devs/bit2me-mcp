@@ -15,26 +15,24 @@ const OUTPUT_DIR = 'landing';
 const FULL_OUTPUT_FILE = 'llms-full.txt';
 const LIGHT_OUTPUT_FILE = 'llms.txt';
 
-// Helper to clean markdown for LLM consumption
-// Removes badges, comments, and excessive whitespace
 function cleanMarkdown(content) {
-    let cleaned = content;
+    // 1. Remove HTML comments
+    // Use a robust regex that handles multiline comments
+    let text = content.replace(/<!--[\s\S]*?-->/g, '');
     
-    // Remove HTML comments <!-- ... -->
-    // Using replaceAll logic with global regex to ensure all instances are removed
-    cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '');
+    // 2. Remove badges (images that are links)
+    // Pattern: [![Alt](image_url)](link_url)
+    text = text.replace(/\[!\[[^\]]*\]\([^)]*\)\]\([^)]*\)/g, '');
     
-    // Remove badges (images inside links or just images at start of lines often used for badges)
-    // This regex targets typical badge patterns like [![Alt](url)](url)
-    cleaned = cleaned.replace(/\[!\[.*?\]\(.*?\)\]\(.*?\)/g, '');
-    
-    // Remove CI/CD badges lines if they are standalone
-    cleaned = cleaned.replace(/^\[!\[.*?\]\(.*?\)\]\s*$/gm, '');
+    // 3. Remove standalone badges (images at start of line)
+    // Pattern: [![Alt](image_url)]
+    text = text.replace(/^\[!\[[^\]]*\]\([^)]*\)\]\s*$/gm, '');
 
-    // Normalize whitespace (max 2 newlines)
-    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+    // 4. Normalize whitespace
+    // Replace 3+ newlines with 2 newlines
+    text = text.replace(/\n{3,}/g, '\n\n');
     
-    return cleaned.trim();
+    return text.trim();
 }
 
 function generate() {
