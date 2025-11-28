@@ -1,3 +1,9 @@
+# [1.5.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.4.1...v1.5.0) (2025-11-28)
+
+### Features
+
+- implement automatic generation of llms.txt and llms-full.txt ([9b95992](https://github.com/bit2me-devs/bit2me-mcp/commit/9b959924d235ef440c11704be4286c782f015fa8))
+
 ## [1.4.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.4.0...v1.4.1) (2025-11-27)
 
 ### Bug Fixes
