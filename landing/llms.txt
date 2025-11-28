@@ -1,0 +1,18 @@
+# Bit2Me MCP Server
+
+> Official Model Context Protocol (MCP) server to interact with Bit2Me Pro API, Trading, and Wallet services via AI agents.
+
+## Documentation
+- [Full Documentation & Installation](llms-full.txt)
+- [GitHub Repository](https://github.com/bit2me-devs/bit2me-mcp)
+
+## Key Features
+- **Market Data**: Real-time prices, order books, public trades.
+- **Wallet**: Manage pockets, check balances, transactions.
+- **Trading**: Spot trading execution (Buy/Sell), order management.
+- **Earn**: Staking strategies and rewards.
+- **Loans**: Crypto-backed loans management.
+
+## Quick Start
+This server requires a Bit2Me API Key.
+See 'llms-full.txt' for detailed configuration and tool schemas.
