@@ -1,3 +1,9 @@
+# [1.6.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.5.0...v1.6.0) (2025-11-28)
+
+### Features
+
+- add robots.txt to landing page ([f13294b](https://github.com/bit2me-devs/bit2me-mcp/commit/f13294bb0a6182bff892d7e763b721a787dd43e1))
+
 # [1.5.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.4.1...v1.5.0) (2025-11-28)
 
 ### Features
