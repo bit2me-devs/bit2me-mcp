@@ -257,6 +257,18 @@ To use this server with the Claude Desktop application, add the following config
 
 > **Note:** Replace `/absolute/path/to/...` with the actual full path to your project.
 
+## 🛡️ Security
+
+### Security Policy
+
+For detailed information about reporting vulnerabilities and our security policy, please see [SECURITY.md](./SECURITY.md).
+
+### Best Practices
+
+- **API Keys**: Never commit API keys to version control.
+- **Permissions**: Use minimal permissions. Avoid "Withdrawal" permissions for MCP usage.
+- **Logging**: The server automatically sanitizes sensitive data in logs.
+
 ## ⚠️ Rate Limits & Error Handling
 
 The Bit2Me API enforces rate limits to ensure stability.
