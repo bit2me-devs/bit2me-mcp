@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Explicitly allow LLM documentation
+Allow: /llms.txt
+Allow: /llms-full.txt
+
