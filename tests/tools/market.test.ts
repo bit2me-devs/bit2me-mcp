@@ -61,6 +61,7 @@ describe("Market Tools Handler", () => {
         const parsed = JSON.parse(result.content[0].text);
         expect(parsed).toHaveLength(2);
         expect(parsed[0]).toHaveProperty("price_fiat");
+        expect(parsed[0].date).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
 
     it("should handle market_get_assets", async () => {
