@@ -5,16 +5,17 @@ on:
         branches:
             - main
 
-permissions:
-    contents: write
-    issues: write
-    pull-requests: write
-    id-token: write
+permissions: read-all
 
 jobs:
     release:
         name: Semantic Release
         runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            issues: write
+            pull-requests: write
+            id-token: write
 
         steps:
             - name: Checkout
