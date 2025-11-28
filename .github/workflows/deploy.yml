@@ -54,7 +54,7 @@ jobs:
               uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
             - name: Subir los archivos de la carpeta docs
-              uses: actions/upload-pages-artifact@a753861a5debcf57bf8b404356158c8e1e33150c # v3.0.1
+              uses: actions/upload-pages-artifact@v3 # v3.0.1
               with:
                   path: "./landing"
 
