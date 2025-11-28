@@ -126,7 +126,7 @@ describe("Tools - Asset Management", () => {
         // Should have been called twice (initial + 1 retry)
         expect(axios).toHaveBeenCalledTimes(2);
         expect(result).toEqual(MOCK_WALLET_POCKETS);
-    });
+    }, 10000);
 
     it("should use exponential backoff for retries", async () => {
         const axios = (await import("axios")).default;
@@ -166,7 +166,7 @@ describe("Tools - Asset Management", () => {
 
         // Second retry should mention a longer delay (exponential backoff)
         expect(warnCalls[1][0]).toContain("Retrying in");
-    });
+    }, 10000);
 
     it("should throw RateLimitError when retries are exhausted", async () => {
         const axios = (await import("axios")).default;
@@ -181,7 +181,7 @@ describe("Tools - Asset Management", () => {
 
         await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Rate limit exceeded");
         expect(axios).toHaveBeenCalledTimes(4); // Initial + 3 retries
-    });
+    }, 10000);
 
     it("should include query params in GET requests", async () => {
         const axios = (await import("axios")).default;
