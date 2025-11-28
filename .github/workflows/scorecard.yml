@@ -10,6 +10,8 @@ on:
         - cron: "0 2 * * 1"
     workflow_dispatch:
 
+permissions: read-all
+
 jobs:
     analysis:
         name: Scorecard Analysis
