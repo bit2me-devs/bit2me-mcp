@@ -16,17 +16,30 @@ const FULL_OUTPUT_FILE = 'llms-full.txt';
 const LIGHT_OUTPUT_FILE = 'llms.txt';
 
 function cleanMarkdown(content) {
+    let text = content;
+
     // 1. Remove HTML comments
     // Use a robust regex that handles multiline comments
-    let text = content.replace(/<!--[\s\S]*?-->/g, '');
+    // Loop to ensure complete removal of nested/residual comments (CodeQL fix)
+    const commentRegex = /<!--[\s\S]*?-->/g;
+    while (commentRegex.test(text)) {
+        text = text.replace(commentRegex, '');
+    }
     
     // 2. Remove badges (images that are links)
     // Pattern: [![Alt](image_url)](link_url)
-    text = text.replace(/\[!\[[^\]]*\]\([^)]*\)\]\([^)]*\)/g, '');
+    // Use loop for robust removal
+    const badgeRegex = /\[!\[[^\]]*\]\([^)]*\)\]\([^)]*\)/g;
+    while (badgeRegex.test(text)) {
+        text = text.replace(badgeRegex, '');
+    }
     
     // 3. Remove standalone badges (images at start of line)
     // Pattern: [![Alt](image_url)]
-    text = text.replace(/^\[!\[[^\]]*\]\([^)]*\)\]\s*$/gm, '');
+    const standaloneBadgeRegex = /^\[!\[[^\]]*\]\([^)]*\)\]\s*$/gm;
+    while (standaloneBadgeRegex.test(text)) {
+        text = text.replace(standaloneBadgeRegex, '');
+    }
 
     // 4. Normalize whitespace
     // Replace 3+ newlines with 2 newlines
