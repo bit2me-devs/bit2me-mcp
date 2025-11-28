@@ -1,0 +1,1436 @@
+# Bit2Me MCP Server - Technical Documentation
+
+> Generated on 2025-11-28T00:12:08.872Z
+
+
+==================================================
+FILE: README.md (README / Documentation)
+==================================================
+
+# Bit2Me MCP Server
+
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server to interact with the [Bit2Me](https://bit2me.com/) ecosystem. This server allows AI assistants like Claude to access real-time market data, manage wallets, execute trading operations, and query products like Earn and Loans.
+
+For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)**
+
+**Bit2Me** is a leading cryptocurrency exchange based in Spain, offering a wide range of services including trading, staking (Earn), and loans. This MCP server acts as a bridge, enabling LLMs to perform actions and retrieve data securely from your Bit2Me account.
+
+## 🚀 Features
+
+- **Market Data**: Real-time prices, historical charts, order books, and asset listings.
+- **Wallet Management**: Query balances, transactions, and wallet (Pockets) details.
+- **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
+- **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
+- **Aggregation**: Total portfolio valuation unifying all products.
+- **Operations**: Execute trades, transfers, and withdrawals securely.
+
+## 🛠️ Available Tools & API Endpoints
+
+The server provides **47 tools** organized into categories:
+
+- 8 Market Tools
+- 7 Wallet Tools
+- 11 Earn Tools
+- 9 Loan Tools
+- 10 Pro Trading Tools
+- 1 Account Tool
+- 1 Aggregation Tool
+- 11 Operation Tools (these perform actions and are also listed under their respective categories)
+
+_Note: Operation tools are included in the categories above._
+
+Below is a detailed list of tools and the Bit2Me API endpoints they use.
+
+### 📊 Market Tools (Public Data)
+
+| Tool                       | Endpoint                          | Description                                                                                                                                                                                                                                                                               |
+| -------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `market_get_ticker`        | `GET /v3/currency/ticker/:symbol` | Gets current price, 24h volume, market highs and lows for a cryptocurrency. Specify symbol (e.g., BTC) and optional base currency (default: EUR). Returns price, volume, market cap, and supply information.                                                                              |
+| `market_get_chart`         | `GET /v3/currency/chart`          | Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires ticker pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns last 30 data points with dates and prices in both USD and the fiat currency from the ticker. |
+| `market_get_assets`        | `GET /v2/currency/assets`         | Gets all available assets (cryptocurrencies) supported by Bit2Me. Returns symbol, name, asset type, network, trading status, and supported pairs. Use this to discover available currencies before trading or checking prices.                                                            |
+| `market_get_asset_details` | `GET /v2/currency/assets/:symbol` | Gets detailed information of a specific asset by its symbol. Returns asset type, network, trading status, loan availability, and supported trading pairs. Use this to verify if an asset is tradeable or loanable before operations.                                                      |
+| `market_get_order_book`    | `GET /v2/trading/order-book`      | Gets the order book (market depth) for a market showing current buy and sell orders. Returns bids (buy orders) and asks (sell orders) with prices and amounts. Useful for analyzing market liquidity and determining optimal order prices.                                                |
+| `market_get_public_trades` | `GET /v1/trading/trade/last`      | Gets the latest public trades (executed orders) for a market. Returns recent transactions with price, amount, side (buy/sell), and timestamp. Optional limit (max 100) and sort order (ASC/DESC). Useful for seeing recent market activity.                                               |
+| `market_get_config`        | `GET /v1/trading/market-config`   | Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional symbol filter for a specific market. Use this before placing orders to ensure amounts meet requirements.                                                            |
+| `market_get_candles`       | `GET /v1/trading/candle`          | Gets OHLCV (Open, High, Low, Close, Volume) candles for Trading Pro. Returns price data in specified timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M). Optional limit to control number of candles. Essential for technical analysis and charting.                                        |
+
+### 💼 Wallet Tools (Private)
+
+| Tool                             | Endpoint                         | Description                                                                                                                                                                                                                                                                                                                                                            |
+| -------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `wallet_get_pockets`             | `GET /v1/wallet/pocket`          | Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. Multiple pockets can exist for the same currency. After getting the response, filter by the 'currency' field client-side if needed. Look for pockets with meaningful names or non-zero balances to identify the active one. |
+| `wallet_get_pocket_details`      | `GET /v1/wallet/pocket`          | Gets detailed information of a specific wallet (Pocket) by its ID. Returns balance, available funds, blocked funds, currency, name, and creation date. Use wallet_get_pockets first to get the pocket ID.                                                                                                                                                              |
+| `wallet_get_transactions`        | `GET /v2/wallet/transaction`     | History of past Wallet operations (deposits, withdrawals, swaps, purchases). Optional currency filter. Use limit and offset for pagination (default limit: 10). Returns transaction list with type, amount, currency, status, and timestamp.                                                                                                                           |
+| `wallet_get_pocket_addresses`    | `GET /v2/wallet/pocket/...`      | Lists deposit addresses for a wallet (Pocket) on a specific network. Use wallet_get_networks first to see available networks for a currency. Each network may have different addresses. Returns address, network, and creation date. Use this address to receive deposits on the specified network.                                                                    |
+| `wallet_get_networks`            | `GET /v1/wallet/currency/...`    | Lists available networks for a specific currency. Use this before wallet_get_pocket_addresses to see which networks support deposits for a currency (e.g., bitcoin, ethereum, binanceSmartChain). Returns network ID, name, native currency, fee currency, and whether it requires a tag/memo.                                                                         |
+| `wallet_get_transaction_details` | `GET /v1/wallet/transaction/:id` | Gets detailed information of a specific transaction by its ID. Returns complete transaction data including type, amount, currency, status, fees, timestamps, and related pocket IDs. Use wallet_get_transactions first to get transaction IDs.                                                                                                                         |
+
+### 💰 Earn (Staking) Tools
+
+| Tool                              | Endpoint                                   | Description                                                                                                                                                                                                                           |
+| --------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `earn_get_summary`                | `GET /v1/earn/summary`                     | View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn wallets, breakdown by currency, and overall performance. Use this to see your total staking rewards.                                |
+| `earn_get_wallets`                | `GET /v2/earn/wallets`                     | List active Earn wallets/strategies with their current APY (Annual Percentage Yield). Returns wallet ID, currency, balance, APY, and status. Use this to see available staking options and their returns before depositing.           |
+| `earn_get_wallet_details`         | `GET /v1/earn/wallets/:id`                 | Get detailed information of a specific Earn wallet. Returns balance, APY, total rewards, status, and configuration. Use earn_get_wallets first to get the wallet ID.                                                                  |
+| `earn_get_transactions`           | `GET /v1/earn/wallets/:id/movements`       | Get transaction history (movements) of an Earn wallet. Returns deposits, withdrawals, and reward payments with amounts, dates, and status. Optional limit and offset for pagination. Use earn_get_wallets first to get the wallet ID. |
+| `earn_get_transactions_summary`   | `GET /v1/earn/movements/:type/summary`     | Get summary statistics of Earn movements filtered by type (DEPOSIT, WITHDRAWAL, etc.). Returns total count, total amounts, and aggregated data for the specified movement type across all Earn wallets.                               |
+| `earn_get_assets`                 | `GET /v2/earn/assets`                      | Get list of assets (cryptocurrencies) supported in Earn/Staking. Returns available currencies with their staking options. Use this to discover which assets can be staked before creating Earn transactions.                          |
+| `earn_get_apy`                    | `GET /v2/earn/apy`                         | Get current APY (Annual Percentage Yield) rates for all Earn/Staking options. Returns APY percentages per asset and strategy. Use this to compare returns before choosing where to stake your assets.                                 |
+| `earn_get_rewards_config`         | `GET /v1/earn/wallets/rewards/config`      | Get global rewards configuration for Earn/Staking. Returns reward calculation rules, distribution schedules, and general staking parameters. Use this to understand how rewards are calculated.                                       |
+| `earn_get_wallet_rewards_config`  | `GET /v1/earn/wallets/:id/rewards/config`  | Get rewards configuration for a specific Earn wallet. Returns reward calculation rules, APY details, and wallet-specific staking parameters. Use earn_get_wallets first to get the wallet ID.                                         |
+| `earn_get_wallet_rewards_summary` | `GET /v1/earn/wallets/:id/rewards/summary` | Get rewards summary for a specific Earn wallet. Returns total rewards earned, pending rewards, reward history, and performance metrics. Use earn_get_wallets first to get the wallet ID.                                              |
+
+### 🏦 Loan Tools
+
+| Tool                     | Endpoint                              | Description                                                                                                                                                                                                                                                                                                                    |
+| ------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `loan_get_active`        | `GET /v1/loan/orders`                 | View all active loans. Returns list of current loans with guarantee amounts, loan amounts, LTV ratios, currencies, and status. Use this to monitor your active loan positions.                                                                                                                                                 |
+| `loan_get_ltv`           | `GET /v1/loan/ltv`                    | Calculate LTV (Loan To Value) ratio for a loan scenario. LTV represents the loan amount as a percentage of the guarantee value. Lower LTV means lower risk. Provide either guaranteeAmount or loanAmount (the other will be calculated). Returns LTV percentage and risk level. Use this before loan_create to plan your loan. |
+| `loan_get_config`        | `GET /v1/loan/currency/configuration` | Get currency configuration for loans including supported guarantee currencies, loan currencies, LTV limits, interest rates, and requirements. Use this before creating a loan to understand available options and limits.                                                                                                      |
+| `loan_get_transactions`  | `GET /v1/loan/movements`              | Get loan transaction history (movements) including payments, interest accruals, and guarantee changes. Optional orderId filter to see movements for a specific loan. Use limit and offset for pagination.                                                                                                                      |
+| `loan_get_orders`        | `GET /v1/loan/orders`                 | Get all loan orders (both active and closed) for the user. Returns loans with guarantee amounts, loan amounts, LTV ratios, currencies, status, and dates. Optional limit and offset for pagination.                                                                                                                            |
+| `loan_get_order_details` | `GET /v1/loan/orders/:id`             | Get detailed information of a specific loan order. Returns guarantee amount, loan amount, LTV, interest rate, status, creation date, and payment history. Use loan_get_active or loan_get_orders first to get the order ID.                                                                                                    |
+
+### 📈 Pro Trading Tools
+
+| Tool                    | Endpoint                           | Description                                                                                                                                                                                                                                       |
+| ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pro_get_balance`       | `GET /v1/trading/wallet/balance`   | Gets balances from PRO Trading account. This is separate from Simple Wallet - funds must be transferred using pro_deposit/pro_withdraw. Returns available and blocked balances per currency for trading.                                          |
+| `pro_get_open_orders`   | `GET /v1/trading/order`            | View open trading orders in PRO. Returns all active orders (pending, partially filled). Optional symbol filter to see orders for a specific market. Use this to monitor order status after pro_create_order.                                      |
+| `pro_get_transactions`  | `GET /v1/trading/trade`            | Gets the user's trade history in Pro Trading. Returns executed trades with price, amount, side (buy/sell), fees, and timestamp. Optional filters: symbol, limit, offset, and sort order (ASC/DESC). Use this to review past trading activity.     |
+| `pro_get_order_trades`  | `GET /v1/trading/order/:id/trades` | Gets all individual trades (executions) associated with a specific order. Returns detailed execution data including price, amount, fees, and timestamp for each fill. Useful for analyzing how a large order was executed across multiple trades. |
+| `pro_get_order_details` | `GET /v1/trading/order/:id`        | Gets detailed information of a specific Pro order. Returns order type, symbol, side, amount, price, status, filled amount, creation time, and execution details. Use pro_get_open_orders or pro_get_transactions first to get the order ID.       |
+
+### 👤 Account Tools
+
+| Tool               | Endpoint          | Description                                                                                                                                                                                               |
+| ------------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `account_get_info` | `GET /v1/account` | View user account information including profile details, verification levels, account status, and user settings. Returns account metadata useful for understanding account capabilities and restrictions. |
+
+### 📊 Aggregation Tools
+
+| Tool                      | Endpoint   | Description                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `portfolio_get_valuation` | `GET /...` | Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat currency (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations. Filters out dust amounts below minimum threshold. |
+
+### ⚡ Operations (Write Actions)
+
+| Tool                         | Endpoint                                      | Description                                                                                                                                                                                                                                                                                |
+| ---------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `wallet_create_proforma`     | `POST /v1/wallet/transaction/proforma`        | **Step 1**: Simulates/Quotes an operation in Simple Wallet. Returns Proforma ID and cost. REQUIRES subsequent confirmation.                                                                                                                                                                |
+| `wallet_confirm_transaction` | `POST /v1/wallet/transaction`                 | **Step 2**: Executes the operation using the Proforma ID. Final action.                                                                                                                                                                                                                    |
+| `pro_create_order`           | `POST /v1/trading/order`                      | Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stopPrice' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status.               |
+| `pro_cancel_order`           | `DELETE /v1/trading/order/:id`                | Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled.                                                                                                             |
+| `pro_cancel_all_orders`      | `DELETE /v1/trading/order`                    | Cancel all open orders in Pro Trading. Optional symbol filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders.                                                                                         |
+| `pro_deposit`                | `POST /v1/trading/wallet/deposit`             | Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit.                                                                                 |
+| `pro_withdraw`               | `POST /v1/trading/wallet/withdraw`            | Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal.                                                                                |
+| `earn_create_transaction`    | `POST /v1/wallet/earn/movements`              | Create deposit or withdrawal in Earn (Staking). For deposits, funds move from Simple Wallet pocket to Earn. For withdrawals, funds return from Earn to the specified pocket. Returns transaction details with status. Use earn_get_wallets to see available Earn strategies first.         |
+| `loan_create`                | `POST /v1/loan/orders`                        | Create a new loan by providing cryptocurrency as guarantee (collateral) to receive fiat currency. The guarantee amount determines the maximum loan amount based on LTV (Loan To Value) ratio. Use loan_get_ltv first to calculate optimal amounts. Returns loan order details with status. |
+| `loan_increase_guarantee`    | `POST /v1/loan/orders/:id/guarantee/increase` | Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_active first to get the order ID.                                                                                                |
+| `loan_payback`               | `POST /v1/loan/orders/:id/payback`            | Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_active first to get the order ID and check current loan amount.                                                                       |
+
+## 📋 Response Schemas
+
+All tool responses are **optimized for LLM consumption** with clean, consistent structures. We provide comprehensive documentation of response formats:
+
+### 📖 Documentation Files
+
+- **[SCHEMA_MAPPING.md](./SCHEMA_MAPPING.md)** - Complete JSON response examples for all 47 tools
+
+### Key Features
+
+- ✅ **Consistent naming**: All fields use `snake_case` for better LLM readability
+- ✅ **Flattened structures**: Removed unnecessary nesting from API responses
+- ✅ **Filtered data**: Zero balances and irrelevant fields are removed
+- ✅ **Type-safe**: Full TypeScript interfaces in `src/utils/schemas.ts`
+- ✅ **Well-documented**: Every tool has a concrete JSON example
+
+### Example
+
+Instead of raw API responses like:
+
+```json
+{
+    "data": [
+        {
+            "orderId": "...",
+            "guaranteeCurrency": "BTC",
+            "loanCurrency": "EUR"
+        }
+    ]
+}
+```
+
+You get optimized responses like:
+
+```json
+[
+    {
+        "order_id": "...",
+        "guarantee_currency": "BTC",
+        "loan_currency": "EUR"
+    }
+]
+```
+
+See [SCHEMA_MAPPING.md](./SCHEMA_MAPPING.md) for complete examples of all 47 tool responses.
+
+## ⚙️ Installation and Configuration
+
+### Prerequisites
+
+- **Node.js**: v18 or higher.
+- **Bit2Me Account**: You need a verified Bit2Me account.
+
+### 🔑 Generating API Keys
+
+1. Go to your **[Bit2Me API Dashboard](https://app.bit2me.com/profile/api)**.
+2. Click on **"New Key"**.
+3. Select the permissions you need (e.g., Wallets, Trading, Earn, Loans).
+    > **⚠️ Security Note:** This MCP server does **NOT** support crypto withdrawals to external blockchain addresses or transfers to other users. For security best practices, please **DO NOT** enable "Withdrawal" permissions on your API Key. Internal transfers between your own Bit2Me wallets (Wallet ↔ Pro ↔ Earn) are fully supported.
+
+### Steps
+
+1. **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/bit2me-devs/bit2me-mcp.git
+    cd bit2me-mcp
+    ```
+
+2. **Install dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+3. **Configure environment variables:**
+   Create a `.env` file in the root directory:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Edit `.env` and add your keys:
+
+    ```env
+    BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
+    BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
+
+    # Optional Configuration
+    BIT2ME_REQUEST_TIMEOUT=30000     # Request timeout in ms (default: 30000)
+    BIT2ME_MAX_RETRIES=3             # Max retries for rate limits (default: 3)
+    BIT2ME_RETRY_BASE_DELAY=1000     # Base delay for backoff in ms (default: 1000)
+    BIT2ME_LOG_LEVEL=info            # Log level: debug, info, warn, error (default: info)
+    ```
+
+4. **Build the project:**
+    ```bash
+    npm run build
+    ```
+
+## 🖥️ Usage with Claude Desktop
+
+To use this server with the Claude Desktop application, add the following configuration to your `claude_desktop_config.json` file:
+
+### MacOS
+
+`~/Library/Application Support/Claude/claude_desktop_config.json`
+
+### Windows
+
+`%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+    "mcpServers": {
+        "bit2me": {
+            "command": "node",
+            "args": ["/absolute/path/to/bit2me-mcp/build/index.js"],
+            "env": {
+                "BIT2ME_API_KEY": "YOUR_BIT2ME_ACCOUNT_API_KEY",
+                "BIT2ME_API_SECRET": "YOUR_BIT2ME_ACCOUNT_API_SECRET"
+            }
+        }
+    }
+}
+```
+
+> **Note:** Replace `/absolute/path/to/...` with the actual full path to your project.
+
+## ⚠️ Rate Limits & Error Handling
+
+The Bit2Me API enforces rate limits to ensure stability.
+
+- **429 Too Many Requests**: If the server hits a rate limit, it will **automatically retry** the request after a 1-second delay (up to 3 retries).
+- **Console Warnings**: You may see warnings in the logs if rate limits are hit.
+- **Best Practice**: Avoid asking for massive amounts of data in a very short loop.
+- **Exponential Backoff**: The server now uses exponential backoff with jitter for retries to handle rate limits more gracefully.
+
+## 📊 Logging
+
+The server implements a structured logging system that automatically sanitizes sensitive data (API keys, signatures).
+You can control the verbosity using the `BIT2ME_LOG_LEVEL` environment variable:
+
+- `debug`: Detailed request/response logs (useful for development)
+- `info`: Startup and operational events (default)
+- `warn`: Rate limits and non-critical issues
+- `error`: API errors and failures
+
+## ❓ Troubleshooting
+
+### Error: "Connection refused"
+
+- Ensure the MCP server is running.
+- Check that the path in `claude_desktop_config.json` points correctly to the `build/index.js` file.
+
+### Error: "API Key invalid" or "Unauthorized"
+
+- Verify your keys in `.env` or the Claude config.
+- Ensure your API keys have the necessary permissions (Wallet, Trade, Earn, etc.) enabled in the Bit2Me dashboard.
+- Check that there are no extra spaces or quotes around the API key values.
+
+### Error: "Rate limit exceeded" or 429 responses
+
+- The Bit2Me API has rate limits. The server automatically retries with exponential backoff.
+- If you're hitting rate limits frequently, reduce the number of concurrent requests.
+- Consider adding delays between operations in your workflows.
+
+### Tools not showing up in Claude
+
+- Restart Claude Desktop completely (quit and reopen).
+- Check the Claude Desktop logs for initialization errors.
+- Verify the configuration file syntax is valid JSON.
+
+### Error: "Request timeout"
+
+- Check your internet connection.
+- Increase `BIT2ME_REQUEST_TIMEOUT` in your environment variables (default: 30000ms).
+- Some Bit2Me API endpoints may be temporarily slow.
+
+### Environment variables not loading
+
+- When using `npx`, environment variables must be set in the config file's `env` section.
+- For local development, ensure the `.env` file is in the project root.
+- The server prioritizes config-provided credentials over `.env` file values.
+
+### Error: "Network error" or CORS issues
+
+- The MCP server runs server-side and doesn't have CORS restrictions.
+- Network errors usually indicate connectivity problems or API downtime.
+- Check the Bit2Me status page or try again later.
+
+### Debugging
+
+- Run the server manually to see logs:
+    ```bash
+    npm run dev
+    ```
+- Set `BIT2ME_LOG_LEVEL=debug` for detailed logging.
+- Check Claude Desktop logs:
+    - macOS: `~/Library/Logs/Claude/mcp*.log`
+    - Windows: `%APPDATA%\Claude\logs\mcp*.log`
+
+## 🔍 Testing with MCP Inspector
+
+[MCP Inspector](https://github.com/modelcontextprotocol/inspector) is the official debugging tool for MCP servers. It provides a web interface to test your tools, view responses, and debug issues.
+
+### Installation
+
+```bash
+npm install -g @modelcontextprotocol/inspector
+```
+
+### Running the Inspector
+
+You have two options to run the inspector:
+
+#### Option A: Using NPM Package (Recommended)
+
+Use the published package from npm - no build required:
+
+```bash
+export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
+export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
+npx -y @modelcontextprotocol/inspector npx @bit2me/mcp-server
+```
+
+#### Option B: Using Local Repository
+
+For development or testing unreleased changes:
+
+```bash
+# 1. Clone and build the project
+git clone https://github.com/bit2me-devs/bit2me-mcp.git
+cd bit2me-mcp
+npm install
+npm run build
+
+# 2. Run the inspector
+export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
+export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
+npx @modelcontextprotocol/inspector node build/index.js
+```
+
+**Note:** The inspector will automatically open at `http://localhost:5173`
+
+### Using the Inspector
+
+The web interface provides:
+
+1. **Tools Tab:**
+    - View all 47 available tools
+    - See input schemas for each tool
+    - Test tools with custom parameters
+    - View formatted responses
+
+2. **Resources Tab:**
+    - Explore available resources (if any)
+
+3. **Prompts Tab:**
+    - Test prompt templates (if configured)
+
+4. **Request/Response Logs:**
+    - See all MCP protocol messages
+    - Debug communication issues
+    - View timing information
+
+### Example: Testing a Tool
+
+1. Navigate to the **Tools** tab
+2. Select a tool (e.g., `market_get_ticker`)
+3. Fill in the required parameters:
+    ```json
+    {
+        "symbol": "BTC",
+        "currency": "EUR"
+    }
+    ```
+4. Click **Run** to execute the tool
+5. View the formatted response in the output panel
+
+## 🧪 Testing & Coverage
+
+This project maintains **97% line coverage** with a focus on test quality over metrics.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage report
+npm run test:coverage
+```
+
+### Coverage Philosophy
+
+We intentionally maintain 97% coverage rather than pursuing 100%. This pragmatic approach is based on industry best practices:
+
+> **Martin Fowler**: _"I would be suspicious of anything like 100% - it would smell of someone writing tests to make the coverage numbers happy."_
+
+**What's Covered ✅**:
+
+- All authentication flows and API request signing
+- All error handling (HTTP errors, rate limiting, retries)
+- All data validation and transformations
+- All business logic (trading, wallets, Earn, Loans)
+- All 47 MCP tool endpoints
+
+**What's NOT Covered (3%) ⚠️**:
+
+- Debug log messages within already-tested error paths
+- Defensive defaults for unlikely API edge cases
+- Alternative error formats that don't occur in practice
+
+**140 tests** ensure critical paths work correctly. See `/tests` for details.
+
+## 🛠️ Development
+
+- **Check logs in terminal:** All server logs appear in the terminal where you started the inspector
+- **Verify credentials:** Ensure API keys are set correctly
+- **Test market tools first:** Use public tools like `market_get_ticker` to verify basic functionality
+- **Compare responses:** Use Inspector to compare raw API responses vs. mapped responses
+
+### Inspector vs Claude Desktop
+
+| Feature       | Inspector           | Claude Desktop |
+| ------------- | ------------------- | -------------- |
+| **Purpose**   | Testing & debugging | Production use |
+| **Interface** | Web UI              | Chat interface |
+| **Testing**   | Individual tools    | Conversational |
+| **Logs**      | Visible in terminal | Hidden         |
+| **Best for**  | Development         | End users      |
+
+### Common Inspector Use Cases
+
+✅ **Verify tool configuration** before deploying to Claude  
+✅ **Test authentication** with Bit2Me API  
+✅ **Debug response mappings** and schemas  
+✅ **Validate input parameters** for each tool  
+✅ **Check error handling** with invalid inputs
+
+## 🧪 Testing
+
+The project includes a comprehensive test suite using Vitest.
+
+```bash
+npm test
+```
+
+Tests cover authentication, tool functionality, and rate limit handling using mocked responses.
+
+## 🌐 Landing Page Deployment
+
+The project's landing page is located in the `/landing` directory.
+Deployment is automated using GitHub Actions.
+
+**How to update the website:**
+
+1. Edit the HTML/CSS files in `/landing`.
+2. Push your changes to the `main` branch.
+3. The `.github/workflows/deploy.yml` action will automatically publish the changes.
+
+**Domain:**
+The `/landing/CNAME` file manages the custom domain configuration.
+
+## 🤝 Contributing
+
+We welcome contributions to improve this MCP server! Whether it's fixing bugs, adding new tools, or improving documentation, your help is appreciated.
+
+### Getting Started
+
+1. **Fork the repository** to your own GitHub account.
+2. **Clone your fork** locally:
+    ```bash
+    git clone https://github.com/bit2me-devs/bit2me-mcp.git
+    cd bit2me-mcp
+    ```
+3. **Install dependencies:**
+    ```bash
+    npm install
+    ```
+4. **Create a new branch** for your feature or bugfix:
+    ```bash
+    git checkout -b feature/amazing-feature
+    # or
+    git checkout -b fix/bug-description
+    ```
+
+### Development Workflow
+
+1. **Make your changes** following our coding standards
+2. **Write or update tests** for your changes
+3. **Run the test suite:**
+    ```bash
+    npm test              # Run all tests
+    npm run test:watch    # Run tests in watch mode
+    npm run test:coverage # Generate coverage report
+    ```
+4. **Ensure code quality:**
+    ```bash
+    npm run build         # TypeScript compilation
+    npm run lint          # Type checking
+    npm run eslint        # Linting
+    npm run lint:fix      # Auto-format code with Prettier
+    ```
+5. **Commit your changes** using [Conventional Commits](https://www.conventionalcommits.org/):
+    ```bash
+    git commit -m "feat: add new market analysis tool"
+    git commit -m "fix: resolve rate limit handling issue"
+    git commit -m "docs: update API endpoint documentation"
+    ```
+
+### Commit Convention
+
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+- `feat:` - New features (triggers minor version bump)
+- `fix:` - Bug fixes (triggers patch version bump)
+- `docs:` - Documentation only changes
+- `style:` - Code style changes (formatting, missing semi-colons, etc.)
+- `refactor:` - Code refactoring without changing functionality
+- `perf:` - Performance improvements
+- `test:` - Adding or updating tests
+- `chore:` - Build process or auxiliary tool changes
+- `ci:` - CI/CD configuration changes
+
+**For breaking changes**, add `BREAKING CHANGE:` in the commit body or append `!` after the type:
+
+```bash
+git commit -m "feat!: redesign authentication flow
+
+BREAKING CHANGE: API key format has changed"
+```
+
+### Code Quality Standards
+
+**All contributions must:**
+
+- ✅ Pass all tests (`npm test`)
+- ✅ Pass TypeScript compilation (`npm run build`)
+- ✅ Pass linting (`npm run eslint`)
+- ✅ Be properly formatted (`npm run lint:fix`)
+- ✅ Include tests for new features
+- ✅ Update documentation as needed
+- ✅ Follow existing code style and patterns
+
+**Pre-commit hooks will automatically:**
+
+- Run type checking
+- Run all tests
+- Lint your code
+
+If any check fails, the commit will be blocked. Fix the issues and try again.
+
+### Pull Request Process
+
+1. **Update documentation** if you've changed APIs or added features
+2. **Update CHANGELOG.md** in the "Unreleased" section (if significant change)
+3. **Push to your branch:**
+    ```bash
+    git push origin feature/amazing-feature
+    ```
+4. **Open a Pull Request** to the `main` branch
+5. **Fill out the PR template** completely
+6. **Wait for review** - A maintainer will review your PR
+7. **Address feedback** if any changes are requested
+8. **Celebrate** when your PR is merged! 🎉
+
+### What to Contribute
+
+**Good first issues:**
+
+- 🐛 Bug fixes
+- 📝 Documentation improvements
+- ✨ New test cases
+- 🎨 Code formatting and style improvements
+
+**More involved contributions:**
+
+- 🚀 New MCP tools
+- ⚡ Performance optimizations
+- 🔐 Security enhancements
+- 🧪 Test coverage improvements
+
+**Before starting major work:**
+
+- 💬 Open an issue to discuss your idea
+- 📣 Get feedback from maintainers
+- 🎯 Ensure it aligns with project goals
+
+### Questions or Issues?
+
+- 🐛 **Found a bug?** [Open an issue](https://github.com/bit2me-devs/bit2me-mcp/issues/new)
+- 💡 **Have an idea?** [Start a discussion](https://github.com/bit2me-devs/bit2me-mcp/discussions)
+- ❓ **Need help?** Check existing [issues](https://github.com/bit2me-devs/bit2me-mcp/issues) and [discussions](https://github.com/bit2me-devs/bit2me-mcp/discussions)
+
+### Code of Conduct
+
+Be respectful, inclusive, and constructive. We're all here to learn and build together.
+
+## 📄 License
+
+[MIT License](./LICENSE)
+
+
+==================================================
+FILE: agents.md (Agent Rules & Conventions)
+==================================================
+
+# Agent Rules for Bit2Me MCP Server Repository
+
+This document contains all the rules, conventions, and practices learned for managing this repository.
+
+## 📋 Table of Contents
+
+1. [Commit Conventions](#commit-conventions)
+2. [Versioning & Releases](#versioning--releases)
+3. [API Response Mapping](#api-response-mapping)
+4. [Testing](#testing)
+5. [CI/CD Workflows](#cicd-workflows)
+6. [NPM Publishing](#npm-publishing)
+7. [Code Structure](#code-structure)
+8. [Dependencies Management](#dependencies-management)
+9. [Git Hooks](#git-hooks)
+10. [Troubleshooting](#troubleshooting)
+
+---
+
+## Commit Conventions
+
+### Rules
+
+- **ALWAYS** use [Conventional Commits](https://www.conventionalcommits.org/) format
+- **Format**: `<type>(<scope>): <subject>`
+- **Types that trigger releases**:
+    - `feat:` → Minor version bump (1.1.0 → 1.2.0)
+    - `fix:` → Patch version bump (1.1.0 → 1.1.1)
+    - `perf:` → Patch version bump
+- **Types that DON'T trigger releases**:
+    - `chore:` - Build/dependency changes
+    - `ci:` - CI/CD changes
+    - `docs:` - Documentation only
+    - `style:` - Code style changes
+    - `refactor:` - Code refactoring
+    - `test:` - Test changes
+- **CRITICAL: All commit messages MUST be written in English**
+    - Subject line must be in English
+    - Body (if present) must be in English
+    - No exceptions - this ensures consistency and compatibility with tools
+- **Commitlint** validates all commits via Husky pre-commit hook
+
+### Examples
+
+```bash
+feat: add optional raw_response support in mapped responses
+fix: correct wallet address mapper and add pocket details mapper
+ci: improve semantic-release npm configuration
+docs: add NPM badge and link to README
+chore(deps): bump zod from 4.1.12 to 4.1.13
+```
+
+---
+
+## Versioning & Releases
+
+### Semantic Release Configuration
+
+- **Automated versioning** via Semantic Release
+- **Configuration file**: `.releaserc.json`
+- **Release rules**: Defined in `releaseRules` array
+- **Branches**: Only `main` branch triggers releases
+- **Node.js version**: Requires Node.js 22+ (Semantic Release requirement)
+
+### Release Process
+
+1. Push commits with `feat:` or `fix:` to `main`
+2. Semantic Release analyzes commits since last tag
+3. Generates new version based on commit types
+4. Updates `CHANGELOG.md` and `package.json`
+5. Creates Git tag (e.g., `v1.2.0`)
+6. Publishes to NPM
+7. Creates GitHub release
+
+### Version Bump Rules
+
+- **Major** (1.0.0 → 2.0.0): Breaking changes (requires `BREAKING CHANGE:` in commit body)
+- **Minor** (1.1.0 → 1.2.0): New features (`feat:`)
+- **Patch** (1.1.0 → 1.1.1): Bug fixes (`fix:`, `perf:`)
+
+### Important Notes
+
+- Commits `chore:`, `ci:`, `docs:` do NOT trigger releases
+- Semantic Release only runs on `main` branch
+- Last tag determines which commits are analyzed
+- If no release-worthy commits, workflow completes without error
+
+---
+
+## API Response Mapping
+
+### Core Principles
+
+- **Always map raw API responses** to optimized schemas
+- **Use snake_case** for all field names (better for LLM consumption)
+- **Flatten structures** - remove unnecessary nesting
+- **Filter zero balances** and irrelevant fields
+- **Provide defaults** for missing fields (empty strings, "0", etc.)
+
+### Mapper Functions
+
+- **Location**: `src/utils/response-mappers.ts`
+- **Pattern**: `map<Entity>Response(raw: unknown): <Entity>Response`
+- **Always validate** input with type guards (`isValidObject`, `isValidArray`)
+- **Throw `ValidationError`** for invalid structures
+- **Handle multiple field name variations** (e.g., `address`, `addr`, `addressValue`)
+
+### Raw Response Support
+
+- **Optional feature** via `BIT2ME_INCLUDE_RAW_RESPONSE` env var
+- **Default**: `false` (raw responses excluded)
+- **Usage**: Wrap mapped responses with `wrapResponseWithRaw()`
+- **Purpose**: Debugging and completeness verification
+- **Documentation**: See `docs/RAW_RESPONSE_GUIDE.md`
+
+### Example Mapper Pattern
+
+```typescript
+export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetailsResponse {
+    if (!isValidObject(raw)) {
+        throw new ValidationError("Invalid wallet pocket details response structure");
+    }
+
+    return {
+        id: raw.id || "",
+        currency: raw.currency || "",
+        balance: raw.balance || "0",
+        available: raw.available || "0",
+        blocked: raw.blocked || raw.blockedBalance || "0",
+        name: raw.name,
+        created_at: raw.createdAt || raw.created_at || "",
+    };
+}
+```
+
+### Schema Definitions
+
+- **Location**: `src/utils/schemas.ts`
+- **All schemas** must match mapper output
+- **Use TypeScript interfaces** for type safety
+- **Optional fields** marked with `?`
+- **Required fields** have defaults in mappers
+
+---
+
+## Testing
+
+### Test Structure
+
+- **Framework**: Vitest
+- **Location**: `tests/` directory
+- **Pattern**: Mirror `src/` structure
+- **Coverage target**: 97%+ (pragmatic approach)
+
+### Test Files
+
+- `tests/mappers.test.ts` - Response mapper tests
+- `tests/tools/*.test.ts` - Tool handler tests
+- `tests/config.test.ts` - Configuration tests
+- `tests/auth.test.ts` - Authentication tests
+
+### Mocking Rules
+
+- **Always mock** `getConfig()` in tests
+- **Set `INCLUDE_RAW_RESPONSE: false`** by default in test mocks
+- **Mock external API calls** (Bit2Me API)
+- **Use fixtures** for consistent test data (`tests/fixtures.ts`)
+
+### Running Tests
+
+```bash
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Generate coverage report
+```
+
+### Test Requirements
+
+- **All mappers** must have tests
+- **All tools** must have handler tests
+- **Tests run automatically** on pre-commit (via lint-staged)
+- **CI runs tests** before release
+
+---
+
+## CI/CD Workflows
+
+### Workflows
+
+1. **CI** (`.github/workflows/ci.yml`)
+    - Runs on: Push to any branch, PRs
+    - Steps: Lint, Test, Build
+    - Node.js: 20
+
+2. **Release** (`.github/workflows/release.yml`)
+    - Runs on: Push to `main`
+    - Steps: Build, Test, Semantic Release
+    - Node.js: 22 (required for Semantic Release)
+    - **Critical**: Requires `NPM_TOKEN` secret
+
+3. **Deploy** (`.github/workflows/deploy.yml`)
+    - Runs on: Push to `main`
+    - Deploys landing page to GitHub Pages
+    - Node.js: 20
+
+### Release Workflow Steps
+
+1. Checkout with `fetch-depth: 0` (needed for Semantic Release)
+2. Setup Node.js 22 with npm cache
+3. Install dependencies (`npm ci`)
+4. Build (`npm run build`)
+5. Test (`npm test`)
+6. Configure npm authentication (`.npmrc`)
+7. Run Semantic Release
+
+### Required Secrets
+
+- **`NPM_TOKEN`**: NPM automation token (type: Automation or Publish)
+- **`GITHUB_TOKEN`**: Auto-provided by GitHub Actions
+
+---
+
+## NPM Publishing
+
+### Configuration
+
+- **Package name**: `@bit2me/mcp-server`
+- **Access**: Public (`publishConfig.access: "public"`)
+- **Provenance**: Enabled (`publishConfig.provenance: true`)
+- **Registry**: `https://registry.npmjs.org`
+
+### NPM Token Requirements
+
+- **Type**: Must be "Automation" or "Publish" (NOT "Read-only")
+- **Scope access**: Must have access to `@bit2me` scope
+- **Location**: GitHub Secrets → `NPM_TOKEN`
+- **Expiration**: Set appropriate expiration (default: 90 days)
+
+### Publishing Process
+
+1. Semantic Release detects release-worthy commits
+2. Updates version in `package.json`
+3. Builds package (`prepublishOnly` hook)
+4. Publishes to NPM registry
+5. Creates Git tag
+6. Creates GitHub release
+
+### Troubleshooting NPM Publishing
+
+- **Error: Invalid npm token**
+    - Verify token type is "Automation" or "Publish"
+    - Check token has `@bit2me` scope access
+    - Verify token is not expired
+    - Ensure `.npmrc` is configured in workflow
+
+- **Error: Node version**
+    - Semantic Release requires Node.js 22+
+    - Update `node-version` in workflow to "22"
+
+---
+
+## Code Structure
+
+### Directory Layout
+
+```
+src/
+├── config.ts              # Environment configuration
+├── constants.ts           # Constants and enums
+├── index.ts              # Main entry point
+├── services/
+│   └── bit2me.ts        # Bit2Me API client
+├── tools/                # MCP tool handlers
+│   ├── account.ts
+│   ├── aggregation.ts
+│   ├── earn.ts
+│   ├── loan.ts
+│   ├── market.ts
+│   ├── pro.ts
+│   └── wallet.ts
+└── utils/
+    ├── errors.ts         # Custom error classes
+    ├── logger.ts         # Logging utilities
+    ├── response-mappers.ts  # API response mappers
+    └── schemas.ts        # TypeScript interfaces
+```
+
+### File Naming
+
+- **TypeScript files**: `.ts` extension
+- **Test files**: `.test.ts` suffix
+- **Use kebab-case** for file names (if needed)
+- **Match directory structure** in tests
+
+### Import Conventions
+
+- **Use ES modules** (`import`/`export`)
+- **Add `.js` extension** to imports (TypeScript requirement)
+- **Group imports**: External → Internal → Types
+- **Use type imports** when importing only types (`import type`)
+
+---
+
+## Dependencies Management
+
+### Dependencies
+
+- **Production**: Minimal, only runtime requirements
+- **Dev**: Testing, linting, building tools
+- **Update strategy**: Dependabot (weekly, grouped)
+
+### Dependabot Configuration
+
+- **Location**: `.github/dependabot.yml`
+- **Schedule**: Weekly (Monday 09:00 Europe/Madrid)
+- **Grouping**:
+    - `dev-dependencies`: All dev deps together
+    - `production-patches`: Production patches only
+- **Commit prefix**: `chore(deps):` (doesn't trigger releases)
+
+### Dependency Updates
+
+- **Dependabot PRs**: Review and merge manually
+- **Test locally** after merging dependency updates
+- **Commit format**: `chore(deps): bump <package> from <old> to <new>`
+- **No release** triggered by dependency updates
+
+### Lock File
+
+- **`package-lock.json`**: Always commit changes
+- **Never ignore** lock file
+- **Use `npm ci`** in CI (not `npm install`)
+
+---
+
+## Git Hooks
+
+### Husky Configuration
+
+- **Location**: `.husky/` directory
+- **Pre-commit**: Runs lint-staged
+- **Commit-msg**: Validates commit format (commitlint)
+
+### Lint-Staged Rules
+
+- **`*.ts`**: ESLint fix → Prettier → Vitest related tests
+- **`*.{css,html,json,md}`**: Prettier only
+- **Runs automatically** on `git commit`
+
+### Commitlint
+
+- **Config**: `.commitlintrc.json`
+- **Enforces**: Conventional Commits format
+- **Blocks commits** that don't follow convention
+
+---
+
+## Troubleshooting
+
+### Semantic Release Not Publishing
+
+1. **Check Node.js version**: Must be 22+
+2. **Verify NPM_TOKEN**: Type must be "Automation" or "Publish"
+3. **Check commit types**: Only `feat:` and `fix:` trigger releases
+4. **Verify last tag**: Semantic Release analyzes commits since last tag
+5. **Check workflow logs**: Look for authentication errors
+
+### Tests Failing
+
+1. **Mock `getConfig()`**: Required in all test files
+2. **Set `INCLUDE_RAW_RESPONSE: false`** in test mocks
+3. **Check fixtures**: Ensure test data matches expected format
+4. **Run locally**: `npm test` to debug
+
+### Build Errors
+
+1. **TypeScript errors**: Check `tsconfig.json` configuration
+2. **Missing types**: Install `@types/*` packages
+3. **Import errors**: Verify `.js` extensions in imports
+
+### NPM Token Issues
+
+1. **Token type**: Must be "Automation" or "Publish"
+2. **Scope access**: Verify `@bit2me` scope permissions
+3. **Expiration**: Check token hasn't expired
+4. **Secret name**: Must be exactly `NPM_TOKEN` in GitHub Secrets
+
+### Git Hook Failures
+
+1. **Husky not installed**: Run `npm install` (triggers `prepare` script)
+2. **Commitlint error**: Fix commit message format
+3. **Lint-staged error**: Fix linting/formatting issues
+
+---
+
+## Adding a New Tool
+
+To add a new tool to the MCP server, follow this comprehensive checklist to ensure consistency, quality, and proper documentation.
+
+### 1. Implementation (`src/tools/`)
+
+1.  **Identify the category**: Choose an existing category (e.g., `wallet`, `market`, `earn`) or create a new one if necessary.
+2.  **Create/Update file**: Edit `src/tools/<category>.ts`.
+3.  **Define Tool Definition**: Add the tool definition to the `tools` array.
+4.  **Implement Handler**: Add the logic to the `handle<Category>Tool` function.
+
+```typescript
+// src/tools/example.ts
+
+export const exampleTools: Tool[] = [
+    {
+        name: "example_get_data",
+        description: "Get example data from Bit2Me API",
+        inputSchema: {
+            type: "object",
+            properties: {
+                id: { type: "string", description: "Resource ID" },
+            },
+            required: ["id"],
+        },
+    },
+];
+
+export async function handleExampleTool(name: string, args: any) {
+    if (name === "example_get_data") {
+        const { id } = args;
+        const data = await bit2meRequest("GET", `/v1/example/${id}`);
+        const optimized = mapExampleResponse(data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+    throw new Error(`Unknown tool: ${name}`);
+}
+```
+
+### 2. Response Mapping (`src/utils/`)
+
+1.  **Define Schema**: Add the TypeScript interface in `src/utils/schemas.ts`.
+2.  **Create Mapper**: Add the mapper function in `src/utils/response-mappers.ts`.
+
+```typescript
+// src/utils/schemas.ts
+export interface ExampleResponse {
+    id: string;
+    value: string;
+    created_at: string;
+}
+
+// src/utils/response-mappers.ts
+export function mapExampleResponse(raw: any): ExampleResponse {
+    if (!isValidObject(raw)) throw new ValidationError("Invalid response");
+
+    return {
+        id: raw.id || "",
+        value: raw.val || raw.value || "0",
+        created_at: raw.createdAt || "",
+    };
+}
+```
+
+### 3. Registration (`src/index.ts`)
+
+1.  **Import**: Import the tools array and handler.
+2.  **List Tools**: Add `...exampleTools` to `ListToolsRequestSchema`.
+3.  **Handle Call**: Add the handler condition to `CallToolRequestSchema`.
+
+```typescript
+// src/index.ts
+import { exampleTools, handleExampleTool } from "./tools/example.js";
+
+// ... inside ListToolsRequestSchema
+tools: [
+    // ...
+    ...exampleTools,
+];
+
+// ... inside CallToolRequestSchema
+if (exampleTools.find((t) => t.name === name)) {
+    return await handleExampleTool(name, args);
+}
+```
+
+### 4. Testing (`tests/`)
+
+1.  **Mapper Tests**: Add test cases in `tests/mappers.test.ts`.
+2.  **Tool Tests**: Create `tests/tools/example.test.ts`.
+
+```typescript
+// tests/tools/example.test.ts
+import { describe, it, expect, vi } from "vitest";
+import { handleExampleTool } from "../../src/tools/example.js";
+import { bit2meRequest } from "../../src/services/bit2me.js";
+
+vi.mock("../../src/services/bit2me.js");
+
+describe("Example Tools", () => {
+    it("should handle example_get_data", async () => {
+        vi.mocked(bit2meRequest).mockResolvedValue({ id: "123", val: "test" });
+
+        const result = await handleExampleTool("example_get_data", { id: "123" });
+        const content = JSON.parse(result.content[0].text);
+
+        expect(content.id).toBe("123");
+    });
+});
+```
+
+### 5. Documentation
+
+1.  **SCHEMA_MAPPING.md**: Add the JSON response example.
+2.  **README.md**: Add the tool to the list of available tools.
+3.  **Landing Page**: Update `landing/index.html` if it lists features/tools.
+4.  **Product Documentation**: Update `docs/PRODUCT.md` (if applicable).
+5.  **Schema Coverage**: Update `docs/TYPESCRIPT_SCHEMA_COVERAGE.md` to map the new tool to its TypeScript interface.
+
+### 6. Verification
+
+1.  Run `npm test` to ensure all tests pass.
+2.  Run `npm run build` to verify TypeScript compilation.
+3.  (Optional) Run the server locally and test with a client.
+
+---
+
+## Quick Reference
+
+### Common Commands
+
+```bash
+# Development
+npm run build          # Build TypeScript
+npm run dev            # Run server
+npm test               # Run tests
+npm run test:watch     # Watch mode
+npm run lint           # Lint code
+npm run eslint:fix     # Fix linting issues
+
+# Git
+git commit -m "feat: add new feature"  # Triggers release
+git commit -m "fix: fix bug"            # Triggers patch release
+git commit -m "chore: update deps"     # No release
+
+# Release
+# Automatic via Semantic Release on push to main
+```
+
+### Important Files
+
+- `.releaserc.json` - Semantic Release configuration
+- `.github/workflows/release.yml` - Release workflow
+- `src/utils/response-mappers.ts` - API response mappers
+- `src/utils/schemas.ts` - TypeScript interfaces
+- `package.json` - Dependencies and scripts
+- `.commitlintrc.json` - Commit message validation
+
+### Critical Rules Summary
+
+1. ✅ **Always use Conventional Commits**
+2. ✅ **Only `feat:` and `fix:` trigger releases**
+3. ✅ **Map all API responses** to optimized schemas
+4. ✅ **Mock `getConfig()` in tests**
+5. ✅ **Node.js 22+ required** for Semantic Release
+6. ✅ **NPM_TOKEN must be Automation/Publish type**
+7. ✅ **Always commit `package-lock.json`**
+8. ✅ **Use snake_case** for API response fields
+9. ✅ **Provide defaults** for all mapper fields
+10. ✅ **Test before committing** (hooks run automatically)
+
+---
+
+**Last Updated**: Based on repository state as of latest changes
+**Maintainer**: Follow these rules to ensure consistent repository management
+
+
+==================================================
+FILE: CHANGELOG.md (Changelog)
+==================================================
+
+## [1.4.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.4.0...v1.4.1) (2025-11-27)
+
+### Bug Fixes
+
+- resolver alertas de CodeQL security scanning ([dc432e7](https://github.com/bit2me-devs/bit2me-mcp/commit/dc432e769c7373e3981b6b541b734717bf7d1b31))
+
+# [1.4.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.3.1...v1.4.0) (2025-11-27)
+
+### Features
+
+- add Google Analytics to landing page ([ec61650](https://github.com/bit2me-devs/bit2me-mcp/commit/ec616502fcf21206b45f2b2becd4c8e416353af4))
+
+## [1.3.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.3.0...v1.3.1) (2025-11-27)
+
+### Bug Fixes
+
+- reorganize imports in wallet.ts to match export order ([969cf5b](https://github.com/bit2me-devs/bit2me-mcp/commit/969cf5b9562a84753c516f0ddf627b3e12b1b7f3))
+
+# [1.3.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.2.0...v1.3.0) (2025-11-27)
+
+### Bug Fixes
+
+- remove deprecated husky lines ([545c3eb](https://github.com/bit2me-devs/bit2me-mcp/commit/545c3eba36fbe3d2bf4577b66479f083961f2730))
+- remove currency parameter from wallet_get_pockets ([0c74d73](https://github.com/bit2me-devs/bit2me-mcp/commit/0c74d73b6b967e14bf7375ae46fb83ca5e515585))
+
+### Features
+
+- update tools, mappers and documentation ([34af228](https://github.com/bit2me-devs/bit2me-mcp/commit/34af228ca9acfeb0f6b33c77b7c26f23aaccbe02))
+
+# [1.2.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.1.1...v1.2.0) (2025-11-27)
+
+### Bug Fixes
+
+- add config mock to wallet tests ([84048b4](https://github.com/bit2me-devs/bit2me-mcp/commit/84048b49d24e74200803429edfb254372445b707))
+- configure npm registry authentication before semantic-release ([15fe81f](https://github.com/bit2me-devs/bit2me-mcp/commit/15fe81f8bebe146c5bbec932333b36694bf4adb0))
+- configure semantic-release workflow with proper credentials ([235d49c](https://github.com/bit2me-devs/bit2me-mcp/commit/235d49c0bda41e08b5c7bb1ea651f6502e8e1e6d))
+- correct wallet address mapper and add pocket details mapper ([b392a69](https://github.com/bit2me-devs/bit2me-mcp/commit/b392a6968a80d6f59c76e0e3936088a2bf2fd016))
+- improve npm token verification in release workflow ([1e89869](https://github.com/bit2me-devs/bit2me-mcp/commit/1e89869d850c8e2c307102c624a53e5e9e0a2071))
+- improve semantic-release configuration ([88ea71c](https://github.com/bit2me-devs/bit2me-mcp/commit/88ea71c4ff0b0e753f6806ded20a9532097af6f0))
+- **landing:** update github link in sidebar ([d11afe1](https://github.com/bit2me-devs/bit2me-mcp/commit/d11afe1d52e5cc66d5c18151726c45fe7ef7cae2))
+- remove workaround from semantic-release workflow ([0043544](https://github.com/bit2me-devs/bit2me-mcp/commit/00435447f72dd6986215b175f078de4c6e256a5c))
+- resolve all eslint warnings and improve type safety ([823d262](https://github.com/bit2me-devs/bit2me-mcp/commit/823d26293d5dda49a2f5b3eb8ef7351aed5005a0))
+- update Node.js version to 22 for semantic-release compatibility ([f78f88f](https://github.com/bit2me-devs/bit2me-mcp/commit/f78f88f2b292290abc5910dfdfeffc5e013e0e56))
+
+### Features
+
+- add optional raw_response support in mapped responses ([623413b](https://github.com/bit2me-devs/bit2me-mcp/commit/623413b5b69cbd7629ea96e1f3aae381d5bfb871))
+- improve landing page and git hooks management ([bbb1364](https://github.com/bit2me-devs/bit2me-mcp/commit/bbb1364b5d3bff5ca8ad8809dedb8da30493787c))
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.1.2] - 2025-11-26
+
+### Added
+
+- **Landing Page Improvements**:
+    - New "Prerequisites" section explaining how to obtain API Keys.
+    - Tabbed installation instructions for **Claude Desktop**, **Cursor IDE**, **Windsurf**, **Gemini CLI**, and **VS Code**.
+    - Detailed `mcp_config.json` examples for each platform.
+    - Explicit warning about Cursor's environment variable limitations (requires `.env` file).
+
+### Fixed
+
+- **Documentation Accuracy**:
+    - Corrected total tool count from 48 to **47** in both `landing/index.html` and `README.md`.
+    - Updated tool breakdown list in `README.md` to match the actual implementation (8 Market, 7 Wallet, 11 Earn, 9 Loan, 10 Pro, 1 Account, 1 Aggregation).
+
+## [1.1.1] - 2025-11-26
+
+### Fixed
+
+- Added missing `repository` field to `package.json` for NPM metadata.
+
+## [1.1.0] - 2025-11-26
+
+### Added
+
+- **Landing Page Enhancements**:
+    - Predictive search with suggestions and auto-scroll.
+    - New "Tools Reference" section name (previously API Reference).
+    - Added "Parameters & Validation" and "Server & Maintenance" troubleshooting guides.
+    - Improved JSON example indentation and visualization.
+    - Updated footer links (GitHub, Bit2Me Website, API Docs).
+- **Documentation**:
+    - Added GitHub repository button with logo in Hero section.
+    - Updated all repository references to `bit2me-devs/bit2me-mcp`.
+
+### Changed
+
+- **Code Refactoring**:
+    - Flattened `src/tools` directory structure (removed `assets`, `market`, `aggregation` subfolders).
+    - Moved `schemas.ts` from `src/types/` to `src/utils/`.
+    - Updated import paths across the project to reflect new structure.
+- **Tool Logic**:
+    - Unified return types in tool handlers (replaced `null` returns with explicit Errors for MCP SDK compatibility).
+
+### Fixed
+
+- Corrected argument definitions in landing page examples for `wallet_create_proforma`, `earn_create_transaction`, `loan_get_ltv`, and others.
+- Fixed build errors related to strict type checking in tool handlers.
+- Resolved test import path issues after directory restructuring.
+
+### Added (Previous)
+
+- Complete mapper coverage (47/47 tools with optimized responses)
+- TypeScript strict mode enforcement
+- ESLint configuration with TypeScript rules
+- Prettier code formatting
+- Pre-commit hooks with Husky
+- Comprehensive CI/CD workflows
+- Code quality badges in README
+- Barrel exports for utilities
+- Pull request template
+- Dependabot configuration
+- Semantic release automation
+- Code coverage reporting
+
+### Changed
+
+- Consolidated API service layer (merged `api.ts` and `auth.ts` into `services/bit2me.ts`)
+- Internationalized all code comments and documentation to English
+- Enhanced error handling with custom error classes
+- Improved logging with structured logger and data sanitization
+- Updated deployment workflow with pre-deployment validation
+
+### Fixed
+
+- Missing mapper for `pro_get_order_details` tool
+- Exponential backoff implementation with configurable limits
+- Rate limit handling with proper retry logic
+
+### Security
+
+- Sanitized sensitive data in logs (API keys, signatures)
+- Strict TypeScript type checking
+- Input validation with type guards on all mappers
+
+---
+
+## [1.0.0] - 2025-11-25
+
+### Added
+
+- Initial release of Bit2Me MCP Server
+- 47 tools across 8 categories:
+    - 8 Market tools (public data)
+    - 7 Wallet tools (private)
+    - 12 Earn/Staking tools
+    - 11 Loan tools
+    - 8 Pro Trading tools
+    - 1 Account tool
+    - 1 Portfolio aggregation tool
+    - 11 Operation tools (write actions)
+- Automatic retry mechanism for rate-limited requests
+- Exponential backoff with jitter
+- Comprehensive test suite (31 tests)
+- Documentation:
+    - Complete README with all 47 tools
+    - SCHEMA_MAPPING.md with JSON examples
+    - TypeScript schema coverage documentation
+    - Product marketing documentation
+- Landing page with GitHub Pages deployment
+- Environment-based configuration
+- MCP SDK integration
+
+### Security
+
+- Secure API authentication with signature generation
+- Environment variable validation with Zod
+- No hardcoded credentials
+
+---
+
+## Release Notes
+
+### Version Numbering
+
+This project follows [Semantic Versioning](https://semver.org/):
+
+- **MAJOR** version for incompatible API changes
+- **MINOR** version for new functionality in a backwards compatible manner
+- **PATCH** version for backwards compatible bug fixes
+
+### Automated Releases
+
+Releases are automated using [semantic-release](https://github.com/semantic-release/semantic-release).
+Version bumps are determined by commit message conventions.
+
+### Commit Convention
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` - New features (minor version bump)
+- `fix:` - Bug fixes (patch version bump)
+- `docs:` - Documentation changes (no version bump)
+- `style:` - Code style changes (no version bump)
+- `refactor:` - Code refactoring (no version bump)
+- `perf:` - Performance improvements (patch version bump)
+- `test:` - Test changes (no version bump)
+- `chore:` - Build/dependency changes (no version bump)
+- `ci:` - CI/CD changes (no version bump)
+
+Add `BREAKING CHANGE:` in commit body for major version bumps.
+
+---
+
+## [Links]
+
+- [Repository](https://github.com/bit2me-devs/bit2me-mcp)
+- [Issues](https://github.com/bit2me-devs/bit2me-mcp/issues)
+- [Pull Requests](https://github.com/bit2me-devs/bit2me-mcp/pulls)
+- [Releases](https://github.com/bit2me-devs/bit2me-mcp/releases)
+
