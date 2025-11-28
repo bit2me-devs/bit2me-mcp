@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.0...v1.6.1) (2025-11-28)
+
+### Bug Fixes
+
+- resolve high severity security alerts ([fcaa6f0](https://github.com/bit2me-devs/bit2me-mcp/commit/fcaa6f07ae0d4535c79ddf3b730055ca47c4f0f5))
+
 # [1.6.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.5.0...v1.6.0) (2025-11-28)
 
 ### Features
