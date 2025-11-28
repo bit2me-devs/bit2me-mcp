@@ -1,3 +1,9 @@
+## [1.6.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.2...v1.6.3) (2025-11-28)
+
+### Bug Fixes
+
+- address incomplete sanitization alert using replacement loop ([f020b6e](https://github.com/bit2me-devs/bit2me-mcp/commit/f020b6e75446778416dc6705c2d0b8b45f002b08))
+
 ## [1.6.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.1...v1.6.2) (2025-11-28)
 
 ### Bug Fixes
