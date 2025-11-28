@@ -50,6 +50,9 @@ jobs:
             - name: Generate LLM Docs
               run: npm run build:llms
 
+            - name: Minify HTML for production
+              run: MINIFY=true node scripts/minify-html.js
+
             - name: Configurar GitHub Pages
               uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
