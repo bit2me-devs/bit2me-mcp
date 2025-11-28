@@ -2357,51 +2357,209 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     tools: [
                         {
                             name: "market_get_ticker",
+                            exampleArgs: {
+                                symbol: "BTC",
+                                currency: "EUR",
+                            },
+                            response: {
+                                time: 1764072740258,
+                                price: "75869.89",
+                                market_cap: "1510730550631.13",
+                                volume_24h: "62022281357.81",
+                                max_supply: "21000000",
+                                total_supply: "19953446",
+                            },
                             type: "READ",
                             desc: "Gets current price, 24h volume, market highs and lows for a cryptocurrency. Specify symbol (e.g., BTC) and optional base currency (default: EUR). Returns price, volume, market cap, and supply information.",
-                            args: { symbol: "string (BTC/EUR)", currency: "string" },
+                            args: {
+                                symbol: { type: "string", desc: "Crypto symbol (e.g., BTC, ETH, DOGE)" },
+                                currency: { type: "string (default: EUR)", desc: "Base currency (e.g., EUR, USD)" },
+                            },
                         },
                         {
                             name: "market_get_chart",
+                            exampleArgs: {
+                                ticker: "BTC/EUR",
+                                timeframe: "one-day",
+                            },
+                            response: [
+                                {
+                                    timestamp: 1732492800000,
+                                    date: "2024-11-25",
+                                    price_usd: 75869.89,
+                                    price_fiat: 72145.32,
+                                    currency: "EUR",
+                                },
+                                {
+                                    timestamp: 1732579200000,
+                                    date: "2024-11-26",
+                                    price_usd: 76234.12,
+                                    price_fiat: 72489.56,
+                                    currency: "EUR",
+                                },
+                            ],
                             type: "READ",
                             desc: "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires ticker pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns last 30 data points with dates and prices in both USD and the fiat currency from the ticker.",
-                            args: { ticker: "string", timeframe: "1h, 1d, 1w..." },
+                            args: {
+                                ticker: { type: "string", desc: "Pair (e.g., BTC/EUR)" },
+                                timeframe: {
+                                    type: "string (enum: one-hour, one-day, one-week, one-month, one-year)",
+                                    desc: "",
+                                },
+                            },
                         },
                         {
                             name: "market_get_assets",
+                            exampleArgs: {
+                                includeTestnet: false,
+                                showExchange: true,
+                            },
+                            response: [
+                                {
+                                    symbol: "BTC",
+                                    name: "Bitcoin",
+                                    asset_type: "currency",
+                                    network: "BITCOIN",
+                                    enabled: true,
+                                    tradeable: true,
+                                    loanable: true,
+                                    pairs_with: ["EUR"],
+                                },
+                                {
+                                    symbol: "ETH",
+                                    name: "Ethereum",
+                                    asset_type: "platform",
+                                    network: "ETHEREUM (ERC20)",
+                                    enabled: true,
+                                    tradeable: true,
+                                    loanable: true,
+                                    pairs_with: ["EUR"],
+                                },
+                            ],
                             type: "READ",
                             desc: "Gets all available assets (cryptocurrencies) supported by Bit2Me. Returns symbol, name, asset type, network, trading status, and supported pairs. Use this to discover available currencies before trading or checking prices.",
-                            args: { includeTestnet: "boolean", showExchange: "boolean" },
+                            args: {
+                                includeTestnet: { type: "boolean", desc: "Include testnet assets" },
+                                showExchange: { type: "boolean", desc: "Include exchange property" },
+                            },
                         },
                         {
                             name: "market_get_asset_details",
+                            exampleArgs: {
+                                symbol: "BTC",
+                                showExchange: true,
+                            },
+                            response: {
+                                symbol: "BTC",
+                                name: "Bitcoin",
+                                asset_type: "currency",
+                                network: "BITCOIN",
+                                enabled: true,
+                                tradeable: true,
+                                loanable: true,
+                                pairs_with: ["EUR"],
+                            },
                             type: "READ",
                             desc: "Gets detailed information of a specific asset by its symbol. Returns asset type, network, trading status, loan availability, and supported trading pairs. Use this to verify if an asset is tradeable or loanable before operations.",
-                            args: { symbol: "string", showExchange: "boolean" },
+                            args: {
+                                symbol: { type: "string", desc: "Asset symbol (e.g., BTC, ETH)" },
+                                showExchange: { type: "boolean", desc: "Include exchange property" },
+                            },
                         },
                         {
                             name: "market_get_config",
+                            exampleArgs: {
+                                symbol: "BTC/EUR",
+                            },
+                            response: {
+                                symbol: "BTC/EUR",
+                                basePrecision: 8,
+                                quotePrecision: 2,
+                                minAmount: "0.0001",
+                                maxAmount: "100",
+                                status: "active",
+                            },
                             type: "READ",
                             desc: "Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional symbol filter for a specific market. Use this before placing orders to ensure amounts meet requirements.",
-                            args: { symbol: "string" },
+                            args: {
+                                symbol: { type: "string", desc: "Filter by market symbol (e.g., BTC/EUR)" },
+                            },
                         },
                         {
                             name: "market_get_order_book",
+                            exampleArgs: {
+                                symbol: "BTC/EUR",
+                            },
+                            response: {
+                                symbol: "BTC/EUR",
+                                bids: [
+                                    ["75800.00", "0.5"],
+                                    ["75750.00", "1.2"],
+                                ],
+                                asks: [
+                                    ["75900.00", "0.8"],
+                                    ["75950.00", "1.5"],
+                                ],
+                                timestamp: 1764072740258,
+                            },
                             type: "READ",
                             desc: "Gets the order book (market depth) for a market showing current buy and sell orders. Returns bids (buy orders) and asks (sell orders) with prices and amounts. Useful for analyzing market liquidity and determining optimal order prices.",
-                            args: { symbol: "string" },
+                            args: {
+                                symbol: { type: "string", desc: "Market symbol (e.g., BTC/EUR)" },
+                            },
                         },
                         {
                             name: "market_get_public_trades",
+                            exampleArgs: {
+                                symbol: "BTC/EUR",
+                                limit: 5,
+                                sort: "DESC",
+                            },
+                            response: [
+                                {
+                                    id: "12345",
+                                    symbol: "BTC/EUR",
+                                    price: "75869.89",
+                                    amount: "0.5",
+                                    side: "buy",
+                                    timestamp: 1764072740258,
+                                },
+                            ],
                             type: "READ",
                             desc: "Gets the latest public trades (executed orders) for a market. Returns recent transactions with price, amount, side (buy/sell), and timestamp. Optional limit (max 100) and sort order (ASC/DESC). Useful for seeing recent market activity.",
-                            args: { symbol: "string", limit: "number", sort: "ASC/DESC" },
+                            args: {
+                                symbol: { type: "string", desc: "Market symbol (e.g., BTC/EUR)" },
+                                limit: { type: "number", desc: "Result limit (max 100)" },
+                                sort: { type: "string (enum: ASC, DESC)", desc: "Sort order" },
+                            },
                         },
                         {
                             name: "market_get_candles",
+                            exampleArgs: {
+                                symbol: "BTC/EUR",
+                                timeframe: "1h",
+                                limit: 100,
+                            },
+                            response: [
+                                {
+                                    timestamp: 1764072000000,
+                                    open: "75800.00",
+                                    high: "76100.00",
+                                    low: "75600.00",
+                                    close: "75869.89",
+                                    volume: "125.5",
+                                },
+                            ],
                             type: "READ",
                             desc: "Gets OHLCV (Open, High, Low, Close, Volume) candles for Trading Pro. Returns price data in specified timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M). Optional limit to control number of candles. Essential for technical analysis and charting.",
-                            args: { symbol: "string", timeframe: "1m, 5m, 1h...", limit: "number" },
+                            args: {
+                                symbol: { type: "string", desc: "Market symbol (e.g., BTC/EUR)" },
+                                timeframe: {
+                                    type: "string (enum: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M)",
+                                    desc: "Timeframe",
+                                },
+                                limit: { type: "number", desc: "Candle limit" },
+                            },
                         },
                     ],
                 },
@@ -2413,56 +2571,221 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     tools: [
                         {
                             name: "wallet_get_pockets",
+                            exampleArgs: {},
+                            response: [
+                                {
+                                    id: "abc123-def456-...",
+                                    currency: "EUR",
+                                    balance: "1250.50",
+                                    available: "1200.00",
+                                    name: "EUR Wallet",
+                                },
+                                {
+                                    id: "def456-abc123-...",
+                                    currency: "BTC",
+                                    balance: "0.5",
+                                    available: "0.5",
+                                },
+                            ],
                             type: "READ",
                             desc: "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. Multiple pockets can exist for the same currency. After getting the response, filter by the 'currency' field client-side if needed. Look for pockets with meaningful names or non-zero balances to identify the active one.",
                             args: {},
                         },
                         {
                             name: "wallet_get_pocket_details",
+                            exampleArgs: {
+                                pocketId: "pocket-uuid-1234-5678",
+                            },
+                            response: {
+                                id: "abc123-def456-...",
+                                currency: "EUR",
+                                balance: "1250.50",
+                                available: "1200.00",
+                                blocked: "50.50",
+                                name: "EUR Wallet",
+                                createdAt: "2021-01-19T20:24:59.209Z",
+                            },
                             type: "READ",
                             desc: "Gets detailed information of a specific wallet (Pocket) by its ID. Returns balance, available funds, blocked funds, currency, name, and creation date. Use wallet_get_pockets first to get the pocket ID.",
-                            args: { pocketId: "string (UUID)" },
+                            args: {
+                                pocketId: { type: "string", desc: "Pocket UUID" },
+                            },
                         },
                         {
                             name: "wallet_get_pocket_addresses",
+                            exampleArgs: {
+                                pocketId: "pocket-uuid-1234-5678",
+                                network: "bitcoin",
+                            },
+                            response: [
+                                {
+                                    address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+                                    network: "bitcoin",
+                                    currency: "BTC",
+                                    createdAt: "2021-01-19T20:24:59.209Z",
+                                },
+                            ],
                             type: "READ",
                             desc: "Lists deposit addresses for a wallet (Pocket) on a specific network. Use wallet_get_networks first to see available networks for a currency. Each network may have different addresses. Returns address, network, and creation date. Use this address to receive deposits on the specified network.",
-                            args: { pocketId: "string", network: "string" },
+                            args: {
+                                pocketId: { type: "string", desc: "Pocket UUID" },
+                                network: { type: "string", desc: "Address network (e.g., bitcoin, ethereum, bsc)" },
+                            },
                         },
                         {
                             name: "wallet_get_networks",
+                            exampleArgs: {
+                                currency: "BTC",
+                            },
+                            response: [
+                                {
+                                    id: "bitcoin",
+                                    name: "bitcoin",
+                                    native_currency_code: "BTC",
+                                    fee_currency_code: "BTC",
+                                    has_tag: false,
+                                },
+                            ],
                             type: "READ",
                             desc: "Lists available networks for a specific currency. Use this before wallet_get_pocket_addresses to see which networks support deposits for a currency (e.g., bitcoin, ethereum, binanceSmartChain). Returns network ID, name, native currency, fee currency, and whether it requires a tag/memo.",
-                            args: { currency: "string" },
+                            args: {
+                                currency: { type: "string", desc: "Currency symbol (e.g., BTC, ETH)" },
+                            },
                         },
                         {
                             name: "wallet_get_transactions",
+                            exampleArgs: {
+                                currency: "EUR",
+                                limit: "10",
+                                offset: "0",
+                            },
+                            response: {
+                                metadata: {
+                                    total_records: 150,
+                                    limit: 2,
+                                    offset: 0,
+                                    filter_currency: "ALL",
+                                },
+                                transactions: [
+                                    {
+                                        index: 1,
+                                        id: "tx123-...",
+                                        date: "2024-11-25T10:30:00.000Z",
+                                        type: "deposit",
+                                        subtype: "bank_transfer",
+                                        status: "completed",
+                                        amount: "1000.00",
+                                        currency: "EUR",
+                                        origin: {
+                                            amount: "1000.00",
+                                            currency: "EUR",
+                                            class: "bank",
+                                        },
+                                        destination: {
+                                            amount: "1000.00",
+                                            currency: "EUR",
+                                            class: "pocket",
+                                        },
+                                        fee: {
+                                            amount: "0.00",
+                                            currency: "EUR",
+                                        },
+                                    },
+                                ],
+                            },
                             type: "READ",
                             desc: "History of past Wallet operations (deposits, withdrawals, swaps, purchases). Optional currency filter. Use limit and offset for pagination (default limit: 10). Returns transaction list with type, amount, currency, status, and timestamp.",
-                            args: { limit: "string", currency: "string", offset: "string" },
+                            args: {
+                                currency: { type: "string", desc: "" },
+                                limit: { type: "string", desc: "Amount to show (default: 10)" },
+                                offset: { type: "string", desc: "Offset for pagination (default: 0)" },
+                            },
                         },
                         {
                             name: "wallet_get_transaction_details",
+                            exampleArgs: {
+                                transactionId: "tx-uuid-1234-5678",
+                            },
+                            response: {
+                                id: "tx123-...",
+                                date: "2024-11-25T10:30:00.000Z",
+                                type: "deposit",
+                                subtype: "bank_transfer",
+                                status: "completed",
+                                amount: "1000.00",
+                                currency: "EUR",
+                                origin: {
+                                    amount: "1000.00",
+                                    currency: "EUR",
+                                    class: "bank",
+                                },
+                                destination: {
+                                    amount: "1000.00",
+                                    currency: "EUR",
+                                    class: "pocket",
+                                },
+                                fee: {
+                                    amount: "0.00",
+                                    currency: "EUR",
+                                },
+                            },
                             type: "READ",
                             desc: "Gets detailed information of a specific transaction by its ID. Returns complete transaction data including type, amount, currency, status, fees, timestamps, and related pocket IDs. Use wallet_get_transactions first to get transaction IDs.",
-                            args: { transactionId: "string" },
+                            args: {
+                                transactionId: { type: "string", desc: "Transaction UUID" },
+                            },
                         },
                         {
                             name: "wallet_create_proforma",
+                            exampleArgs: {
+                                origin_pocket_id: "pocket-origin-uuid",
+                                destination_pocket_id: "pocket-dest-uuid",
+                                amount: "100.00",
+                                currency: "EUR",
+                            },
+                            response: {
+                                proforma: "proforma123-...",
+                                origin: {
+                                    pocket: "pocket123-...",
+                                    currency: "EUR",
+                                    amount: "100.00",
+                                },
+                                destination: {
+                                    pocket: "pocket456-...",
+                                    currency: "BTC",
+                                    amount: "0.00131579",
+                                },
+                                rate: "75869.89",
+                                fee: {
+                                    amount: "0.50",
+                                    currency: "EUR",
+                                },
+                                expiresAt: "2024-11-25T10:35:00.000Z",
+                            },
                             type: "WRITE",
                             desc: "STEP 1: Simulates/Quotes an operation in Simple Wallet. Returns Proforma ID and cost. REQUIRES subsequent confirmation.",
                             args: {
-                                origin_pocket_id: "string",
-                                destination_pocket_id: "string",
-                                amount: "string",
-                                currency: "string",
+                                origin_pocket_id: { type: "string", desc: "" },
+                                destination_pocket_id: { type: "string", desc: "" },
+                                amount: { type: "string", desc: "" },
+                                currency: { type: "string", desc: "" },
                             },
                         },
                         {
                             name: "wallet_confirm_transaction",
+                            exampleArgs: {
+                                proforma_id: "proforma-uuid-1234",
+                            },
+                            response: {
+                                id: "tx123-...",
+                                status: "completed",
+                                message: "✅ Transacción confirmada. ID: tx123-...",
+                            },
                             type: "WRITE",
                             desc: "STEP 2: Executes the operation using the Proforma ID. Final action.",
-                            args: { proforma_id: "string" },
+                            args: {
+                                proforma_id: { type: "string", desc: "" },
+                            },
                         },
                     ],
                 },
@@ -2474,70 +2797,231 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     tools: [
                         {
                             name: "pro_get_balance",
+                            exampleArgs: {},
+                            response: [
+                                {
+                                    currency: "BTC",
+                                    balance: 0.00689471,
+                                    blocked_balance: 0,
+                                    available: 0.00689471,
+                                },
+                                {
+                                    currency: "FLOW",
+                                    balance: 27812.0234142,
+                                    blocked_balance: 0,
+                                    available: 27812.0234142,
+                                },
+                                {
+                                    currency: "EUR",
+                                    balance: 0,
+                                    blocked_balance: 0.00011102,
+                                    available: -0.00011102,
+                                },
+                            ],
                             type: "READ",
                             desc: "Gets balances from PRO Trading account. This is separate from Simple Wallet - funds must be transferred using pro_deposit/pro_withdraw. Returns available and blocked balances per currency for trading.",
                             args: {},
                         },
                         {
                             name: "pro_get_open_orders",
+                            exampleArgs: {
+                                symbol: "BTC/EUR",
+                            },
+                            response: [
+                                {
+                                    id: "order789",
+                                    symbol: "BTC/EUR",
+                                    side: "buy",
+                                    type: "limit",
+                                    status: "open",
+                                    price: "75000.00",
+                                    amount: "0.1",
+                                    filled: "0.0",
+                                    remaining: "0.1",
+                                    createdAt: "2024-11-25T10:00:00.000Z",
+                                },
+                            ],
                             type: "READ",
                             desc: "View open trading orders in PRO. Returns all active orders (pending, partially filled). Optional symbol filter to see orders for a specific market. Use this to monitor order status after pro_create_order.",
-                            args: { symbol: "string" },
+                            args: {
+                                symbol: { type: "string", desc: "" },
+                            },
                         },
                         {
                             name: "pro_get_transactions",
+                            exampleArgs: {
+                                symbol: "BTC/EUR",
+                                limit: 5,
+                                offset: 0,
+                                sort: "DESC",
+                            },
+                            response: [
+                                {
+                                    id: "trade123",
+                                    orderId: "order456",
+                                    symbol: "BTC/EUR",
+                                    side: "buy",
+                                    price: "75869.89",
+                                    amount: "0.1",
+                                    fee: "0.75",
+                                    timestamp: 1764072740258,
+                                },
+                            ],
                             type: "READ",
                             desc: "Gets the user's trade history in Pro Trading. Returns executed trades with price, amount, side (buy/sell), fees, and timestamp. Optional filters: symbol, limit, offset, and sort order (ASC/DESC). Use this to review past trading activity.",
-                            args: { symbol: "string", limit: "number", offset: "number", sort: "ASC/DESC" },
+                            args: {
+                                symbol: { type: "string", desc: "Filter by symbol" },
+                                limit: { type: "number", desc: "" },
+                                offset: { type: "number", desc: "" },
+                                sort: { type: "string (enum: ASC, DESC)", desc: "" },
+                            },
                         },
                         {
                             name: "pro_get_order_trades",
+                            exampleArgs: {
+                                orderId: "order-uuid-1234-5678",
+                            },
+                            response: [
+                                {
+                                    id: "trade123",
+                                    orderId: "order456",
+                                    symbol: "BTC/EUR",
+                                    side: "buy",
+                                    price: "75869.89",
+                                    amount: "0.1",
+                                    fee: "0.75",
+                                    timestamp: 1764072740258,
+                                },
+                            ],
                             type: "READ",
                             desc: "Gets all individual trades (executions) associated with a specific order. Returns detailed execution data including price, amount, fees, and timestamp for each fill. Useful for analyzing how a large order was executed across multiple trades.",
-                            args: { orderId: "string" },
+                            args: {
+                                orderId: { type: "string", desc: "Order ID" },
+                            },
                         },
                         {
                             name: "pro_get_order_details",
+                            exampleArgs: {
+                                orderId: "order-uuid-1234-5678",
+                            },
+                            response: {
+                                id: "order789",
+                                symbol: "BTC/EUR",
+                                side: "buy",
+                                type: "limit",
+                                status: "open",
+                                price: "75000.00",
+                                amount: "0.1",
+                                filled: "0.0",
+                                remaining: "0.1",
+                                createdAt: "2024-11-25T10:00:00.000Z",
+                            },
                             type: "READ",
                             desc: "Gets detailed information of a specific Pro order. Returns order type, symbol, side, amount, price, status, filled amount, creation time, and execution details. Use pro_get_open_orders or pro_get_transactions first to get the order ID.",
-                            args: { orderId: "string" },
+                            args: {
+                                orderId: { type: "string", desc: "Order ID" },
+                            },
                         },
                         {
                             name: "pro_create_order",
+                            exampleArgs: {
+                                symbol: "BTC/EUR",
+                                side: "buy",
+                                type: "limit",
+                                amount: 0.1,
+                                price: 60000,
+                            },
+                            response: {
+                                id: "order123-...",
+                                symbol: "BTC/EUR",
+                                side: "buy",
+                                type: "limit",
+                                status: "open",
+                                price: "75000.00",
+                                amount: "0.1",
+                                createdAt: "2024-11-25T10:00:00.000Z",
+                            },
                             type: "WRITE",
                             desc: "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stopPrice' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status.",
                             args: {
-                                symbol: "string",
-                                side: "buy/sell",
-                                type: "limit/market",
-                                amount: "number",
-                                price: "number",
-                                stopPrice: "number",
+                                symbol: { type: "string", desc: "" },
+                                side: { type: "string (enum: buy, sell)", desc: "" },
+                                type: { type: "string (enum: limit, market, stop-limit)", desc: "" },
+                                amount: { type: "number", desc: "" },
+                                price: { type: "number", desc: "Required for Limit/Stop" },
+                                stopPrice: { type: "number", desc: "Required for Stop-Limit" },
                             },
                         },
                         {
                             name: "pro_cancel_order",
+                            exampleArgs: {
+                                orderId: "order-uuid-1234-5678",
+                            },
+                            response: {
+                                id: "order123-...",
+                                status: "cancelled",
+                                message: "Order cancelled successfully",
+                            },
                             type: "WRITE",
                             desc: "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled.",
-                            args: { orderId: "string" },
+                            args: {
+                                orderId: { type: "string", desc: "" },
+                            },
                         },
                         {
                             name: "pro_cancel_all_orders",
+                            exampleArgs: {
+                                symbol: "BTC/EUR",
+                            },
+                            response: {
+                                cancelled: 5,
+                                message: "5 orders cancelled successfully",
+                            },
                             type: "WRITE",
                             desc: "Cancel all open orders in Pro Trading. Optional symbol filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders.",
-                            args: { symbol: "string" },
+                            args: {
+                                symbol: { type: "string", desc: "Filter by symbol (e.g., BTC/EUR)" },
+                            },
                         },
                         {
                             name: "pro_deposit",
+                            exampleArgs: {
+                                currency: "EUR",
+                                amount: "1000.00",
+                            },
+                            response: {
+                                id: "transfer123-...",
+                                currency: "EUR",
+                                amount: "1000.00",
+                                status: "completed",
+                                message: "Deposit successful",
+                            },
                             type: "WRITE",
                             desc: "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit.",
-                            args: { currency: "string", amount: "string" },
+                            args: {
+                                currency: { type: "string", desc: "Currency (e.g., EUR, BTC)" },
+                                amount: { type: "string", desc: "Amount to transfer" },
+                            },
                         },
                         {
                             name: "pro_withdraw",
+                            exampleArgs: {
+                                currency: "EUR",
+                                amount: "500.00",
+                            },
+                            response: {
+                                id: "transfer456-...",
+                                currency: "EUR",
+                                amount: "500.00",
+                                status: "completed",
+                                message: "Withdrawal successful",
+                            },
                             type: "WRITE",
                             desc: "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal.",
-                            args: { currency: "string", amount: "string" },
+                            args: {
+                                currency: { type: "string", desc: "Currency (e.g., EUR, BTC)" },
+                                amount: { type: "string", desc: "Amount to transfer" },
+                            },
                         },
                     ],
                 },
@@ -2549,73 +3033,206 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     tools: [
                         {
                             name: "earn_get_summary",
+                            exampleArgs: {},
+                            response: [
+                                {
+                                    currency: "BTC",
+                                    total_balance: "0.5",
+                                    rewards_earned: "0.0001",
+                                    apy: "0.05",
+                                },
+                                {
+                                    currency: "ETH",
+                                    total_balance: "5.0",
+                                    rewards_earned: "0.002",
+                                    apy: "0.04",
+                                },
+                            ],
                             type: "READ",
                             desc: "View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn wallets, breakdown by currency, and overall performance. Use this to see your total staking rewards.",
                             args: {},
                         },
                         {
                             name: "earn_get_wallets",
+                            exampleArgs: {},
+                            response: [
+                                {
+                                    id: "earn123-...",
+                                    currency: "BTC",
+                                    balance: "0.5",
+                                    strategy: "flexible",
+                                    apy: "0.05",
+                                    status: "active",
+                                },
+                            ],
                             type: "READ",
                             desc: "List active Earn wallets/strategies with their current APY (Annual Percentage Yield). Returns wallet ID, currency, balance, APY, and status. Use this to see available staking options and their returns before depositing.",
                             args: {},
                         },
                         {
                             name: "earn_get_wallet_details",
+                            exampleArgs: {
+                                walletId: "earn-wallet-uuid-1234",
+                            },
+                            response: {
+                                id: "earn123-...",
+                                currency: "BTC",
+                                balance: "0.5",
+                                strategy: "flexible",
+                                apy: "0.05",
+                                status: "active",
+                                createdAt: "2021-01-19T20:24:59.209Z",
+                            },
                             type: "READ",
                             desc: "Get detailed information of a specific Earn wallet. Returns balance, APY, total rewards, status, and configuration. Use earn_get_wallets first to get the wallet ID.",
-                            args: { walletId: "string" },
+                            args: {
+                                walletId: { type: "string", desc: "Earn wallet UUID" },
+                            },
                         },
                         {
                             name: "earn_get_transactions",
+                            exampleArgs: {
+                                walletId: "earn-wallet-uuid-1234",
+                                limit: "10",
+                                offset: "0",
+                            },
+                            response: [
+                                {
+                                    id: "tx123-...",
+                                    type: "deposit",
+                                    currency: "BTC",
+                                    amount: "0.1",
+                                    date: "2024-11-25T10:30:00.000Z",
+                                    status: "completed",
+                                },
+                            ],
                             type: "READ",
                             desc: "Get transaction history (movements) of an Earn wallet. Returns deposits, withdrawals, and reward payments with amounts, dates, and status. Optional limit and offset for pagination. Use earn_get_wallets first to get the wallet ID.",
-                            args: { walletId: "string", limit: "string", offset: "string" },
+                            args: {
+                                walletId: { type: "string", desc: "Earn wallet UUID" },
+                                limit: { type: "string", desc: "Result limit" },
+                                offset: { type: "string", desc: "Offset" },
+                            },
                         },
                         {
                             name: "earn_get_transactions_summary",
+                            exampleArgs: {
+                                type: "DEPOSIT",
+                            },
+                            response: {
+                                type: "DEPOSIT",
+                                totalAmount: "1.5",
+                                totalCount: 10,
+                                currency: "BTC",
+                            },
                             type: "READ",
                             desc: "Get summary statistics of Earn movements filtered by type (DEPOSIT, WITHDRAWAL, etc.). Returns total count, total amounts, and aggregated data for the specified movement type across all Earn wallets.",
-                            args: { type: "string" },
+                            args: {
+                                type: { type: "string", desc: "Movement type (e.g., DEPOSIT, WITHDRAWAL)" },
+                            },
                         },
                         {
                             name: "earn_get_assets",
+                            exampleArgs: {},
+                            response: ["BTC", "ETH", "USDC", "USDT", "ADA", "DOT"],
                             type: "READ",
                             desc: "Get list of assets (cryptocurrencies) supported in Earn/Staking. Returns available currencies with their staking options. Use this to discover which assets can be staked before creating Earn transactions.",
                             args: {},
                         },
                         {
                             name: "earn_get_apy",
+                            exampleArgs: {},
+                            response: {
+                                BTC: {
+                                    currency: "BTC",
+                                    daily: 0.0001,
+                                    weekly: 0.000099999917563314,
+                                    monthly: 0.000099999597052597,
+                                },
+                                ETH: {
+                                    currency: "ETH",
+                                    daily: 0.00008,
+                                    weekly: 0.000079999934050651,
+                                    monthly: 0.000079999677642078,
+                                },
+                            },
                             type: "READ",
                             desc: "Get current APY (Annual Percentage Yield) rates for all Earn/Staking options. Returns APY percentages per asset and strategy. Use this to compare returns before choosing where to stake your assets.",
                             args: {},
                         },
                         {
                             name: "earn_get_rewards_config",
+                            exampleArgs: {},
+                            response: {
+                                distributionFrequency: "daily",
+                                minimumBalance: "0.0001",
+                                compounding: true,
+                            },
                             type: "READ",
                             desc: "Get global rewards configuration for Earn/Staking. Returns reward calculation rules, distribution schedules, and general staking parameters. Use this to understand how rewards are calculated.",
                             args: {},
                         },
                         {
                             name: "earn_get_wallet_rewards_config",
+                            exampleArgs: {
+                                walletId: "earn-wallet-uuid-1234",
+                            },
+                            response: {
+                                walletId: "earn123-...",
+                                currency: "BTC",
+                                distributionFrequency: "daily",
+                                nextDistribution: "2024-11-26T00:00:00.000Z",
+                            },
                             type: "READ",
                             desc: "Get rewards configuration for a specific Earn wallet. Returns reward calculation rules, APY details, and wallet-specific staking parameters. Use earn_get_wallets first to get the wallet ID.",
-                            args: { walletId: "string" },
+                            args: {
+                                walletId: { type: "string", desc: "Earn wallet UUID" },
+                            },
                         },
                         {
                             name: "earn_get_wallet_rewards_summary",
+                            exampleArgs: {
+                                walletId: "earn-wallet-uuid-1234",
+                            },
+                            response: {
+                                walletId: "earn123-...",
+                                currency: "BTC",
+                                totalRewards: "0.0001",
+                                lastReward: "0.0000027",
+                                lastRewardDate: "2024-11-25T00:00:00.000Z",
+                            },
                             type: "READ",
                             desc: "Get rewards summary for a specific Earn wallet. Returns total rewards earned, pending rewards, reward history, and performance metrics. Use earn_get_wallets first to get the wallet ID.",
-                            args: { walletId: "string" },
+                            args: {
+                                walletId: { type: "string", desc: "Earn wallet UUID" },
+                            },
                         },
                         {
                             name: "earn_create_transaction",
+                            exampleArgs: {
+                                pocketId: "pocket-uuid-1234-5678",
+                                currency: "BTC",
+                                amount: "0.1",
+                                type: "deposit",
+                            },
+                            response: {
+                                id: "tx123-...",
+                                type: "deposit",
+                                currency: "BTC",
+                                amount: "0.1",
+                                status: "completed",
+                                message: "Earn deposit successful",
+                            },
                             type: "WRITE",
                             desc: "Create deposit or withdrawal in Earn (Staking). For deposits, funds move from Simple Wallet pocket to Earn. For withdrawals, funds return from Earn to the specified pocket. Returns transaction details with status. Use earn_get_wallets to see available Earn strategies first.",
                             args: {
-                                pocketId: "string",
-                                amount: "string",
-                                currency: "string",
-                                type: "deposit/withdrawal",
+                                pocketId: {
+                                    type: "string",
+                                    desc: "Source pocket UUID (for deposit) or destination (for withdrawal)",
+                                },
+                                currency: { type: "string", desc: "Currency (e.g., BTC, EUR)" },
+                                amount: { type: "string", desc: "Amount" },
+                                type: { type: "string (enum: deposit, withdrawal)", desc: "Operation type" },
                             },
                         },
                     ],
@@ -2628,68 +3245,229 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     tools: [
                         {
                             name: "loan_get_active",
+                            exampleArgs: {},
+                            response: [
+                                {
+                                    order_id: "fb930f0c-8e90-403a-95e4-112394183cf2",
+                                    status: "active",
+                                    guarantee_currency: "BTC",
+                                    guarantee_amount: "1.000000000000000000",
+                                    loan_currency: "EURR",
+                                    loan_amount: "52100.455127197287622924",
+                                    remaining_amount: "52100.455127197287622924",
+                                    ltv: "0.6863",
+                                    apr: "0.1700",
+                                    liquidation_price: "61258.249847058816304395",
+                                    created_at: "2025-07-27T16:23:59.876Z",
+                                    expires_at: "2025-07-30T16:23:59.872Z",
+                                },
+                            ],
                             type: "READ",
                             desc: "View all active loans. Returns list of current loans with guarantee amounts, loan amounts, LTV ratios, currencies, and status. Use this to monitor your active loan positions.",
                             args: {},
                         },
                         {
                             name: "loan_get_ltv",
+                            exampleArgs: {
+                                guaranteeCurrency: "BTC",
+                                loanCurrency: "EUR",
+                                userCurrency: "EUR",
+                                guaranteeAmount: "0.5",
+                            },
+                            response: {
+                                ltv: "0.65",
+                                maxLoanAmount: "50000.00",
+                                liquidationPrice: "60000.00",
+                                healthFactor: "1.54",
+                            },
                             type: "READ",
                             desc: "Calculate LTV (Loan To Value) ratio for a loan scenario. LTV represents the loan amount as a percentage of the guarantee value. Lower LTV means lower risk. Provide either guaranteeAmount or loanAmount (the other will be calculated). Returns LTV percentage and risk level. Use this before loan_create to plan your loan.",
                             args: {
-                                guaranteeCurrency: "string",
-                                loanCurrency: "string",
-                                userCurrency: "string",
-                                guaranteeAmount: "string",
-                                loanAmount: "string",
+                                guaranteeCurrency: { type: "string", desc: "Guarantee currency (e.g., BTC)" },
+                                loanCurrency: { type: "string", desc: "Loan currency (e.g., EUR)" },
+                                userCurrency: { type: "string", desc: "User's fiat currency (e.g., EUR)" },
+                                guaranteeAmount: {
+                                    type: "string",
+                                    desc: "Guarantee amount (optional if loanAmount is given)",
+                                },
+                                loanAmount: {
+                                    type: "string",
+                                    desc: "Loan amount (optional if guaranteeAmount is given)",
+                                },
                             },
                         },
                         {
                             name: "loan_get_config",
+                            exampleArgs: {},
+                            response: [
+                                {
+                                    currency: "BTC",
+                                    minGuarantee: "0.001",
+                                    maxLtv: "0.70",
+                                    apr: "0.15",
+                                    availableAsGuarantee: true,
+                                    availableAsLoan: false,
+                                },
+                                {
+                                    currency: "ETH",
+                                    minGuarantee: "0.01",
+                                    maxLtv: "0.70",
+                                    apr: "0.15",
+                                    availableAsGuarantee: true,
+                                    availableAsLoan: false,
+                                },
+                            ],
                             type: "READ",
                             desc: "Get currency configuration for loans including supported guarantee currencies, loan currencies, LTV limits, interest rates, and requirements. Use this before creating a loan to understand available options and limits.",
                             args: {},
                         },
                         {
                             name: "loan_get_transactions",
+                            exampleArgs: {
+                                orderId: "order-uuid-1234-5678",
+                                limit: 5,
+                                offset: 0,
+                            },
+                            response: [
+                                {
+                                    id: "tx123-...",
+                                    orderId: "fb930f0c-...",
+                                    type: "disbursement",
+                                    amount: "50000.00",
+                                    currency: "EURR",
+                                    date: "2025-07-27T16:24:00.119Z",
+                                    status: "completed",
+                                },
+                            ],
                             type: "READ",
                             desc: "Get loan transaction history (movements) including payments, interest accruals, and guarantee changes. Optional orderId filter to see movements for a specific loan. Use limit and offset for pagination.",
-                            args: { orderId: "string", limit: "number", offset: "number" },
+                            args: {
+                                orderId: { type: "string", desc: "Filter by order ID" },
+                                limit: { type: "number", desc: "" },
+                                offset: { type: "number", desc: "" },
+                            },
                         },
                         {
                             name: "loan_get_orders",
+                            exampleArgs: {
+                                limit: 5,
+                                offset: 0,
+                            },
+                            response: [
+                                {
+                                    order_id: "6ee84520-b399-4a93-9a48-8ba852d78ac5",
+                                    status: "active",
+                                    guarantee_currency: "BTC",
+                                    guarantee_amount: "0.407452069999999900",
+                                    loan_currency: "EURR",
+                                    loan_amount: "19780.869923949592558916",
+                                    remaining_amount: "19780.869923949592558916",
+                                    ltv: "0.6404",
+                                    apr: "0.1700",
+                                    liquidation_price: "57211.452470588239403676",
+                                    created_at: "2025-05-13T22:59:38.096Z",
+                                    expires_at: "2025-05-16T22:59:38.094Z",
+                                },
+                            ],
                             type: "READ",
                             desc: "Get all loan orders (both active and closed) for the user. Returns loans with guarantee amounts, loan amounts, LTV ratios, currencies, status, and dates. Optional limit and offset for pagination.",
-                            args: { limit: "number", offset: "number" },
+                            args: {
+                                limit: { type: "number", desc: "" },
+                                offset: { type: "number", desc: "" },
+                            },
                         },
                         {
                             name: "loan_get_order_details",
+                            exampleArgs: {
+                                orderId: "order-uuid-1234-5678",
+                            },
+                            response: {
+                                order_id: "fb930f0c-8e90-403a-95e4-112394183cf2",
+                                status: "active",
+                                guarantee_currency: "BTC",
+                                guarantee_amount: "1.000000000000000000",
+                                loan_currency: "EURR",
+                                loan_amount: "52100.455127197287622924",
+                                remaining_amount: "52100.455127197287622924",
+                                ltv: "0.6863",
+                                apr: "0.1700",
+                                liquidation_price: "61258.249847058816304395",
+                                created_at: "2025-07-27T16:23:59.876Z",
+                                expires_at: "2025-07-30T16:23:59.872Z",
+                            },
                             type: "READ",
                             desc: "Get detailed information of a specific loan order. Returns guarantee amount, loan amount, LTV, interest rate, status, creation date, and payment history. Use loan_get_active or loan_get_orders first to get the order ID.",
-                            args: { orderId: "string" },
+                            args: {
+                                orderId: { type: "string", desc: "Order ID" },
+                            },
                         },
                         {
                             name: "loan_create",
+                            exampleArgs: {
+                                guaranteeCurrency: "BTC",
+                                guaranteeAmount: "0.5",
+                                loanCurrency: "EUR",
+                                loanAmount: "15000.00",
+                            },
+                            response: {
+                                orderId: "loan123-...",
+                                guaranteeCurrency: "BTC",
+                                guaranteeAmount: "1.0",
+                                loanCurrency: "EUR",
+                                loanAmount: "50000.00",
+                                ltv: "0.65",
+                                apr: "0.15",
+                                status: "active",
+                                createdAt: "2024-11-25T10:00:00.000Z",
+                            },
                             type: "WRITE",
                             desc: "Create a new loan by providing cryptocurrency as guarantee (collateral) to receive fiat currency. The guarantee amount determines the maximum loan amount based on LTV (Loan To Value) ratio. Use loan_get_ltv first to calculate optimal amounts. Returns loan order details with status.",
                             args: {
-                                guaranteeCurrency: "string",
-                                loanCurrency: "string",
-                                guaranteeAmount: "string",
-                                loanAmount: "string",
+                                guaranteeCurrency: { type: "string", desc: "Guarantee currency (e.g., BTC)" },
+                                guaranteeAmount: { type: "string", desc: "Guarantee amount" },
+                                loanCurrency: { type: "string", desc: "Loan currency (e.g., EUR)" },
+                                loanAmount: { type: "string", desc: "Loan amount" },
                             },
                         },
                         {
                             name: "loan_increase_guarantee",
+                            exampleArgs: {
+                                orderId: "order-uuid-1234-5678",
+                                guaranteeAmount: "0.5",
+                            },
+                            response: {
+                                orderId: "loan123-...",
+                                newGuaranteeAmount: "1.5",
+                                newLtv: "0.43",
+                                status: "updated",
+                                message: "Guarantee increased successfully",
+                            },
                             type: "WRITE",
                             desc: "Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_active first to get the order ID.",
-                            args: { orderId: "string", guaranteeAmount: "string" },
+                            args: {
+                                orderId: { type: "string", desc: "Loan order ID" },
+                                guaranteeAmount: { type: "string", desc: "Additional guarantee amount" },
+                            },
                         },
                         {
                             name: "loan_payback",
+                            exampleArgs: {
+                                orderId: "order-uuid-1234-5678",
+                                paybackAmount: "100.00",
+                            },
+                            response: {
+                                orderId: "loan123-...",
+                                paybackAmount: "10000.00",
+                                remainingAmount: "40000.00",
+                                status: "active",
+                                message: "Payback successful",
+                            },
                             type: "WRITE",
                             desc: "Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_active first to get the order ID and check current loan amount.",
-                            args: { orderId: "string", paybackAmount: "string" },
+                            args: {
+                                orderId: { type: "string", desc: "Loan order ID" },
+                                paybackAmount: { type: "string", desc: "Amount to pay back" },
+                            },
                         },
                     ],
                 },
@@ -2701,15 +3479,60 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     tools: [
                         {
                             name: "account_get_info",
+                            exampleArgs: {},
+                            response: {
+                                userId: "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
+                                email: "user@example.com",
+                                level: "verified",
+                                kycStatus: "approved",
+                                createdAt: "2021-01-19T20:24:59.209Z",
+                                features: {
+                                    trading: true,
+                                    earn: true,
+                                    loans: true,
+                                },
+                            },
                             type: "READ",
                             desc: "View user account information including profile details, verification levels, account status, and user settings. Returns account metadata useful for understanding account capabilities and restrictions.",
                             args: {},
                         },
                         {
                             name: "portfolio_get_valuation",
+                            exampleArgs: {
+                                fiat_currency: "EUR",
+                            },
+                            response: {
+                                currency: "EUR",
+                                total_value: 771789.52,
+                                details: [
+                                    {
+                                        asset: "BTC",
+                                        amount: 8.657983471809322,
+                                        price_unit: 75936.5,
+                                        value_fiat: 657456.96,
+                                    },
+                                    {
+                                        asset: "B2M",
+                                        amount: 3205806.09708881,
+                                        price_unit: 0.0099566,
+                                        value_fiat: 31918.93,
+                                    },
+                                    {
+                                        asset: "DOGE",
+                                        amount: 232444.85337828,
+                                        price_unit: 0.1290807,
+                                        value_fiat: 30004.14,
+                                    },
+                                ],
+                            },
                             type: "META",
                             desc: "Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat currency (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations. Filters out dust amounts below minimum threshold.",
-                            args: { fiat_currency: "string (default: EUR)" },
+                            args: {
+                                fiat_currency: {
+                                    type: "string (default: EUR)",
+                                    desc: "Base currency (e.g., EUR, USD)",
+                                },
+                            },
                         },
                     ],
                 },
@@ -2769,7 +3592,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                             : tool.type === "WRITE"
                                               ? "badge-write"
                                               : "badge-meta";
-                                    const argsExample = formatArgsExample(tool.args);
+                                    const argsExample = tool.exampleArgs || formatArgsExample(tool.args);
                                     const jsonExample = JSON.stringify(
                                         {
                                             name: tool.name,
@@ -2799,14 +3622,21 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 <h5 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Arguments</h5>
                                                 <ul class="space-y-1">
                                                     ${Object.entries(tool.args)
-                                                        .map(
-                                                            ([key, type]) => `
-                                                        <li class="text-xs text-slate-600 dark:text-slate-400">
-                                                            <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400">${key}</code>
-                                                            <span class="text-slate-400">: ${type}</span>
+                                                        .map(([key, details]) => {
+                                                            const type =
+                                                                typeof details === "object" ? details.type : details;
+                                                            const desc =
+                                                                typeof details === "object" ? details.desc : "";
+                                                            return `
+                                                        <li class="text-xs text-slate-600 dark:text-slate-400 flex flex-col gap-1 mb-2">
+                                                            <div class="flex items-center gap-2">
+                                                                <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 font-bold">${key}</code>
+                                                                <span class="text-slate-400 text-[10px] border border-slate-200 dark:border-slate-700 rounded px-1">${type}</span>
+                                                            </div>
+                                                            ${desc ? `<p class="text-slate-500 dark:text-slate-500 pl-2 border-l-2 border-slate-200 dark:border-slate-700 text-[11px] leading-relaxed">${desc}</p>` : ""}
                                                         </li>
-                                                    `
-                                                        )
+                                                    `;
+                                                        })
                                                         .join("")}
                                                 </ul>
                                             </div>
@@ -2817,6 +3647,16 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                             <h5 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Example Usage</h5>
                                             <pre class="bg-slate-900 dark:bg-black rounded p-3 overflow-x-auto text-xs" translate="no"><code class="language-json">${jsonExample}</code></pre>
                                         </div>
+                                        ${
+                                            tool.response
+                                                ? `
+                                        <div class="mt-3">
+                                            <h5 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Example Response</h5>
+                                            <pre class="bg-slate-900 dark:bg-black rounded p-3 overflow-x-auto text-xs" translate="no"><code class="language-json">${JSON.stringify(tool.response, null, 2)}</code></pre>
+                                        </div>
+                                        `
+                                                : ""
+                                        }
                                     </div>
                                 </details>
                             `;
