@@ -61,6 +61,12 @@ updates:
           time: "09:00"
           timezone: "Europe/Madrid"
 
+      # Automatic assignment (Consistent with NPM)
+      reviewers:
+          - "bit2me-dev"
+      assignees:
+          - "bit2me-dev"
+
       labels:
           - "dependencies"
           - "github-actions"
