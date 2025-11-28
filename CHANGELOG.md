@@ -1,3 +1,9 @@
+## [1.6.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.1...v1.6.2) (2025-11-28)
+
+### Bug Fixes
+
+- address remaining security scanning alerts ([730dab4](https://github.com/bit2me-devs/bit2me-mcp/commit/730dab4b3c66d2bc416c20f000dac444a606da71))
+
 ## [1.6.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.0...v1.6.1) (2025-11-28)
 
 ### Bug Fixes
