@@ -40,6 +40,13 @@ jobs:
             - name: Test
               run: npm test
 
+            - name: Attest Build Provenance
+              uses: actions/attest-build-provenance@1c608d11d6987002090af1f815ec036484122128 # v1.1.1
+              with:
+                  subject-path: |
+                      build/index.js
+                      package.json
+
             - name: Configure npm for publishing
               run: |
                   echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
