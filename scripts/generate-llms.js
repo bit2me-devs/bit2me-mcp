@@ -21,6 +21,7 @@ function cleanMarkdown(content) {
     let cleaned = content;
     
     // Remove HTML comments <!-- ... -->
+    // Using replaceAll logic with global regex to ensure all instances are removed
     cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '');
     
     // Remove badges (images inside links or just images at start of lines often used for badges)

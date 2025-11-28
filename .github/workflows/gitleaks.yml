@@ -10,6 +10,8 @@ on:
         - cron: "0 1 * * 1"
     workflow_dispatch:
 
+permissions: read-all
+
 jobs:
     scan:
         name: Gitleaks Secret Scan
