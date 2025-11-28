@@ -26,6 +26,11 @@
 -
 -
 
+## Commit Convention Checklist
+
+- [ ] I have followed the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+- [ ] My commit messages are in **English**.
+
 ## Testing
 
 <!-- Describe the testing you've done -->
