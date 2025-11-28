@@ -35,7 +35,8 @@ describe("Fuzzing: Response Mappers", () => {
         fc.assert(
             fc.property(fc.object(), (data) => {
                 return safeMap(mapTickerResponse, data);
-            })
+            }),
+            { numRuns: 100 }
         );
     });
 
@@ -43,7 +44,8 @@ describe("Fuzzing: Response Mappers", () => {
         fc.assert(
             fc.property(fc.object(), (data) => {
                 return safeMap(mapAssetsResponse, data);
-            })
+            }),
+            { numRuns: 100 }
         );
     });
 
@@ -51,7 +53,8 @@ describe("Fuzzing: Response Mappers", () => {
         fc.assert(
             fc.property(fc.object(), (data) => {
                 return safeMap(mapWalletPocketResponse, data);
-            })
+            }),
+            { numRuns: 100 }
         );
     });
 
@@ -59,7 +62,8 @@ describe("Fuzzing: Response Mappers", () => {
         fc.assert(
             fc.property(fc.object(), (data) => {
                 return safeMap(mapOrderBookResponse, data);
-            })
+            }),
+            { numRuns: 100 }
         );
     });
 
@@ -74,7 +78,8 @@ describe("Fuzzing: Response Mappers", () => {
                     safeMap(mapOrderBookResponse, data);
                     return true;
                 }
-            )
+            ),
+            { numRuns: 100 }
         );
     });
 });
