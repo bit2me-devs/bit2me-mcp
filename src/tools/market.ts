@@ -177,7 +177,7 @@ export async function handleMarketTool(name: string, args: any) {
 
                 return {
                     timestamp: timestamp,
-                    date: new Date(timestamp).toISOString().split("T")[0],
+                    date: new Date(timestamp).toISOString(),
                     price_usd: parseFloat(priceUSD.toFixed(2)),
                     price_fiat: parseFloat(priceFiat.toFixed(2)),
                     currency: fiat,
