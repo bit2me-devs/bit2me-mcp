@@ -117,7 +117,9 @@ describe("Wallet Tools Handler", () => {
 
         await handleWalletTool("wallet_confirm_transaction", { proforma_id: "pf1" });
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("POST", "/v2/wallet/transaction/pf1/confirm");
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("POST", "/v1/wallet/transaction", {
+            proforma: "pf1",
+        });
     });
 
     it("should throw error for unknown tool", async () => {

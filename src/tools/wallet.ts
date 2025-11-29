@@ -17,10 +17,12 @@ export const walletTools: Tool[] = [
     {
         name: "wallet_get_pockets",
         description:
-            "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. Multiple pockets can exist for the same currency. After getting the response, filter by the 'currency' field client-side if needed. Look for pockets with meaningful names or non-zero balances to identify the active one.",
+            "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. IMPORTANT: Users often have MULTIPLE pockets for the same currency (e.g. multiple EUR pockets). ALWAYS check ALL pockets for a specific currency to find the one with a positive balance. Do not assume the first result is the main wallet.",
         inputSchema: {
             type: "object",
-            properties: {},
+            properties: {
+                currency: { type: "string", description: "Filter by currency symbol (e.g., EUR, BTC)" },
+            },
         },
     },
     {
@@ -114,7 +116,12 @@ export const walletTools: Tool[] = [
 export async function handleWalletTool(name: string, args: any) {
     if (name === "wallet_get_pockets") {
         const data = await bit2meRequest("GET", "/v1/wallet/pocket", {});
-        const optimized = mapWalletPocketsResponse(data);
+        let optimized = mapWalletPocketsResponse(data);
+
+        if (args.currency) {
+            optimized = optimized.filter((p: any) => p.currency === args.currency);
+        }
+
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
@@ -176,7 +183,8 @@ export async function handleWalletTool(name: string, args: any) {
     }
 
     if (name === "wallet_confirm_transaction") {
-        const data = await bit2meRequest("POST", `/v2/wallet/transaction/${args.proforma_id}/confirm`);
+        const body = { proforma: args.proforma_id };
+        const data = await bit2meRequest("POST", "/v1/wallet/transaction", body);
         const optimized = mapTransactionConfirmationResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
