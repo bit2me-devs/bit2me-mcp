@@ -1,3 +1,20 @@
+# [1.7.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.3...v1.7.0) (2025-11-29)
+
+### Bug Fixes
+
+- add attestations write permission for build provenance ([b9dc332](https://github.com/bit2me-devs/bit2me-mcp/commit/b9dc33261707f21a71b892b8fc2f5c7eee00f0ce))
+- **build:** use html-minifier-terser for robust minification ([4bb1ac3](https://github.com/bit2me-devs/bit2me-mcp/commit/4bb1ac36c5fdeb7e654853117021fb2096fdc742))
+- correct wallet transaction confirmation and add currency filter to pockets ([0d2cf82](https://github.com/bit2me-devs/bit2me-mcp/commit/0d2cf8277b94b121a189afdeafd5a61967ee46a2))
+- pin upload-pages-artifact action by commit hash to resolve security alert ([70ea476](https://github.com/bit2me-devs/bit2me-mcp/commit/70ea476cc175f32a46be525371b14b358e298c11))
+- return full ISO date time in market_get_chart tool instead of date only ([7c13998](https://github.com/bit2me-devs/bit2me-mcp/commit/7c13998e4f9a41611513e9b3b6144a4844442d33))
+- **tests:** remove unused import expect from vitest ([2aba1bf](https://github.com/bit2me-devs/bit2me-mcp/commit/2aba1bf4ea378b2a7f23afbecae38bcd3af6f51f))
+- update attest-build-provenance action to v2 ([673a9af](https://github.com/bit2me-devs/bit2me-mcp/commit/673a9afeb84bdc1bdee26ba4b406933837f90408))
+
+### Features
+
+- **build:** add HTML minification for production only ([5fe4559](https://github.com/bit2me-devs/bit2me-mcp/commit/5fe45591ff154796e138f30837dabc8b4f4b5e14))
+- **landing:** improve usage examples with all parameters and responses ([14dcac3](https://github.com/bit2me-devs/bit2me-mcp/commit/14dcac36b6a37bff56f6cf84672495ed8175828d))
+
 ## [1.6.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.2...v1.6.3) (2025-11-28)
 
 ### Bug Fixes
