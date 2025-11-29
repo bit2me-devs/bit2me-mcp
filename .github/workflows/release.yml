@@ -42,7 +42,7 @@ jobs:
               run: npm test
 
             - name: Attest Build Provenance
-              uses: actions/attest-build-provenance@1c608d11d6987002090af1f815ec036484122128 # v1.1.1
+              uses: actions/attest-build-provenance@v2
               with:
                   subject-path: |
                       build/index.js
