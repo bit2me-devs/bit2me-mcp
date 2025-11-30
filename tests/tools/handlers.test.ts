@@ -59,9 +59,20 @@ describe("Other Tool Handlers", () => {
     // --- Earn Tools ---
     describe("Earn Tools", () => {
         it("should handle earn_get_summary", async () => {
-            vi.mocked(bit2meService.bit2meRequest).mockResolvedValue([]);
-            await handleEarnTool("earn_get_summary", {});
+            const mockResponse = [[{ currency: "EUR", totalBalance: "100", rewardsEarned: "1" }]];
+            vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockResponse);
+
+            const result = await handleEarnTool("earn_get_summary", {});
+
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/earn/summary");
+            const parsed = JSON.parse(result.content[0].text);
+            expect(parsed).toHaveLength(1);
+            expect(parsed[0]).toEqual({
+                currency: "EUR",
+                total_balance: "100",
+                rewards_earned: "1",
+                apy: "0",
+            });
         });
 
         it("should handle earn_get_wallets", async () => {
