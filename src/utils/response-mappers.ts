@@ -412,7 +412,10 @@ export function mapEarnSummaryResponse(raw: unknown): EarnSummaryResponse[] {
         return [];
     }
 
-    return raw.map((item) => ({
+    // Handle nested array structure [[{...}]] as reported by user/docs
+    const data = raw.length > 0 && Array.isArray(raw[0]) ? raw[0] : raw;
+
+    return data.map((item: any) => ({
         currency: item.currency,
         total_balance: item.totalBalance,
         rewards_earned: item.rewardsEarned || "0",
