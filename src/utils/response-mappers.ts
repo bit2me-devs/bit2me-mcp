@@ -453,7 +453,13 @@ export function mapEarnWalletsResponse(raw: unknown): EarnWalletResponse[] {
         return [];
     }
 
-    return raw.map((wallet: any) => ({
+    // Handle structure [{ total: 0, data: [...] }]
+    let wallets = raw;
+    if (raw.length > 0 && (raw[0] as any).data && Array.isArray((raw[0] as any).data)) {
+        wallets = (raw[0] as any).data;
+    }
+
+    return wallets.map((wallet: any) => ({
         id: wallet.id || wallet.walletId || "",
         currency: wallet.currency || "",
         balance: wallet.totalBalance || wallet.balance || "0",
