@@ -161,11 +161,28 @@ export async function handleWalletTool(name: string, args: any) {
 
         const data = await bit2meRequest("GET", "/v2/wallet/transaction", params);
 
-        // v2 endpoint returns { metadata: {...}, transactions: [...] }
-        const transactionsArray = (data as any)?.transactions || [];
+        // v2 endpoint returns { data: [...], total: number } according to docs
+        // We also keep fallback to 'transactions' just in case
+        const rawData = data as any;
+        const transactionsArray = rawData.data || rawData.transactions || [];
+
         const optimized = mapWalletTransactionsResponse(transactionsArray);
 
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+        // Extract total from root 'total' or metadata
+        const totalRecords =
+            rawData.total || rawData.metadata?.total || rawData.metadata?.total_records || optimized.length;
+
+        const result = {
+            metadata: {
+                total_records: totalRecords,
+                limit: params.limit || 10,
+                offset: params.offset || 0,
+                filter_currency: args.currency || "ALL",
+            },
+            transactions: optimized,
+        };
+
+        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
 
     if (name === "wallet_get_transaction_details") {
