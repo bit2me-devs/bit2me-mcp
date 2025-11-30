@@ -89,7 +89,7 @@ describe("Other Tool Handlers", () => {
         it("should handle earn_get_transactions_summary", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
             await handleEarnTool("earn_get_transactions_summary", { type: "DEPOSIT" });
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/movements/summary/DEPOSIT");
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/earn/movements/DEPOSIT/summary");
         });
 
         it("should handle earn_create_transaction", async () => {
@@ -122,7 +122,7 @@ describe("Other Tool Handlers", () => {
         it("should handle earn_get_rewards_config", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
             await handleEarnTool("earn_get_rewards_config", {});
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/rewards/config");
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/earn/wallets/rewards/config");
         });
 
         it("should handle earn_get_wallet_rewards_config", async () => {

@@ -159,7 +159,7 @@ export async function handleWalletTool(name: string, args: any) {
         if (args.limit) params.limit = args.limit;
         if (args.offset) params.offset = args.offset;
 
-        const data = await bit2meRequest("GET", "/v1/wallet/transaction", params);
+        const data = await bit2meRequest("GET", "/v2/wallet/transaction", params);
         const optimized = mapWalletTransactionsResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
