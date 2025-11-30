@@ -17,6 +17,19 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ## Market Tools (8 tools)
 
+### market_get_currency_rate
+
+```json
+[
+    {
+        "symbol": "BTC",
+        "rate": "90000",
+        "currency": "EUR",
+        "timestamp": 1672531200000
+    }
+]
+```
+
 ### market_get_ticker
 
 ```json
