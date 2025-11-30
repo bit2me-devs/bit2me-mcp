@@ -355,16 +355,17 @@ describe("Response Mappers", () => {
 
     describe("Earn Mappers", () => {
         it("should map earn summary response", () => {
-            expect(mapEarnSummaryResponse(null)).toEqual([]);
+            expect(mapEarnSummaryResponse(null)).toEqual({
+                currency: "",
+                total_balance: "0",
+                rewards_earned: "0",
+            });
             const valid = [{ currency: "BTC", totalBalance: "1", rewardsEarned: "0.1", apy: "5" }];
-            expect(mapEarnSummaryResponse(valid)).toEqual([
-                {
-                    currency: "BTC",
-                    total_balance: "1",
-                    rewards_earned: "0.1",
-                    apy: "5",
-                },
-            ]);
+            expect(mapEarnSummaryResponse(valid)).toEqual({
+                currency: "BTC",
+                total_balance: "1",
+                rewards_earned: "0.1",
+            });
         });
 
         it("should map earn APY response", () => {
@@ -454,7 +455,11 @@ describe("Response Mappers", () => {
         });
 
         it("should map earn rewards config response", () => {
-            expect(() => mapEarnRewardsConfigResponse(null)).toThrow(ValidationError);
+            expect(mapEarnRewardsConfigResponse(null)).toEqual({
+                distribution_frequency: "daily",
+                minimum_balance: "0",
+                compounding: true,
+            });
             const valid = { distributionFrequency: "daily", minimumBalance: "0.001", compounding: true };
             expect(mapEarnRewardsConfigResponse(valid)).toEqual({
                 distribution_frequency: "daily",

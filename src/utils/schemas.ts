@@ -135,7 +135,6 @@ export interface EarnSummaryResponse {
     currency: string;
     total_balance: string;
     rewards_earned: string;
-    apy: string;
 }
 
 export interface EarnWalletResponse {

@@ -197,7 +197,7 @@ export async function handleEarnTool(name: string, args: any) {
     }
 
     if (name === "earn_get_wallet_rewards_summary") {
-        const data = await bit2meRequest("GET", `/v1/earn/wallets/${args.walletId}/rewards`);
+        const data = await bit2meRequest("GET", `/v1/earn/wallets/${args.walletId}/rewards/summary`);
         const optimized = mapEarnWalletRewardsSummaryResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }

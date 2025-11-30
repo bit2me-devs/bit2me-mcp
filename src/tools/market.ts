@@ -12,6 +12,7 @@ import {
     mapCandlesResponse,
     wrapResponseWithRaw,
 } from "../utils/response-mappers.js";
+import { smartRound } from "../utils/format.js";
 
 const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
 
@@ -178,8 +179,8 @@ export async function handleMarketTool(name: string, args: any) {
                 return {
                     timestamp: timestamp,
                     date: new Date(timestamp).toISOString(),
-                    price_usd: parseFloat(priceUSD.toFixed(2)),
-                    price_fiat: parseFloat(priceFiat.toFixed(2)),
+                    price_usd: smartRound(priceUSD),
+                    price_fiat: smartRound(priceFiat),
                     currency: fiat,
                 };
             });
