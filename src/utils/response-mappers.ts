@@ -6,6 +6,7 @@
 
 import { ValidationError } from "./errors.js";
 import { getConfig } from "../config.js";
+import { smartRound } from "./format.js";
 import type {
     // Market
     MarketTickerResponse,
@@ -57,6 +58,7 @@ import type {
     LoanCreateResponse,
     LoanIncreaseGuaranteeResponse,
     LoanPaybackResponse,
+    CurrencyRateResponse,
 } from "./schemas.js";
 
 // ============================================================================
@@ -1057,4 +1059,47 @@ export function mapLoanPaybackResponse(raw: unknown): LoanPaybackResponse {
         status: raw.status || "updated",
         message: raw.message || "Payment processed",
     };
+}
+
+export function mapCurrencyRateResponse(
+    raw: unknown,
+    fiatCurrency: string = "USD",
+    filterSymbol?: string
+): CurrencyRateResponse[] {
+    if (!isValidObject(raw)) {
+        throw new ValidationError("Invalid currency rate response structure");
+    }
+
+    const rates = raw as Record<string, any>;
+    const fiatRate = rates[fiatCurrency]?.rate ? parseFloat(rates[fiatCurrency].rate) : 1;
+
+    const results: CurrencyRateResponse[] = [];
+
+    // Helper to process a single symbol
+    const processSymbol = (symbol: string, data: any) => {
+        if (!data || !data.rate) return;
+        const cryptoRate = parseFloat(data.rate);
+        // Formula: Price (in Fiat) = Rate (Fiat) / Rate (Crypto)
+        // Assuming API returns "Amount of Currency per 1 USD"
+        const price = cryptoRate > 0 ? fiatRate / cryptoRate : 0;
+
+        results.push({
+            symbol: symbol,
+            rate: smartRound(price).toString(),
+            currency: fiatCurrency,
+            timestamp: data.timestamp ? new Date(data.timestamp).getTime() : Date.now(),
+        });
+    };
+
+    if (filterSymbol) {
+        processSymbol(filterSymbol, rates[filterSymbol]);
+    } else {
+        Object.entries(rates).forEach(([symbol, data]) => {
+            // Filter out the fiat currency itself if present, or keep it?
+            // Usually we want crypto rates. Let's process everything.
+            processSymbol(symbol, data);
+        });
+    }
+
+    return results;
 }

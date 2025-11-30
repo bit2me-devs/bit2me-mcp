@@ -10,6 +10,7 @@ import {
     mapOrderBookResponse,
     mapPublicTradesResponse,
     mapCandlesResponse,
+    mapCurrencyRateResponse,
     wrapResponseWithRaw,
 } from "../utils/response-mappers.js";
 import { smartRound } from "../utils/format.js";
@@ -241,6 +242,15 @@ export async function handleMarketTool(name: string, args: any) {
         if (args.limit) params.limit = args.limit;
         const res = await axios.get(`${BIT2ME_BASE_URL}/v1/trading/candle`, { params });
         const optimized = mapCandlesResponse(res.data);
+        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
+    }
+
+    if (name === "market_get_currency_rate") {
+        const params: any = {};
+        if (args.date) params.time = args.date;
+
+        const res = await axios.get(`${BIT2ME_BASE_URL}/v1/currency/rate`, { params });
+        const optimized = mapCurrencyRateResponse(res.data, args.fiat_currency, args.symbol);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
 
