@@ -79,8 +79,8 @@ export async function handleAggregationTool(name: string, args: any) {
             const val = amount * price;
             totalVal += val;
 
-            if (val > MIN_DUST_VALUE) {
-                // Filter dust
+            // Filter out dust values and zero amounts
+            if (val > MIN_DUST_VALUE && amount > 0) {
                 breakdown.push({
                     asset: symbol,
                     amount: amount,

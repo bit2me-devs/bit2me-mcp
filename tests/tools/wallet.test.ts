@@ -82,7 +82,7 @@ describe("Wallet Tools Handler", () => {
 
         await handleWalletTool("wallet_get_transactions", { currency: "EUR", limit: "5" });
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/transaction", {
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/wallet/transaction", {
             currency: "EUR",
             limit: "5",
         });

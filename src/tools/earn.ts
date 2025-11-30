@@ -157,7 +157,7 @@ export async function handleEarnTool(name: string, args: any) {
     }
 
     if (name === "earn_get_transactions_summary") {
-        const data = await bit2meRequest("GET", `/v2/earn/movements/summary/${args.type}`);
+        const data = await bit2meRequest("GET", `/v1/earn/movements/${args.type}/summary`);
         const optimized = mapEarnTransactionsSummaryResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
@@ -185,7 +185,7 @@ export async function handleEarnTool(name: string, args: any) {
     }
 
     if (name === "earn_get_rewards_config") {
-        const data = await bit2meRequest("GET", "/v2/earn/rewards/config");
+        const data = await bit2meRequest("GET", "/v1/earn/wallets/rewards/config");
         const optimized = mapEarnRewardsConfigResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
     }
