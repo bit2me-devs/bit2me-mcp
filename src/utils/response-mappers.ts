@@ -404,23 +404,78 @@ export function mapProformaResponse(raw: unknown): ProformaResponse {
 // EARN MAPPERS
 // ============================================================================
 
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+/**
+ * Extracts array data from various common API response structures:
+ * 1. Direct array: [...]
+ * 2. Wrapped object: { data: [...] }
+ * 3. Wrapped array: [{ data: [...] }]
+ * 4. Nested array: [[...]]
+ */
+function extractArrayData(raw: any): any[] {
+    if (!raw) return [];
+
+    // Case 1: Direct array
+    if (Array.isArray(raw)) {
+        // Case 4: Nested array [[...]] -> return first element if it's an array
+        if (raw.length > 0 && Array.isArray(raw[0])) {
+            return raw[0];
+        }
+        // Case 3: Wrapped array [{ data: [...] }] -> return data from first element
+        if (raw.length > 0 && raw[0]?.data && Array.isArray(raw[0].data)) {
+            return raw[0].data;
+        }
+        return raw;
+    }
+
+    // Case 2: Wrapped object { data: [...] }
+    if (typeof raw === "object" && raw.data && Array.isArray(raw.data)) {
+        return raw.data;
+    }
+
+    return [];
+}
+
+// ============================================================================
+// EARN MAPPERS
+// ============================================================================
+
 /**
  * Maps raw earn summary to optimized schema
  */
-export function mapEarnSummaryResponse(raw: unknown): EarnSummaryResponse[] {
-    if (!isValidArray(raw)) {
-        return [];
+export function mapEarnSummaryResponse(raw: unknown): EarnSummaryResponse {
+    let data = extractArrayData(raw);
+
+    // Case: Single object response (e.g. { currency: "EUR", totalBalance: ..., totalRewards: ... })
+    if (data.length === 0 && isValidObject(raw) && "currency" in raw && "totalBalance" in raw) {
+        data = [raw];
+    }
+    // Case: Dictionary keyed by currency (e.g. { "BTC": { ... }, "EUR": { ... } })
+    else if (data.length === 0 && isValidObject(raw)) {
+        // Check if values look like earn summary items
+        const values = Object.values(raw);
+        if (values.length > 0 && typeof values[0] === "object") {
+            data = values;
+        }
     }
 
-    // Handle nested array structure [[{...}]] as reported by user/docs
-    const data = raw.length > 0 && Array.isArray(raw[0]) ? raw[0] : raw;
-
-    return data.map((item: any) => ({
+    const mapped = data.map((item: any) => ({
         currency: item.currency,
         total_balance: item.totalBalance,
-        rewards_earned: item.rewardsEarned || "0",
-        apy: item.apy || "0",
+        rewards_earned: item.rewardsEarned || item.totalRewards || "0",
     }));
+
+    // Return the first item or a default empty object if none found
+    return mapped.length > 0
+        ? mapped[0]
+        : {
+              currency: "",
+              total_balance: "0",
+              rewards_earned: "0",
+          };
 }
 
 /**
@@ -449,15 +504,7 @@ export function mapEarnAPYResponse(raw: unknown): Record<string, EarnAPYResponse
  * Maps raw earn wallets response to optimized schema
  */
 export function mapEarnWalletsResponse(raw: unknown): EarnWalletResponse[] {
-    if (!isValidArray(raw)) {
-        return [];
-    }
-
-    // Handle structure [{ total: 0, data: [...] }]
-    let wallets = raw;
-    if (raw.length > 0 && (raw[0] as any).data && Array.isArray((raw[0] as any).data)) {
-        wallets = (raw[0] as any).data;
-    }
+    const wallets = extractArrayData(raw);
 
     return wallets.map((wallet: any) => ({
         id: wallet.id || wallet.walletId || "",
@@ -473,17 +520,16 @@ export function mapEarnWalletsResponse(raw: unknown): EarnWalletResponse[] {
  * Maps raw earn transactions response to optimized schema
  */
 export function mapEarnTransactionsResponse(raw: unknown): EarnTransactionResponse[] {
-    if (!isValidArray(raw)) {
-        return [];
-    }
+    const txs = extractArrayData(raw);
 
-    return raw.map((tx: any) => ({
+    return txs.map((tx: any) => ({
         id: tx.id || tx.transactionId || "",
         type: tx.type || "deposit",
         currency: tx.currency || "",
         amount: tx.amount || "0",
         date: tx.date || tx.createdAt || "",
         status: tx.status || "completed",
+        message: tx.message,
     }));
 }
 
@@ -647,28 +693,56 @@ export function mapEarnTransactionsSummaryResponse(raw: unknown): EarnTransactio
  * Maps raw earn assets response to optimized schema
  */
 export function mapEarnAssetsResponse(raw: unknown): EarnAssetsResponse {
-    if (!isValidObject(raw)) {
-        return { assets: [] };
+    // Check if it's the standard object with assets/currencies array
+    if (isValidObject(raw) && (raw.assets || raw.currencies)) {
+        const assets = raw.assets || raw.currencies || [];
+        return {
+            assets: Array.isArray(assets) ? assets : [],
+        };
     }
 
-    const assets = raw.assets || raw.currencies || [];
-    return {
-        assets: Array.isArray(assets) ? assets : [],
-    };
+    // Check if it's a direct array or wrapped array using helper
+    const extracted = extractArrayData(raw);
+    if (extracted.length > 0) {
+        // Assuming extracted items are strings or objects with symbol
+        return {
+            assets: extracted.map((item: any) =>
+                typeof item === "string" ? item : item.symbol || item.currency || JSON.stringify(item)
+            ),
+        };
+    }
+
+    return { assets: [] };
 }
 
 /**
  * Maps raw earn rewards config to optimized schema
  */
-export function mapEarnRewardsConfigResponse(raw: unknown): EarnRewardsConfigResponse {
-    if (!isValidObject(raw)) {
-        throw new ValidationError("Invalid earn rewards config response structure");
+export function mapEarnRewardsConfigResponse(raw: unknown): EarnRewardsConfigResponse | EarnRewardsConfigResponse[] {
+    // If it's an array (or wrapped array), map each item
+    const asArray = extractArrayData(raw);
+    if (asArray.length > 0) {
+        return asArray.map((item) => ({
+            distribution_frequency: item.distributionFrequency || item.frequency || "daily",
+            minimum_balance: item.minimumBalance || item.minBalance || "0",
+            compounding: item.compounding ?? true,
+        }));
     }
 
+    // Fallback to single object if valid
+    if (isValidObject(raw)) {
+        return {
+            distribution_frequency: raw.distributionFrequency || raw.frequency || "daily",
+            minimum_balance: raw.minimumBalance || raw.minBalance || "0",
+            compounding: raw.compounding ?? true,
+        };
+    }
+
+    // Default empty
     return {
-        distribution_frequency: raw.distributionFrequency || raw.frequency || "daily",
-        minimum_balance: raw.minimumBalance || raw.minBalance || "0",
-        compounding: raw.compounding ?? true,
+        distribution_frequency: "daily",
+        minimum_balance: "0",
+        compounding: true,
     };
 }
 

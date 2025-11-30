@@ -1,0 +1,53 @@
+name: E2E Tests
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+    schedule:
+        # Run daily at 6 AM UTC to detect Bit2Me API breaking changes
+        - cron: '0 6 * * *'
+
+permissions: read-all
+
+jobs:
+    e2e:
+        name: E2E Tests (Real API)
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+            - name: Setup Node.js
+              uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build
+              run: npm run build
+
+            - name: Run E2E Tests
+              env:
+                  BIT2ME_API_KEY: ${{ secrets.BIT2ME_API_KEY }}
+                  BIT2ME_API_SECRET: ${{ secrets.BIT2ME_API_SECRET }}
+              run: npm run test:e2e
+
+            - name: Notify on Failure (Scheduled)
+              if: failure() && github.event_name == 'schedule'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      github.rest.issues.create({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        title: '⚠️ E2E Tests Failed - Possible Bit2Me API Change',
+                        body: `The scheduled E2E tests have failed. This may indicate a breaking change in the Bit2Me API.\n\nCheck the [failed workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId}) for details.`,
+                        labels: ['bug', 'e2e', 'api-change']
+                      });

@@ -19,6 +19,8 @@
         "dev": "node build/index.js",
         "test": "vitest run",
         "test:watch": "vitest",
+        "test:e2e": "RUN_E2E=true vitest run tests/e2e",
+        "test:e2e:watch": "RUN_E2E=true vitest tests/e2e",
         "test:fuzz": "vitest run tests/fuzz.test.ts",
         "test:coverage": "vitest run --coverage",
         "lint": "eslint src/**/*.ts tests/**/*.ts --fix",

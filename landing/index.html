@@ -3034,20 +3034,11 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                         {
                             name: "earn_get_summary",
                             exampleArgs: {},
-                            response: [
-                                {
-                                    currency: "BTC",
-                                    total_balance: "0.5",
-                                    rewards_earned: "0.0001",
-                                    apy: "0.05",
-                                },
-                                {
-                                    currency: "ETH",
-                                    total_balance: "5.0",
-                                    rewards_earned: "0.002",
-                                    apy: "0.04",
-                                },
-                            ],
+                            response: {
+                                currency: "BTC",
+                                total_balance: "0.5",
+                                rewards_earned: "0.0001",
+                            },
                             type: "READ",
                             desc: "View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn wallets, breakdown by currency, and overall performance. Use this to see your total staking rewards.",
                             args: {},

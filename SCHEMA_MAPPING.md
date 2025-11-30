@@ -292,20 +292,11 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ### earn_get_summary
 
 ```json
-[
-    {
-        "currency": "BTC",
-        "total_balance": "0.5",
-        "rewards_earned": "0.0001",
-        "apy": "0.05"
-    },
-    {
-        "currency": "ETH",
-        "total_balance": "5.0",
-        "rewards_earned": "0.002",
-        "apy": "0.04"
-    }
-]
+{
+    "currency": "BTC",
+    "total_balance": "0.5",
+    "rewards_earned": "0.0001"
+}
 ```
 
 ### earn_get_wallets
