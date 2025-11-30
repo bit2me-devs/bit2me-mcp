@@ -77,8 +77,11 @@ describe("Wallet Tools Handler", () => {
     });
 
     it("should handle wallet_get_transactions", async () => {
-        const mockTxs = [{ id: "tx1", amount: "100" }];
-        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockTxs);
+        const mockResponse = {
+            data: [{ id: "tx1", denomination: { amount: "100", currency: "EUR" } }],
+            total: 1,
+        };
+        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockResponse);
 
         await handleWalletTool("wallet_get_transactions", { currency: "EUR", limit: "5" });
 
