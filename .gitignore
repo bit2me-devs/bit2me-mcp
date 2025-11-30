@@ -45,3 +45,6 @@ test-credentials.js
 # Temporary files
 tmp/
 *.tmp
+
+# Documentation
+docs/
