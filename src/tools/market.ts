@@ -47,14 +47,14 @@ export const marketTools: Tool[] = [
     {
         name: "market_get_chart",
         description:
-            "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires ticker pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns last 30 data points with dates and prices in both USD and the fiat currency from the ticker.",
+            "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns data points with dates and prices in both USD and the fiat currency from the ticker.",
         inputSchema: {
             type: "object",
             properties: {
-                ticker: { type: "string", description: "Pair (e.g., BTC/EUR)" },
+                pair: { type: "string", description: "Pair (e.g., BTC/EUR)" },
                 timeframe: { type: "string", enum: ["one-hour", "one-day", "one-week", "one-month", "one-year"] },
             },
-            required: ["ticker", "timeframe"],
+            required: ["pair", "timeframe"],
         },
     },
     {
@@ -160,7 +160,7 @@ export async function handleMarketTool(name: string, args: any) {
     if (name === "market_get_chart") {
         try {
             const res = await axios.get(`${BIT2ME_BASE_URL}/v3/currency/chart`, {
-                params: { ticker: args.ticker, temporality: args.timeframe },
+                params: { ticker: args.pair, temporality: args.timeframe },
             });
 
             // Process chart data to make it more readable
@@ -168,13 +168,13 @@ export async function handleMarketTool(name: string, args: any) {
             // usdPerUnit: how many USD is 1 unit of crypto worth (e.g., 0.00001 = $100,000 per BTC)
             // eurUsdRate: EUR/USD conversion rate (e.g., 0.86 = 1 EUR = 0.86 USD)
 
-            const rawData = Array.isArray(res.data) ? res.data.slice(-30) : [];
+            const rawData = Array.isArray(res.data) ? res.data : [];
 
             if (rawData.length === 0) {
                 return { content: [{ type: "text", text: JSON.stringify({ error: "No data available" }) }] };
             }
 
-            const [, fiat] = args.ticker.split("/");
+            const [, fiat] = args.pair.split("/");
 
             const processedData = rawData.map((entry: any[]) => {
                 const timestamp = entry[0];
