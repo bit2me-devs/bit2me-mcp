@@ -61,5 +61,45 @@ describeE2E("E2E: Loan Tools", () => {
         E2E_TIMEOUT
     );
 
+    it(
+        "should get loan order details",
+        async () => {
+            // First get loan orders
+            const ordersResult = await handleLoanTool("loan_get_orders", { limit: 5 });
+            const orders = JSON.parse(ordersResult.content[0].text);
+
+            if (orders.length === 0) {
+                console.warn("⚠️ Skipping loan order details test - no loan orders found");
+                return;
+            }
+
+            const orderId = orders[0].id;
+
+            // Get order details
+            const result = await handleLoanTool("loan_get_order_details", { orderId });
+            const details = JSON.parse(result.content[0].text);
+
+            expect(details).toHaveProperty("id", orderId);
+            expect(details).toHaveProperty("guarantee_currency");
+            expect(details).toHaveProperty("loan_currency");
+        },
+        E2E_TIMEOUT
+    );
+
+    it(
+        "should get loan transactions",
+        async () => {
+            const result = await handleLoanTool("loan_get_transactions", { limit: 5 });
+            const transactions = JSON.parse(result.content[0].text);
+
+            expect(Array.isArray(transactions)).toBe(true);
+            if (transactions.length > 0) {
+                expect(transactions[0]).toHaveProperty("type");
+                expect(transactions[0]).toHaveProperty("amount");
+            }
+        },
+        E2E_TIMEOUT
+    );
+
     // NOTE: We don't test loan creation/payback in E2E to avoid real financial operations
 });

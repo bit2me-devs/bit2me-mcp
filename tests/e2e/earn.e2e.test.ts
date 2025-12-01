@@ -57,5 +57,60 @@ describeE2E("E2E: Earn/Staking Tools", () => {
         E2E_TIMEOUT
     );
 
+    it(
+        "should get earn wallet details",
+        async () => {
+            // First get earn wallets
+            const walletsResult = await handleEarnTool("earn_get_wallets", {});
+            const wallets = JSON.parse(walletsResult.content[0].text);
+
+            if (wallets.length === 0) {
+                console.warn("⚠️ Skipping earn wallet details test - no earn wallets found");
+                return;
+            }
+
+            const walletId = wallets[0].id;
+
+            // Get wallet details
+            const result = await handleEarnTool("earn_get_wallet_details", { walletId });
+            const details = JSON.parse(result.content[0].text);
+
+            expect(details).toHaveProperty("id", walletId);
+            expect(details).toHaveProperty("currency");
+            expect(details).toHaveProperty("balance");
+        },
+        E2E_TIMEOUT
+    );
+
+    it(
+        "should get earn transactions",
+        async () => {
+            // First get earn wallets
+            const walletsResult = await handleEarnTool("earn_get_wallets", {});
+            const wallets = JSON.parse(walletsResult.content[0].text);
+
+            if (wallets.length === 0) {
+                console.warn("⚠️ Skipping earn transactions test - no earn wallets found");
+                return;
+            }
+
+            const walletId = wallets[0].id;
+
+            // Get transactions for this wallet
+            const result = await handleEarnTool("earn_get_transactions", {
+                walletId,
+                limit: "5",
+            });
+            const transactions = JSON.parse(result.content[0].text);
+
+            expect(Array.isArray(transactions)).toBe(true);
+            if (transactions.length > 0) {
+                expect(transactions[0]).toHaveProperty("type");
+                expect(transactions[0]).toHaveProperty("amount");
+            }
+        },
+        E2E_TIMEOUT
+    );
+
     // NOTE: We don't test deposit/withdrawal in E2E to avoid real transactions
 });

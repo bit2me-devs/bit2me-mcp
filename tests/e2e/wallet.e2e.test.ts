@@ -116,4 +116,61 @@ describeE2E("E2E: Wallet Tools", () => {
         },
         E2E_TIMEOUT * 2
     );
+
+    it(
+        "should get pocket addresses",
+        async () => {
+            // First get a crypto pocket (not fiat)
+            const btcResult = await handleWalletTool("wallet_get_pockets", { currency: "BTC" });
+            const btcPockets = JSON.parse(btcResult.content[0].text);
+
+            if (btcPockets.length === 0) {
+                console.warn("⚠️ Skipping pocket addresses test - no BTC pocket found");
+                return;
+            }
+
+            const pocketId = btcPockets[0].id;
+
+            // Get addresses for this pocket
+            const result = await handleWalletTool("wallet_get_pocket_addresses", {
+                pocketId,
+                network: "bitcoin",
+            });
+            const addresses = JSON.parse(result.content[0].text);
+
+            expect(Array.isArray(addresses)).toBe(true);
+            if (addresses.length > 0) {
+                expect(addresses[0]).toHaveProperty("address");
+                expect(addresses[0]).toHaveProperty("network");
+                expect(addresses[0]).toHaveProperty("currency");
+            }
+        },
+        E2E_TIMEOUT
+    );
+
+    it(
+        "should get transaction details",
+        async () => {
+            // First get transactions
+            const txResult = await handleWalletTool("wallet_get_transactions", { limit: "5" });
+            const transactions = JSON.parse(txResult.content[0].text);
+
+            if (transactions.length === 0) {
+                console.warn("⚠️ Skipping transaction details test - no transactions found");
+                return;
+            }
+
+            const transactionId = transactions[0].id;
+
+            // Get transaction details
+            const result = await handleWalletTool("wallet_get_transaction_details", { transactionId });
+            const details = JSON.parse(result.content[0].text);
+
+            expect(details).toHaveProperty("id", transactionId);
+            expect(details).toHaveProperty("type");
+            expect(details).toHaveProperty("status");
+            expect(details).toHaveProperty("amount");
+        },
+        E2E_TIMEOUT
+    );
 });
