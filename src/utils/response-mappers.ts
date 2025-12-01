@@ -1066,38 +1066,48 @@ export function mapCurrencyRateResponse(
     fiatCurrency: string = "USD",
     filterSymbol?: string
 ): CurrencyRateResponse[] {
-    if (!isValidObject(raw)) {
+    // API returns an array with an object containing { fiat: {...}, crypto: {...} }
+    if (!Array.isArray(raw) || raw.length === 0) {
         throw new ValidationError("Invalid currency rate response structure");
     }
 
-    const rates = raw as Record<string, any>;
-    const fiatRate = rates[fiatCurrency]?.rate ? parseFloat(rates[fiatCurrency].rate) : 1;
+    const data = raw[0];
+    if (!data || typeof data !== "object" || !data.crypto) {
+        throw new ValidationError("Invalid currency rate response structure");
+    }
+
+    const cryptoRates = data.crypto as Record<string, number>;
+    const fiatRates = data.fiat as Record<string, number>;
+
+    // Get the fiat rate (how many units of fiat per 1 USD)
+    const fiatRate = fiatRates[fiatCurrency] || 1;
 
     const results: CurrencyRateResponse[] = [];
 
     // Helper to process a single symbol
-    const processSymbol = (symbol: string, data: any) => {
-        if (!data || !data.rate) return;
-        const cryptoRate = parseFloat(data.rate);
-        // Formula: Price (in Fiat) = Rate (Fiat) / Rate (Crypto)
-        // Assuming API returns "Amount of Currency per 1 USD"
-        const price = cryptoRate > 0 ? fiatRate / cryptoRate : 0;
+    const processSymbol = (symbol: string, cryptoRate: number) => {
+        if (!cryptoRate || cryptoRate === 0) return;
+
+        // cryptoRate is how many units of crypto per 1 USD
+        // We want: how many units of fiat per 1 crypto
+        // Formula: (fiatRate / cryptoRate)
+        const price = fiatRate / cryptoRate;
 
         results.push({
             symbol: symbol,
             rate: smartRound(price).toString(),
             currency: fiatCurrency,
-            timestamp: data.timestamp ? new Date(data.timestamp).getTime() : Date.now(),
+            timestamp: Date.now(),
         });
     };
 
     if (filterSymbol) {
-        processSymbol(filterSymbol, rates[filterSymbol]);
+        if (cryptoRates[filterSymbol]) {
+            processSymbol(filterSymbol, cryptoRates[filterSymbol]);
+        }
     } else {
-        Object.entries(rates).forEach(([symbol, data]) => {
-            // Filter out the fiat currency itself if present, or keep it?
-            // Usually we want crypto rates. Let's process everything.
-            processSymbol(symbol, data);
+        Object.entries(cryptoRates).forEach(([symbol, rate]) => {
+            processSymbol(symbol, rate);
         });
     }
 

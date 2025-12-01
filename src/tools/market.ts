@@ -19,6 +19,19 @@ const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
 
 export const marketTools: Tool[] = [
     {
+        name: "market_get_currency_rate",
+        description:
+            "Get exchange rates for cryptocurrencies in a specific fiat currency and date. Returns the price of one unit of the crypto in the requested fiat currency.",
+        inputSchema: {
+            type: "object",
+            properties: {
+                fiat_currency: { type: "string", description: "Target fiat currency (e.g., EUR, USD)", default: "USD" },
+                symbol: { type: "string", description: "Filter by specific crypto symbol (e.g., BTC)" },
+                date: { type: "string", description: "Timestamp or date string (ISO 8601) for historical rates" },
+            },
+        },
+    },
+    {
         name: "market_get_ticker",
         description:
             "Gets current price, 24h volume, market highs and lows for a cryptocurrency. Specify symbol (e.g., BTC) and optional base currency (default: EUR). Returns price, volume, market cap, and supply information.",
