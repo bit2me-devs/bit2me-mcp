@@ -136,4 +136,39 @@ describeE2E("E2E: Market Tools", () => {
         },
         E2E_TIMEOUT
     );
+
+    it(
+        "should get currency rates",
+        async () => {
+            const result = await handleMarketTool("market_get_currency_rate", {
+                fiat_currency: "EUR",
+                symbol: "BTC",
+            });
+            const rates = JSON.parse(result.content[0].text);
+
+            expect(Array.isArray(rates)).toBe(true);
+            expect(rates.length).toBeGreaterThan(0);
+            if (rates.length > 0) {
+                expect(rates[0]).toHaveProperty("symbol", "BTC");
+                expect(rates[0]).toHaveProperty("rate");
+                expect(rates[0]).toHaveProperty("currency", "EUR");
+                expect(parseFloat(rates[0].rate)).toBeGreaterThan(0);
+
+                // Verify smartRound formatting
+                const rate = parseFloat(rates[0].rate);
+                const rateStr = rates[0].rate;
+                const decimals = rateStr.includes(".") ? rateStr.split(".")[1].length : 0;
+
+                // Check decimal formatting rules
+                if (rate >= 1) {
+                    expect(decimals).toBeLessThanOrEqual(2);
+                } else if (rate >= 0.1) {
+                    expect(decimals).toBeLessThanOrEqual(4);
+                } else {
+                    expect(decimals).toBeLessThanOrEqual(8);
+                }
+            }
+        },
+        E2E_TIMEOUT
+    );
 });
