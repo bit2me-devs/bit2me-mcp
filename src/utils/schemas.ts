@@ -74,6 +74,13 @@ export interface ChartDataPoint {
     currency: string;
 }
 
+export interface CurrencyRateResponse {
+    symbol: string;
+    rate: string;
+    currency: string;
+    timestamp?: number;
+}
+
 // ============================================================================
 // WALLET TOOLS
 // ============================================================================
