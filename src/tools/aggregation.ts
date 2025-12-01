@@ -2,6 +2,7 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest, getMarketPrice } from "../services/bit2me.js";
 import { MIN_DUST_VALUE } from "../constants.js";
+import { smartRound } from "../utils/format.js";
 
 export const aggregationTools: Tool[] = [
     {
@@ -84,7 +85,7 @@ export async function handleAggregationTool(name: string, args: any) {
                 breakdown.push({
                     asset: symbol,
                     amount: amount,
-                    price_unit: price,
+                    price_unit: smartRound(price),
                     value_fiat: parseFloat(val.toFixed(2)),
                 });
             }

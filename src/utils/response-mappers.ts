@@ -117,7 +117,7 @@ export function mapTickerResponse(raw: unknown): MarketTickerResponse {
     }
     return {
         time: raw.time,
-        price: raw.price,
+        price: smartRound(parseFloat(raw.price)).toString(),
         market_cap: raw.marketCap,
         volume_24h: raw.totalVolume,
         max_supply: raw.maxSupply,
@@ -173,11 +173,11 @@ export function mapOrderBookResponse(raw: unknown): MarketOrderBookResponse {
     return {
         symbol: raw.symbol || "",
         bids: (raw.bids || []).map((bid: any) => ({
-            price: bid.price || bid[0] || "0",
+            price: smartRound(parseFloat(bid.price || bid[0] || "0")).toString(),
             amount: bid.amount || bid[1] || "0",
         })),
         asks: (raw.asks || []).map((ask: any) => ({
-            price: ask.price || ask[0] || "0",
+            price: smartRound(parseFloat(ask.price || ask[0] || "0")).toString(),
             amount: ask.amount || ask[1] || "0",
         })),
         timestamp: raw.timestamp || Date.now(),
@@ -195,7 +195,7 @@ export function mapPublicTradesResponse(raw: unknown): PublicTradeResponse[] {
     return raw.map((trade) => ({
         id: trade.id || trade.tradeId || "",
         symbol: trade.symbol || "",
-        price: trade.price || "0",
+        price: smartRound(parseFloat(trade.price || "0")).toString(),
         amount: trade.amount || trade.quantity || "0",
         side: trade.side || trade.takerSide || "buy",
         timestamp: trade.timestamp || trade.time || Date.now(),
@@ -212,10 +212,10 @@ export function mapCandlesResponse(raw: unknown): CandleResponse[] {
 
     return raw.map((candle) => ({
         timestamp: candle.timestamp || candle[0] || Date.now(),
-        open: candle.open || candle[1] || "0",
-        high: candle.high || candle[2] || "0",
-        low: candle.low || candle[3] || "0",
-        close: candle.close || candle[4] || "0",
+        open: smartRound(parseFloat(candle.open || candle[1] || "0")).toString(),
+        high: smartRound(parseFloat(candle.high || candle[2] || "0")).toString(),
+        low: smartRound(parseFloat(candle.low || candle[3] || "0")).toString(),
+        close: smartRound(parseFloat(candle.close || candle[4] || "0")).toString(),
         volume: candle.volume || candle[5] || "0",
     }));
 }
