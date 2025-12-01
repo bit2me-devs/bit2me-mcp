@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { MOCK_WALLET_POCKETS, MOCK_PRO_WALLETS, MOCK_EARN_POSITIONS } from "./fixtures.js";
+import { MOCK_WALLET_POCKETS, MOCK_PRO_WALLETS, MOCK_EARN_WALLETS } from "./fixtures.js";
 
 // Mock the API module
 vi.mock("../src/services/bit2me.js", () => ({
@@ -25,8 +25,8 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             if (endpoint === "/v1/trading/wallet/balance") {
                 return MOCK_PRO_WALLETS;
             }
-            if (endpoint === "/v1/earn/summary") {
-                return MOCK_EARN_POSITIONS;
+            if (endpoint === "/v2/earn/wallets") {
+                return MOCK_EARN_WALLETS;
             }
             if (endpoint === "/v1/loan/orders") {
                 return { data: [] }; // No loans
