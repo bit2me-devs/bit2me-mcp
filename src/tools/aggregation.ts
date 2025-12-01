@@ -26,7 +26,7 @@ export async function handleAggregationTool(name: string, args: any) {
         const results = await Promise.allSettled([
             bit2meRequest("GET", "/v1/wallet/pocket"), // 0
             bit2meRequest("GET", "/v1/trading/wallet/balance"), // 1
-            bit2meRequest("GET", "/v1/earn/summary"), // 2
+            bit2meRequest("GET", "/v2/earn/wallets"), // 2
             bit2meRequest("GET", "/v1/loan/orders"), // 3
         ]);
 
@@ -49,14 +49,16 @@ export async function handleAggregationTool(name: string, args: any) {
         // Process Pro
         if (Array.isArray(pro))
             pro.forEach((w: any) => {
-                const val = parseFloat(w.balance || "0") + parseFloat(w.blockedBalance || "0");
+                const val = parseFloat(w.balance || "0");
                 if (val > 0) assets[w.currency] = (assets[w.currency] || 0) + val;
             });
 
         // Process Earn
+        // /v2/earn/wallets returns an array of wallets
         if (Array.isArray(earn))
             earn.forEach((e: any) => {
-                const val = parseFloat(e.totalBalance || "0");
+                // Support both totalBalance (legacy/mapped) and balance (raw v2)
+                const val = parseFloat(e.totalBalance || e.balance || "0");
                 if (val > 0) assets[e.currency] = (assets[e.currency] || 0) + val;
             });
 

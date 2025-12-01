@@ -62,6 +62,23 @@ export const MOCK_EARN_POSITIONS = [
     },
 ];
 
+export const MOCK_EARN_WALLETS = [
+    {
+        id: "uuid-earn-1",
+        currency: "USDT",
+        balance: "1000.00",
+        apy: "5.5",
+        status: "ACTIVE",
+    },
+    {
+        id: "uuid-earn-2",
+        currency: "BTC",
+        balance: "0.1",
+        apy: "3.2",
+        status: "ACTIVE",
+    },
+];
+
 // Loan Positions Mock Response
 export const MOCK_LOAN_POSITIONS = [
     {
