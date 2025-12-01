@@ -11,10 +11,12 @@ describe("Market Tools - Currency Rate", () => {
 
     it("should fetch currency rates in USD (default)", async () => {
         const mockResponse = {
-            data: {
-                BTC: { rate: "0.00001", timestamp: "2023-01-01T00:00:00Z" }, // 1 USD = 0.00001 BTC -> 1 BTC = 100,000 USD
-                EUR: { rate: "0.9", timestamp: "2023-01-01T00:00:00Z" },
-            },
+            data: [
+                {
+                    fiat: { USD: 1, EUR: 0.9 },
+                    crypto: { BTC: 0.00001, ETH: 0.0005 }, // 1 USD = 0.00001 BTC -> 1 BTC = 100,000 USD
+                },
+            ],
         };
         vi.mocked(axios.get).mockResolvedValue(mockResponse);
 
@@ -35,10 +37,12 @@ describe("Market Tools - Currency Rate", () => {
 
     it("should fetch currency rates in EUR", async () => {
         const mockResponse = {
-            data: {
-                BTC: { rate: "0.00001", timestamp: "2023-01-01T00:00:00Z" }, // 1 USD = 0.00001 BTC
-                EUR: { rate: "0.9", timestamp: "2023-01-01T00:00:00Z" }, // 1 USD = 0.9 EUR
-            },
+            data: [
+                {
+                    fiat: { USD: 1, EUR: 0.9 },
+                    crypto: { BTC: 0.00001 }, // 1 USD = 0.00001 BTC
+                },
+            ],
         };
         vi.mocked(axios.get).mockResolvedValue(mockResponse);
 
@@ -59,10 +63,12 @@ describe("Market Tools - Currency Rate", () => {
 
     it("should filter by symbol", async () => {
         const mockResponse = {
-            data: {
-                BTC: { rate: "0.00001", timestamp: "2023-01-01T00:00:00Z" },
-                ETH: { rate: "0.0005", timestamp: "2023-01-01T00:00:00Z" },
-            },
+            data: [
+                {
+                    fiat: { USD: 1 },
+                    crypto: { BTC: 0.00001, ETH: 0.0005 },
+                },
+            ],
         };
         vi.mocked(axios.get).mockResolvedValue(mockResponse);
 
@@ -74,7 +80,14 @@ describe("Market Tools - Currency Rate", () => {
     });
 
     it("should pass date parameter", async () => {
-        const mockResponse = { data: {} };
+        const mockResponse = {
+            data: [
+                {
+                    fiat: { USD: 1 },
+                    crypto: {},
+                },
+            ],
+        };
         vi.mocked(axios.get).mockResolvedValue(mockResponse);
 
         await handleMarketTool("market_get_currency_rate", { date: "2023-01-01" });
