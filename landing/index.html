@@ -2406,7 +2406,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                         {
                             name: "market_get_chart",
                             exampleArgs: {
-                                ticker: "BTC/EUR",
+                                pair: "BTC/EUR",
                                 timeframe: "one-day",
                             },
                             response: [
@@ -2419,9 +2419,9 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                 },
                             ],
                             type: "READ",
-                            desc: "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires ticker pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns last 30 data points with dates and prices in both USD and the fiat currency from the ticker.",
+                            desc: "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns data points with dates and prices in both USD and the fiat currency from the pair.",
                             args: {
-                                ticker: { type: "string", desc: "Pair (e.g., BTC/EUR)"
+                                pair: { type: "string", desc: "Pair (e.g., BTC/EUR)"
                                 },
                                 timeframe: { type: "string", desc: "Timeframe (one-hour, one-day, one-week, one-month, one-year)"
                                 },

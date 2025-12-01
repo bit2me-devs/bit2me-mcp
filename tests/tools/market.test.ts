@@ -55,7 +55,7 @@ describe("Market Tools Handler", () => {
 
         vi.mocked(axios.get).mockResolvedValue({ data: mockData });
 
-        const result = await handleMarketTool("market_get_chart", { ticker: "BTC/EUR", timeframe: "one-hour" });
+        const result = await handleMarketTool("market_get_chart", { pair: "BTC/EUR", timeframe: "one-hour" });
 
         expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/v3/currency/chart"), expect.any(Object));
         const parsed = JSON.parse(result.content[0].text);
@@ -73,7 +73,7 @@ describe("Market Tools Handler", () => {
 
         vi.mocked(axios.get).mockResolvedValue({ data: mockData });
 
-        const result = await handleMarketTool("market_get_chart", { ticker: "VRA/EUR", timeframe: "one-day" });
+        const result = await handleMarketTool("market_get_chart", { pair: "VRA/EUR", timeframe: "one-day" });
 
         const parsed = JSON.parse(result.content[0].text);
         expect(parsed[0].price_usd).not.toBe(0);
@@ -93,7 +93,7 @@ describe("Market Tools Handler", () => {
 
         vi.mocked(axios.get).mockResolvedValue({ data: mockData });
 
-        const result = await handleMarketTool("market_get_chart", { ticker: "MIXED/EUR", timeframe: "one-day" });
+        const result = await handleMarketTool("market_get_chart", { pair: "MIXED/EUR", timeframe: "one-day" });
         const parsed = JSON.parse(result.content[0].text);
 
         expect(parsed).toHaveLength(3);

@@ -50,7 +50,7 @@ describeE2E("E2E: Market Tools", () => {
         "should get price chart data",
         async () => {
             const result = await handleMarketTool("market_get_chart", {
-                ticker: "BTC/EUR",
+                pair: "BTC/EUR",
                 timeframe: "one-day",
             });
             const chart = JSON.parse(result.content[0].text);
