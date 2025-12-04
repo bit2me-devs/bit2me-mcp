@@ -1,3 +1,9 @@
+## [1.8.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.2...v1.8.3) (2025-12-04)
+
+### Bug Fixes
+
+- **tests:** read version dynamically from package.json ([61e0603](https://github.com/bit2me-devs/bit2me-mcp/commit/61e0603c462f07d879063ef31a711848cf40d438))
+
 ## [1.8.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.1...v1.8.2) (2025-12-04)
 
 ### Bug Fixes

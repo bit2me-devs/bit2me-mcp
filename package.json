@@ -1,6 +1,6 @@
 {
     "name": "@bit2me/mcp-server",
-    "version": "1.8.2",
+    "version": "1.8.3",
     "description": "Bit2Me MCP Server",
     "type": "module",
     "main": "build/index.js",
