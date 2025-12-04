@@ -1,214 +1,436 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
+import { MAX_PAGINATION_LIMIT } from "../constants.js";
+import {
+    normalizeSymbol,
+    validatePaginationLimit,
+    validatePaginationOffset,
+    validateUUID,
+    validateSymbol,
+} from "../utils/format.js";
+import { ValidationError, NotFoundError } from "../utils/errors.js";
 import {
     mapWalletPocketsResponse,
     mapWalletPocketDetailsResponse,
     mapWalletAddressesResponse,
-    mapWalletTransactionsResponse,
-    mapWalletTransactionDetailsResponse,
+    mapWalletMovementsResponse,
+    mapWalletMovementDetailsResponse,
     mapWalletNetworksResponse,
+    mapWalletCardsResponse,
     mapProformaResponse,
-    mapTransactionConfirmationResponse,
-    wrapResponseWithRaw,
+    mapOperationConfirmationResponse,
 } from "../utils/response-mappers.js";
+import {
+    buildSimpleContextualResponse,
+    buildFilteredContextualResponse,
+    buildPaginatedContextualResponse,
+} from "../utils/contextual-response.js";
+import {
+    WalletPocketDetailsArgs,
+    WalletPocketAddressesArgs,
+    WalletNetworksArgs,
+    WalletCardsArgs,
+    WalletMovementsArgs,
+    WalletMovementDetailsArgs,
+    WalletBuyCryptoArgs,
+    WalletSellCryptoArgs,
+    WalletSwapCryptoArgs,
+    WalletBuyCryptoWithCardArgs,
+    WalletConfirmOperationArgs,
+} from "../utils/args.js";
+import { executeTool } from "../utils/tool-wrapper.js";
+import { getCategoryTools } from "../utils/tool-metadata.js";
 
-export const walletTools: Tool[] = [
-    {
-        name: "wallet_get_pockets",
-        description:
-            "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. IMPORTANT: Users often have MULTIPLE pockets for the same currency (e.g. multiple EUR pockets). ALWAYS check ALL pockets for a specific currency to find the one with a positive balance. Do not assume the first result is the main wallet.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                currency: { type: "string", description: "Filter by currency symbol (e.g., EUR, BTC)" },
-            },
-        },
-    },
-    {
-        name: "wallet_get_pocket_details",
-        description:
-            "Gets detailed information of a specific wallet (Pocket) by its ID. Returns balance, available funds, blocked funds, currency, name, and creation date. Use wallet_get_pockets first to get the pocket ID.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                pocketId: { type: "string", description: "Pocket UUID" },
-            },
-            required: ["pocketId"],
-        },
-    },
-    {
-        name: "wallet_get_pocket_addresses",
-        description:
-            "Lists deposit addresses for a wallet (Pocket) on a specific network. Use wallet_get_networks first to see available networks for a currency. Each network may have different addresses. Returns address, network, and creation date. Use this address to receive deposits on the specified network.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                pocketId: { type: "string", description: "Pocket UUID" },
-                network: { type: "string", description: "Address network (e.g., bitcoin, ethereum, bsc)" },
-            },
-            required: ["pocketId", "network"],
-        },
-    },
-    {
-        name: "wallet_get_networks",
-        description:
-            "Lists available networks for a specific currency. Use this before wallet_get_pocket_addresses to see which networks support deposits for a currency (e.g., bitcoin, ethereum, binanceSmartChain). Returns network ID, name, native currency, fee currency, and whether it requires a tag/memo.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                currency: { type: "string", description: "Currency symbol (e.g., BTC, ETH)" },
-            },
-            required: ["currency"],
-        },
-    },
-    {
-        name: "wallet_get_transactions",
-        description:
-            "History of past Wallet operations (deposits, withdrawals, swaps, purchases). Optional currency filter. Use limit and offset for pagination (default limit: 10). Returns transaction list with type, amount, currency, status, and timestamp.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                currency: { type: "string" },
-                limit: { type: "string", description: "Amount to show (default: 10)" },
-                offset: { type: "string", description: "Offset for pagination (default: 0)" },
-            },
-        },
-    },
-    {
-        name: "wallet_get_transaction_details",
-        description:
-            "Gets detailed information of a specific transaction by its ID. Returns complete transaction data including type, amount, currency, status, fees, timestamps, and related pocket IDs. Use wallet_get_transactions first to get transaction IDs.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                transactionId: { type: "string", description: "Transaction UUID" },
-            },
-            required: ["transactionId"],
-        },
-    },
-    {
-        name: "wallet_create_proforma",
-        description:
-            "STEP 1: Simulates/Quotes an operation in Simple Wallet. Returns Proforma ID and cost. REQUIRES subsequent confirmation.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                origin_pocket_id: { type: "string" },
-                destination_pocket_id: { type: "string" },
-                amount: { type: "string" },
-                currency: { type: "string" },
-            },
-            required: ["origin_pocket_id", "destination_pocket_id", "amount", "currency"],
-        },
-    },
-    {
-        name: "wallet_confirm_transaction",
-        description: "STEP 2: Executes the operation using the Proforma ID. Final action.",
-        inputSchema: {
-            type: "object",
-            properties: { proforma_id: { type: "string" } },
-            required: ["proforma_id"],
-        },
-    },
-];
+export const walletTools: Tool[] = getCategoryTools("wallet");
 
+/**
+ * Handles wallet-related tool requests
+ * @param name - Name of the tool to execute
+ * @param args - Tool arguments
+ * @returns Tool response with optimized data
+ * @throws ValidationError if required parameters are missing or invalid
+ * @throws NotFoundError if requested resource is not found
+ */
 export async function handleWalletTool(name: string, args: any) {
-    if (name === "wallet_get_pockets") {
-        const data = await bit2meRequest("GET", "/v1/wallet/pocket", {});
-        let optimized = mapWalletPocketsResponse(data);
+    return executeTool(name, args, async () => {
+        if (name === "wallet_get_pockets") {
+            const params = args as { symbol?: string };
+            const data = await bit2meRequest("GET", "/v1/wallet/pocket", {});
+            let optimized = mapWalletPocketsResponse(data);
 
-        if (args.currency) {
-            optimized = optimized.filter((p: any) => p.currency === args.currency);
+            const requestContext: any = {};
+            if (params.symbol) {
+                const symbol = normalizeSymbol(params.symbol);
+                requestContext.symbol = symbol;
+                optimized = optimized.filter((p: any) => p.symbol === symbol);
+            }
+
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+        if (name === "wallet_get_pocket_details") {
+            const params = args as WalletPocketDetailsArgs;
+            if (!params.pocket_id) {
+                throw new ValidationError("pocket_id is required", "pocket_id");
+            }
+            validateUUID(params.pocket_id, "pocket_id");
+            const requestContext = {
+                pocket_id: params.pocket_id,
+            };
+            const data = await bit2meRequest("GET", "/v1/wallet/pocket", { id: params.pocket_id });
+            const pocket = Array.isArray(data) ? data[0] : data;
 
-    if (name === "wallet_get_pocket_details") {
-        const data = await bit2meRequest("GET", "/v1/wallet/pocket", { id: args.pocketId });
-        const pocket = Array.isArray(data) ? data[0] : data;
+            if (!pocket) {
+                throw new NotFoundError("/v1/wallet/pocket", `Pocket ${params.pocket_id}`);
+            }
 
-        if (!pocket) {
-            return { content: [{ type: "text", text: "Pocket not found." }] };
+            const optimized = mapWalletPocketDetailsResponse(pocket);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, pocket);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        const optimized = mapWalletPocketDetailsResponse(pocket);
-        const wrapped = wrapResponseWithRaw(optimized, pocket);
-        return { content: [{ type: "text", text: JSON.stringify(wrapped, null, 2) }] };
-    }
+        if (name === "wallet_get_pocket_addresses") {
+            const params = args as WalletPocketAddressesArgs;
+            if (!params.pocket_id) {
+                throw new ValidationError("pocket_id is required", "pocket_id");
+            }
+            if (!params.network) {
+                throw new ValidationError("network is required", "network");
+            }
+            validateUUID(params.pocket_id, "pocket_id");
+            // Validate network format: lowercase, no spaces, alphanumeric with underscores/hyphens
+            const networkPattern = /^[a-z][a-z0-9_-]*$/;
+            const normalizedNetwork = params.network.toLowerCase().trim();
+            if (!networkPattern.test(normalizedNetwork)) {
+                throw new ValidationError(
+                    `Invalid network format: "${params.network}". Network should be lowercase (e.g., bitcoin, ethereum, binance_smart_chain). Use wallet_get_networks to see available networks.`,
+                    "network",
+                    params.network
+                );
+            }
+            const { pocket_id } = params;
+            const network = normalizedNetwork;
+            const requestContext = {
+                pocket_id,
+                network,
+            };
+            const data = await bit2meRequest(
+                "GET",
+                `/v2/wallet/pocket/${encodeURIComponent(pocket_id)}/${encodeURIComponent(network)}/address`
+            );
+            const optimized = mapWalletAddressesResponse(data);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "wallet_get_pocket_addresses") {
-        const { pocketId, network } = args;
-        const data = await bit2meRequest("GET", `/v2/wallet/pocket/${pocketId}/${network}/address`);
-        const optimized = mapWalletAddressesResponse(data);
-        const wrapped = wrapResponseWithRaw(optimized, data);
-        return { content: [{ type: "text", text: JSON.stringify(wrapped, null, 2) }] };
-    }
+        if (name === "wallet_get_networks") {
+            const params = args as WalletNetworksArgs;
+            if (!params.symbol) {
+                throw new ValidationError("symbol is required", "symbol");
+            }
+            validateSymbol(params.symbol);
+            const symbol = normalizeSymbol(params.symbol);
+            const requestContext = {
+                symbol,
+            };
+            const data = await bit2meRequest("GET", `/v1/wallet/currency/${encodeURIComponent(symbol)}/network`);
+            const optimized = mapWalletNetworksResponse(data);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "wallet_get_networks") {
-        const { currency } = args;
-        const data = await bit2meRequest("GET", `/v1/wallet/currency/${currency}/network`);
-        const optimized = mapWalletNetworksResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+        if (name === "wallet_get_cards") {
+            const params = args as WalletCardsArgs;
+            const limit = validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT);
+            const offset = validatePaginationOffset(params.offset);
 
-    if (name === "wallet_get_transactions") {
-        const params: any = {};
-        if (args.currency) params.currency = args.currency;
-        if (args.limit) params.limit = args.limit;
-        if (args.offset) params.offset = args.offset;
+            const queryParams: Record<string, any> = {};
+            if (params.card_id) {
+                validateUUID(params.card_id, "card_id");
+                queryParams.id = params.card_id;
+            }
+            queryParams.limit = limit;
+            queryParams.offset = offset;
 
-        const data = await bit2meRequest("GET", "/v2/wallet/transaction", params);
+            const data = await bit2meRequest("GET", "/v1/teller/card", queryParams);
+            const optimized = mapWalletCardsResponse(data);
 
-        // v2 endpoint returns { data: [...], total: number } according to docs
-        // We also keep fallback to 'transactions' just in case
-        const rawData = data as any;
-        const transactionsArray = rawData.data || rawData.transactions || [];
+            // Extract total from response if available, otherwise use array length
+            const rawData = data as any;
+            const totalRecords = rawData.total || rawData.metadata?.total || optimized.length;
 
-        const optimized = mapWalletTransactionsResponse(transactionsArray);
+            const requestContext: any = {
+                limit,
+                offset,
+            };
+            if (params.card_id) {
+                requestContext.card_id = params.card_id;
+            }
 
-        // Extract total from root 'total' or metadata
-        const totalRecords =
-            rawData.total || rawData.metadata?.total || rawData.metadata?.total_records || optimized.length;
+            const contextual = buildPaginatedContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: totalRecords,
+                    limit,
+                    offset,
+                    has_more: offset + limit < totalRecords,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-        const result = {
-            metadata: {
-                total_records: totalRecords,
-                limit: params.limit || 10,
-                offset: params.offset || 0,
-                filter_currency: args.currency || "ALL",
-            },
-            transactions: optimized,
-        };
+        if (name === "wallet_get_movements") {
+            const params = args as WalletMovementsArgs;
+            const limit = validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT);
+            const offset = validatePaginationOffset(params.offset);
 
-        return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
-    }
+            const queryParams: any = {};
+            if (params.symbol) queryParams.currency = normalizeSymbol(params.symbol);
+            queryParams.limit = limit;
+            queryParams.offset = offset;
 
-    if (name === "wallet_get_transaction_details") {
-        const data = await bit2meRequest("GET", `/v1/wallet/transaction/${args.transactionId}`);
-        const optimized = mapWalletTransactionDetailsResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            const data = await bit2meRequest("GET", "/v2/wallet/transaction", queryParams);
 
-    if (name === "wallet_create_proforma") {
-        const body = {
-            pocket: args.origin_pocket_id,
-            destination: { pocket: args.destination_pocket_id },
-            amount: args.amount,
-            currency: args.currency,
-        };
-        const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
-        const optimized = mapProformaResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            // v2 endpoint returns { data: [...], total: number } according to docs
+            const rawData = data as any;
+            const movementsArray = rawData.data || rawData.transactions || [];
 
-    if (name === "wallet_confirm_transaction") {
-        const body = { proforma: args.proforma_id };
-        const data = await bit2meRequest("POST", "/v1/wallet/transaction", body);
-        const optimized = mapTransactionConfirmationResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            const optimized = mapWalletMovementsResponse(movementsArray);
 
-    throw new Error(`Unknown wallet tool: ${name}`);
+            // Extract total from root 'total' or metadata
+            const totalRecords =
+                rawData.total || rawData.metadata?.total || rawData.metadata?.total_records || optimized.length;
+
+            const requestContext: any = {
+                limit,
+                offset,
+            };
+            if (params.symbol) {
+                requestContext.symbol = normalizeSymbol(params.symbol);
+            }
+
+            const contextual = buildPaginatedContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: totalRecords,
+                    limit,
+                    offset,
+                    has_more: offset + limit < totalRecords,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "wallet_get_movement_details") {
+            const params = args as WalletMovementDetailsArgs;
+            if (!params.movement_id) {
+                throw new ValidationError("movement_id is required", "movement_id");
+            }
+            validateUUID(params.movement_id, "movement_id");
+            const requestContext = {
+                movement_id: params.movement_id,
+            };
+            const data = await bit2meRequest("GET", `/v1/wallet/transaction/${encodeURIComponent(params.movement_id)}`);
+            const optimized = mapWalletMovementDetailsResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "wallet_buy_crypto") {
+            const params = args as WalletBuyCryptoArgs;
+            if (!params.origin_pocket_id) {
+                throw new ValidationError("origin_pocket_id is required", "origin_pocket_id");
+            }
+            if (!params.destination_pocket_id) {
+                throw new ValidationError("destination_pocket_id is required", "destination_pocket_id");
+            }
+            if (!params.amount) {
+                throw new ValidationError("amount is required", "amount");
+            }
+            validateUUID(params.origin_pocket_id, "origin_pocket_id");
+            validateUUID(params.destination_pocket_id, "destination_pocket_id");
+
+            // Fetch origin pocket to get currency
+            const originPocketData = await bit2meRequest("GET", "/v1/wallet/pocket", { id: params.origin_pocket_id });
+            const originPocket = Array.isArray(originPocketData) ? originPocketData[0] : originPocketData;
+
+            if (!originPocket || !originPocket.currency) {
+                throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
+            }
+
+            const body = {
+                operation: "buy",
+                pocket: params.origin_pocket_id,
+                destination: { pocket: params.destination_pocket_id },
+                amount: params.amount,
+                currency: normalizeSymbol(originPocket.currency),
+            };
+            const requestContext = {
+                origin_pocket_id: params.origin_pocket_id,
+                destination_pocket_id: params.destination_pocket_id,
+                amount: params.amount,
+            };
+            const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
+            const optimized = mapProformaResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "wallet_sell_crypto") {
+            const params = args as WalletSellCryptoArgs;
+            if (!params.origin_pocket_id) {
+                throw new ValidationError("origin_pocket_id is required", "origin_pocket_id");
+            }
+            if (!params.destination_pocket_id) {
+                throw new ValidationError("destination_pocket_id is required", "destination_pocket_id");
+            }
+            if (!params.amount) {
+                throw new ValidationError("amount is required", "amount");
+            }
+            validateUUID(params.origin_pocket_id, "origin_pocket_id");
+            validateUUID(params.destination_pocket_id, "destination_pocket_id");
+
+            // Fetch origin pocket to get currency
+            const originPocketData = await bit2meRequest("GET", "/v1/wallet/pocket", { id: params.origin_pocket_id });
+            const originPocket = Array.isArray(originPocketData) ? originPocketData[0] : originPocketData;
+
+            if (!originPocket || !originPocket.currency) {
+                throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
+            }
+
+            const body = {
+                operation: "sell",
+                pocket: params.origin_pocket_id,
+                destination: { pocket: params.destination_pocket_id },
+                amount: params.amount,
+                currency: normalizeSymbol(originPocket.currency),
+            };
+            const requestContext = {
+                origin_pocket_id: params.origin_pocket_id,
+                destination_pocket_id: params.destination_pocket_id,
+                amount: params.amount,
+            };
+            const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
+            const optimized = mapProformaResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "wallet_swap_crypto") {
+            const params = args as WalletSwapCryptoArgs;
+            if (!params.origin_pocket_id) {
+                throw new ValidationError("origin_pocket_id is required", "origin_pocket_id");
+            }
+            if (!params.destination_pocket_id) {
+                throw new ValidationError("destination_pocket_id is required", "destination_pocket_id");
+            }
+            if (!params.amount) {
+                throw new ValidationError("amount is required", "amount");
+            }
+            validateUUID(params.origin_pocket_id, "origin_pocket_id");
+            validateUUID(params.destination_pocket_id, "destination_pocket_id");
+
+            // Fetch origin pocket to get currency
+            const originPocketData = await bit2meRequest("GET", "/v1/wallet/pocket", { id: params.origin_pocket_id });
+            const originPocket = Array.isArray(originPocketData) ? originPocketData[0] : originPocketData;
+
+            if (!originPocket || !originPocket.currency) {
+                throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
+            }
+
+            const body = {
+                operation: "purchase",
+                pocket: params.origin_pocket_id,
+                destination: { pocket: params.destination_pocket_id },
+                amount: params.amount,
+                currency: normalizeSymbol(originPocket.currency),
+            };
+            const requestContext = {
+                origin_pocket_id: params.origin_pocket_id,
+                destination_pocket_id: params.destination_pocket_id,
+                amount: params.amount,
+            };
+            const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
+            const optimized = mapProformaResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "wallet_buy_crypto_with_card") {
+            const params = args as WalletBuyCryptoWithCardArgs;
+            if (!params.card_id) {
+                throw new ValidationError("card_id is required", "card_id");
+            }
+            if (!params.destination_pocket_id) {
+                throw new ValidationError("destination_pocket_id is required", "destination_pocket_id");
+            }
+            if (!params.amount) {
+                throw new ValidationError("amount is required", "amount");
+            }
+            if (!params.currency) {
+                throw new ValidationError("currency is required", "currency");
+            }
+            validateUUID(params.destination_pocket_id, "destination_pocket_id");
+            validateSymbol(params.currency);
+
+            const body = {
+                operation: "buy",
+                origin: { creditcard: { cardId: params.card_id } },
+                destination: { pocket: params.destination_pocket_id },
+                amount: params.amount,
+                currency: normalizeSymbol(params.currency),
+            };
+            const requestContext = {
+                card_id: params.card_id,
+                destination_pocket_id: params.destination_pocket_id,
+                amount: params.amount,
+                currency: normalizeSymbol(params.currency),
+            };
+            const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
+            const optimized = mapProformaResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "wallet_confirm_operation") {
+            const params = args as WalletConfirmOperationArgs;
+            const requestContext = {
+                proforma_id: params.proforma_id,
+            };
+            const body = { proforma: params.proforma_id };
+            const data = await bit2meRequest("POST", "/v1/wallet/transaction", body);
+            const optimized = mapOperationConfirmationResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        throw new Error(`Unknown wallet tool: ${name}`);
+    });
 }
