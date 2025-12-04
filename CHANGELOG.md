@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.1...v1.8.2) (2025-12-04)
+
+### Bug Fixes
+
+- **ci:** correct github/codeql-action SHA to valid v4 commit ([1cbc342](https://github.com/bit2me-devs/bit2me-mcp/commit/1cbc34296dfc93f96895c2a2488d16f47e39ad97))
+- **tests:** update expected version to 1.8.1 in index.test.ts ([d778298](https://github.com/bit2me-devs/bit2me-mcp/commit/d778298d537844e1bdeb31f9088537e6fadb37a3))
+
 ## [1.8.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.0...v1.8.1) (2025-12-04)
 
 ### Bug Fixes
