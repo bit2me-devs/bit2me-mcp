@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.0...v1.8.1) (2025-12-04)
+
+### Bug Fixes
+
+- **ci:** correct ossf/scorecard-action SHA to valid v2.4.0 commit ([234d06e](https://github.com/bit2me-devs/bit2me-mcp/commit/234d06ea494868e5638d3f466813d62403e5836a))
+- **tests:** update expected version to 1.8.0 in index.test.ts ([d6f1d8c](https://github.com/bit2me-devs/bit2me-mcp/commit/d6f1d8c92ba99d3c5d3a614ce914f3096293adb0))
+
 # [1.8.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.7.0...v1.8.0) (2025-12-04)
 
 ### Bug Fixes
