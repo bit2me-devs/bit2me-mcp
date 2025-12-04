@@ -37,6 +37,8 @@ export function generateSignature(nonce: number, endpoint: string, data: any, se
     return crypto.createHmac("sha512", secret).update(hash, "binary").digest("base64");
 }
 
+import { rateLimiter } from "../utils/rate-limiter.js";
+
 // ============================================================================
 // API REQUEST HANDLING
 // ============================================================================
@@ -54,17 +56,28 @@ function calculateBackoffDelay(retryAttempt: number, baseDelay: number, maxDelay
 /**
  * Centralized wrapper for API calls.
  * Handles headers, signature, nonce, timeouts, retry logic with exponential backoff, and errors.
+ *
+ * API VERSIONING NOTE:
+ * Bit2Me API endpoints use different version prefixes (/v1, /v2, /v3).
+ * There is no global API version. Each service/endpoint has its own version lifecycle.
+ * - Wallet/Earn/Loan typically use v1 or v2
+ * - Market data often uses v3
+ * This wrapper is version-agnostic; the caller must provide the full path including version (e.g. "/v3/currency/ticker").
  */
 export async function bit2meRequest<T = any>(
     method: "GET" | "POST" | "DELETE",
     endpoint: string,
     params?: any,
-    retries?: number
+    retries?: number,
+    timeoutOverride?: number
 ): Promise<T> {
     const appConfig = getConfig();
     const maxRetries = retries ?? appConfig.MAX_RETRIES;
     const baseDelay = appConfig.RETRY_BASE_DELAY;
-    const timeout = appConfig.REQUEST_TIMEOUT;
+    const timeout = timeoutOverride ?? appConfig.REQUEST_TIMEOUT;
+
+    // Rate Limiting: Wait for token before making request
+    await rateLimiter.waitForToken();
 
     const apiKey = config.BIT2ME_API_KEY;
     const apiSecret = config.BIT2ME_API_SECRET;
@@ -147,7 +160,8 @@ export async function bit2meRequest<T = any>(
 
             logger.warn(`Rate limit hit. Retrying in ${Math.round(delay)}ms... (${maxRetries} retries left)`);
             await new Promise((resolve) => setTimeout(resolve, delay));
-            return bit2meRequest(method, endpoint, params, maxRetries - 1);
+            // Pass timeoutOverride to retry
+            return bit2meRequest(method, endpoint, params, maxRetries - 1, timeoutOverride);
         }
 
         // Throw specific error types based on status code
@@ -183,8 +197,9 @@ export async function getMarketPrice(cryptoSymbol: string, fiatCurrency: string)
         const tickerData = await getTicker(cryptoSymbol, fiatCurrency);
         const priceData = tickerData?.price || 0;
         return parseFloat(priceData) || 0;
-    } catch {
-        // Silent to avoid saturating logs if an exotic coin fails
+    } catch (error: any) {
+        // Log error but don't throw to avoid saturating logs if an exotic coin fails
+        logger.debug(`Failed to get price for ${cryptoSymbol}/${fiatCurrency}`, { error: error.message });
         return 0;
     }
 }
@@ -193,9 +208,9 @@ export async function getMarketPrice(cryptoSymbol: string, fiatCurrency: string)
  * Gets the full ticker for a pair.
  */
 export async function getTicker(cryptoSymbol: string, fiatCurrency: string): Promise<any> {
-    const response = await axios.get(`${BIT2ME_BASE_URL}/v3/currency/ticker/${cryptoSymbol}`, {
-        params: { rateCurrency: fiatCurrency },
+    const response = await bit2meRequest("GET", `/v3/currency/ticker/${cryptoSymbol}`, {
+        rateCurrency: fiatCurrency,
     });
     // Structure is { "EUR": { "BTC": [ { price: "..." } ] } }
-    return response.data?.[fiatCurrency]?.[cryptoSymbol]?.[0];
+    return response?.[fiatCurrency]?.[cryptoSymbol]?.[0];
 }

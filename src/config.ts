@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { z } from "zod";
+import { logger } from "./utils/logger.js";
 
 const envSchema = z.object({
     BIT2ME_API_KEY: z.string().min(1, "BIT2ME_API_KEY is required"),
@@ -32,16 +33,16 @@ export function getConfig(): Config {
 
     // Only load .env if credentials are not already in process.env (from mcp_config.json)
     if (!process.env.BIT2ME_API_KEY || !process.env.BIT2ME_API_SECRET) {
-        console.error("[Config] Loading credentials from .env file");
+        logger.debug("Loading credentials from .env file");
         dotenv.config({ quiet: true } as any);
     } else {
-        console.error("[Config] Using credentials from environment (mcp_config.json)");
+        logger.debug("Using credentials from environment (mcp_config.json)");
     }
 
     // Debug: Log credential sources (masked)
     const apiKeySource = process.env.BIT2ME_API_KEY ? "SET" : "MISSING";
     const apiSecretSource = process.env.BIT2ME_API_SECRET ? "SET" : "MISSING";
-    console.error(`[Config] BIT2ME_API_KEY: ${apiKeySource}, BIT2ME_API_SECRET: ${apiSecretSource}`);
+    logger.debug(`BIT2ME_API_KEY: ${apiKeySource}, BIT2ME_API_SECRET: ${apiSecretSource}`);
 
     try {
         const parsed = envSchema.parse(process.env);
@@ -56,18 +57,19 @@ export function getConfig(): Config {
             INCLUDE_RAW_RESPONSE: parsed.BIT2ME_INCLUDE_RAW_RESPONSE === "true",
         };
 
-        console.error("[Config] Credentials validated successfully");
-        console.error(
-            `[Config] Timeout: ${cachedConfig.REQUEST_TIMEOUT}ms, Max Retries: ${cachedConfig.MAX_RETRIES}, Log Level: ${cachedConfig.LOG_LEVEL}`
-        );
+        logger.debug("Credentials validated successfully", {
+            timeout: cachedConfig.REQUEST_TIMEOUT,
+            maxRetries: cachedConfig.MAX_RETRIES,
+            logLevel: cachedConfig.LOG_LEVEL,
+        });
         return cachedConfig;
     } catch (error) {
         if (error instanceof z.ZodError) {
             const missing = error.issues.map((e: any) => e.path.join(".")).join(", ");
-            console.error(`[Config] ❌ Missing required credentials: ${missing}`);
-            console.error("[Config] Please set BIT2ME_API_KEY and BIT2ME_API_SECRET in your .env file or environment");
+            logger.error("Missing required credentials", { missing });
+            logger.error("Please set BIT2ME_API_KEY and BIT2ME_API_SECRET in your .env file or environment");
         } else {
-            console.error("[Config] Credential validation failed:", error);
+            logger.error("Credential validation failed", { error });
         }
         throw error;
     }
