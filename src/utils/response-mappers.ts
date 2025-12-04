@@ -577,7 +577,7 @@ export function mapEarnSummaryResponse(raw: unknown): EarnSummaryResponse[] {
             for (const item of data) {
                 extractItems(item);
             }
-        } else if (typeof data === "object" && data !== null) {
+        } else if (data !== null && typeof data === "object") {
             const obj = data as Record<string, unknown>;
             // Check if this looks like a summary item
             if ("currency" in obj || "totalBalance" in obj || "totalRewards" in obj) {
@@ -677,8 +677,8 @@ function mapSingleEarnWalletMovement(tx: any): EarnWalletMovementResponse {
     const { date: created_at } = formatTimestamp(dateValue);
 
     // Handle nested amount object: { value, currency }
-    let amountValue = "0";
-    let symbol = "";
+    let amountValue: string;
+    let symbol: string;
     if (tx.amount && typeof tx.amount === "object") {
         amountValue = String(tx.amount.value || "0");
         symbol = tx.amount.currency || "";
