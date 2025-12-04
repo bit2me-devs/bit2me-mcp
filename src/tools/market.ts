@@ -3,7 +3,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest, getTicker } from "../services/bit2me.js";
 import { mapTickerResponse, mapAssetsResponse, mapCurrencyRateResponse } from "../utils/response-mappers.js";
 import { buildSimpleContextualResponse, buildFilteredContextualResponse } from "../utils/contextual-response.js";
-import { MarketTickerArgs, MarketChartArgs, MarketAssetsDetailsArgs, MarketCurrencyRateArgs } from "../utils/args.js";
+import { MarketTickerArgs } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { cache } from "../utils/cache.js";
 import {
