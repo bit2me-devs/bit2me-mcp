@@ -1,6 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MOCK_WALLET_POCKETS, MOCK_PRO_WALLETS, MOCK_EARN_WALLETS } from "./fixtures.js";
 
+// Mock config
+vi.mock("../src/config.js", () => {
+    const mockConfig = {
+        BIT2ME_API_KEY: "test-api-key",
+        BIT2ME_API_SECRET: "test-api-secret",
+        REQUEST_TIMEOUT: 30000,
+        LOG_LEVEL: "info",
+        MAX_RETRIES: 3,
+        RETRY_BASE_DELAY: 1000,
+        INCLUDE_RAW_RESPONSE: false,
+    };
+    return {
+        config: new Proxy(
+            {},
+            {
+                get: (_target: unknown, prop: string) => mockConfig[prop as keyof typeof mockConfig],
+            }
+        ),
+        BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
+        getConfig: () => mockConfig,
+    };
+});
+
 // Mock the API module
 vi.mock("../src/services/bit2me.js", () => ({
     bit2meRequest: vi.fn(),
