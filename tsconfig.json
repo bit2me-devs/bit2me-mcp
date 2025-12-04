@@ -10,7 +10,7 @@
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true
     },
-    "include": ["src/**/*", "tests/**/*"],
+    "include": ["src/**/*", "tests/**/*", "docs/example.ts"],
     "exclude": ["node_modules"],
     "ts-node": {
         "esm": true,

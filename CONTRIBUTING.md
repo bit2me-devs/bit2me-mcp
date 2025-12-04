@@ -155,9 +155,33 @@ Our strict pre-commit hooks will automatically run:
 - Fix linting/formatting: `npm run lint:fix`
 - Build the project: `npm run build`
 
+## Tool Metadata Management
+
+This project uses a centralized metadata system for all tool definitions. The source of truth is `data/tools.json`, which contains all tool definitions including:
+
+- Tool names, descriptions, and types (READ/WRITE/META)
+- Input schemas (parameters and their types)
+- Example arguments and responses
+- Category information
+
+### Adding or Modifying Tools
+
+1. **Edit `data/tools.json`**: Add or modify the tool definition in the appropriate category.
+2. **Update TypeScript handlers**: Modify the corresponding handler function in `src/tools/*.ts` if needed.
+3. **Regenerate documentation**: Run `npm run build:docs` to regenerate:
+    - `landing/tools-data.js` (for the landing page)
+    - `docs/SCHEMA_MAPPING.md` (response schemas documentation)
+4. **Update backend**: The backend automatically uses the metadata from `data/tools.json` via `src/utils/tool-metadata.ts`.
+
+### Important Notes
+
+- **Never edit generated files manually**: `landing/tools-data.js` and `docs/SCHEMA_MAPPING.md` are auto-generated. Always edit `data/tools.json` and run `npm run build:docs`.
+- **Keep examples up to date**: When modifying tool responses, update the `exampleResponse` in `data/tools.json`.
+- **Test your changes**: After modifying metadata, run `npm run build:docs` and verify the generated files are correct.
+
 ## Pull Request Process
 
-1.  **Update Documentation**: If your change affects how a tool works, update the `README.md` and `SCHEMA_MAPPING.md`.
+1.  **Update Documentation**: If your change affects how a tool works, update `data/tools.json` and run `npm run build:docs` to regenerate documentation.
 2.  **Update Changelog**: Significant changes should be noted.
 3.  **Push to your fork**:
 
