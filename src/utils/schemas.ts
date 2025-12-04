@@ -3,12 +3,60 @@
  * These schemas are designed to be LLM-friendly: concise, flat, and descriptive
  */
 
+import { Tool } from "@modelcontextprotocol/sdk/types.js";
+
 // ============================================================================
-// MARKET TOOLS
+// EXTENDED TOOL INTERFACE WITH DEPRECATION SUPPORT
+// ============================================================================
+
+/**
+ * Extended Tool interface with deprecation support
+ * Use this when defining tools that may be deprecated in the future
+ */
+export interface ExtendedTool extends Tool {
+    /** Mark tool as deprecated - will show warning in description */
+    deprecated?: boolean;
+    /** Reason for deprecation and migration path */
+    deprecationMessage?: string;
+    /** Version when tool was deprecated */
+    deprecatedSince?: string;
+    /** Replacement tool name, if any */
+    replacedBy?: string;
+}
+
+/**
+ * Adds deprecation warning to tool description if deprecated
+ * @param tool - The tool definition
+ * @returns Tool with updated description if deprecated
+ */
+export function processToolDeprecation(tool: ExtendedTool): Tool {
+    if (!tool.deprecated) {
+        return tool;
+    }
+
+    const deprecationNotice = [
+        "⚠️ DEPRECATED",
+        tool.deprecatedSince ? `(since ${tool.deprecatedSince})` : "",
+        tool.replacedBy ? `- Use ${tool.replacedBy} instead.` : "",
+        tool.deprecationMessage || "",
+    ]
+        .filter(Boolean)
+        .join(" ");
+
+    return {
+        ...tool,
+        description: `${deprecationNotice} ${tool.description}`,
+    };
+}
+
+// ============================================================================
+// RESPONSE SCHEMAS
 // ============================================================================
 
 export interface MarketTickerResponse {
-    time: number;
+    base_symbol: string;
+    quote_symbol: string;
+    date: string;
     price: string;
     market_cap: string;
     volume_24h: string;
@@ -19,21 +67,21 @@ export interface MarketTickerResponse {
 export interface MarketAssetResponse {
     symbol: string;
     name: string;
-    asset_type: string;
+    type: "crypto" | "fiat";
     network?: string;
     enabled: boolean;
     tradeable: boolean;
     loanable: boolean;
-    pairs_with: string[];
+    pro_trading_pairs: string[];
 }
 
-export interface MarketConfigResponse {
-    symbol: string;
+export interface ProMarketConfigResponse {
+    pair: string;
     base_precision: number;
     quote_precision: number;
     min_amount: string;
     max_amount: string;
-    status: string;
+    status: "active" | "inactive" | "maintenance";
 }
 
 export interface OrderBookEntry {
@@ -42,23 +90,23 @@ export interface OrderBookEntry {
 }
 
 export interface MarketOrderBookResponse {
-    symbol: string;
+    pair: string;
     bids: OrderBookEntry[];
     asks: OrderBookEntry[];
-    timestamp: number;
+    date: string;
 }
 
 export interface PublicTradeResponse {
     id: string;
-    symbol: string;
+    pair: string;
     price: string;
     amount: string;
     side: "buy" | "sell";
-    timestamp: number;
+    date: string;
 }
 
 export interface CandleResponse {
-    timestamp: number;
+    date: string;
     open: string;
     high: string;
     low: string;
@@ -67,18 +115,16 @@ export interface CandleResponse {
 }
 
 export interface ChartDataPoint {
-    timestamp: number;
     date: string;
-    price_usd: number;
-    price_fiat: number;
-    currency: string;
+    price: string;
+    quote_symbol: string;
 }
 
 export interface CurrencyRateResponse {
-    symbol: string;
-    rate: string;
-    currency: string;
-    timestamp?: number;
+    base_symbol: string;
+    price: string;
+    quote_symbol: string;
+    date: string;
 }
 
 // ============================================================================
@@ -87,33 +133,34 @@ export interface CurrencyRateResponse {
 
 export interface WalletPocketResponse {
     id: string;
-    currency: string;
+    symbol: string;
     balance: string;
     available: string;
     name?: string;
 }
 
-export interface WalletTransactionResponse {
+export interface WalletMovementResponse {
     id: string;
     date: string;
     type: string;
     subtype?: string;
-    status: string;
+    status: "pending" | "completed" | "failed" | "cancelled" | "unknown";
     amount: string;
-    currency: string;
+    symbol: string;
     origin?: {
         amount: string;
-        currency: string;
+        symbol: string;
         class: string;
     };
     destination?: {
         amount: string;
-        currency: string;
+        symbol: string;
         class: string;
     };
     fee?: {
         amount: string;
-        currency: string;
+        symbol: string;
+        class: string;
     };
 }
 
@@ -121,7 +168,7 @@ export interface WalletAddressResponse {
     id: string;
     address: string;
     network: string;
-    currency?: string;
+    symbol?: string;
     tag: string;
     created_at: string;
 }
@@ -129,45 +176,117 @@ export interface WalletAddressResponse {
 export interface WalletNetworkResponse {
     id: string;
     name: string;
-    native_currency_code: string;
-    fee_currency_code: string;
+    native_symbol: string;
+    fee_symbol: string;
     has_tag: boolean;
+}
+
+export interface WalletCardResponse {
+    card_id: string;
+    user_id: string;
+    source: string;
+    source_id: string;
+    type: string;
+    paylands_token: string;
+    brand: string;
+    country: string;
+    holder: string;
+    last4: string;
+    expire_month: string;
+    expire_year: string;
+    alias: string;
+    created_at: string;
+    verified: boolean;
+    invalid: boolean;
 }
 
 // ============================================================================
 // EARN TOOLS
 // ============================================================================
 
+/**
+ * Earn summary item - one per currency
+ * API: GET /v1/earn/summary returns array of these
+ */
 export interface EarnSummaryResponse {
-    currency: string;
+    symbol: string;
     total_balance: string;
-    rewards_earned: string;
+    total_rewards: string;
 }
 
 export interface EarnWalletResponse {
     id: string;
-    currency: string;
+    symbol: string;
     balance: string;
     strategy: string;
-    apy: string;
     status: string;
+    created_at?: string;
+    total_balance?: string; // v2/earn/wallets has totalBalance
 }
 
+/**
+ * Earn APY rates for a symbol.
+ * All yield values are decimals where 1.0 = 100%.
+ * Example: 0.05 means 5% yield.
+ */
 export interface EarnAPYResponse {
-    currency: string;
-    daily: number;
-    weekly: number;
-    monthly: number;
+    symbol: string;
+    rates: {
+        /** Daily yield as decimal (1.0 = 100%) */
+        daily_yield_ratio: string;
+        /** Weekly yield as decimal (1.0 = 100%) */
+        weekly_yield_ratio: string;
+        /** Monthly yield as decimal (1.0 = 100%) */
+        monthly_yield_ratio: string;
+    };
 }
 
-export interface EarnTransactionResponse {
+/**
+ * Earn movement for a specific wallet
+ * API: GET /v1/earn/wallets/{walletId}/movements
+ */
+export interface EarnWalletMovementResponse {
     id: string;
-    type: "deposit" | "withdrawal" | "reward";
-    currency: string;
+    type: "deposit" | "withdrawal" | "reward" | "fee";
+    symbol: string;
     amount: string;
-    date: string;
-    status: string;
-    message?: string;
+    created_at: string;
+    wallet_id: string;
+}
+
+/**
+ * Earn movement (global, all wallets)
+ * API: GET /v2/earn/movements
+ */
+export interface EarnMovementResponse {
+    id: string;
+    type: "deposit" | "reward" | "withdrawal" | "discount-funds" | "discount-rewards" | "fee";
+    created_at: string;
+    wallet_id: string;
+    amount: {
+        value: string;
+        symbol: string;
+    };
+    rate?: {
+        amount: {
+            value: string;
+            symbol: string;
+        };
+        pair: string;
+    };
+    converted_amount?: {
+        value: string;
+        symbol: string;
+    };
+    source?: {
+        wallet_id: string;
+        symbol: string;
+    };
+    issuer?: {
+        id: string;
+        name: string;
+        integrator: string;
+    };
 }
 
 // ============================================================================
@@ -175,34 +294,58 @@ export interface EarnTransactionResponse {
 // ============================================================================
 
 export interface LoanOrderResponse {
-    order_id: string;
+    id: string;
     status: "active" | "completed" | "expired";
-    guarantee_currency: string;
+    guarantee_symbol: string;
     guarantee_amount: string;
-    loan_currency: string;
+    loan_symbol: string;
     loan_amount: string;
-    remaining_amount: string;
-    ltv: string;
-    apr: string;
-    liquidation_price: string;
     created_at: string;
-    expires_at: string;
 }
 
-export interface LoanLTVResponse {
+/**
+ * Loan simulation response.
+ * LTV (Loan-to-Value) is a ratio where 1.0 = 100%.
+ * Example: "0.75" means 75% LTV.
+ */
+export interface LoanSimulationResponse {
+    guarantee_symbol: string;
+    guarantee_amount: string;
+    guarantee_amount_converted: string;
+    loan_symbol: string;
+    loan_amount: string;
+    loan_amount_converted: string;
+    user_symbol: string;
+    /** LTV ratio as string (1.0 = 100%) */
     ltv: string;
-    max_loan_amount: string;
-    liquidation_price: string;
-    health_factor: string;
+    /** APR as string (e.g., "13.12" means 13.12%) */
+    apr: string;
+}
+
+export interface GuaranteeCurrencyConfig {
+    symbol: string;
+    enabled: boolean;
+    liquidation_ltv: string;
+    initial_ltv: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface LoanCurrencyConfig {
+    symbol: string;
+    enabled: boolean;
+    liquidity: string;
+    liquidity_status: string;
+    apr: string;
+    minimum_amount: string;
+    maximum_amount: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface LoanConfigResponse {
-    currency: string;
-    min_guarantee: string;
-    max_ltv: string;
-    apr: string;
-    available_as_guarantee: boolean;
-    available_as_loan: boolean;
+    guarantee_currencies: GuaranteeCurrencyConfig[];
+    loan_currencies: LoanCurrencyConfig[];
 }
 
 // ============================================================================
@@ -210,18 +353,18 @@ export interface LoanConfigResponse {
 // ============================================================================
 
 export interface ProBalanceResponse {
-    currency: string;
-    balance: number;
-    blocked_balance: number;
-    available: number;
+    symbol: string;
+    balance: string;
+    blocked_balance: string;
+    available: string;
 }
 
 export interface ProOrderResponse {
     id: string;
-    symbol: string;
+    pair: string;
     side: "buy" | "sell";
     type: "limit" | "market" | "stop-limit";
-    status: string;
+    status: "pending" | "active" | "partial" | "completed" | "cancelled" | "expired";
     price?: string;
     amount: string;
     filled: string;
@@ -232,12 +375,16 @@ export interface ProOrderResponse {
 export interface ProTradeResponse {
     id: string;
     order_id: string;
-    symbol: string;
+    pair: string;
     side: "buy" | "sell";
+    order_type: "limit" | "market" | "stop-limit";
     price: string;
     amount: string;
+    cost: string;
     fee: string;
-    timestamp: number;
+    fee_symbol: string;
+    is_maker: boolean;
+    date: string;
 }
 
 // ============================================================================
@@ -263,14 +410,14 @@ export interface AccountInfoResponse {
 
 export interface PortfolioAssetDetail {
     asset: string;
-    amount: number;
-    price_unit: number;
-    value_fiat: number;
+    amount: string;
+    price_unit: string;
+    value_fiat: string;
 }
 
 export interface PortfolioValuationResponse {
-    currency: string;
-    total_value: number;
+    quote_symbol: string;
+    total_value: string;
     details: PortfolioAssetDetail[];
 }
 
@@ -281,18 +428,17 @@ export interface PortfolioValuationResponse {
 export interface ProformaResponse {
     proforma_id: string;
     origin_amount: string;
-    origin_currency: string;
+    origin_symbol: string;
     destination_amount: string;
-    destination_currency: string;
+    destination_symbol: string;
     rate: string;
     fee: string;
     expires_at: string;
 }
 
-export interface TransactionConfirmationResponse {
-    transaction_id: string;
+export interface OperationConfirmationResponse {
+    id: string;
     status: string;
-    message: string;
 }
 
 export interface OrderCreationResponse {
@@ -307,7 +453,7 @@ export interface OrderCreationResponse {
 
 export interface WalletPocketDetailsResponse {
     id: string;
-    currency: string;
+    symbol: string;
     balance: string;
     available: string;
     blocked: string;
@@ -318,33 +464,34 @@ export interface WalletPocketDetailsResponse {
 export interface WalletAddressDetailsResponse {
     address: string;
     network: string;
-    currency: string;
+    symbol: string;
     tag?: string;
     created_at: string;
 }
 
-export interface WalletTransactionDetailsResponse {
+export interface WalletMovementDetailsResponse {
     id: string;
     date: string;
-    type: string;
+    type: "deposit" | "withdrawal" | "swap" | "purchase" | "transfer" | "fee" | "other";
     subtype?: string;
-    status: string;
+    status: "pending" | "completed" | "failed" | "cancelled" | "unknown";
     amount: string;
-    currency: string;
+    symbol: string;
     origin?: {
         amount: string;
-        currency: string;
+        symbol: string;
         class: string;
         rate_applied?: string;
     };
     destination?: {
         amount: string;
-        currency: string;
+        symbol: string;
         class: string;
     };
     fee?: {
         amount: string;
-        currency: string;
+        symbol: string;
+        class: string;
     };
 }
 
@@ -354,66 +501,80 @@ export interface WalletTransactionDetailsResponse {
 
 export interface EarnWalletDetailsResponse {
     id: string;
-    currency: string;
+    symbol: string;
     balance: string;
     strategy: string;
-    apy: string;
-    status: string;
-    created_at: string;
+    status: "active" | "inactive" | "pending";
+    created_at?: string;
+    total_balance?: string;
 }
 
-export interface EarnTransactionsSummaryResponse {
+export interface EarnMovementsSummaryResponse {
     type: string;
     total_amount: string;
     total_count: number;
-    currency: string;
+    symbol: string;
 }
 
 export interface EarnAssetsResponse {
-    assets: string[];
+    symbols: string[];
 }
 
 export interface EarnRewardsConfigResponse {
-    distribution_frequency: string;
-    minimum_balance: string;
-    compounding: boolean;
+    wallet_id: string;
+    user_id: string;
+    symbol: string;
+    lock_period_id: string | null;
+    reward_symbol: string;
+    created_at: string;
+    updated_at: string;
 }
 
+/**
+ * Earn wallet rewards configuration
+ * API: GET /v1/earn/wallets/{walletId}/rewards/config
+ */
 export interface EarnWalletRewardsConfigResponse {
     wallet_id: string;
-    currency: string;
-    distribution_frequency: string;
-    next_distribution: string;
+    user_id: string;
+    symbol: string;
+    lock_period_id: string | null;
+    reward_symbol: string;
+    created_at: string;
+    updated_at: string;
 }
 
+/**
+ * Earn wallet rewards summary
+ * API: GET /v1/earn/wallets/{walletId}/rewards/summary
+ */
 export interface EarnWalletRewardsSummaryResponse {
-    wallet_id: string;
-    currency: string;
-    total_rewards: string;
-    last_reward: string;
-    last_reward_date: string;
+    reward_symbol: string;
+    reward_amount: string;
+    reward_converted_symbol: string;
+    reward_converted_amount: string;
 }
 
 // ============================================================================
 // ADDITIONAL LOAN TOOL RESPONSES
 // ============================================================================
 
-export interface LoanTransactionResponse {
+export interface LoanMovementResponse {
     id: string;
     order_id: string;
-    type: string;
+    type: "payment" | "interest" | "guarantee_change" | "liquidation" | "other";
     amount: string;
-    currency: string;
+    symbol: string;
     date: string;
-    status: string;
+    status: "pending" | "completed" | "failed";
 }
 
 export interface LoanOrderDetailsResponse {
-    order_id: string;
+    id: string;
     status: "active" | "completed" | "expired";
-    guarantee_currency: string;
+    guarantee_symbol: string;
     guarantee_amount: string;
-    loan_currency: string;
+    loan_symbol: string;
     loan_amount: string;
     remaining_amount: string;
     ltv: string;
@@ -437,7 +598,7 @@ export interface ProOpenOrdersResponse {
     orders: ProOrderResponse[];
 }
 
-export interface ProTransactionsResponse {
+export interface ProTradesResponse {
     trades: ProTradeResponse[];
 }
 
@@ -451,7 +612,7 @@ export interface ProOrderTradesResponse {
 // ============================================================================
 
 export interface ProCancelOrderResponse {
-    order_id: string;
+    id: string;
     status: string;
     message: string;
 }
@@ -462,35 +623,35 @@ export interface ProCancelAllOrdersResponse {
 }
 
 export interface ProDepositResponse {
-    transaction_id: string;
-    currency: string;
+    id: string;
+    symbol: string;
     amount: string;
     status: string;
     message: string;
 }
 
 export interface ProWithdrawResponse {
-    transaction_id: string;
-    currency: string;
+    id: string;
+    symbol: string;
     amount: string;
     status: string;
     message: string;
 }
 
-export interface EarnCreateTransactionResponse {
-    transaction_id: string;
+export interface EarnOperationResponse {
+    id: string;
     type: "deposit" | "withdrawal";
-    currency: string;
+    symbol: string;
     amount: string;
     status: string;
     message: string;
 }
 
 export interface LoanCreateResponse {
-    order_id: string;
-    guarantee_currency: string;
+    id: string;
+    guarantee_symbol: string;
     guarantee_amount: string;
-    loan_currency: string;
+    loan_symbol: string;
     loan_amount: string;
     ltv: string;
     apr: string;
@@ -499,7 +660,7 @@ export interface LoanCreateResponse {
 }
 
 export interface LoanIncreaseGuaranteeResponse {
-    order_id: string;
+    id: string;
     new_guarantee_amount: string;
     new_ltv: string;
     status: string;
@@ -507,7 +668,7 @@ export interface LoanIncreaseGuaranteeResponse {
 }
 
 export interface LoanPaybackResponse {
-    order_id: string;
+    id: string;
     payback_amount: string;
     remaining_amount: string;
     status: string;

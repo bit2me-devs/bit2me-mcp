@@ -10,6 +10,13 @@ import {
     ListPromptsRequestSchema,
     GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const packageJsonPath = join(dirname(fileURLToPath(import.meta.url)), "../package.json");
+const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+export const VERSION = packageJson.version;
 
 import { getConfig } from "./config.js";
 import { initLogger, logger } from "./utils/logger.js";
@@ -32,12 +39,13 @@ try {
     initLogger(config.LOG_LEVEL);
 
     logger.info("Bit2Me MCP Server initializing...", {
-        version: "1.1.1",
+        version: VERSION,
         timeout: config.REQUEST_TIMEOUT,
         maxRetries: config.MAX_RETRIES,
         logLevel: config.LOG_LEVEL,
     });
 } catch (error) {
+    // Use console.error here because logger may not be initialized yet
     console.error("❌ Server startup failed - Invalid configuration");
     console.error("Please check your .env file or environment variables");
     process.exit(1);
@@ -46,7 +54,7 @@ try {
 // --- MCP SERVER DEFINITION ---
 
 const server = new Server(
-    { name: "bit2me-mcp-server", version: "1.1.1" },
+    { name: "bit2me-mcp-server", version: VERSION },
     { capabilities: { tools: {}, prompts: {} } }
 );
 

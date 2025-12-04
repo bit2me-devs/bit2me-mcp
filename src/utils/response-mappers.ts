@@ -6,51 +6,65 @@
 
 import { ValidationError } from "./errors.js";
 import { getConfig } from "../config.js";
-import { smartRound } from "./format.js";
+import {
+    smartRound,
+    formatTimestamp,
+    normalizeStatus,
+    normalizeNetwork,
+    normalizeMovementType,
+    normalizeLoanMovementType,
+    normalizePairResponse,
+} from "./format.js";
+import { DEFAULT_AMOUNT, DEFAULT_STRING, DEFAULT_ARRAY } from "../constants.js";
 import type {
     // Market
     MarketTickerResponse,
     MarketAssetResponse,
-    MarketConfigResponse,
+    ProMarketConfigResponse,
     MarketOrderBookResponse,
     PublicTradeResponse,
     CandleResponse,
 
     // Wallet
     WalletAddressResponse,
-    WalletTransactionDetailsResponse,
+    WalletMovementDetailsResponse,
     WalletPocketResponse,
     WalletPocketDetailsResponse,
-    WalletTransactionResponse,
+    WalletMovementResponse,
     WalletNetworkResponse,
+    WalletCardResponse,
     // Account
     AccountInfoResponse,
     // Earn
     EarnSummaryResponse,
     EarnAPYResponse,
     EarnWalletResponse,
-    EarnTransactionResponse,
+    EarnMovementResponse,
+    EarnWalletMovementResponse,
     EarnWalletDetailsResponse,
-    EarnTransactionsSummaryResponse,
+    EarnMovementsSummaryResponse,
     EarnAssetsResponse,
     EarnRewardsConfigResponse,
     EarnWalletRewardsConfigResponse,
     EarnWalletRewardsSummaryResponse,
     // Loan
     LoanOrderResponse,
-    LoanTransactionResponse,
+    LoanMovementResponse,
     LoanConfigResponse,
-    LoanLTVResponse,
+    GuaranteeCurrencyConfig,
+    LoanCurrencyConfig,
+    LoanSimulationResponse,
     LoanOrderDetailsResponse,
     // Pro
     ProBalanceResponse,
     ProOrderResponse,
     ProOpenOrdersResponse,
     ProOrderTradesResponse,
+    ProTradeResponse,
     // Operations
     ProformaResponse,
-    TransactionConfirmationResponse,
-    EarnCreateTransactionResponse,
+    OperationConfirmationResponse,
+    EarnOperationResponse,
     ProDepositResponse,
     ProWithdrawResponse,
     ProCancelOrderResponse,
@@ -110,13 +124,19 @@ function isValidObject(data: unknown): data is Record<string, any> {
 
 /**
  * Maps raw ticker response to optimized schema
+ * @param raw - Raw API response from Bit2Me ticker endpoint
+ * @returns Optimized ticker response with timestamp and date fields
+ * @throws ValidationError if response structure is invalid
  */
-export function mapTickerResponse(raw: unknown): MarketTickerResponse {
+export function mapTickerResponse(raw: unknown, base_symbol: string, quote_symbol: string): MarketTickerResponse {
     if (!isValidTickerResponse(raw)) {
         throw new ValidationError("Invalid ticker response structure");
     }
+    const { date } = formatTimestamp(raw.time);
     return {
-        time: raw.time,
+        base_symbol,
+        quote_symbol,
+        date,
         price: smartRound(parseFloat(raw.price)).toString(),
         market_cap: raw.marketCap,
         volume_24h: raw.totalVolume,
@@ -127,60 +147,90 @@ export function mapTickerResponse(raw: unknown): MarketTickerResponse {
 
 /**
  * Maps raw asset object (keyed by symbol) to array of assets
+ * @param raw - Raw API response object with assets keyed by symbol
+ * @returns Array of optimized asset responses
+ * @throws ValidationError if response structure is invalid
  */
 export function mapAssetsResponse(raw: unknown): MarketAssetResponse[] {
     if (!isValidAssetRecord(raw)) {
         throw new ValidationError("Invalid assets response structure");
     }
-    return Object.entries(raw).map(([symbol, asset]) => ({
-        symbol,
-        name: asset.name,
-        asset_type: asset.assetType,
-        network: asset.network,
-        enabled: asset.enabled,
-        tradeable: asset.ticker || false,
-        loanable: asset.loanable || false,
-        pairs_with: asset.pairsWith || [],
-    }));
+    return Object.entries(raw).map(([symbol, asset]) => {
+        // Normalize assetType: "currency" -> "crypto", "fiat" stays as "fiat"
+        let normalizedType: "crypto" | "fiat" = "crypto";
+        if (asset.assetType === "fiat") {
+            normalizedType = "fiat";
+        }
+
+        const normalizedSymbol = symbol.toUpperCase();
+        const pairsWith = asset.pairsWith || DEFAULT_ARRAY;
+
+        // Build complete pairs: BASE-QUOTE format (e.g., BTC-EUR)
+        const pro_trading_pairs = pairsWith
+            .map((quoteSymbol: string) => {
+                const quote = (quoteSymbol || "").toUpperCase();
+                return quote ? `${normalizedSymbol}-${quote}` : "";
+            })
+            .filter((pair: string) => pair !== "");
+
+        return {
+            symbol: normalizedSymbol,
+            name: asset.name,
+            type: normalizedType,
+            network: normalizeNetwork(asset.network),
+            enabled: asset.enabled,
+            tradeable: asset.ticker || false,
+            loanable: asset.loanable || false,
+            pro_trading_pairs,
+        };
+    });
 }
 
 /**
  * Maps raw market config response to optimized schema
+ * @param raw - Raw API response with market configuration
+ * @returns Array of optimized market config responses
  */
-export function mapMarketConfigResponse(raw: unknown): MarketConfigResponse[] {
+export function mapProMarketConfigResponse(raw: unknown): ProMarketConfigResponse[] {
     if (!isValidObject(raw)) {
         return [];
     }
 
-    return Object.entries(raw).map(([symbol, config]: [string, any]) => ({
-        symbol,
+    return Object.entries(raw).map(([pair, config]: [string, any]) => ({
+        pair,
         base_precision: config.basePrecision || 0,
         quote_precision: config.quotePrecision || 0,
-        min_amount: config.minAmount || "0",
-        max_amount: config.maxAmount || "0",
-        status: config.status || "unknown",
+        min_amount: config.minAmount || DEFAULT_AMOUNT,
+        max_amount: config.maxAmount || DEFAULT_AMOUNT,
+        status: (normalizeStatus(config.status) || "active") as "active" | "inactive" | "maintenance",
     }));
 }
 
 /**
  * Maps raw order book response to optimized schema
+ * @param raw - Raw API response from order book endpoint
+ * @returns Optimized order book response with timestamp and date fields
+ * @throws ValidationError if response structure is invalid
  */
 export function mapOrderBookResponse(raw: unknown): MarketOrderBookResponse {
     if (!isValidObject(raw)) {
         throw new ValidationError("Invalid order book response structure");
     }
 
+    const timestamp = raw.timestamp || Date.now();
+    const { date } = formatTimestamp(timestamp);
+
     return {
-        symbol: raw.symbol || "",
+        pair: normalizePairResponse(raw.symbol || raw.pair || DEFAULT_STRING),
         bids: (raw.bids || []).map((bid: any) => ({
-            price: smartRound(parseFloat(bid.price || bid[0] || "0")).toString(),
-            amount: bid.amount || bid[1] || "0",
+            price: smartRound(parseFloat(bid.price || bid[0] || DEFAULT_AMOUNT)).toString(),
+            amount: bid.amount || bid[1] || DEFAULT_AMOUNT,
         })),
         asks: (raw.asks || []).map((ask: any) => ({
-            price: smartRound(parseFloat(ask.price || ask[0] || "0")).toString(),
-            amount: ask.amount || ask[1] || "0",
+            price: smartRound(parseFloat(ask.price || ask[0] || DEFAULT_AMOUNT)).toString(),
+            amount: ask.amount || ask[1] || DEFAULT_AMOUNT,
         })),
-        timestamp: raw.timestamp || Date.now(),
+        date,
     };
 }
 
@@ -192,14 +242,18 @@ export function mapPublicTradesResponse(raw: unknown): PublicTradeResponse[] {
         return [];
     }
 
-    return raw.map((trade) => ({
-        id: trade.id || trade.tradeId || "",
-        symbol: trade.symbol || "",
-        price: smartRound(parseFloat(trade.price || "0")).toString(),
-        amount: trade.amount || trade.quantity || "0",
-        side: trade.side || trade.takerSide || "buy",
-        timestamp: trade.timestamp || trade.time || Date.now(),
-    }));
+    return raw.map((trade) => {
+        const timestamp = trade.timestamp || trade.time || Date.now();
+        const { date } = formatTimestamp(timestamp);
+        return {
+            id: trade.id || trade.tradeId || DEFAULT_STRING,
+            pair: normalizePairResponse(trade.symbol || trade.pair || DEFAULT_STRING),
+            price: smartRound(parseFloat(trade.price || DEFAULT_AMOUNT)).toString(),
+            amount: trade.amount || trade.quantity || DEFAULT_AMOUNT,
+            side: (trade.side || trade.takerSide || "buy").toLowerCase() as "buy" | "sell",
+            date,
+        };
+    });
 }
 
 /**
@@ -210,14 +264,18 @@ export function mapCandlesResponse(raw: unknown): CandleResponse[] {
         return [];
     }
 
-    return raw.map((candle) => ({
-        timestamp: candle.timestamp || candle[0] || Date.now(),
-        open: smartRound(parseFloat(candle.open || candle[1] || "0")).toString(),
-        high: smartRound(parseFloat(candle.high || candle[2] || "0")).toString(),
-        low: smartRound(parseFloat(candle.low || candle[3] || "0")).toString(),
-        close: smartRound(parseFloat(candle.close || candle[4] || "0")).toString(),
-        volume: candle.volume || candle[5] || "0",
-    }));
+    return raw.map((candle) => {
+        const timestamp = candle.timestamp || candle[0] || Date.now();
+        const { date } = formatTimestamp(timestamp);
+        return {
+            date,
+            open: smartRound(parseFloat(candle.open || candle[1] || DEFAULT_AMOUNT)).toString(),
+            high: smartRound(parseFloat(candle.high || candle[2] || DEFAULT_AMOUNT)).toString(),
+            low: smartRound(parseFloat(candle.low || candle[3] || DEFAULT_AMOUNT)).toString(),
+            close: smartRound(parseFloat(candle.close || candle[4] || DEFAULT_AMOUNT)).toString(),
+            volume: candle.volume || candle[5] || DEFAULT_AMOUNT,
+        };
+    });
 }
 
 // ============================================================================
@@ -234,7 +292,7 @@ export function mapWalletPocketsResponse(raw: unknown): WalletPocketResponse[] {
 
     return raw.map((p: any) => ({
         id: p.id,
-        currency: p.currency,
+        symbol: (p.currency || "").toUpperCase(),
         balance: p.balance,
         available: p.available,
         name: p.name,
@@ -250,14 +308,16 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
         throw new ValidationError("Invalid wallet pocket details response structure");
     }
 
+    const created_at = raw.createdAt || raw.created_at || "";
+
     return {
         id: raw.id || "",
-        currency: raw.currency || "",
+        symbol: (raw.currency || "").toUpperCase(),
         balance: raw.balance || "0",
         available: raw.available || "0",
         blocked: raw.blocked || raw.blockedBalance || "0",
         name: raw.name,
-        created_at: raw.createdAt || raw.created_at || "",
+        created_at,
     };
 }
 
@@ -270,53 +330,60 @@ export function mapWalletAddressesResponse(raw: unknown): WalletAddressResponse[
         return [];
     }
 
-    return raw.map((addr: any) => ({
-        id: addr.id || "",
-        address: addr.address || "",
-        network: addr.network || "",
-        currency: addr.currency || undefined,
-        tag: addr.tag || "",
-        created_at: addr.createdAt || addr.created_at || "",
-    }));
+    return raw.map((addr: any) => {
+        const created_at = addr.createdAt || addr.created_at || "";
+        return {
+            id: addr.id || "",
+            address: addr.address || "",
+            network: normalizeNetwork(addr.network) || "",
+            symbol: addr.currency || undefined,
+            tag: addr.tag || "",
+            created_at,
+        };
+    });
 }
 
 /**
- * Maps raw wallet transactions response to optimized schema
+ * Maps raw wallet movements response to optimized schema
  */
-export function mapWalletTransactionsResponse(raw: unknown): WalletTransactionResponse[] {
+export function mapWalletMovementsResponse(raw: unknown): WalletMovementResponse[] {
     if (!isValidArray(raw)) {
         return [];
     }
 
     return raw.map((tx: any, index: number) => {
-        // const originRate = tx.origin?.rate?.rate?.value || tx.origin?.rate?.value;
-
         return {
             id: tx.id || `tx_${index}`,
             date: tx.date,
-            type: tx.type,
+            type: tx.type?.toLowerCase(),
             subtype: tx.subtype,
-            status: tx.status,
+            status: (normalizeStatus(tx.status) || "unknown") as
+                | "pending"
+                | "completed"
+                | "failed"
+                | "cancelled"
+                | "unknown",
             amount: tx.denomination?.amount || "0",
-            currency: tx.denomination?.currency || "",
+            symbol: tx.denomination?.currency || "",
             origin: tx.origin
                 ? {
                       amount: tx.origin.amount,
-                      currency: tx.origin.currency,
+                      symbol: tx.origin.currency,
                       class: tx.origin.class,
                   }
                 : undefined,
             destination: tx.destination
                 ? {
                       amount: tx.destination.amount,
-                      currency: tx.destination.currency,
+                      symbol: tx.destination.currency,
                       class: tx.destination.class,
                   }
                 : undefined,
             fee: tx.fee
                 ? {
                       amount: tx.fee.mercantile?.amount || tx.fee.network?.amount || "0",
-                      currency: tx.fee.mercantile?.currency || tx.fee.network?.currency || "",
+                      symbol: tx.fee.mercantile?.currency || tx.fee.network?.currency || "",
+                      class: tx.fee.mercantile?.class || tx.fee.network?.class || "",
                   }
                 : undefined,
         };
@@ -324,11 +391,11 @@ export function mapWalletTransactionsResponse(raw: unknown): WalletTransactionRe
 }
 
 /**
- * Maps raw wallet transaction details to optimized schema
+ * Maps raw wallet movement details to optimized schema
  */
-export function mapWalletTransactionDetailsResponse(raw: unknown): WalletTransactionDetailsResponse {
+export function mapWalletMovementDetailsResponse(raw: unknown): WalletMovementDetailsResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError("Invalid transaction details response structure");
+        throw new ValidationError("Invalid movement details response structure");
     }
 
     const originRate = raw.origin?.rate?.rate?.value || raw.origin?.rate?.value;
@@ -336,30 +403,43 @@ export function mapWalletTransactionDetailsResponse(raw: unknown): WalletTransac
     return {
         id: raw.id,
         date: raw.date,
-        type: raw.type,
-        subtype: raw.subtype,
-        status: raw.status,
+        type: normalizeMovementType(raw.type) as
+            | "deposit"
+            | "withdrawal"
+            | "swap"
+            | "purchase"
+            | "transfer"
+            | "fee"
+            | "other",
+        subtype: raw.subtype?.toLowerCase(),
+        status: (normalizeStatus(raw.status) || "unknown") as
+            | "pending"
+            | "completed"
+            | "failed"
+            | "cancelled"
+            | "unknown",
         amount: raw.denomination?.amount || "0",
-        currency: raw.denomination?.currency || "",
+        symbol: raw.denomination?.currency || "",
         origin: raw.origin
             ? {
                   amount: raw.origin.amount,
-                  currency: raw.origin.currency,
-                  class: raw.origin.class,
+                  symbol: raw.origin.currency,
+                  class: raw.origin.class || "",
                   rate_applied: originRate,
               }
             : undefined,
         destination: raw.destination
             ? {
                   amount: raw.destination.amount,
-                  currency: raw.destination.currency,
-                  class: raw.destination.class,
+                  symbol: raw.destination.currency,
+                  class: raw.destination.class || "",
               }
             : undefined,
         fee: raw.fee
             ? {
                   amount: raw.fee.mercantile?.amount || raw.fee.network?.amount || "0",
-                  currency: raw.fee.mercantile?.currency || raw.fee.network?.currency || "",
+                  symbol: raw.fee.mercantile?.currency || raw.fee.network?.currency || "",
+                  class: raw.fee.mercantile?.class || raw.fee.network?.class || "",
               }
             : undefined,
     };
@@ -374,11 +454,39 @@ export function mapWalletNetworksResponse(raw: unknown): WalletNetworkResponse[]
     }
 
     return raw.map((network: any) => ({
-        id: network.id || "",
+        id: normalizeNetwork(network.id) || "",
         name: network.name || "",
-        native_currency_code: network.nativeCurrencyCode || "",
-        fee_currency_code: network.feeCurrencyCode || "",
+        native_symbol: network.nativeCurrencyCode || "",
+        fee_symbol: network.feeCurrencyCode || "",
         has_tag: network.hasTag || false,
+    }));
+}
+
+/**
+ * Maps raw wallet cards response to optimized schema
+ */
+export function mapWalletCardsResponse(raw: unknown): WalletCardResponse[] {
+    if (!isValidArray(raw)) {
+        return [];
+    }
+
+    return raw.map((card: any) => ({
+        card_id: card.cardId || card.card_id || "",
+        user_id: card.userId || card.user_id || "",
+        source: card.source || "",
+        source_id: card.sourceId || card.source_id || "",
+        type: card.type || "",
+        paylands_token: card.paylandsToken || card.paylands_token || "",
+        brand: card.brand || "",
+        country: card.country || "",
+        holder: card.holder || "",
+        last4: card.last4 || "",
+        expire_month: card.expireMonth || card.expire_month || "",
+        expire_year: card.expireYear || card.expire_year || "",
+        alias: card.alias || "",
+        created_at: card.createdAt || card.created_at || "",
+        verified: card.verified ?? false,
+        invalid: card.invalid ?? false,
     }));
 }
 
@@ -390,15 +498,17 @@ export function mapProformaResponse(raw: unknown): ProformaResponse {
         throw new ValidationError("Invalid proforma response structure");
     }
 
+    const expires_at = raw.expiresAt || raw.validUntil || "";
+
     return {
         proforma_id: raw.id || raw.proformaId || "",
         origin_amount: raw.origin?.amount || raw.originAmount || "0",
-        origin_currency: raw.origin?.currency || raw.originCurrency || "",
+        origin_symbol: raw.origin?.currency || raw.originCurrency || "",
         destination_amount: raw.destination?.amount || raw.destinationAmount || "0",
-        destination_currency: raw.destination?.currency || raw.destinationCurrency || "",
+        destination_symbol: raw.destination?.currency || raw.destinationCurrency || "",
         rate: raw.rate || raw.exchangeRate || "0",
         fee: raw.fee?.amount || raw.feeAmount || "0",
-        expires_at: raw.expiresAt || raw.validUntil || "",
+        expires_at,
     };
 }
 
@@ -448,40 +558,48 @@ function extractArrayData(raw: any): any[] {
 /**
  * Maps raw earn summary to optimized schema
  */
-export function mapEarnSummaryResponse(raw: unknown): EarnSummaryResponse {
-    let data = extractArrayData(raw);
+/**
+ * Maps earn summary response to optimized schema.
+ * API returns: [[ { currency, totalBalance, totalRewards } ]] (nested array)
+ * All monetary values are returned as strings for precision.
+ */
+export function mapEarnSummaryResponse(raw: unknown): EarnSummaryResponse[] {
+    // Handle null/undefined
+    if (!raw) return [];
 
-    // Case: Single object response (e.g. { currency: "EUR", totalBalance: ..., totalRewards: ... })
-    if (data.length === 0 && isValidObject(raw) && "currency" in raw && "totalBalance" in raw) {
-        data = [raw];
-    }
-    // Case: Dictionary keyed by currency (e.g. { "BTC": { ... }, "EUR": { ... } })
-    else if (data.length === 0 && isValidObject(raw)) {
-        // Check if values look like earn summary items
-        const values = Object.values(raw);
-        if (values.length > 0 && typeof values[0] === "object") {
-            data = values;
+    // Recursively find all objects with currency/totalBalance fields
+    const results: EarnSummaryResponse[] = [];
+
+    function extractItems(data: unknown): void {
+        if (!data) return;
+
+        if (Array.isArray(data)) {
+            for (const item of data) {
+                extractItems(item);
+            }
+        } else if (typeof data === "object" && data !== null) {
+            const obj = data as Record<string, unknown>;
+            // Check if this looks like a summary item
+            if ("currency" in obj || "totalBalance" in obj || "totalRewards" in obj) {
+                results.push({
+                    symbol: String(obj.currency || ""),
+                    total_balance: String(obj.totalBalance ?? obj.total_balance ?? "0"),
+                    total_rewards: String(obj.totalRewards ?? obj.rewards_earned ?? "0"),
+                });
+            }
         }
     }
 
-    const mapped = data.map((item: any) => ({
-        currency: item.currency,
-        total_balance: item.totalBalance,
-        rewards_earned: item.rewardsEarned || item.totalRewards || "0",
-    }));
-
-    // Return the first item or a default empty object if none found
-    return mapped.length > 0
-        ? mapped[0]
-        : {
-              currency: "",
-              total_balance: "0",
-              rewards_earned: "0",
-          };
+    extractItems(raw);
+    return results;
 }
 
 /**
  * Maps raw earn APY response to optimized schema
+ */
+/**
+ * Maps earn APY response to optimized schema.
+ * Yield values are decimals where 1.0 = 100%.
  */
 export function mapEarnAPYResponse(raw: unknown): Record<string, EarnAPYResponse> {
     if (!isValidObject(raw)) {
@@ -490,13 +608,17 @@ export function mapEarnAPYResponse(raw: unknown): Record<string, EarnAPYResponse
 
     const result: Record<string, EarnAPYResponse> = {};
 
-    for (const [currency, rates] of Object.entries(raw)) {
-        result[currency] = {
-            currency,
-            daily: rates.daily,
-            weekly: rates.weekly,
-            monthly: rates.monthly,
-        };
+    for (const [symbol, rates] of Object.entries(raw)) {
+        if (rates && typeof rates === "object") {
+            result[symbol] = {
+                symbol,
+                rates: {
+                    daily_yield_ratio: String(rates.daily ?? 0),
+                    weekly_yield_ratio: String(rates.weekly ?? 0),
+                    monthly_yield_ratio: String(rates.monthly ?? 0),
+                },
+            };
+        }
     }
 
     return result;
@@ -504,35 +626,149 @@ export function mapEarnAPYResponse(raw: unknown): Record<string, EarnAPYResponse
 
 /**
  * Maps raw earn wallets response to optimized schema
+ * Note: APY is not included in the /v2/earn/wallets endpoint response
  */
 export function mapEarnWalletsResponse(raw: unknown): EarnWalletResponse[] {
     const wallets = extractArrayData(raw);
 
     return wallets.map((wallet: any) => ({
         id: wallet.id || wallet.walletId || "",
-        currency: wallet.currency || "",
+        symbol: (wallet.currency || "").toUpperCase(),
         balance: wallet.totalBalance || wallet.balance || "0",
         strategy: wallet.strategy || wallet.type || "flexible",
-        apy: wallet.apy || wallet.currentApy || "0",
-        status: wallet.status || "active",
+        status: normalizeStatus(wallet.status) || "active",
+        created_at: wallet.createdAt || wallet.created_at || "",
+        total_balance: wallet.totalBalance,
     }));
 }
 
 /**
- * Maps raw earn transactions response to optimized schema
+ * Maps raw earn wallet movements response to optimized schema.
+ * API: GET /v1/earn/wallets/{walletId}/movements
+ * Follows timestamp conventions: `timestamp` (number) + `date` (ISO string).
  */
-export function mapEarnTransactionsResponse(raw: unknown): EarnTransactionResponse[] {
-    const txs = extractArrayData(raw);
+export function mapEarnWalletMovementsResponse(raw: unknown): {
+    total: number;
+    movements: EarnWalletMovementResponse[];
+} {
+    // Handle { total, data } structure from API
+    if (isValidObject(raw) && "data" in (raw as any)) {
+        const response = raw as { total?: number; data?: any[] };
+        const txs = Array.isArray(response.data) ? response.data : [];
+        return {
+            total: response.total || txs.length,
+            movements: txs.map(mapSingleEarnWalletMovement),
+        };
+    }
 
-    return txs.map((tx: any) => ({
-        id: tx.id || tx.transactionId || "",
-        type: tx.type || "deposit",
-        currency: tx.currency || "",
-        amount: tx.amount || "0",
-        date: tx.date || tx.createdAt || "",
-        status: tx.status || "completed",
-        message: tx.message,
-    }));
+    // Fallback: if raw is an array directly
+    const txs = extractArrayData(raw);
+    return {
+        total: txs.length,
+        movements: txs.map(mapSingleEarnWalletMovement),
+    };
+}
+
+/**
+ * Maps a single earn wallet movement
+ */
+function mapSingleEarnWalletMovement(tx: any): EarnWalletMovementResponse {
+    const dateValue = tx.createdAt || tx.created_at || tx.date || "";
+    const { date: created_at } = formatTimestamp(dateValue);
+
+    // Handle nested amount object: { value, currency }
+    let amountValue = "0";
+    let symbol = "";
+    if (tx.amount && typeof tx.amount === "object") {
+        amountValue = String(tx.amount.value || "0");
+        symbol = tx.amount.currency || "";
+    } else {
+        amountValue = String(tx.amount || "0");
+        symbol = tx.currency || "";
+    }
+
+    return {
+        id: tx.movementId || tx.id || tx.transactionId || "",
+        type: (tx.type || "deposit").toLowerCase(),
+        symbol,
+        amount: amountValue,
+        created_at,
+        wallet_id: tx.walletId || tx.wallet_id || "",
+    };
+}
+
+/**
+ * Maps raw earn movements response (global, all wallets) to optimized schema.
+ * API: GET /v2/earn/movements
+ * Returns: { total: number, data: [{ movementId, type, createdAt, walletId, amount, rate, convertedAmount, source, issuer, ... }] }
+ * Follows timestamp conventions: `created_timestamp` (number) + `created_at` (ISO string).
+ */
+export function mapEarnMovementsResponse(raw: unknown): { total: number; movements: EarnMovementResponse[] } {
+    if (!isValidObject(raw)) {
+        return { total: 0, movements: [] };
+    }
+
+    const response = raw as { total?: number; data?: any[] };
+    const movements = Array.isArray(response.data) ? response.data : [];
+
+    return {
+        total: response.total ?? movements.length,
+        movements: movements.map(mapSingleEarnMovement),
+    };
+}
+
+/**
+ * Maps a single earn movement (global endpoint)
+ */
+function mapSingleEarnMovement(tx: any): EarnMovementResponse {
+    const dateValue = tx.createdAt || tx.created_at || "";
+    const { date } = formatTimestamp(dateValue);
+
+    const movement: EarnMovementResponse = {
+        id: tx.movementId || tx.id || "",
+        type: (tx.type || "deposit").toLowerCase(),
+        created_at: date,
+        wallet_id: tx.walletId || tx.wallet_id || "",
+        amount: {
+            value: tx.amount?.value || "0",
+            symbol: tx.amount?.currency || "",
+        },
+    };
+
+    // Optional fields
+    if (tx.rate) {
+        movement.rate = {
+            amount: {
+                value: tx.rate.amount?.value || "0",
+                symbol: tx.rate.amount?.currency || "",
+            },
+            pair: normalizePairResponse(tx.rate.pair || ""),
+        };
+    }
+
+    if (tx.convertedAmount) {
+        movement.converted_amount = {
+            value: tx.convertedAmount.value || "0",
+            symbol: tx.convertedAmount.currency || "",
+        };
+    }
+
+    if (tx.source) {
+        movement.source = {
+            wallet_id: tx.source.walletId || tx.source.wallet_id || "",
+            symbol: tx.source.currency || "",
+        };
+    }
+
+    if (tx.issuer) {
+        movement.issuer = {
+            id: tx.issuer.id || "",
+            name: tx.issuer.name || "",
+            integrator: tx.issuer.integrator || "",
+        };
+    }
+
+    return movement;
 }
 
 // ============================================================================
@@ -547,39 +783,45 @@ export function mapLoanOrdersResponse(raw: unknown): LoanOrderResponse[] {
         return [];
     }
 
-    return (raw as any).data.map((loan: any) => ({
-        order_id: loan.orderId,
-        status: loan.status,
-        guarantee_currency: loan.guaranteeCurrency,
-        guarantee_amount: loan.guaranteeAmount,
-        loan_currency: loan.loanCurrency,
-        loan_amount: loan.loanAmount,
-        remaining_amount: loan.remainingAmount,
-        ltv: loan.ltv,
-        apr: loan.apr,
-        liquidation_price: loan.liquidationPriceReference,
-        created_at: loan.createdAt,
-        expires_at: loan.expiresAt,
-    }));
+    return (raw as any).data.map((loan: any) => {
+        const created_at = loan.createdAt || "";
+        return {
+            id: loan.orderId,
+            status: normalizeStatus(loan.status) as "active" | "completed" | "expired",
+            guarantee_symbol: loan.guaranteeCurrency,
+            guarantee_amount: loan.guaranteeAmount,
+            loan_symbol: loan.loanCurrency,
+            loan_amount: loan.loanAmount,
+            created_at,
+        };
+    });
 }
 
 /**
- * Maps raw loan transactions response to optimized schema
+ * Maps raw loan movements response to optimized schema
  */
-export function mapLoanTransactionsResponse(raw: unknown): LoanTransactionResponse[] {
+export function mapLoanMovementsResponse(raw: unknown): LoanMovementResponse[] {
     if (!isValidArray(raw)) {
         return [];
     }
 
-    return raw.map((tx: any) => ({
-        id: tx.id || tx.transactionId || "",
-        order_id: tx.orderId || "",
-        type: tx.type || "",
-        amount: tx.amount || "0",
-        currency: tx.currency || "",
-        date: tx.date || tx.createdAt || "",
-        status: tx.status || "completed",
-    }));
+    return raw.map((tx: any) => {
+        const date = tx.date || tx.createdAt || "";
+        return {
+            id: tx.id || tx.transactionId || "",
+            order_id: tx.orderId || "",
+            type: normalizeLoanMovementType(tx.type) as
+                | "payment"
+                | "interest"
+                | "guarantee_change"
+                | "liquidation"
+                | "other",
+            amount: tx.amount || "0",
+            symbol: (tx.currency || "").toUpperCase(),
+            date,
+            status: (normalizeStatus(tx.status) || "completed") as "pending" | "completed" | "failed",
+        };
+    });
 }
 
 // ============================================================================
@@ -597,10 +839,10 @@ export function mapProBalanceResponse(raw: unknown): ProBalanceResponse[] {
     return raw
         .filter((b: any) => b.balance > 0 || b.blockedBalance > 0)
         .map((b: any) => ({
-            currency: b.currency,
-            balance: b.balance,
-            blocked_balance: b.blockedBalance,
-            available: b.balance - b.blockedBalance,
+            symbol: b.currency,
+            balance: (b.balance || 0).toString(),
+            blocked_balance: (b.blockedBalance || 0).toString(),
+            available: ((b.balance || 0) - (b.blockedBalance || 0)).toString(),
         }));
 }
 
@@ -612,17 +854,25 @@ export function mapProOrderResponse(raw: unknown): ProOrderResponse {
         throw new ValidationError("Invalid Pro order response structure");
     }
 
+    const created_at = raw.createdAt || raw.created_at || "";
+
     return {
         id: raw.id || raw.orderId || "",
-        symbol: raw.symbol || "",
-        side: raw.side || "buy",
-        type: raw.type || raw.orderType || "limit",
-        status: raw.status || "pending",
+        pair: normalizePairResponse(raw.symbol || raw.pair || DEFAULT_STRING),
+        side: (raw.side || "buy").toLowerCase() as "buy" | "sell",
+        type: (raw.type || raw.orderType || "limit").toLowerCase() as "limit" | "market" | "stop-limit",
+        status: (normalizeStatus(raw.status) || "pending") as
+            | "pending"
+            | "active"
+            | "partial"
+            | "completed"
+            | "cancelled"
+            | "expired",
         price: raw.price,
         amount: raw.amount || "0",
         filled: raw.filled || raw.filledAmount || "0",
         remaining: raw.remaining || raw.remainingAmount || "0",
-        created_at: raw.createdAt || raw.created_at || "",
+        created_at,
     };
 }
 
@@ -638,12 +888,14 @@ export function mapAccountInfoResponse(raw: unknown): AccountInfoResponse {
         throw new ValidationError("Invalid account info response structure");
     }
 
+    const created_at = raw.createdAt || raw.created_at || "";
+
     return {
         user_id: raw.userId || raw.id || "",
         email: raw.email || "",
         level: raw.level || raw.userLevel || "",
         kyc_status: raw.kycStatus || raw.kyc || "unknown",
-        created_at: raw.createdAt || raw.created_at || "",
+        created_at,
         features: {
             trading: raw.features?.trading ?? true,
             earn: raw.features?.earn ?? true,
@@ -664,30 +916,32 @@ export function mapEarnWalletDetailsResponse(raw: unknown): EarnWalletDetailsRes
         throw new ValidationError("Invalid earn wallet details response structure");
     }
 
+    const created_at = raw.createdAt || raw.created_at || "";
+
     return {
         id: raw.id || raw.walletId || "",
-        currency: raw.currency || "",
+        symbol: raw.currency || "",
         balance: raw.totalBalance || raw.balance || "0",
         strategy: raw.strategy || raw.type || "flexible",
-        apy: raw.apy || raw.currentApy || "0",
-        status: raw.status || "active",
-        created_at: raw.createdAt || raw.created_at || "",
+        status: (normalizeStatus(raw.status) || "active") as "active" | "inactive" | "pending",
+        created_at: created_at || undefined,
+        total_balance: raw.totalBalance,
     };
 }
 
 /**
- * Maps raw earn transactions summary to optimized schema
+ * Maps raw earn movements summary to optimized schema
  */
-export function mapEarnTransactionsSummaryResponse(raw: unknown): EarnTransactionsSummaryResponse {
+export function mapEarnMovementsSummaryResponse(raw: unknown): EarnMovementsSummaryResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError("Invalid earn transactions summary response structure");
+        throw new ValidationError("Invalid earn movements summary response structure");
     }
 
     return {
-        type: raw.type || "",
+        type: (raw.type || "").toLowerCase(),
         total_amount: raw.totalAmount || raw.total || "0",
         total_count: raw.totalCount || raw.count || 0,
-        currency: raw.currency || "",
+        symbol: (raw.currency || "").toUpperCase(),
     };
 }
 
@@ -699,7 +953,7 @@ export function mapEarnAssetsResponse(raw: unknown): EarnAssetsResponse {
     if (isValidObject(raw) && (raw.assets || raw.currencies)) {
         const assets = raw.assets || raw.currencies || [];
         return {
-            assets: Array.isArray(assets) ? assets : [],
+            symbols: Array.isArray(assets) ? assets : [],
         };
     }
 
@@ -708,13 +962,13 @@ export function mapEarnAssetsResponse(raw: unknown): EarnAssetsResponse {
     if (extracted.length > 0) {
         // Assuming extracted items are strings or objects with symbol
         return {
-            assets: extracted.map((item: any) =>
+            symbols: extracted.map((item: any) =>
                 typeof item === "string" ? item : item.symbol || item.currency || JSON.stringify(item)
             ),
         };
     }
 
-    return { assets: [] };
+    return { symbols: [] };
 }
 
 /**
@@ -725,31 +979,35 @@ export function mapEarnRewardsConfigResponse(raw: unknown): EarnRewardsConfigRes
     const asArray = extractArrayData(raw);
     if (asArray.length > 0) {
         return asArray.map((item) => ({
-            distribution_frequency: item.distributionFrequency || item.frequency || "daily",
-            minimum_balance: item.minimumBalance || item.minBalance || "0",
-            compounding: item.compounding ?? true,
+            wallet_id: item.walletId || item.wallet_id || "",
+            user_id: item.userId || item.user_id || "",
+            symbol: (item.currency || "").toUpperCase(),
+            lock_period_id: item.lockPeriodId || item.lock_period_id || null,
+            reward_symbol: (item.rewardCurrency || item.reward_currency || item.currency || "").toUpperCase(),
+            created_at: item.createdAt || item.created_at || "",
+            updated_at: item.updatedAt || item.updated_at || "",
         }));
     }
 
     // Fallback to single object if valid
     if (isValidObject(raw)) {
         return {
-            distribution_frequency: raw.distributionFrequency || raw.frequency || "daily",
-            minimum_balance: raw.minimumBalance || raw.minBalance || "0",
-            compounding: raw.compounding ?? true,
+            wallet_id: raw.walletId || raw.wallet_id || "",
+            user_id: raw.userId || raw.user_id || "",
+            symbol: (raw.currency || "").toUpperCase(),
+            lock_period_id: raw.lockPeriodId || raw.lock_period_id || null,
+            reward_symbol: (raw.rewardCurrency || raw.reward_currency || raw.currency || "").toUpperCase(),
+            created_at: raw.createdAt || raw.created_at || "",
+            updated_at: raw.updatedAt || raw.updated_at || "",
         };
     }
 
-    // Default empty
-    return {
-        distribution_frequency: "daily",
-        minimum_balance: "0",
-        compounding: true,
-    };
+    throw new ValidationError("Invalid earn rewards config response structure");
 }
 
 /**
- * Maps raw earn wallet rewards config to optimized schema
+ * Maps raw earn wallet rewards config to optimized schema.
+ * API: GET /v1/earn/wallets/{walletId}/rewards/config
  */
 export function mapEarnWalletRewardsConfigResponse(raw: unknown): EarnWalletRewardsConfigResponse {
     if (!isValidObject(raw)) {
@@ -757,27 +1015,37 @@ export function mapEarnWalletRewardsConfigResponse(raw: unknown): EarnWalletRewa
     }
 
     return {
-        wallet_id: raw.walletId || raw.id || "",
-        currency: raw.currency || "",
-        distribution_frequency: raw.distributionFrequency || raw.frequency || "daily",
-        next_distribution: raw.nextDistribution || raw.next || "",
+        wallet_id: raw.walletId || raw.wallet_id || "",
+        user_id: raw.userId || raw.user_id || "",
+        symbol: (raw.currency || "").toUpperCase(),
+        lock_period_id: raw.lockPeriodId || raw.lock_period_id || null,
+        reward_symbol: (raw.rewardCurrency || raw.reward_currency || raw.currency || "").toUpperCase(),
+        created_at: raw.createdAt || raw.created_at || "",
+        updated_at: raw.updatedAt || raw.updated_at || "",
     };
 }
 
 /**
- * Maps raw earn wallet rewards summary to optimized schema
+ * Maps raw earn wallet rewards summary to optimized schema.
+ * API: GET /v1/earn/wallets/{walletId}/rewards/summary
  */
 export function mapEarnWalletRewardsSummaryResponse(raw: unknown): EarnWalletRewardsSummaryResponse {
     if (!isValidObject(raw)) {
         throw new ValidationError("Invalid earn wallet rewards summary response structure");
     }
 
+    // Extract accumulatedRewards array (first element)
+    const accumulatedRewards = raw.accumulatedRewards || [];
+    const firstReward = Array.isArray(accumulatedRewards) && accumulatedRewards.length > 0 ? accumulatedRewards[0] : {};
+
+    // Extract totalConvertedReward object
+    const totalConvertedReward = raw.totalConvertedReward || {};
+
     return {
-        wallet_id: raw.walletId || raw.id || "",
-        currency: raw.currency || "",
-        total_rewards: raw.totalRewards || raw.total || "0",
-        last_reward: raw.lastReward || raw.last || "0",
-        last_reward_date: raw.lastRewardDate || raw.lastDate || "",
+        reward_symbol: (firstReward.currency || "").toUpperCase(),
+        reward_amount: firstReward.amount || "0",
+        reward_converted_symbol: (totalConvertedReward.currency || "").toUpperCase(),
+        reward_converted_amount: totalConvertedReward.amount || "0",
     };
 }
 
@@ -787,35 +1055,76 @@ export function mapEarnWalletRewardsSummaryResponse(raw: unknown): EarnWalletRew
 
 /**
  * Maps raw loan config response to optimized schema
+ * Returns guarantee currencies (collateral) and loan currencies (borrowing) as separate arrays
  */
-export function mapLoanConfigResponse(raw: unknown): LoanConfigResponse[] {
-    if (!isValidArray(raw)) {
-        return [];
+export function mapLoanConfigResponse(raw: unknown): LoanConfigResponse {
+    if (!isValidObject(raw)) {
+        return {
+            guarantee_currencies: [],
+            loan_currencies: [],
+        };
     }
 
-    return raw.map((config: any) => ({
-        currency: config.currency || "",
-        min_guarantee: config.minGuarantee || config.min || "0",
-        max_ltv: config.maxLtv || config.ltv || "0",
-        apr: config.apr || config.rate || "0",
-        available_as_guarantee: config.availableAsGuarantee ?? true,
-        available_as_loan: config.availableAsLoan ?? true,
-    }));
+    const loanCurrencies = Array.isArray(raw.loanCurrencies) ? raw.loanCurrencies : [];
+    const guaranteeCurrencies = Array.isArray(raw.guaranteeCurrencies) ? raw.guaranteeCurrencies : [];
+
+    return {
+        guarantee_currencies: guaranteeCurrencies
+            .map((item: any) => {
+                const symbol = (item.currency || "").toUpperCase();
+                if (!symbol) return null;
+                return {
+                    symbol,
+                    enabled: item.enabled ?? true,
+                    liquidation_ltv: String(item.liquidationLtv ?? item.liquidation_ltv ?? "0"),
+                    initial_ltv: String(item.initialLtv ?? item.initial_ltv ?? "0"),
+                    created_at: item.createdAt || item.created_at || "",
+                    updated_at: item.updatedAt || item.updated_at || "",
+                };
+            })
+            .filter((item): item is GuaranteeCurrencyConfig => item !== null),
+        loan_currencies: loanCurrencies
+            .map((item: any) => {
+                const symbol = (item.currency || "").toUpperCase();
+                if (!symbol) return null;
+                return {
+                    symbol,
+                    enabled: item.enabled ?? true,
+                    liquidity: String(item.liquidity ?? "0"),
+                    liquidity_status: item.liquidityStatus || item.liquidity_status || "",
+                    apr: String(item.apr ?? "0"),
+                    minimum_amount: String(item.minimumAmount ?? item.minimum_amount ?? "0"),
+                    maximum_amount: String(item.maximumAmount ?? item.maximum_amount ?? "0"),
+                    created_at: item.createdAt || item.created_at || "",
+                    updated_at: item.updatedAt || item.updated_at || "",
+                };
+            })
+            .filter((item): item is LoanCurrencyConfig => item !== null),
+    };
 }
 
 /**
  * Maps raw loan LTV calculation response to optimized schema
  */
-export function mapLoanLTVResponse(raw: unknown): LoanLTVResponse {
+/**
+ * Maps loan simulation response.
+ * LTV is a ratio where 1.0 = 100%.
+ */
+export function mapLoanSimulationResponse(raw: unknown): LoanSimulationResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError("Invalid loan LTV response structure");
+        throw new ValidationError("Invalid loan simulation response structure");
     }
 
     return {
-        ltv: raw.ltv || raw.loanToValue || "0",
-        max_loan_amount: raw.maxLoanAmount || raw.maxLoan || "0",
-        liquidation_price: raw.liquidationPrice || raw.liquidationPriceReference || "0",
-        health_factor: raw.healthFactor || raw.health || "1",
+        guarantee_symbol: (raw.guaranteeCurrency || "").toUpperCase(),
+        guarantee_amount: raw.guaranteeAmount || "0",
+        guarantee_amount_converted: raw.guaranteeAmountConverted || "0",
+        loan_symbol: (raw.loanCurrency || "").toUpperCase(),
+        loan_amount: raw.loanAmount || "0",
+        loan_amount_converted: raw.loanAmountConverted || "0",
+        user_symbol: (raw.userCurrency || "").toUpperCase(),
+        ltv: raw.ltv || "0",
+        apr: raw.apr || "0",
     };
 }
 
@@ -827,19 +1136,22 @@ export function mapLoanOrderDetailsResponse(raw: unknown): LoanOrderDetailsRespo
         throw new ValidationError("Invalid loan order details response structure");
     }
 
+    const created_at = raw.createdAt || raw.created_at || "";
+    const expires_at = raw.expiresAt || raw.expires_at || "";
+
     return {
-        order_id: raw.orderId || raw.id || "",
-        status: raw.status || "active",
-        guarantee_currency: raw.guaranteeCurrency || "",
+        id: raw.orderId || raw.id || "",
+        status: (normalizeStatus(raw.status) || "active") as "active" | "completed" | "expired",
+        guarantee_symbol: raw.guaranteeCurrency || "",
         guarantee_amount: raw.guaranteeAmount || "0",
-        loan_currency: raw.loanCurrency || "",
+        loan_symbol: raw.loanCurrency || "",
         loan_amount: raw.loanAmount || "0",
         remaining_amount: raw.remainingAmount || raw.remaining || "0",
         ltv: raw.ltv || "0",
         apr: raw.apr || "0",
         liquidation_price: raw.liquidationPriceReference || raw.liquidationPrice || "0",
-        created_at: raw.createdAt || raw.created_at || "",
-        expires_at: raw.expiresAt || raw.expires_at || "",
+        created_at,
+        expires_at,
         apr_details: raw.aprDetails
             ? {
                   base_apr: raw.aprDetails.baseApr || "0",
@@ -866,24 +1178,73 @@ export function mapProOpenOrdersResponse(raw: unknown): ProOpenOrdersResponse {
     const orders = isValidArray(raw) ? raw : (raw as any).orders || [];
 
     return {
-        orders: orders.map((order: any) => ({
-            id: order.id || order.orderId || "",
-            symbol: order.symbol || "",
-            side: order.side || "buy",
-            type: order.type || order.orderType || "limit",
-            status: order.status || "open",
-            price: order.price,
-            amount: order.amount || "0",
-            filled: order.filled || order.filledAmount || "0",
-            remaining: order.remaining || order.remainingAmount || "0",
-            created_at: order.createdAt || order.created_at || "",
-        })),
+        orders: orders.map((order: any) => {
+            const created_at = order.createdAt || order.created_at || "";
+            return {
+                id: order.id || order.orderId || "",
+                pair: normalizePairResponse(order.symbol || order.pair || ""),
+                side: order.side || "buy",
+                type: order.type || order.orderType || "limit",
+                status: order.status || "open",
+                price: order.price,
+                amount: order.amount || "0",
+                filled: order.filled || order.filledAmount || "0",
+                remaining: order.remaining || order.remainingAmount || "0",
+                created_at,
+            };
+        }),
     };
 }
 
 /**
- * Maps raw Pro order trades response to optimized schema
+ * Maps pro trades response.
+ * API returns: { count: number, data: [...trades] }
+ * @returns Object with count and mapped trades array
  */
+export function mapProTradesResponse(raw: unknown): { count: number; trades: ProTradeResponse[] } {
+    // Handle { count, data } structure from API
+    if (isValidObject(raw) && "data" in (raw as any)) {
+        const response = raw as { count?: number; data?: any[] };
+        const trades = Array.isArray(response.data) ? response.data : [];
+        return {
+            count: response.count || trades.length,
+            trades: trades.map(mapSingleTrade),
+        };
+    }
+
+    // Fallback: if raw is an array directly
+    if (isValidArray(raw)) {
+        return {
+            count: raw.length,
+            trades: raw.map(mapSingleTrade),
+        };
+    }
+
+    return { count: 0, trades: [] };
+}
+
+/**
+ * Maps a single trade object
+ */
+function mapSingleTrade(trade: any): ProTradeResponse {
+    const timestamp = trade.createdAt || trade.timestamp || trade.time || Date.now();
+    const { date } = formatTimestamp(timestamp);
+    return {
+        id: trade.id || trade.tradeId || "",
+        order_id: trade.orderId || "",
+        pair: normalizePairResponse(trade.symbol || trade.pair || ""),
+        side: (trade.side || "buy").toLowerCase() as "buy" | "sell",
+        order_type: (trade.orderType || "limit").toLowerCase() as "limit" | "market" | "stop-limit",
+        price: String(trade.price || "0"),
+        amount: String(trade.amount || trade.quantity || "0"),
+        cost: String(trade.cost || "0"),
+        fee: String(trade.feeAmount || trade.fee || "0"),
+        fee_symbol: (trade.feeCurrency || "").toUpperCase(),
+        is_maker: trade.isMaker || false,
+        date,
+    };
+}
+
 export function mapProOrderTradesResponse(raw: unknown): ProOrderTradesResponse {
     if (!isValidObject(raw)) {
         return { order_id: "", trades: [] };
@@ -893,16 +1254,20 @@ export function mapProOrderTradesResponse(raw: unknown): ProOrderTradesResponse 
 
     return {
         order_id: (raw as any).orderId || (raw as any).id || "",
-        trades: trades.map((trade: any) => ({
-            id: trade.id || trade.tradeId || "",
-            order_id: trade.orderId || "",
-            symbol: trade.symbol || "",
-            side: trade.side || "buy",
-            price: trade.price || "0",
-            amount: trade.amount || trade.quantity || "0",
-            fee: trade.fee || trade.feeAmount || "0",
-            timestamp: trade.timestamp || trade.time || Date.now(),
-        })),
+        trades: trades.map((trade: any) => {
+            const timestamp = trade.timestamp || trade.time || Date.now();
+            const { date } = formatTimestamp(timestamp);
+            return {
+                id: trade.id || trade.tradeId || "",
+                order_id: trade.orderId || "",
+                pair: normalizePairResponse(trade.symbol || trade.pair || ""),
+                side: (trade.side || "buy").toLowerCase() as "buy" | "sell",
+                price: trade.price || "0",
+                amount: trade.amount || trade.quantity || "0",
+                fee: trade.fee || trade.feeAmount || "0",
+                date,
+            };
+        }),
     };
 }
 
@@ -911,35 +1276,36 @@ export function mapProOrderTradesResponse(raw: unknown): ProOrderTradesResponse 
 // ============================================================================
 
 /**
- * Maps raw transaction confirmation to optimized schema
+ * Maps raw operation confirmation to optimized schema
  */
-export function mapTransactionConfirmationResponse(raw: unknown): TransactionConfirmationResponse {
+export function mapOperationConfirmationResponse(raw: unknown): OperationConfirmationResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError("Invalid transaction confirmation response structure");
+        throw new ValidationError("Invalid operation confirmation response structure");
     }
 
     return {
-        transaction_id: raw.id || raw.transactionId || "",
-        status: raw.status || "confirmed",
-        message: raw.message || "Transaction confirmed",
+        id: raw.id || raw.transactionId || raw.movementId || "",
+        status: normalizeStatus(raw.status) || "confirmed",
     };
 }
 
 /**
- * Maps raw earn create transaction response to optimized schema
+ * Maps raw earn deposit/withdraw response to optimized schema
  */
-export function mapEarnCreateTransactionResponse(raw: unknown): EarnCreateTransactionResponse {
+export function mapEarnOperationResponse(raw: unknown): EarnOperationResponse {
     if (!isValidObject(raw)) {
-        throw new ValidationError("Invalid earn transaction response structure");
+        throw new ValidationError("Invalid earn operation response structure");
     }
 
+    const opType = (raw.type as "deposit" | "withdrawal") || "deposit";
+
     return {
-        transaction_id: raw.id || raw.transactionId || "",
-        type: raw.type || "deposit",
-        currency: raw.currency || "",
+        id: raw.id || raw.transactionId || raw.movementId || "",
+        type: opType,
+        symbol: (raw.currency || "").toUpperCase(),
         amount: raw.amount || "0",
-        status: raw.status || "pending",
-        message: raw.message || "Transaction created",
+        status: normalizeStatus(raw.status) || "pending",
+        message: raw.message || "Operation created",
     };
 }
 
@@ -952,10 +1318,10 @@ export function mapProDepositResponse(raw: unknown): ProDepositResponse {
     }
 
     return {
-        transaction_id: raw.id || raw.transactionId || "",
-        currency: raw.currency || "",
+        id: raw.id || raw.transactionId || "",
+        symbol: (raw.currency || "").toUpperCase(),
         amount: raw.amount || "0",
-        status: raw.status || "completed",
+        status: normalizeStatus(raw.status) || "completed",
         message: raw.message || "Deposit successful",
     };
 }
@@ -969,10 +1335,10 @@ export function mapProWithdrawResponse(raw: unknown): ProWithdrawResponse {
     }
 
     return {
-        transaction_id: raw.id || raw.transactionId || "",
-        currency: raw.currency || "",
+        id: raw.id || raw.transactionId || "",
+        symbol: (raw.currency || "").toUpperCase(),
         amount: raw.amount || "0",
-        status: raw.status || "completed",
+        status: normalizeStatus(raw.status) || "completed",
         message: raw.message || "Withdrawal successful",
     };
 }
@@ -986,8 +1352,8 @@ export function mapProCancelOrderResponse(raw: unknown): ProCancelOrderResponse 
     }
 
     return {
-        order_id: raw.id || raw.orderId || "",
-        status: raw.status || "cancelled",
+        id: raw.id || raw.orderId || "",
+        status: normalizeStatus(raw.status) || "cancelled",
         message: raw.message || "Order cancelled",
     };
 }
@@ -1014,16 +1380,18 @@ export function mapLoanCreateResponse(raw: unknown): LoanCreateResponse {
         throw new ValidationError("Invalid loan create response structure");
     }
 
+    const created_at = raw.createdAt || raw.created_at || "";
+
     return {
-        order_id: raw.orderId || raw.id || "",
-        guarantee_currency: raw.guaranteeCurrency || "",
+        id: raw.orderId || raw.id || "",
+        guarantee_symbol: raw.guaranteeCurrency || "",
         guarantee_amount: raw.guaranteeAmount || "0",
-        loan_currency: raw.loanCurrency || "",
+        loan_symbol: raw.loanCurrency || "",
         loan_amount: raw.loanAmount || "0",
         ltv: raw.ltv || "0",
         apr: raw.apr || "0",
-        status: raw.status || "active",
-        created_at: raw.createdAt || raw.created_at || "",
+        status: normalizeStatus(raw.status) || "active",
+        created_at,
     };
 }
 
@@ -1036,10 +1404,10 @@ export function mapLoanIncreaseGuaranteeResponse(raw: unknown): LoanIncreaseGuar
     }
 
     return {
-        order_id: raw.orderId || raw.id || "",
+        id: raw.orderId || raw.id || "",
         new_guarantee_amount: raw.newGuaranteeAmount || raw.guaranteeAmount || "0",
         new_ltv: raw.newLtv || raw.ltv || "0",
-        status: raw.status || "updated",
+        status: normalizeStatus(raw.status) || "updated",
         message: raw.message || "Guarantee increased",
     };
 }
@@ -1053,18 +1421,18 @@ export function mapLoanPaybackResponse(raw: unknown): LoanPaybackResponse {
     }
 
     return {
-        order_id: raw.orderId || raw.id || "",
+        id: raw.orderId || raw.id || "",
         payback_amount: raw.paybackAmount || raw.amount || "0",
         remaining_amount: raw.remainingAmount || raw.remaining || "0",
-        status: raw.status || "updated",
+        status: normalizeStatus(raw.status) || "updated",
         message: raw.message || "Payment processed",
     };
 }
 
 export function mapCurrencyRateResponse(
     raw: unknown,
-    fiatCurrency: string = "USD",
-    filterSymbol?: string
+    quote_symbol: string = "USD",
+    base_symbol?: string
 ): CurrencyRateResponse[] {
     // API returns an array with an object containing { fiat: {...}, crypto: {...} }
     if (!Array.isArray(raw) || raw.length === 0) {
@@ -1080,12 +1448,12 @@ export function mapCurrencyRateResponse(
     const fiatRates = data.fiat as Record<string, number>;
 
     // Get the fiat rate (how many units of fiat per 1 USD)
-    const fiatRate = fiatRates[fiatCurrency] || 1;
+    const fiatRate = fiatRates[quote_symbol] || 1;
 
     const results: CurrencyRateResponse[] = [];
 
     // Helper to process a single symbol
-    const processSymbol = (symbol: string, cryptoRate: number) => {
+    const processSymbol = (base_sym: string, cryptoRate: number) => {
         if (!cryptoRate || cryptoRate === 0) return;
 
         // cryptoRate is how many units of crypto per 1 USD
@@ -1093,21 +1461,22 @@ export function mapCurrencyRateResponse(
         // Formula: (fiatRate / cryptoRate)
         const price = fiatRate / cryptoRate;
 
+        const { date } = formatTimestamp(Date.now());
         results.push({
-            symbol: symbol,
-            rate: smartRound(price).toString(),
-            currency: fiatCurrency,
-            timestamp: Date.now(),
+            base_symbol: base_sym,
+            price: smartRound(price).toString(),
+            quote_symbol: quote_symbol,
+            date,
         });
     };
 
-    if (filterSymbol) {
-        if (cryptoRates[filterSymbol]) {
-            processSymbol(filterSymbol, cryptoRates[filterSymbol]);
+    if (base_symbol) {
+        if (cryptoRates[base_symbol]) {
+            processSymbol(base_symbol, cryptoRates[base_symbol]);
         }
     } else {
-        Object.entries(cryptoRates).forEach(([symbol, rate]) => {
-            processSymbol(symbol, rate);
+        Object.entries(cryptoRates).forEach(([base_sym, rate]) => {
+            processSymbol(base_sym, rate);
         });
     }
 
