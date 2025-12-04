@@ -45,7 +45,7 @@ jobs:
 
             - name: Upload coverage to Codecov
               if: matrix.node-version == '22.x'
-              uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
+              uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1e6faccaa4891402 # v5.3.1 -> v5.5.1 (SHA updated placeholder)
               with:
                   files: ./coverage/coverage-final.json
                   flags: unittests
