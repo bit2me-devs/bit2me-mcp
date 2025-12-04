@@ -14,6 +14,7 @@
     "scripts": {
         "build": "tsc -p tsconfig.build.json",
         "build:llms": "node scripts/generate-llms.js",
+        "build:docs": "node scripts/generate-tools-docs.js",
         "prepublishOnly": "npm run build",
         "start": "node build/index.js",
         "dev": "node build/index.js",
