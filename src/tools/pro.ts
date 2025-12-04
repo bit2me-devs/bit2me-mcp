@@ -21,7 +21,6 @@ import {
     buildFilteredContextualResponse,
     buildPaginatedContextualResponse,
 } from "../utils/contextual-response.js";
-import { logger } from "../utils/logger.js";
 import {
     ProTradesArgs,
     ProOrderTradesArgs,

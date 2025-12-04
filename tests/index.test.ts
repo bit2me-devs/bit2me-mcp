@@ -66,7 +66,7 @@ describe("Server Entry Point", () => {
 
         // Verify Server construction
         expect(mockConstructor).toHaveBeenCalledWith(
-            { name: "bit2me-mcp-server", version: "1.6.3" },
+            { name: "bit2me-mcp-server", version: "1.7.0" },
             { capabilities: { tools: {}, prompts: {} } }
         );
 

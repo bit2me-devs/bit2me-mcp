@@ -41,7 +41,7 @@ jobs:
 
             - name: Notify on Failure (Scheduled)
               if: failure() && github.event_name == 'schedule'
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   script: |
                       github.rest.issues.create({
