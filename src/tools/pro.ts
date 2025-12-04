@@ -5,230 +5,462 @@ import {
     mapProBalanceResponse,
     mapProOrderTradesResponse,
     mapProOrderResponse,
+    mapProOpenOrdersResponse,
+    mapProTradesResponse,
     mapProCancelOrderResponse,
     mapProCancelAllOrdersResponse,
     mapProDepositResponse,
     mapProWithdrawResponse,
+    mapProMarketConfigResponse,
+    mapOrderBookResponse,
+    mapPublicTradesResponse,
+    mapCandlesResponse,
 } from "../utils/response-mappers.js";
+import {
+    buildSimpleContextualResponse,
+    buildFilteredContextualResponse,
+    buildPaginatedContextualResponse,
+} from "../utils/contextual-response.js";
+import { logger } from "../utils/logger.js";
+import {
+    ProTradesArgs,
+    ProOrderTradesArgs,
+    ProOrderDetailsArgs,
+    ProOpenOrdersArgs,
+    ProCreateOrderArgs,
+    ProCancelOrderArgs,
+    ProCancelAllOrdersArgs,
+    ProDepositArgs,
+    ProWithdrawArgs,
+    ProMarketConfigArgs,
+    ProOrderBookArgs,
+    ProPublicTradesArgs,
+    ProCandlesArgs,
+} from "../utils/args.js";
+import { executeTool } from "../utils/tool-wrapper.js";
+import { getCategoryTools } from "../utils/tool-metadata.js";
+import { cache } from "../utils/cache.js";
+import {
+    normalizeSymbol,
+    normalizePair,
+    validatePaginationLimit,
+    validatePaginationOffset,
+    validateUUID,
+    validatePair,
+    validateAmount,
+    validateISO8601,
+} from "../utils/format.js";
+import { MAX_PAGINATION_LIMIT } from "../constants.js";
+import { ValidationError } from "../utils/errors.js";
 
-export const proTools: Tool[] = [
-    {
-        name: "pro_get_balance",
-        description:
-            "Gets balances from PRO Trading account. This is separate from Simple Wallet - funds must be transferred using pro_deposit/pro_withdraw. Returns available and blocked balances per currency for trading.",
-        inputSchema: { type: "object", properties: {} },
-    },
-    {
-        name: "pro_get_transactions",
-        description:
-            "Gets the user's trade history in Pro Trading. Returns executed trades with price, amount, side (buy/sell), fees, and timestamp. Optional filters: symbol, limit, offset, and sort order (ASC/DESC). Use this to review past trading activity.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string", description: "Filter by symbol" },
-                limit: { type: "number" },
-                offset: { type: "number" },
-                sort: { type: "string", enum: ["ASC", "DESC"] },
-            },
-        },
-    },
-    {
-        name: "pro_get_order_trades",
-        description:
-            "Gets all individual trades (executions) associated with a specific order. Returns detailed execution data including price, amount, fees, and timestamp for each fill. Useful for analyzing how a large order was executed across multiple trades.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                orderId: { type: "string", description: "Order ID" },
-            },
-            required: ["orderId"],
-        },
-    },
-    {
-        name: "pro_get_order_details",
-        description:
-            "Gets detailed information of a specific Pro order. Returns order type, symbol, side, amount, price, status, filled amount, creation time, and execution details. Use pro_get_open_orders or pro_get_transactions first to get the order ID.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                orderId: { type: "string", description: "Order ID" },
-            },
-            required: ["orderId"],
-        },
-    },
-    {
-        name: "pro_get_open_orders",
-        description:
-            "View open trading orders in PRO. Returns all active orders (pending, partially filled). Optional symbol filter to see orders for a specific market. Use this to monitor order status after pro_create_order.",
-        inputSchema: {
-            type: "object",
-            properties: { symbol: { type: "string" } },
-        },
-    },
-    {
-        name: "pro_create_order",
-        description:
-            "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stopPrice' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string" },
-                side: { type: "string", enum: ["buy", "sell"] },
-                type: { type: "string", enum: ["limit", "market", "stop-limit"] },
-                amount: { type: "number" },
-                price: { type: "number", description: "Required for Limit/Stop" },
-                stopPrice: { type: "number", description: "Required for Stop-Limit" },
-            },
-            required: ["symbol", "side", "type", "amount"],
-        },
-    },
-    {
-        name: "pro_cancel_order",
-        description:
-            "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled.",
-        inputSchema: {
-            type: "object",
-            properties: { orderId: { type: "string" } },
-            required: ["orderId"],
-        },
-    },
-    {
-        name: "pro_cancel_all_orders",
-        description:
-            "Cancel all open orders in Pro Trading. Optional symbol filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string", description: "Filter by symbol (e.g., BTC/EUR)" },
-            },
-        },
-    },
-    {
-        name: "pro_deposit",
-        description:
-            "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                currency: { type: "string", description: "Currency (e.g., EUR, BTC)" },
-                amount: { type: "string", description: "Amount to transfer" },
-            },
-            required: ["currency", "amount"],
-        },
-    },
-    {
-        name: "pro_withdraw",
-        description:
-            "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                currency: { type: "string", description: "Currency (e.g., EUR, BTC)" },
-                amount: { type: "string", description: "Amount to transfer" },
-            },
-            required: ["currency", "amount"],
-        },
-    },
-];
+export const proTools: Tool[] = getCategoryTools("pro");
 
+/**
+ * Handles pro trading-related tool requests
+ * @param name - Name of the tool to execute
+ * @param args - Tool arguments
+ * @returns Tool response with optimized data
+ * @throws ValidationError if required parameters are missing or invalid
+ */
 export async function handleProTool(name: string, args: any) {
-    if (name === "pro_get_balance") {
-        const data = await bit2meRequest("GET", "/v1/trading/wallet/balance");
-        const optimized = mapProBalanceResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+    return executeTool(name, args, async () => {
+        if (name === "pro_get_balance") {
+            const requestContext = {};
+            const data = await bit2meRequest("GET", "/v1/trading/wallet/balance");
+            const optimized = mapProBalanceResponse(data);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "pro_get_transactions") {
-        const params: any = {};
-        if (args.symbol) params.symbol = args.symbol;
-        if (args.limit) params.limit = args.limit;
-        if (args.offset) params.offset = args.offset;
-        if (args.sort) params.sort = args.sort;
-        const data = await bit2meRequest("GET", "/v1/trading/trade", params);
-        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
-    }
+        if (name === "pro_get_trades") {
+            const params = args as ProTradesArgs;
+            // API max limit is 50 per documentation
+            const limit = validatePaginationLimit(params.limit, 50, "pro_get_trades");
+            const offset = validatePaginationOffset(params.offset);
 
-    if (name === "pro_get_order_trades") {
-        const data = await bit2meRequest("GET", `/v1/trading/order/${args.orderId}/trades`);
-        const optimized = mapProOrderTradesResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            const queryParams: any = {
+                limit,
+                offset,
+            };
+            if (params.pair) queryParams.symbol = normalizePair(params.pair);
+            if (params.sort) {
+                const validSorts = ["ASC", "DESC"];
+                const normalizedSort = params.sort.toUpperCase();
+                if (!validSorts.includes(normalizedSort)) {
+                    throw new ValidationError(`sort must be one of: ${validSorts.join(", ")}`, "sort", params.sort);
+                }
+                queryParams.sort = normalizedSort;
+            }
+            if (params.side) queryParams.side = params.side.toLowerCase();
+            if (params.order_type) queryParams.orderType = params.order_type.toLowerCase();
+            if (params.start_time) {
+                validateISO8601(params.start_time);
+                queryParams.startTime = params.start_time;
+            }
+            if (params.end_time) {
+                validateISO8601(params.end_time);
+                queryParams.endTime = params.end_time;
+            }
 
-    if (name === "pro_get_order_details") {
-        const data = await bit2meRequest("GET", `/v1/trading/order/${args.orderId}`);
-        const optimized = mapProOrderResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            const data = await bit2meRequest("GET", "/v1/trading/trade", queryParams);
+            const response = mapProTradesResponse(data);
 
-    if (name === "pro_get_open_orders") {
-        const params: any = { status: "open" };
-        if (args.symbol) params.symbol = args.symbol;
-        const data = await bit2meRequest("GET", "/v1/trading/order", params);
-        // Note: The previous implementation used mapProOpenOrdersResponse but pointed to /v1/trading/orders
-        // The one in operations used /v1/trading/order with status open.
-        // Let's use the response directly as in operations/index.ts or map it if possible.
-        // operations/index.ts returned raw data.
-        // But pro.ts had a mapProOpenOrdersResponse. Let's see if we can use it.
-        // For consistency with operations/index.ts which I'm replacing, I should probably stick to what operations was doing OR improve it.
-        // The previous pro.ts had: const data = await bit2meRequest("GET", "/v1/trading/orders", args);
-        // operations/index.ts had: const data = await bit2meRequest("GET", "/v1/trading/order", params);
-        // It seems there are two endpoints or one is wrong.
-        // Checking swagger would be ideal but I don't have it open.
-        // I will trust the operations implementation as it seems more specific (status: open).
-        // However, I will try to use the mapper if compatible.
-        // The original pro.ts implementation was probably just a placeholder or partial.
-        // I'll use the operations implementation for logic, and try to map it if I can, but operations didn't map it.
-        // So I'll return raw data for now as operations did, to be safe.
-        // Wait, pro.ts had mapProOpenOrdersResponse imported. I'll try to use it if it makes sense.
-        // But `mapProOpenOrdersResponse` expects a certain structure.
-        // I'll stick to the operations implementation for now which returns raw JSON.
-        return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
-    }
+            const requestContext: any = {
+                limit,
+                offset,
+            };
+            if (params.pair) requestContext.pair = normalizePair(params.pair);
+            if (params.side) requestContext.side = params.side.toLowerCase();
+            if (params.order_type) requestContext.order_type = params.order_type.toLowerCase();
+            if (params.sort) requestContext.sort = params.sort;
+            if (params.start_time) requestContext.start_time = params.start_time;
+            if (params.end_time) requestContext.end_time = params.end_time;
 
-    if (name === "pro_create_order") {
-        const body = {
-            symbol: args.symbol,
-            side: args.side,
-            orderType: args.type,
-            amount: args.amount,
-            price: args.price,
-            stopPrice: args.stopPrice,
-        };
-        const data = await bit2meRequest("POST", "/v1/trading/order", body);
-        const optimized = mapProOrderResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            const contextual = buildPaginatedContextualResponse(
+                requestContext,
+                response.trades,
+                {
+                    total_records: response.count,
+                    limit,
+                    offset,
+                    has_more: response.trades.length === limit,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "pro_cancel_order") {
-        const data = await bit2meRequest("DELETE", `/v1/trading/order/${args.orderId}`);
-        const optimized = mapProCancelOrderResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+        if (name === "pro_get_order_trades") {
+            const params = args as ProOrderTradesArgs;
+            if (!params.order_id) {
+                throw new ValidationError("order_id is required", "order_id");
+            }
+            validateUUID(params.order_id, "order_id");
+            const requestContext = {
+                order_id: params.order_id,
+            };
+            const data = await bit2meRequest("GET", `/v1/trading/order/${encodeURIComponent(params.order_id)}/trades`);
+            const optimized = mapProOrderTradesResponse(data);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized.trades,
+                {
+                    total_records: optimized.trades.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "pro_cancel_all_orders") {
-        const params = args.symbol ? { symbol: args.symbol } : {};
-        const data = await bit2meRequest("DELETE", "/v1/trading/orders", params);
-        const optimized = mapProCancelAllOrdersResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+        if (name === "pro_get_order_details") {
+            const params = args as ProOrderDetailsArgs;
+            if (!params.order_id) {
+                throw new ValidationError("order_id is required", "order_id");
+            }
+            validateUUID(params.order_id, "order_id");
+            const requestContext = {
+                order_id: params.order_id,
+            };
+            const data = await bit2meRequest("GET", `/v1/trading/order/${encodeURIComponent(params.order_id)}`);
+            const optimized = mapProOrderResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "pro_deposit") {
-        const data = await bit2meRequest("POST", "/v1/trading/wallet/deposit", {
-            currency: args.currency,
-            amount: args.amount,
-        });
-        const optimized = mapProDepositResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+        if (name === "pro_get_open_orders") {
+            const params = args as ProOpenOrdersArgs;
+            const queryParams: any = { status: "open" };
+            const requestContext: any = {};
+            if (params.pair) {
+                validatePair(params.pair);
+                const pair = normalizePair(params.pair);
+                queryParams.symbol = pair;
+                requestContext.pair = pair;
+            }
+            const data = await bit2meRequest("GET", "/v1/trading/order", queryParams);
+            const optimized = mapProOpenOrdersResponse(data);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized.orders,
+                {
+                    total_records: optimized.orders.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "pro_withdraw") {
-        const data = await bit2meRequest("POST", "/v1/trading/wallet/withdraw", {
-            currency: args.currency,
-            amount: args.amount,
-        });
-        const optimized = mapProWithdrawResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+        if (name === "pro_create_order") {
+            const params = args as ProCreateOrderArgs;
+            if (!params.pair) {
+                throw new ValidationError("pair is required", "pair");
+            }
+            if (!params.side) {
+                throw new ValidationError("side is required", "side");
+            }
+            if (!params.type) {
+                throw new ValidationError("type is required", "type");
+            }
+            if (!params.amount) {
+                throw new ValidationError("amount is required", "amount");
+            }
+            // Validate side against allowed values
+            const validSides = ["buy", "sell"];
+            const normalizedSide = params.side.toLowerCase();
+            if (!validSides.includes(normalizedSide)) {
+                throw new ValidationError(`side must be one of: ${validSides.join(", ")}`, "side", params.side);
+            }
+            // Validate type against allowed values
+            const validTypes = ["limit", "market", "stop-limit"];
+            const normalizedType = params.type.toLowerCase();
+            if (!validTypes.includes(normalizedType)) {
+                throw new ValidationError(`type must be one of: ${validTypes.join(", ")}`, "type", params.type);
+            }
+            // Validate price requirements based on order type
+            if ((normalizedType === "limit" || normalizedType === "stop-limit") && !params.price) {
+                throw new ValidationError("price is required for limit and stop-limit orders", "price");
+            }
+            if (normalizedType === "stop-limit" && !params.stop_price) {
+                throw new ValidationError("stop_price is required for stop-limit orders", "stop_price");
+            }
+            validatePair(params.pair);
+            validateAmount(params.amount, "amount");
+            const pair = normalizePair(params.pair);
+            const body = {
+                symbol: pair,
+                side: normalizedSide,
+                orderType: normalizedType,
+                amount: params.amount,
+                price: params.price,
+                stopPrice: params.stop_price,
+            };
+            const requestContext: any = {
+                pair,
+                side: normalizedSide,
+                type: normalizedType,
+                amount: params.amount,
+            };
+            if (params.price) requestContext.price = params.price;
+            if (params.stop_price) requestContext.stop_price = params.stop_price;
+            const data = await bit2meRequest("POST", "/v1/trading/order", body);
+            const optimized = mapProOrderResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    throw new Error(`Unknown pro tool: ${name}`);
+        if (name === "pro_cancel_order") {
+            const params = args as ProCancelOrderArgs;
+            if (!params.order_id) {
+                throw new ValidationError("order_id is required", "order_id");
+            }
+            validateUUID(params.order_id, "order_id");
+            const requestContext = {
+                order_id: params.order_id,
+            };
+            const data = await bit2meRequest("DELETE", `/v1/trading/order/${encodeURIComponent(params.order_id)}`);
+            const optimized = mapProCancelOrderResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "pro_cancel_all_orders") {
+            const params = args as ProCancelAllOrdersArgs;
+            const queryParams: any = {};
+            const requestContext: any = {};
+            if (params.pair) {
+                validatePair(params.pair);
+                const pair = normalizePair(params.pair);
+                queryParams.symbol = pair;
+                requestContext.pair = pair;
+            }
+            // Endpoint is DELETE /v1/trading/order (singular) with query params
+            const data = await bit2meRequest("DELETE", "/v1/trading/order", queryParams);
+            const optimized = mapProCancelAllOrdersResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "pro_deposit") {
+            const params = args as ProDepositArgs;
+            if (!params.symbol) {
+                throw new ValidationError("symbol is required", "symbol");
+            }
+            if (!params.amount) {
+                throw new ValidationError("amount is required", "amount");
+            }
+            validateAmount(params.amount, "amount");
+            const symbol = normalizeSymbol(params.symbol);
+            const requestContext = {
+                symbol,
+                amount: params.amount,
+            };
+            const data = await bit2meRequest("POST", "/v1/trading/wallet/deposit", {
+                currency: symbol,
+                amount: params.amount,
+            });
+            const optimized = mapProDepositResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "pro_withdraw") {
+            const params = args as ProWithdrawArgs;
+            if (!params.symbol) {
+                throw new ValidationError("symbol is required", "symbol");
+            }
+            if (!params.amount) {
+                throw new ValidationError("amount is required", "amount");
+            }
+            validateAmount(params.amount, "amount");
+            if (params.to_pocket_id) {
+                validateUUID(params.to_pocket_id, "to_pocket_id");
+            }
+            const symbol = normalizeSymbol(params.symbol);
+            const body: any = {
+                currency: symbol,
+                amount: params.amount,
+            };
+            if (params.to_pocket_id) {
+                body.toPocketId = params.to_pocket_id;
+            }
+
+            const requestContext: any = {
+                symbol,
+                amount: params.amount,
+            };
+            if (params.to_pocket_id) {
+                requestContext.to_pocket_id = params.to_pocket_id;
+            }
+            const data = await bit2meRequest("POST", "/v1/trading/wallet/withdraw", body);
+            const optimized = mapProWithdrawResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "pro_get_market_config") {
+            const params = args as ProMarketConfigArgs;
+            const queryParams: any = {};
+            if (params.pair) queryParams.symbol = normalizePair(params.pair);
+
+            const cacheKey = `market_config:${JSON.stringify(queryParams)}`;
+            const cachedData = cache.get(cacheKey);
+
+            let data;
+            if (cachedData) {
+                data = cachedData;
+            } else {
+                data = await bit2meRequest("GET", "/v1/trading/market-config", queryParams);
+                cache.set(cacheKey, data, 600); // 10 minutes cache
+            }
+
+            const requestContext: any = {};
+            if (params.pair) {
+                requestContext.pair = normalizePair(params.pair);
+            }
+            const optimized = mapProMarketConfigResponse(data);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "pro_get_order_book") {
+            const params = args as ProOrderBookArgs;
+            if (!params.pair) {
+                throw new ValidationError("pair is required", "pair");
+            }
+            validatePair(params.pair);
+            const pair = normalizePair(params.pair);
+            const requestContext = {
+                pair,
+            };
+            const data = await bit2meRequest("GET", "/v2/trading/order-book", { symbol: pair });
+            const optimized = mapOrderBookResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "pro_get_public_trades") {
+            const params = args as ProPublicTradesArgs;
+            if (!params.pair) {
+                throw new ValidationError("pair is required", "pair");
+            }
+            validatePair(params.pair);
+            const pair = normalizePair(params.pair);
+            const limit = params.limit ? validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT) : undefined;
+            const queryParams: any = { symbol: pair };
+            if (limit) queryParams.limit = limit;
+            if (params.sort) queryParams.sort = params.sort;
+            const data = await bit2meRequest("GET", "/v1/trading/trade/last", queryParams);
+            const optimized = mapPublicTradesResponse(data);
+
+            const requestContext: any = {
+                pair,
+            };
+            if (limit) requestContext.limit = limit;
+            if (params.sort) requestContext.sort = params.sort;
+
+            const contextual = buildPaginatedContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                    limit: limit || 100, // Default max is usually 100 for this endpoint
+                    sort: params.sort || "DESC", // Default sort
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "pro_get_candles") {
+            const params = args as ProCandlesArgs;
+            if (!params.pair) {
+                throw new ValidationError("pair is required", "pair");
+            }
+            if (!params.timeframe) {
+                throw new ValidationError("timeframe is required", "timeframe");
+            }
+            validatePair(params.pair);
+            const pair = normalizePair(params.pair);
+            const limit = params.limit ? validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT) : undefined;
+            const queryParams: any = { symbol: pair, timeframe: params.timeframe };
+            if (limit) queryParams.limit = limit;
+            const data = await bit2meRequest("GET", "/v1/trading/candle", queryParams);
+            const optimized = mapCandlesResponse(data);
+
+            const requestContext: any = {
+                pair,
+                timeframe: params.timeframe,
+            };
+            if (limit) requestContext.limit = limit;
+
+            const contextual = buildPaginatedContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                    limit: limit || optimized.length,
+                    timeframe: params.timeframe,
+                    pair: pair,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        throw new Error(`Unknown pro tool: ${name}`);
+    });
 }

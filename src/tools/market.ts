@@ -1,271 +1,221 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import axios from "axios";
-import { BIT2ME_GATEWAY_URL } from "../config.js";
-import { getTicker } from "../services/bit2me.js";
+import { bit2meRequest, getTicker } from "../services/bit2me.js";
+import { mapTickerResponse, mapAssetsResponse, mapCurrencyRateResponse } from "../utils/response-mappers.js";
+import { buildSimpleContextualResponse, buildFilteredContextualResponse } from "../utils/contextual-response.js";
+import { MarketTickerArgs, MarketChartArgs, MarketAssetsDetailsArgs, MarketCurrencyRateArgs } from "../utils/args.js";
+import { executeTool } from "../utils/tool-wrapper.js";
+import { cache } from "../utils/cache.js";
 import {
-    mapTickerResponse,
-    mapAssetsResponse,
-    mapMarketConfigResponse,
-    mapOrderBookResponse,
-    mapPublicTradesResponse,
-    mapCandlesResponse,
-    mapCurrencyRateResponse,
-    wrapResponseWithRaw,
-} from "../utils/response-mappers.js";
-import { smartRound } from "../utils/format.js";
+    smartRound,
+    formatTimestamp,
+    normalizeSymbol,
+    normalizePair,
+    validatePair,
+    validateSymbol,
+    validateFiat,
+} from "../utils/format.js";
+import { NotFoundError, ValidationError } from "../utils/errors.js";
+import { getCategoryTools } from "../utils/tool-metadata.js";
 
-const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
+export const marketTools: Tool[] = getCategoryTools("market");
 
-export const marketTools: Tool[] = [
-    {
-        name: "market_get_currency_rate",
-        description:
-            "Get exchange rates for cryptocurrencies in a specific fiat currency and date. Returns the price of one unit of the crypto in the requested fiat currency.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                fiat_currency: { type: "string", description: "Target fiat currency (e.g., EUR, USD)", default: "USD" },
-                symbol: { type: "string", description: "Filter by specific crypto symbol (e.g., BTC)" },
-                date: { type: "string", description: "Timestamp or date string (ISO 8601) for historical rates" },
-            },
-        },
-    },
-    {
-        name: "market_get_ticker",
-        description:
-            "Gets current price, 24h volume, market highs and lows for a cryptocurrency. Specify symbol (e.g., BTC) and optional base currency (default: EUR). Returns price, volume, market cap, and supply information.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string", description: "Crypto symbol (e.g., BTC, ETH, DOGE)" },
-                currency: { type: "string", description: "Base currency (e.g., EUR, USD)", default: "EUR" },
-            },
-            required: ["symbol"],
-        },
-    },
-    {
-        name: "market_get_chart",
-        description:
-            "Gets price history (candles/chart) with timestamp, USD price, and Fiat price. Requires pair (e.g., BTC/EUR) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns data points with dates and prices in both USD and the fiat currency from the ticker.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                pair: { type: "string", description: "Pair (e.g., BTC/EUR)" },
-                timeframe: { type: "string", enum: ["one-hour", "one-day", "one-week", "one-month", "one-year"] },
-            },
-            required: ["pair", "timeframe"],
-        },
-    },
-    {
-        name: "market_get_assets",
-        description:
-            "Gets all available assets (cryptocurrencies) supported by Bit2Me. Returns symbol, name, asset type, network, trading status, and supported pairs. Use this to discover available currencies before trading or checking prices.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                includeTestnet: { type: "boolean", description: "Include testnet assets" },
-                showExchange: { type: "boolean", description: "Include exchange property" },
-            },
-        },
-    },
-    {
-        name: "market_get_asset_details",
-        description:
-            "Gets detailed information of a specific asset by its symbol. Returns asset type, network, trading status, loan availability, and supported trading pairs. Use this to verify if an asset is tradeable or loanable before operations.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string", description: "Asset symbol (e.g., BTC, ETH)" },
-                showExchange: { type: "boolean", description: "Include exchange property" },
-            },
-            required: ["symbol"],
-        },
-    },
-    {
-        name: "market_get_config",
-        description:
-            "Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional symbol filter for a specific market. Use this before placing orders to ensure amounts meet requirements.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string", description: "Filter by market symbol (e.g., BTC/EUR)" },
-            },
-        },
-    },
-    {
-        name: "market_get_order_book",
-        description:
-            "Gets the order book (market depth) for a market showing current buy and sell orders. Returns bids (buy orders) and asks (sell orders) with prices and amounts. Useful for analyzing market liquidity and determining optimal order prices.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" },
-            },
-            required: ["symbol"],
-        },
-    },
-    {
-        name: "market_get_public_trades",
-        description:
-            "Gets the latest public trades (executed orders) for a market. Returns recent transactions with price, amount, side (buy/sell), and timestamp. Optional limit (max 100) and sort order (ASC/DESC). Useful for seeing recent market activity.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" },
-                limit: { type: "number", description: "Result limit (max 100)" },
-                sort: { type: "string", enum: ["ASC", "DESC"], description: "Sort order" },
-            },
-            required: ["symbol"],
-        },
-    },
-    {
-        name: "market_get_candles",
-        description:
-            "Gets OHLCV (Open, High, Low, Close, Volume) candles for Trading Pro. Returns price data in specified timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M). Optional limit to control number of candles. Essential for technical analysis and charting.",
-        inputSchema: {
-            type: "object",
-            properties: {
-                symbol: { type: "string", description: "Market symbol (e.g., BTC/EUR)" },
-                timeframe: {
-                    type: "string",
-                    enum: ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1M"],
-                    description: "Timeframe",
-                },
-                limit: { type: "number", description: "Candle limit" },
-            },
-            required: ["symbol", "timeframe"],
-        },
-    },
-];
-
+/**
+ * Handles market-related tool requests
+ * @param name - Name of the tool to execute
+ * @param args - Tool arguments
+ * @returns Tool response with optimized data
+ * @throws ValidationError if required parameters are missing or invalid
+ * @throws NotFoundError if requested resource is not found
+ */
 export async function handleMarketTool(name: string, args: any) {
-    if (name === "market_get_ticker") {
-        const currency = (args.currency || "EUR").toUpperCase();
-        const symbol = args.symbol.toUpperCase();
-
-        try {
-            const tickerData = await getTicker(symbol, currency);
-            if (tickerData) {
-                const optimized = mapTickerResponse(tickerData);
-                const wrapped = wrapResponseWithRaw(optimized, tickerData);
-                return { content: [{ type: "text", text: JSON.stringify(wrapped, null, 2) }] };
+    return executeTool(name, args, async () => {
+        if (name === "market_get_data") {
+            const typedArgs = args as MarketTickerArgs; // This type is still correct for market_get_data
+            if (!typedArgs.base_symbol) {
+                throw new ValidationError("base_symbol is required", "base_symbol");
             }
-            return { content: [{ type: "text", text: "Ticker not found" }] };
-        } catch (error: any) {
-            return { content: [{ type: "text", text: `Error fetching ticker: ${error.message}` }] };
+            validateSymbol(args.base_symbol);
+            const quote_symbol = normalizeSymbol(args.quote_symbol || "EUR");
+            if (args.quote_symbol) {
+                validateFiat(args.quote_symbol);
+            }
+            const base_symbol = normalizeSymbol(args.base_symbol);
+
+            try {
+                const tickerData = await getTicker(base_symbol, quote_symbol);
+                if (tickerData) {
+                    const optimized = mapTickerResponse(tickerData, base_symbol, quote_symbol);
+                    const requestContext = {
+                        base_symbol,
+                        quote_symbol,
+                    };
+                    const contextual = buildSimpleContextualResponse(requestContext, optimized, tickerData);
+                    return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+                }
+                throw new NotFoundError("/v3/currency/ticker", `Ticker for ${base_symbol}/${quote_symbol}`);
+            } catch (error: any) {
+                if (error instanceof NotFoundError) {
+                    throw error;
+                }
+                throw new Error(`Error fetching ticker: ${error.message}`);
+            }
         }
-    }
 
-    if (name === "market_get_chart") {
-        try {
-            const res = await axios.get(`${BIT2ME_BASE_URL}/v3/currency/chart`, {
-                params: { ticker: args.pair, temporality: args.timeframe },
-            });
-
-            // Process chart data to make it more readable
-            // API Format: [timestamp, usdPerUnit, eurUsdRate]
-            // usdPerUnit: how many USD is 1 unit of crypto worth (e.g., 0.00001 = $100,000 per BTC)
-            // eurUsdRate: EUR/USD conversion rate (e.g., 0.86 = 1 EUR = 0.86 USD)
-
-            const rawData = Array.isArray(res.data) ? res.data : [];
-
-            if (rawData.length === 0) {
-                return { content: [{ type: "text", text: JSON.stringify({ error: "No data available" }) }] };
+        if (name === "market_get_chart") {
+            if (!args.pair) {
+                throw new ValidationError("pair is required", "pair");
             }
+            if (!args.timeframe) {
+                throw new ValidationError("timeframe is required", "timeframe");
+            }
+            validatePair(args.pair);
+            try {
+                const pair = normalizePair(args.pair);
+                const rawData = await bit2meRequest<any[]>("GET", "/v3/currency/chart", {
+                    ticker: pair,
+                    temporality: args.timeframe,
+                });
 
-            const [, fiat] = args.pair.split("/");
+                // Process chart data to make it more readable
+                // API Format: [timestamp, usdPerUnit, eurUsdRate]
+                // usdPerUnit: how many USD is 1 unit of crypto worth (e.g., 0.00001 = $100,000 per BTC)
+                // eurUsdRate: EUR/USD conversion rate (e.g., 0.86 = 1 EUR = 0.86 USD)
 
-            const processedData = rawData.map((entry: any[]) => {
-                const timestamp = entry[0];
-                const usdPerUnit = entry[1];
-                const eurUsdRate = entry[2] || 1; // Default to 1 if not provided
+                const data = Array.isArray(rawData) ? rawData : [];
+                const [, quote_symbol] = pair.split("/");
+                const requestContext = {
+                    pair,
+                    timeframe: args.timeframe,
+                };
 
-                // Calculate price in USD: 1 / usdPerUnit
-                const priceUSD = 1 / usdPerUnit;
-
-                // Calculate price in target currency
-                let priceFiat = priceUSD;
-                if (fiat === "EUR") {
-                    priceFiat = priceUSD * eurUsdRate;
+                // Return empty array instead of error when no data
+                if (data.length === 0) {
+                    const contextual = buildFilteredContextualResponse(
+                        requestContext,
+                        [],
+                        {
+                            total_records: 0,
+                        },
+                        rawData
+                    );
+                    return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
                 }
 
-                return {
-                    timestamp: timestamp,
-                    date: new Date(timestamp).toISOString(),
-                    price_usd: smartRound(priceUSD),
-                    price_fiat: smartRound(priceFiat),
-                    currency: fiat,
-                };
-            });
+                const processedData = data.map((entry: any[]) => {
+                    const timestamp = entry[0];
+                    const usdPerUnit = entry[1];
+                    const eurUsdRate = entry[2] || 1; // Default to 1 if not provided
 
-            return { content: [{ type: "text", text: JSON.stringify(processedData, null, 2) }] };
-        } catch (error: any) {
-            // If processing fails, return error with more context
-            const errorMsg = error.response?.data || error.message;
-            throw new Error(`Error in get_crypto_chart: ${JSON.stringify(errorMsg)}`);
+                    // Calculate price in USD: 1 / usdPerUnit
+                    const priceUSD = 1 / usdPerUnit;
+
+                    // Calculate price in target currency
+                    let priceFiat = priceUSD;
+                    if (quote_symbol === "EUR") {
+                        priceFiat = priceUSD * eurUsdRate;
+                    }
+
+                    const { date } = formatTimestamp(timestamp);
+
+                    // Use the fiat price as the main price
+                    // Remove quote_symbol from individual items since it's in request context
+                    return {
+                        date,
+                        price: smartRound(priceFiat).toString(),
+                    };
+                });
+
+                const contextual = buildFilteredContextualResponse(
+                    requestContext,
+                    processedData,
+                    {
+                        total_records: processedData.length,
+                    },
+                    rawData
+                );
+                return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+            } catch (error: any) {
+                // If processing fails, return error with more context
+                const errorMsg = error.response?.data || error.message;
+                throw new Error(`Error in get_crypto_chart: ${JSON.stringify(errorMsg)}`);
+            }
         }
-    }
 
-    if (name === "market_get_assets") {
-        const params: any = {};
-        if (args.includeTestnet !== undefined) params.includeTestnet = args.includeTestnet;
-        if (args.showExchange !== undefined) params.showExchange = args.showExchange;
+        if (name === "market_get_assets_details") {
+            const params: any = {};
+            if (args.include_testnet !== undefined) params.includeTestnet = args.include_testnet;
+            if (args.show_exchange !== undefined) params.showExchange = args.show_exchange;
 
-        const res = await axios.get(`${BIT2ME_BASE_URL}/v2/currency/assets`, { params });
-        const optimized = mapAssetsResponse(res.data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            const requestContext: any = {
+                include_testnet: args.include_testnet ?? false,
+                show_exchange: args.show_exchange ?? false,
+            };
 
-    if (name === "market_get_asset_details") {
-        const params: any = {};
-        if (args.showExchange !== undefined) params.showExchange = args.showExchange;
+            // If symbol is provided, get specific asset details
+            if (args.symbol) {
+                validateSymbol(args.symbol);
+                const symbol = normalizeSymbol(args.symbol);
+                requestContext.symbol = symbol;
+                const data = await bit2meRequest("GET", `/v2/currency/assets/${encodeURIComponent(symbol)}`, params);
+                // For single asset, wrap in object and extract first item
+                const asArray = mapAssetsResponse({ [symbol]: data });
+                const contextual = buildSimpleContextualResponse(requestContext, asArray[0], data);
+                return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+            }
 
-        const res = await axios.get(`${BIT2ME_BASE_URL}/v2/currency/assets/${args.symbol}`, { params });
-        // For single asset, wrap in object and extract first item
-        const asArray = mapAssetsResponse({ [args.symbol]: res.data });
-        return { content: [{ type: "text", text: JSON.stringify(asArray[0], null, 2) }] };
-    }
+            // If no symbol, get all assets
+            const cacheKey = `market_assets:${JSON.stringify(params)}`;
+            const cachedData = cache.get(cacheKey);
 
-    if (name === "market_get_config") {
-        const params: any = {};
-        if (args.symbol) params.symbol = args.symbol;
-        const res = await axios.get(`${BIT2ME_BASE_URL}/v1/trading/market-config`, { params });
-        const optimized = mapMarketConfigResponse(res.data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            let data;
+            if (cachedData) {
+                data = cachedData;
+            } else {
+                data = await bit2meRequest("GET", "/v2/currency/assets", params);
+                cache.set(cacheKey, data, 3600); // 1 hour cache
+            }
 
-    if (name === "market_get_order_book") {
-        const res = await axios.get(`${BIT2ME_BASE_URL}/v2/trading/order-book`, { params: { symbol: args.symbol } });
-        const optimized = mapOrderBookResponse(res.data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            const optimized = mapAssetsResponse(data);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "market_get_public_trades") {
-        const params: any = { symbol: args.symbol };
-        if (args.limit) params.limit = args.limit;
-        if (args.sort) params.sort = args.sort;
-        const res = await axios.get(`${BIT2ME_BASE_URL}/v1/trading/trade/last`, { params });
-        const optimized = mapPublicTradesResponse(res.data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+        if (name === "market_get_ticker") {
+            const params: any = {};
+            if (args.date) params.time = args.date;
 
-    if (name === "market_get_candles") {
-        const params: any = { symbol: args.symbol, timeframe: args.timeframe };
-        if (args.limit) params.limit = args.limit;
-        const res = await axios.get(`${BIT2ME_BASE_URL}/v1/trading/candle`, { params });
-        const optimized = mapCandlesResponse(res.data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
+            const quote_symbol = normalizeSymbol(args.quote_symbol || "USD");
+            const base_symbol = args.base_symbol ? normalizeSymbol(args.base_symbol) : undefined;
+            const requestContext: any = {
+                quote_symbol,
+            };
+            if (base_symbol) {
+                requestContext.base_symbol = base_symbol;
+            }
+            if (args.date) {
+                requestContext.date = args.date;
+            }
+            const data = await bit2meRequest("GET", "/v1/currency/rate", params);
+            const optimized = mapCurrencyRateResponse(data, quote_symbol, base_symbol);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
 
-    if (name === "market_get_currency_rate") {
-        const params: any = {};
-        if (args.date) params.time = args.date;
-
-        const res = await axios.get(`${BIT2ME_BASE_URL}/v1/currency/rate`, { params });
-        const optimized = mapCurrencyRateResponse(res.data, args.fiat_currency, args.symbol);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
-
-    throw new Error(`Unknown market tool: ${name}`);
+        throw new Error(`Unknown market tool: ${name}`);
+    });
 }
