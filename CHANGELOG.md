@@ -1,3 +1,34 @@
+# [1.8.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.7.0...v1.8.0) (2025-12-04)
+
+### Bug Fixes
+
+- **ci:** update codecov action to valid version ([6b6d4e5](https://github.com/bit2me-devs/bit2me-mcp/commit/6b6d4e5c374d5445fa51ae16efad84eb0d9b8731))
+- correct API endpoints for wallet and earn tools ([ef1f892](https://github.com/bit2me-devs/bit2me-mcp/commit/ef1f892e1f9d920dbba5f2272329098cb4a4d0b5))
+- correct mapCurrencyRateResponse for actual API structure ([262e376](https://github.com/bit2me-devs/bit2me-mcp/commit/262e37655f39264adb45c7057f67a1d3068ab155))
+- earn_get_summary response format and remove apy ([75ab614](https://github.com/bit2me-devs/bit2me-mcp/commit/75ab614578909961a7d631d13a31ba852da832a8))
+- extract transactions array from v2 API response ([8454b89](https://github.com/bit2me-devs/bit2me-mcp/commit/8454b8955b3b108a568d3cab565e7a8a0cb87567))
+- handle nested array response in earn_get_summary ([5f95bd9](https://github.com/bit2me-devs/bit2me-mcp/commit/5f95bd91744e285c4c74661af051f2fe2f32a567))
+- handle nested data structure in earn_get_wallets and ignore docs/ ([b75cbad](https://github.com/bit2me-devs/bit2me-mcp/commit/b75cbad56d7f38c4814357bb1003c1073bb837f8))
+- **market:** remove chart data limit and rename ticker parameter to pair ([b58308b](https://github.com/bit2me-devs/bit2me-mcp/commit/b58308b0c3ab42af5f958e56eead4c7bfbbb0675))
+- pin all GitHub Actions to specific commit SHAs ([b2c9db4](https://github.com/bit2me-devs/bit2me-mcp/commit/b2c9db42bb9e0eb3f786e8a5642774fd4b5341fa))
+- remove redundant null check in mapEarnSummaryResponse ([2ca291e](https://github.com/bit2me-devs/bit2me-mcp/commit/2ca291e76edd657250594f9ef869ea718befe700))
+- remove unused imports and improve type checking ([f11b881](https://github.com/bit2me-devs/bit2me-mcp/commit/f11b881763b497ba36ffbfae53b7ada6445aab1b))
+- remove unused type imports from market.ts ([f87d39c](https://github.com/bit2me-devs/bit2me-mcp/commit/f87d39c5ebc4258d757322e1f3064565ee684dd5))
+- resolve CodeQL warnings ([b155ee8](https://github.com/bit2me-devs/bit2me-mcp/commit/b155ee87bd80b71623e88eb9084ccdd0ea9eb8dc)), closes [#59](https://github.com/bit2me-devs/bit2me-mcp/issues/59) [#70](https://github.com/bit2me-devs/bit2me-mcp/issues/70) [#77](https://github.com/bit2me-devs/bit2me-mcp/issues/77)
+- resolve security and code quality issues ([9346c46](https://github.com/bit2me-devs/bit2me-mcp/commit/9346c46a3c39b48c199d0ec269bb4ec773711d85))
+- **tests:** add config mock to edge-cases and portfolio tests ([ff406a4](https://github.com/bit2me-devs/bit2me-mcp/commit/ff406a41a04a672981c3835fc533dda63a4d6589))
+- update codeql-action SHA in gitleaks workflow for consistency ([e94075d](https://github.com/bit2me-devs/bit2me-mcp/commit/e94075dad7165e2a24dc2bd00377cae4d7ed8a27))
+- update portfolio_get_valuation to use v2 earn endpoint and fix pro balance calculation ([acab884](https://github.com/bit2me-devs/bit2me-mcp/commit/acab884c154f7960973974d953c37a8934e412f5))
+- update wallet_get_transactions to match correct API schema ([25ec140](https://github.com/bit2me-devs/bit2me-mcp/commit/25ec1401b84923bb39092af51f7e4254655a6a04))
+
+### Features
+
+- add CurrencyRateResponse schema interface ([44df338](https://github.com/bit2me-devs/bit2me-mcp/commit/44df338a0cff53fc5156521b9ce1d58b6b8729d8))
+- apply smartRound formatting to all price-returning tools ([32162bd](https://github.com/bit2me-devs/bit2me-mcp/commit/32162bdc004edaeebc101d9d993869bc88f3796e))
+- implement market_get_currency_rate tool ([bce4955](https://github.com/bit2me-devs/bit2me-mcp/commit/bce4955034a835c8c8db79d0c9eca8eef6de2aae))
+- **loan:** revamp loan tools and terminology ([aa3b48e](https://github.com/bit2me-devs/bit2me-mcp/commit/aa3b48efb623810d5b3e9d2d1feeb30158b0ce61))
+- **wallet/earn:** add cards support and improve rewards ([f9fd3a9](https://github.com/bit2me-devs/bit2me-mcp/commit/f9fd3a9bde3bc643d32580d08e05e2793197f232))
+
 # [1.7.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.6.3...v1.7.0) (2025-11-29)
 
 ### Bug Fixes
