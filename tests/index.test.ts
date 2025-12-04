@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { createRequire } from "module";
+
+// Read version dynamically from package.json to avoid test failures on releases
+const require = createRequire(import.meta.url);
+const { version: PACKAGE_VERSION } = require("../package.json");
 
 // Mocks must be hoisted or defined before imports
 const mockSetRequestHandler = vi.fn();
@@ -66,7 +71,7 @@ describe("Server Entry Point", () => {
 
         // Verify Server construction
         expect(mockConstructor).toHaveBeenCalledWith(
-            { name: "bit2me-mcp-server", version: "1.8.1" },
+            { name: "bit2me-mcp-server", version: PACKAGE_VERSION },
             { capabilities: { tools: {}, prompts: {} } }
         );
 
