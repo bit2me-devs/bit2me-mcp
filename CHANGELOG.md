@@ -1,3 +1,9 @@
+## [1.8.4](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.3...v1.8.4) (2025-12-04)
+
+### Bug Fixes
+
+- **tests:** require explicit RUN_E2E=true to run E2E tests ([1eeda55](https://github.com/bit2me-devs/bit2me-mcp/commit/1eeda5573742a7f680e3013667e2f04ce40512d4))
+
 ## [1.8.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.2...v1.8.3) (2025-12-04)
 
 ### Bug Fixes
