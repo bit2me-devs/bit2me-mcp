@@ -5,3 +5,12 @@ Allow: /
 Allow: /llms.txt
 Allow: /llms-full.txt
 
+# Disallow admin and private areas (if any)
+Disallow: /admin/
+Disallow: /private/
+
+# Sitemap location
+Sitemap: https://mcp.bit2me.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

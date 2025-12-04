@@ -22,11 +22,13 @@ function convertInputSchemaToArgs(inputSchema) {
         return {};
     }
 
+    const requiredFields = inputSchema.required || [];
     const args = {};
     for (const [key, value] of Object.entries(inputSchema.properties)) {
         args[key] = {
             type: value.type || 'string',
-            desc: value.description || ''
+            desc: value.description || '',
+            required: requiredFields.includes(key)
         };
         if (value.enum) args[key].enum = value.enum;
         if (value.examples) args[key].examples = value.examples;
@@ -38,7 +40,7 @@ function convertInputSchemaToArgs(inputSchema) {
 /**
  * Generate tools-data.js for landing page
  */
-function generateLandingToolsData(metadata) {
+function generateLandingToolsData(metadata, version) {
     const categories = metadata.categories.map(cat => ({
         category: cat.name,
         id: `cat-${cat.id}`,
@@ -74,9 +76,13 @@ function generateLandingToolsData(metadata) {
 
 const toolsData = ${JSON.stringify(categories, null, 4)};
 
+// Package version
+const packageVersion = '${version}';
+
 // Export for use in landing page
 if (typeof window !== 'undefined') {
     window.toolsData = toolsData;
+    window.packageVersion = packageVersion;
 }
 `;
 }
@@ -212,14 +218,21 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 function main() {
     console.log('🔄 Generating documentation artifacts...');
 
+    // Load package.json to get version
+    const packageJsonPath = join(rootDir, 'package.json');
+    const packageJson = JSON.parse(
+        readFileSync(packageJsonPath, 'utf-8')
+    );
+    const version = packageJson.version;
+
     // Load metadata
     const metadataPath = join(rootDir, 'data', 'tools.json');
     const metadata = JSON.parse(
         readFileSync(metadataPath, 'utf-8')
     );
 
-    // Generate landing tools data
-    const landingData = generateLandingToolsData(metadata);
+    // Generate landing tools data with version
+    const landingData = generateLandingToolsData(metadata, version);
     const landingPath = join(rootDir, 'landing', 'tools-data.js');
     writeFileSync(landingPath, landingData);
     console.log(`✅ Generated ${landingPath}`);

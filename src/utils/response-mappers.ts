@@ -631,15 +631,34 @@ export function mapEarnAPYResponse(raw: unknown): Record<string, EarnAPYResponse
 export function mapEarnWalletsResponse(raw: unknown): EarnWalletResponse[] {
     const wallets = extractArrayData(raw);
 
-    return wallets.map((wallet: any) => ({
-        id: wallet.id || wallet.walletId || "",
-        symbol: (wallet.currency || "").toUpperCase(),
-        balance: wallet.totalBalance || wallet.balance || "0",
-        strategy: wallet.strategy || wallet.type || "flexible",
-        status: normalizeStatus(wallet.status) || "active",
-        created_at: wallet.createdAt || wallet.created_at || "",
-        total_balance: wallet.totalBalance,
-    }));
+    return wallets.map((wallet: any) => {
+        const hasLockPeriod = wallet.lockPeriod && wallet.lockPeriod.lockPeriodId;
+        const strategy = hasLockPeriod ? "fixed" : "flexible";
+
+        return {
+            wallet_id: wallet.walletId || wallet.id || "",
+            symbol: (wallet.currency || "").toUpperCase(),
+            balance: wallet.totalBalance || wallet.balance || "0",
+            strategy: wallet.strategy || wallet.type || strategy,
+            lock_period: wallet.lockPeriod
+                ? {
+                      lock_period_id: wallet.lockPeriod.lockPeriodId || "",
+                      months: wallet.lockPeriod.months || 0,
+                  }
+                : undefined,
+            converted_balance: wallet.convertedBalance
+                ? {
+                      value: wallet.convertedBalance.value || "0",
+                      symbol: wallet.convertedBalance.currency || "",
+                  }
+                : undefined,
+            created_at: wallet.createdAt || wallet.created_at || "",
+            updated_at: wallet.updatedAt || wallet.updated_at || "",
+            // Keep id for backward compatibility
+            id: wallet.walletId || wallet.id || "",
+            total_balance: wallet.totalBalance,
+        };
+    });
 }
 
 /**
@@ -916,16 +935,32 @@ export function mapEarnWalletDetailsResponse(raw: unknown): EarnWalletDetailsRes
         throw new ValidationError("Invalid earn wallet details response structure");
     }
 
-    const created_at = raw.createdAt || raw.created_at || "";
+    const wallet = raw as any;
+    const hasLockPeriod = wallet.lockPeriod && wallet.lockPeriod.lockPeriodId;
+    const strategy = hasLockPeriod ? "fixed" : "flexible";
 
     return {
-        id: raw.id || raw.walletId || "",
-        symbol: raw.currency || "",
-        balance: raw.totalBalance || raw.balance || "0",
-        strategy: raw.strategy || raw.type || "flexible",
-        status: (normalizeStatus(raw.status) || "active") as "active" | "inactive" | "pending",
-        created_at: created_at || undefined,
-        total_balance: raw.totalBalance,
+        wallet_id: wallet.walletId || wallet.id || "",
+        symbol: (wallet.currency || "").toUpperCase(),
+        balance: wallet.totalBalance || wallet.balance || "0",
+        strategy: wallet.strategy || wallet.type || strategy,
+        lock_period: wallet.lockPeriod
+            ? {
+                  lock_period_id: wallet.lockPeriod.lockPeriodId || "",
+                  months: wallet.lockPeriod.months || 0,
+              }
+            : undefined,
+        converted_balance: wallet.convertedBalance
+            ? {
+                  value: wallet.convertedBalance.value || "0",
+                  symbol: wallet.convertedBalance.currency || "",
+              }
+            : undefined,
+        created_at: wallet.createdAt || wallet.created_at || "",
+        updated_at: wallet.updatedAt || wallet.updated_at || "",
+        // Keep id for backward compatibility
+        id: wallet.walletId || wallet.id || "",
+        total_balance: wallet.totalBalance,
     };
 }
 

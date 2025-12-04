@@ -8,7 +8,7 @@ import { PortfolioValuationArgs } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
 
-export const aggregationTools: Tool[] = getCategoryTools("aggregation");
+export const aggregationTools: Tool[] = getCategoryTools("portfolio");
 
 /**
  * Handles portfolio aggregation tool requests
@@ -65,9 +65,10 @@ export async function handleAggregationTool(name: string, args: any) {
                 });
 
             // Process Earn
-            // /v2/earn/wallets returns an array of wallets
-            if (Array.isArray(earn))
-                earn.forEach((e: any) => {
+            // /v2/earn/wallets returns { total, data: [...] } structure
+            const earnWallets = Array.isArray(earn) ? earn : earn?.data || [];
+            if (Array.isArray(earnWallets))
+                earnWallets.forEach((e: any) => {
                     // Support both totalBalance (legacy/mapped) and balance (raw v2)
                     const val = parseFloat(e.totalBalance || e.balance || "0");
                     if (val > 0) {
@@ -100,15 +101,15 @@ export async function handleAggregationTool(name: string, args: any) {
                 // Filter out dust values and zero amounts
                 if (val > MIN_DUST_VALUE && amount > 0) {
                     breakdown.push({
-                        asset: symbol,
-                        amount: amount,
+                        symbol: symbol,
+                        balance: amount,
                         price_unit: smartRound(price),
-                        value_fiat: parseFloat(val.toFixed(2)),
+                        converted_balance: parseFloat(val.toFixed(2)),
                     });
                 }
             });
 
-            breakdown.sort((a, b) => parseFloat(b.value_fiat) - parseFloat(a.value_fiat));
+            breakdown.sort((a, b) => b.converted_balance - a.converted_balance);
 
             // Calculate service totals from raw data and prices
             const priceMap: Record<string, number> = {};
@@ -130,8 +131,9 @@ export async function handleAggregationTool(name: string, args: any) {
                     if (val > 0) proTotal += val * price;
                 });
 
-            if (Array.isArray(earn))
-                earn.forEach((e: any) => {
+            const earnWalletsForTotal = Array.isArray(earn) ? earn : earn?.data || [];
+            if (Array.isArray(earnWalletsForTotal))
+                earnWalletsForTotal.forEach((e: any) => {
                     const val = parseFloat(e.totalBalance || e.balance || "0");
                     const price = priceMap[e.currency] || 0;
                     if (val > 0) earnTotal += val * price;
@@ -157,10 +159,10 @@ export async function handleAggregationTool(name: string, args: any) {
                     loan_guarantees: smartRound(loanGuaranteeTotal).toString(),
                 },
                 details: breakdown.map((item) => ({
-                    asset: item.asset,
-                    amount: item.amount.toString(),
+                    symbol: item.symbol,
+                    balance: item.balance.toString(),
                     price_unit: smartRound(item.price_unit).toString(),
-                    value_fiat: smartRound(item.value_fiat).toString(),
+                    converted_balance: smartRound(item.converted_balance).toString(),
                 })),
             };
 

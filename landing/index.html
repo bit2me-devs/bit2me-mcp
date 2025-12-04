@@ -13,7 +13,21 @@
         </script>
 
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+        <!-- Theme and Mobile Optimization -->
+        <meta name="theme-color" content="#0075FF" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#0B1120" media="(prefers-color-scheme: dark)" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Bit2Me MCP" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        <!-- Security and Referrer Policy -->
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
+        <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+        <meta http-equiv="X-Frame-Options" content="DENY" />
+        <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
 
         <!-- Primary Meta Tags -->
         <title>Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio</title>
@@ -24,31 +38,46 @@
         />
         <meta
             name="keywords"
-            content="Bit2Me, MCP, Model Context Protocol, Claude AI, Crypto API, Bitcoin, Cryptocurrency, Trading, Wallet, Staking, DeFi, AI Trading, Anthropic"
+            content="Bit2Me, MCP, Model Context Protocol, Claude AI, Cursor AI, Crypto API, Bitcoin API, Cryptocurrency Trading, Wallet API, Staking, DeFi, AI Trading, Anthropic, Bit2Me API, Crypto Portfolio Management, Bitcoin Price, Ethereum Trading, Crypto Staking, Cryptocurrency Loans, MCP Server, AI Crypto Assistant"
         />
         <meta name="author" content="Bit2Me" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://bit2me.com/mcp-server" />
+        <meta name="language" content="English" />
+        <meta name="geo.region" content="ES" />
+        <meta name="geo.placename" content="Spain" />
+        <link rel="canonical" href="https://mcp.bit2me.com" />
+        <link rel="sitemap" type="application/xml" href="https://mcp.bit2me.com/sitemap.xml" />
 
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://bit2me.com/mcp-server" />
+        <meta property="og:url" content="https://mcp.bit2me.com" />
         <meta property="og:title" content="Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio" />
         <meta
             property="og:description"
-            content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. Trade, stake, and monitor your portfolio effortlessly."
+            content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. Trade, stake, and monitor your portfolio effortlessly. 51 tools available."
         />
-        <meta property="og:image" content="https://bit2me.com/mcp-server-og.png" />
+        <meta property="og:image" content="https://mcp.bit2me.com/mcp-server-og.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Bit2Me MCP Server - Connect Claude AI to Your Crypto Portfolio" />
+        <meta property="og:site_name" content="Bit2Me MCP Server" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:locale:alternate" content="es_ES" />
+        <meta property="article:author" content="Bit2Me" />
+        <meta property="article:publisher" content="https://bit2me.com" />
 
         <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://bit2me.com/mcp-server" />
-        <meta property="twitter:title" content="Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://mcp.bit2me.com" />
+        <meta name="twitter:title" content="Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio" />
         <meta
-            property="twitter:description"
+            name="twitter:description"
             content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 51 tools for trading, staking, and portfolio management."
         />
-        <meta property="twitter:image" content="https://bit2me.com/mcp-server-twitter.png" />
+        <meta name="twitter:image" content="https://mcp.bit2me.com/mcp-server-twitter.png" />
+        <meta name="twitter:image:alt" content="Bit2Me MCP Server - Connect Claude AI to Your Crypto Portfolio" />
+        <meta name="twitter:creator" content="@Bit2Me" />
+        <meta name="twitter:site" content="@Bit2Me" />
 
         <!-- Favicon -->
         <link
@@ -81,11 +110,21 @@
             referrerpolicy="no-referrer"
         ></script>
 
+        <!-- Preconnect to external domains for faster loading -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+
+        <!-- Load fonts with display=swap for better performance -->
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
             rel="stylesheet"
         />
+
+        <!-- Preload critical assets (above-the-fold logos) -->
+        <link rel="preload" href="assets/logo-blue.png" as="image" type="image/png" />
+        <link rel="preload" href="assets/logo-white.png" as="image" type="image/png" />
 
         <script>
             tailwind.config = {
@@ -260,26 +299,684 @@
 
             /* Smooth fade for tabs */
             .tab-content {
-                animation: fadeIn 0.3s ease-in-out;
+                animation: tabFadeIn 0.25s ease-out;
             }
 
-            @keyframes fadeIn {
+            @keyframes tabFadeIn {
                 from {
                     opacity: 0;
-                    transform: translateY(5px);
+                    transform: translateX(-8px);
                 }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
 
+            /* === TOOL CARD TABS SYSTEM === */
+            .tool-tabs {
+                display: flex;
+                gap: 0;
+                background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+                border-radius: 12px;
+                padding: 4px;
+                margin-bottom: 16px;
+            }
+
+            .dark .tool-tabs {
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            }
+
+            .tool-tab-btn {
+                flex: 1;
+                padding: 10px 16px;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                border: none;
+                background: transparent;
+                color: #64748b;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .dark .tool-tab-btn {
+                color: #94a3b8;
+            }
+
+            .tool-tab-btn:hover:not(.active) {
+                background: rgba(255, 255, 255, 0.5);
+                color: #475569;
+            }
+
+            .dark .tool-tab-btn:hover:not(.active) {
+                background: rgba(255, 255, 255, 0.05);
+                color: #cbd5e1;
+            }
+
+            .tool-tab-btn.active {
+                background: white;
+                color: #0075ff;
+                box-shadow:
+                    0 2px 8px rgba(0, 117, 255, 0.15),
+                    0 1px 3px rgba(0, 0, 0, 0.08);
+            }
+
+            .dark .tool-tab-btn.active {
+                background: linear-gradient(135deg, #0075ff 0%, #0056cc 100%);
+                color: white;
+                box-shadow: 0 4px 12px rgba(0, 117, 255, 0.4);
+            }
+
+            .tool-tab-btn .tab-icon {
+                width: 16px;
+                height: 16px;
+                opacity: 0.7;
+                flex-shrink: 0;
+            }
+
+            .tool-tab-btn.active .tab-icon {
+                opacity: 1;
+            }
+
+            .tool-tab-btn svg.tab-icon {
+                stroke-width: 2;
+            }
+
+            /* Pill indicator for active tab */
+            .tool-tab-btn.active::after {
+                content: "";
+                position: absolute;
+                bottom: 6px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 20px;
+                height: 3px;
+                background: currentColor;
+                border-radius: 2px;
+                opacity: 0.4;
+            }
+
+            /* Tab panels */
+            .tool-tab-panel {
+                display: none;
+            }
+
+            .tool-tab-panel.active {
+                display: block;
+                animation: tabFadeIn 0.25s ease-out;
+            }
+
+            /* === PARAMETER CARDS === */
+            .param-grid {
+                display: grid;
+                gap: 8px;
+            }
+
+            .param-card {
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                padding: 12px 14px;
+                transition: all 0.2s ease;
+                position: relative;
+            }
+
+            .dark .param-card {
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border-color: #334155;
+            }
+
+            .param-card:hover {
+                border-color: #cbd5e1;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            }
+
+            .dark .param-card:hover {
+                border-color: #475569;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            }
+
+            .param-card.required {
+                border-left: 3px solid #ef4444;
+            }
+
+            .param-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-bottom: 6px;
+            }
+
+            .param-name {
+                font-family: "JetBrains Mono", monospace;
+                font-size: 13px;
+                font-weight: 600;
+                color: #0075ff;
+                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+                padding: 4px 10px;
+                border-radius: 6px;
+            }
+
+            .dark .param-name {
+                background: linear-gradient(135deg, rgba(0, 117, 255, 0.2) 0%, rgba(0, 117, 255, 0.1) 100%);
+                color: #60a5fa;
+            }
+
+            .param-type {
+                font-size: 10px;
+                font-weight: 500;
+                color: #64748b;
+                background: #f1f5f9;
+                padding: 3px 8px;
+                border-radius: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .dark .param-type {
+                background: #334155;
+                color: #94a3b8;
+            }
+
+            .param-required {
+                font-size: 9px;
+                font-weight: 700;
+                color: #dc2626;
+                background: #fef2f2;
+                padding: 2px 6px;
+                border-radius: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .dark .param-required {
+                background: rgba(239, 68, 68, 0.15);
+                color: #f87171;
+            }
+
+            .param-desc {
+                font-size: 12px;
+                color: #64748b;
+                line-height: 1.5;
+                padding-left: 2px;
+            }
+
+            .dark .param-desc {
+                color: #94a3b8;
+            }
+
+            .param-enum {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                margin-top: 8px;
+            }
+
+            .param-enum-value {
+                font-size: 10px;
+                font-family: "JetBrains Mono", monospace;
+                background: #fef3c7;
+                color: #92400e;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+
+            .dark .param-enum-value {
+                background: rgba(251, 191, 36, 0.15);
+                color: #fbbf24;
+            }
+
+            /* === RESPONSE SCHEMA TREE === */
+            .schema-tree {
+                font-size: 12px;
+            }
+
+            .schema-node {
+                position: relative;
+                padding-left: 16px;
+            }
+
+            .schema-node::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: linear-gradient(to bottom, #e2e8f0, transparent);
+                border-radius: 1px;
+            }
+
+            .dark .schema-node::before {
+                background: linear-gradient(to bottom, #334155, transparent);
+            }
+
+            .schema-field {
+                padding: 8px 12px;
+                margin: 4px 0;
+                background: #f8fafc;
+                border-radius: 8px;
+                border-left: 3px solid transparent;
+            }
+
+            .dark .schema-field {
+                background: #1e293b;
+            }
+
+            .schema-field.required {
+                border-left-color: #ef4444;
+            }
+
+            .schema-field-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            /* === CODE BLOCKS ENHANCED === */
+            .code-block-wrapper {
+                position: relative;
+                border-radius: 10px;
+                overflow: hidden;
+                background: #0f172a;
+                border: 1px solid #1e293b;
+            }
+
+            .code-block-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 12px;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border-bottom: 1px solid #334155;
+            }
+
+            .code-block-label {
+                font-size: 10px;
+                font-weight: 600;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .code-block-label::before {
+                content: "";
+                width: 8px;
+                height: 8px;
+                background: #22c55e;
+                border-radius: 50%;
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 0.6;
+                }
+                50% {
+                    opacity: 1;
+                }
+            }
+
+            /* Share menu dropdown animation */
+            #shareMenu {
+                animation: slideUpFade 0.2s ease-out;
+            }
+
+            @keyframes slideUpFade {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
                 to {
                     opacity: 1;
                     transform: translateY(0);
                 }
             }
+
+            .code-block-wrapper pre {
+                margin: 0;
+                padding: 16px;
+                overflow-x: auto;
+            }
+
+            /* === SECTION HEADERS IN TABS === */
+            .section-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 1px dashed #e2e8f0;
+            }
+
+            .dark .section-header {
+                border-bottom-color: #334155;
+            }
+
+            .section-icon {
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+                border-radius: 6px;
+                font-size: 12px;
+                color: #3b82f6;
+            }
+
+            .dark .section-icon {
+                background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+                color: #93c5fd;
+            }
+
+            .section-icon svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .section-title {
+                font-size: 11px;
+                font-weight: 700;
+                color: #475569;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+            }
+
+            .dark .section-title {
+                color: #94a3b8;
+            }
+
+            /* === MOBILE RESPONSIVE === */
+            @media (max-width: 640px) {
+                .tool-tabs {
+                    padding: 3px;
+                    border-radius: 10px;
+                }
+
+                .tool-tab-btn {
+                    padding: 8px 12px;
+                    font-size: 11px;
+                    gap: 6px;
+                }
+
+                .tool-tab-btn .tab-icon {
+                    font-size: 12px;
+                }
+
+                .param-card {
+                    padding: 10px 12px;
+                }
+
+                .param-header {
+                    gap: 6px;
+                }
+
+                .param-name {
+                    font-size: 12px;
+                    padding: 3px 8px;
+                }
+
+                .param-desc {
+                    font-size: 11px;
+                }
+
+                .code-block-wrapper pre {
+                    padding: 12px;
+                    font-size: 11px;
+                }
+
+                .section-header {
+                    margin-bottom: 10px;
+                }
+            }
+
+            /* Empty state styling */
+            .empty-state {
+                text-align: center;
+                padding: 24px;
+                color: #94a3b8;
+                font-size: 13px;
+            }
+
+            .empty-state-icon {
+                font-size: 32px;
+                margin-bottom: 8px;
+                opacity: 0.5;
+            }
+
+            /* Screen reader only (accessibility) */
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border-width: 0;
+            }
+
+            .sr-only:focus,
+            .focus\:not-sr-only:focus {
+                position: static;
+                width: auto;
+                height: auto;
+                padding: inherit;
+                margin: inherit;
+                overflow: visible;
+                clip: auto;
+                white-space: normal;
+            }
         </style>
+
+        <!-- Structured Data (JSON-LD) -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "SoftwareApplication",
+                "name": "Bit2Me MCP Server",
+                "applicationCategory": "DeveloperApplication",
+                "operatingSystem": "Node.js",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                },
+                "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "5",
+                    "ratingCount": "1"
+                },
+                "description": "Official MCP server for Bit2Me. Connect Claude, Cursor, or any MCP client to manage your crypto wallet, trade, stake, and get loans using natural language. 51 tools available.",
+                "url": "https://mcp.bit2me.com",
+                "downloadUrl": "https://www.npmjs.com/package/@bit2me/mcp-server",
+                "softwareVersion": "latest",
+                "releaseNotes": "https://github.com/bit2me-devs/bit2me-mcp/releases",
+                "author": {
+                    "@type": "Organization",
+                    "name": "Bit2Me",
+                    "url": "https://bit2me.com"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Bit2Me",
+                    "url": "https://bit2me.com",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://mcp.bit2me.com/assets/logo-blue.png"
+                    }
+                },
+                "featureList": [
+                    "Market Data: Real-time prices, historical charts, order books",
+                    "Wallet Management: Query balances, transactions, wallet details",
+                    "Pro Trading: Manage orders (Limit, Market, Stop), query open orders",
+                    "Earn & Loans: Manage Earn (Staking) strategies and collateralized loans",
+                    "Portfolio Aggregation: Total portfolio valuation unifying all products",
+                    "51 Tools Available: Complete API coverage for Bit2Me ecosystem"
+                ],
+                "screenshot": "https://mcp.bit2me.com/mcp-server-og.png"
+            }
+        </script>
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Bit2Me",
+                "url": "https://bit2me.com",
+                "logo": "https://mcp.bit2me.com/assets/logo-blue.png",
+                "sameAs": ["https://github.com/bit2me-devs", "https://twitter.com/Bit2Me"],
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "contactType": "Technical Support",
+                    "url": "https://github.com/bit2me-devs/bit2me-mcp/issues"
+                }
+            }
+        </script>
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "What is MCP (Model Context Protocol)?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "MCP is an open protocol developed by Anthropic that enables AI assistants like Claude to securely connect to external data sources and tools. It acts as a universal adapter that lets AI access real-world information and perform actions on your behalf."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How do I connect Claude AI to Bit2Me?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To connect Claude AI to Bit2Me, install the Bit2Me MCP Server via npm (@bit2me/mcp-server), configure your Bit2Me API keys in the Claude Desktop config file, and restart Claude Desktop. The server provides 51 tools for managing your crypto portfolio, trading, staking, and loans."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What can I do with Bit2Me MCP Server?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "The Bit2Me MCP Server allows you to check real-time crypto prices, manage your wallet, execute trades, stake cryptocurrencies for rewards, manage crypto-backed loans, and get a complete portfolio valuation - all using natural language through Claude AI or other MCP clients."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is Bit2Me MCP Server secure?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes, the Bit2Me MCP Server uses secure API authentication with HMAC signatures. For security best practices, do not enable withdrawal permissions on your API key. The server only supports internal transfers between your own Bit2Me wallets (Wallet ↔ Pro ↔ Earn)."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How many tools does Bit2Me MCP Server provide?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "The Bit2Me MCP Server provides 51 tools organized into categories: 4 Wallet Market Data Tools, 8 Wallet Tools, 13 Earn Tools, 9 Loan Tools, 14 Pro Trading Tools, 1 Account Tool, and 1 Aggregation Tool."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Do I need a Bit2Me account to use the MCP Server?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes, you need a verified Bit2Me account and API keys. Generate your API keys from the Bit2Me API Dashboard with the appropriate permissions (Wallets, Trading, Earn, Loans) based on what you want to use."
+                        }
+                    }
+                ]
+            }
+        </script>
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": "https://bit2me.com"
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": "MCP Server",
+                        "item": "https://mcp.bit2me.com"
+                    }
+                ]
+            }
+        </script>
+
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                "name": "Bit2Me MCP Server",
+                "url": "https://mcp.bit2me.com",
+                "description": "Official MCP server for Bit2Me. Connect Claude, Cursor, or any MCP client to manage your crypto wallet, trade, stake, and get loans using natural language.",
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Bit2Me",
+                    "url": "https://bit2me.com"
+                },
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": {
+                        "@type": "EntryPoint",
+                        "urlTemplate": "https://mcp.bit2me.com/#reference?q={search_term_string}"
+                    },
+                    "query-input": "required name=search_term_string"
+                }
+            }
+        </script>
     </head>
 
     <body
         class="bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 flex h-screen overflow-hidden antialiased transition-colors duration-300"
     >
+        <!-- Skip to main content link for accessibility -->
+        <a
+            href="#main-content-scroll"
+            class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg focus:font-bold"
+            aria-label="Skip to main content"
+        >
+            Skip to main content
+        </a>
+
+        <!-- Reading Progress Bar (UX) -->
+        <div
+            id="reading-progress"
+            class="fixed top-0 left-0 h-1 bg-blue-600 z-[100] transition-all duration-150"
+            role="progressbar"
+            aria-valuenow="0"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-label="Reading progress"
+            style="width: 0%"
+        ></div>
+
         <!-- Mobile Header -->
         <div
             class="lg:hidden fixed top-0 left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-50 px-4 py-3 flex items-center justify-between"
@@ -287,6 +984,9 @@
             <button
                 onclick="toggleMenu()"
                 class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                aria-label="Toggle navigation menu"
+                aria-expanded="false"
+                id="mobile-menu-btn"
             >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -298,13 +998,30 @@
                 </svg>
             </button>
             <div class="flex items-center gap-2">
-                <img src="assets/logo-blue.png" class="h-6 block dark:hidden" alt="Bit2Me" />
-                <img src="assets/logo-white.png" class="h-6 hidden dark:block" alt="Bit2Me" />
+                <img
+                    src="assets/logo-blue.png"
+                    class="h-6 block dark:hidden"
+                    alt="Bit2Me"
+                    loading="lazy"
+                    width="120"
+                    height="30"
+                />
+                <img
+                    src="assets/logo-white.png"
+                    class="h-6 hidden dark:block"
+                    alt="Bit2Me"
+                    loading="lazy"
+                    width="120"
+                    height="30"
+                />
                 <span class="font-bold text-slate-900 dark:text-white ml-2">MCP</span>
             </div>
             <button
                 onclick="toggleTheme()"
                 class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                aria-label="Toggle dark mode"
+                aria-pressed="false"
+                id="theme-toggle-btn"
             >
                 <!-- Sun Icon (shown in dark mode) -->
                 <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,8 +1056,18 @@
         >
             <div class="p-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hidden lg:block">
                 <div class="flex items-center gap-3">
-                    <img src="assets/logo-blue.png" class="h-8 block dark:hidden" alt="Bit2Me" />
-                    <img src="assets/logo-white.png" class="h-8 hidden dark:block" alt="Bit2Me" />
+                    <img
+                        src="assets/logo-blue.png"
+                        class="h-8 w-auto block dark:hidden object-contain"
+                        alt="Bit2Me"
+                        loading="lazy"
+                    />
+                    <img
+                        src="assets/logo-white.png"
+                        class="h-8 w-auto hidden dark:block object-contain"
+                        alt="Bit2Me"
+                        loading="lazy"
+                    />
                     <div class="border-l border-slate-200 dark:border-slate-700 pl-3 ml-1">
                         <h1 class="font-bold text-slate-900 dark:text-white leading-tight text-sm">MCP Server</h1>
                         <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">
@@ -355,10 +1082,16 @@
                     <input
                         type="text"
                         id="toolSearch"
-                        placeholder="Search 51 tools..."
+                        placeholder="Search tools... (Press '/' to focus)"
                         autocomplete="off"
+                        data-placeholder-template="Search {count} tools..."
                         class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 dark:text-white shadow-sm transition-all placeholder-slate-400"
+                        aria-label="Search tools"
+                        aria-describedby="search-hint"
                     />
+                    <span id="search-hint" class="sr-only"
+                        >Press '/' key to focus search, use arrow keys to navigate results</span
+                    >
                     <svg
                         class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"
                         fill="none"
@@ -481,7 +1214,7 @@
                         </li>
                         <li>
                             <a
-                                href="#cat-loans"
+                                href="#cat-loan"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-100 transition"
                                 >🏦 Loans</a
                             >
@@ -491,6 +1224,13 @@
                                 href="#cat-account"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-100 transition"
                                 >👤 Account</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="#cat-portfolio"
+                                class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-100 transition"
+                                >📊 Portfolio</a
                             >
                         </li>
                     </ul>
@@ -513,7 +1253,96 @@
                                 >Troubleshooting</a
                             >
                         </li>
+                        <li>
+                            <a
+                                href="#contributing"
+                                class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-100 transition"
+                                >Contributing</a
+                            >
+                        </li>
                     </ul>
+                </div>
+
+                <!-- Share Section - Compact -->
+                <div>
+                    <div class="px-3 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider">Share</div>
+                    <div class="px-3 flex flex-wrap gap-1.5">
+                        <button
+                            onclick="shareToSocial('twitter')"
+                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-400 transition"
+                            aria-label="Share on Twitter/X"
+                            title="Twitter/X"
+                        >
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('linkedin')"
+                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on LinkedIn"
+                            title="LinkedIn"
+                        >
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('facebook')"
+                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on Facebook"
+                            title="Facebook"
+                        >
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('reddit')"
+                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on Reddit"
+                            title="Reddit"
+                        >
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 3.736.913 1.219 0 2.266-.056 3.092-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.657.73-1.016 0-2.138-.233-2.655-.73a.326.326 0 0 0-.232-.095z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('whatsapp')"
+                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on WhatsApp"
+                            title="WhatsApp"
+                        >
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.3 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('email')"
+                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share via Email"
+                            title="Email"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </nav>
 
@@ -558,20 +1387,138 @@
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto bg-white dark:bg-slate-950 relative scroll-smooth">
+        <main
+            class="flex-1 overflow-y-auto bg-white dark:bg-slate-950 relative scroll-smooth"
+            id="main-content-scroll"
+            role="main"
+            aria-label="Main content"
+        >
             <!-- Hero Background Gradient -->
             <div
                 class="absolute top-0 left-0 right-0 h-96 bg-gradient-to-b from-blue-50/80 to-transparent dark:from-blue-900/10 pointer-events-none"
             ></div>
 
             <div class="max-w-4xl mx-auto px-8 py-12 lg:py-20 pt-20 lg:pt-12 relative">
+                <!-- Breadcrumbs (UX) -->
+                <nav aria-label="Breadcrumb" class="mb-6 text-sm">
+                    <ol
+                        class="flex items-center gap-2 text-slate-500 dark:text-slate-400"
+                        itemscope
+                        itemtype="https://schema.org/BreadcrumbList"
+                    >
+                        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                            <a
+                                href="https://bit2me.com"
+                                itemprop="item"
+                                class="hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            >
+                                <span itemprop="name">Home</span>
+                            </a>
+                            <meta itemprop="position" content="1" />
+                        </li>
+                        <li aria-hidden="true" class="text-slate-300 dark:text-slate-600">/</li>
+                        <li
+                            itemprop="itemListElement"
+                            itemscope
+                            itemtype="https://schema.org/ListItem"
+                            class="text-slate-900 dark:text-slate-200 font-medium"
+                        >
+                            <span itemprop="name">MCP Server</span>
+                            <meta itemprop="position" content="2" />
+                        </li>
+                    </ol>
+                </nav>
+
+                <!-- Share Buttons Top -->
+                <div class="mb-6 flex items-center gap-3 flex-wrap">
+                    <span class="text-sm text-slate-500 dark:text-slate-400 font-medium">Share:</span>
+                    <div class="flex items-center gap-2">
+                        <button
+                            onclick="shareToSocial('twitter')"
+                            class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on Twitter/X"
+                            title="Share on Twitter/X"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('linkedin')"
+                            class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on LinkedIn"
+                            title="Share on LinkedIn"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('facebook')"
+                            class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on Facebook"
+                            title="Share on Facebook"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('reddit')"
+                            class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on Reddit"
+                            title="Share on Reddit"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 3.736.913 1.219 0 2.266-.056 3.092-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.657.73-1.016 0-2.138-.233-2.655-.73a.326.326 0 0 0-.232-.095z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('whatsapp')"
+                            class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share on WhatsApp"
+                            title="Share on WhatsApp"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.3 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onclick="shareToSocial('email')"
+                            class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                            aria-label="Share via Email"
+                            title="Share via Email"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Hero -->
                 <section id="overview" class="mb-20">
                     <div
+                        id="version-badge"
                         class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-6"
                     >
                         <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                        v1.1.0 Stable
+                        <span id="version-text">Loading...</span>
                     </div>
 
                     <h1
@@ -597,37 +1544,19 @@
                         </button>
                     </h1>
 
-                    <div class="flex flex-wrap items-center gap-3 mb-6">
-                        <a
-                            href="https://github.com/bit2me-devs/bit2me-mcp"
-                            target="_blank"
-                            class="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:opacity-90 transition"
-                        >
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                                    clip-rule="evenodd"
-                                ></path>
-                            </svg>
-                            GitHub
-                        </a>
-                        <a href="https://www.npmjs.com/package/@bit2me/mcp-server" target="_blank">
-                            <img
-                                src="https://img.shields.io/npm/v/@bit2me/mcp-server?style=flat-square&color=0075FF&labelColor=slate-900"
-                                alt="NPM Version"
-                                class="h-7"
-                            />
-                        </a>
-                    </div>
-
-                    <p class="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed max-w-3xl">
+                    <p class="text-lg text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-3xl">
                         The ultimate bridge between your crypto finances and Artificial Intelligence. Connect
                         <strong>Claude</strong> or <strong>Cursor</strong> to your Bit2Me account to check prices,
                         manage your wallet, and trade with natural language.
                     </p>
+                    <p class="text-base text-slate-500 dark:text-slate-500 mb-10 leading-relaxed max-w-3xl">
+                        Use AI to manage your cryptocurrency portfolio on Bit2Me - check Bitcoin prices, execute trades,
+                        stake crypto for rewards, manage loans, and get real-time market data. All through simple
+                        conversations with your AI assistant. <strong>51 powerful tools</strong> available for complete
+                        Bit2Me API integration.
+                    </p>
 
-                    <div class="flex flex-wrap gap-4">
+                    <div class="flex flex-wrap gap-4 items-center">
                         <a
                             href="#install"
                             class="bg-slate-900 dark:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-slate-800 dark:hover:bg-blue-500 transition shadow-lg shadow-slate-200 dark:shadow-none flex items-center gap-2"
@@ -643,7 +1572,7 @@
                             Install Server
                         </a>
                         <a
-                            href="#examples"
+                            href="#reference"
                             class="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-6 py-3 rounded-lg font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-2"
                         >
                             <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -651,16 +1580,36 @@
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
                                     stroke-width="2"
-                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                                ></path>
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                                 ></path>
                             </svg>
-                            View Examples
+                            View Tools
+                        </a>
+                        <a
+                            href="https://github.com/bit2me-devs/bit2me-mcp"
+                            target="_blank"
+                            class="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3 py-1.5 rounded-lg text-sm font-bold hover:opacity-90 transition"
+                        >
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                                    clip-rule="evenodd"
+                                ></path>
+                            </svg>
+                            GitHub
+                        </a>
+                        <a
+                            href="https://www.npmjs.com/package/@bit2me/mcp-server"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <img
+                                src="https://img.shields.io/npm/v/@bit2me/mcp-server?style=flat-square&color=0075FF&labelColor=slate-900"
+                                alt="NPM Version"
+                                class="h-6 w-auto object-contain"
+                                loading="lazy"
+                            />
                         </a>
                     </div>
                 </section>
@@ -684,10 +1633,12 @@
                                 <h3 class="text-xl font-bold text-slate-900 dark:text-white">Model Context Protocol</h3>
                             </div>
                             <p class="text-slate-700 dark:text-slate-300 text-sm mb-4 leading-relaxed">
-                                MCP is an <strong>open protocol</strong> developed by Anthropic that enables AI
-                                assistants like <strong>Claude</strong> to securely connect to external data sources and
-                                tools. Think of it as a universal adapter that lets AI access real-world information and
-                                perform actions on your behalf.
+                                MCP (Model Context Protocol) is an <strong>open protocol</strong> developed by Anthropic
+                                that enables AI assistants like <strong>Claude</strong> and <strong>Cursor</strong> to
+                                securely connect to external data sources and tools. Think of it as a universal adapter
+                                that lets AI access real-world information and perform actions on your behalf. This
+                                protocol standardizes how AI assistants interact with APIs, databases, and services,
+                                making it easy to extend AI capabilities with custom integrations.
                             </p>
                             <div class="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-400 font-semibold">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -722,10 +1673,12 @@
                                     class="text-orange-600 dark:text-orange-400 hover:underline font-bold"
                                     >Bit2Me</a
                                 >
-                                is a leading <strong>European cryptocurrency platform</strong> that offers wallet
-                                services, crypto trading (spot & pro), staking rewards, and crypto-backed loans. With
-                                over 400+ cryptocurrencies supported, it's one of the most comprehensive crypto
-                                ecosystems.
+                                is a leading <strong>European cryptocurrency exchange</strong> based in Spain that
+                                offers wallet services, crypto trading (spot & pro), staking rewards (Earn), and
+                                crypto-backed loans. With over <strong>400+ cryptocurrencies</strong> supported
+                                including Bitcoin, Ethereum, and Solana, it's one of the most comprehensive crypto
+                                ecosystems in Europe. Bit2Me provides secure API access for developers to integrate
+                                cryptocurrency functionality into their applications.
                             </p>
                             <div
                                 class="flex items-center gap-2 text-xs text-orange-700 dark:text-orange-400 font-semibold"
@@ -921,92 +1874,6 @@
 
                 <hr class="border-slate-100 dark:border-slate-800 my-16" />
 
-                <!-- Prerequisites -->
-                <section id="prerequisites" class="mb-20 scroll-mt-10">
-                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 group flex items-center gap-2">
-                        Prerequisites
-                        <button
-                            onclick="copySectionLink('prerequisites', this)"
-                            class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-blue-600"
-                            title="Copy Link"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                                ></path>
-                            </svg>
-                        </button>
-                    </h2>
-
-                    <div
-                        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm"
-                    >
-                        <h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                            <span
-                                class="flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full text-blue-600 dark:text-blue-400 text-xs"
-                                >1</span
-                            >
-                            Get your API Keys
-                        </h3>
-                        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">
-                            Before installing, go to your
-                            <strong
-                                ><a
-                                    href="https://app.bit2me.com/profile/api"
-                                    target="_blank"
-                                    class="text-blue-600 dark:text-blue-400 hover:underline"
-                                    >Bit2Me API Dashboard</a
-                                ></strong
-                            >
-                            and generate a new key.
-                        </p>
-
-                        <div
-                            class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 rounded-lg p-4"
-                        >
-                            <h4 class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-3">
-                                Recommended Permissions
-                            </h4>
-                            <div class="flex flex-wrap gap-2 mb-3">
-                                <span
-                                    class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded flex items-center gap-1"
-                                    >✅ Wallets</span
-                                >
-                                <span
-                                    class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded flex items-center gap-1"
-                                    >✅ Trading</span
-                                >
-                                <span
-                                    class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded flex items-center gap-1"
-                                    >✅ Earn</span
-                                >
-                                <span
-                                    class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded flex items-center gap-1"
-                                    >✅ Loans</span
-                                >
-                            </div>
-                            <div class="pt-3 border-t border-blue-100 dark:border-blue-900/50">
-                                <div class="mb-2">
-                                    <span
-                                        class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold rounded flex items-center gap-1 inline-flex"
-                                        >❌ Withdrawals to Blockchain/Users</span
-                                    >
-                                </div>
-                                <span class="text-[10px] text-blue-700 dark:text-blue-400"
-                                    >For security reasons, this MCP server does NOT support crypto withdrawals to
-                                    external blockchain addresses or other users. Internal transfers between your own
-                                    Bit2Me wallets (Wallet ↔ Pro ↔ Earn) are supported.</span
-                                >
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <hr class="border-slate-100 dark:border-slate-800 my-16" />
-
                 <!-- Install -->
                 <section id="install" class="mb-20 scroll-mt-10">
                     <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 group flex items-center gap-2">
@@ -1026,6 +1893,37 @@
                             </svg>
                         </button>
                     </h2>
+
+                    <!-- Prerequisites -->
+                    <div class="bg-slate-50 dark:bg-slate-900/50 border-l-4 border-blue-500 pl-4 py-2 mb-8">
+                        <h3
+                            class="font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2 text-sm uppercase tracking-wider"
+                        >
+                            Before you begin
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">
+                            You need API keys to use this server. Go to your
+                            <strong
+                                ><a
+                                    href="https://app.bit2me.com/profile/api"
+                                    target="_blank"
+                                    class="text-blue-600 dark:text-blue-400 hover:underline"
+                                    >Bit2Me API Dashboard</a
+                                ></strong
+                            >
+                            and generate a new key.
+                        </p>
+
+                        <div class="text-xs text-slate-500 dark:text-slate-400">
+                            <p class="mb-2">
+                                <strong>Recommended Permissions:</strong> ✅ Wallets, ✅ Trading, ✅ Earn, ✅ Loans
+                            </p>
+                            <p>
+                                <span class="text-red-600 dark:text-red-400 font-bold">Note:</span> Withdrawals to
+                                external addresses are NOT supported for security.
+                            </p>
+                        </div>
+                    </div>
 
                     <!-- Tabs -->
                     <div class="flex border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto">
@@ -1443,7 +2341,8 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                     <span class="text-purple-600 dark:text-purple-400 font-bold">•</span>
                                     <span
                                         ><strong class="text-slate-700 dark:text-slate-300">Tools Tab:</strong> View all
-                                        51 tools, test with parameters, see responses</span
+                                        <span id="tools-count-testing">--</span> tools, test with parameters, see
+                                        responses</span
                                     >
                                 </li>
                                 <li class="flex items-start gap-2">
@@ -1534,10 +2433,274 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 <hr class="border-slate-100 dark:border-slate-800 my-16" />
 
                 <section id="reference" class="mb-20">
-                    <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Tool Reference</h2>
-                    <p class="text-slate-500 dark:text-slate-400 mb-8">
-                        Complete list of the 48 available tools. Use the sidebar search to filter.
+                    <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Tools Reference</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6">
+                        Complete list of the
+                        <span id="tools-count-reference" class="font-semibold text-slate-700 dark:text-slate-300"
+                            >--</span
+                        >
+                        available tools. Use the sidebar search to filter.
                     </p>
+
+                    <!-- Response Schema Explanation -->
+                    <div
+                        class="response-schema-guide mb-10 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+                    >
+                        <div
+                            class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50"
+                        >
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-3">
+                                <span
+                                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center"
+                                >
+                                    <svg
+                                        class="w-4 h-4 text-white"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        ></path>
+                                    </svg>
+                                </span>
+                                Response Structure
+                            </h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 ml-11">
+                                All tool responses follow a consistent JSON structure
+                            </p>
+                        </div>
+
+                        <div class="p-5">
+                            <!-- Visual Schema -->
+                            <div class="grid md:grid-cols-3 gap-4 mb-6">
+                                <!-- Request Block -->
+                                <div class="schema-block group">
+                                    <div
+                                        class="h-full p-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors"
+                                    >
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span
+                                                class="w-6 h-6 rounded-md bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                                                    ></path>
+                                                </svg>
+                                            </span>
+                                            <code class="text-sm font-bold text-emerald-700 dark:text-emerald-400"
+                                                >"request"</code
+                                            >
+                                        </div>
+                                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                            Echo of the input parameters sent to the tool. Useful for debugging and
+                                            logging which arguments were used.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Result Block -->
+                                <div class="schema-block group">
+                                    <div
+                                        class="h-full p-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 transition-colors"
+                                    >
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span
+                                                class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                                                    ></path>
+                                                </svg>
+                                            </span>
+                                            <code class="text-sm font-bold text-blue-700 dark:text-blue-400"
+                                                >"result"</code
+                                            >
+                                        </div>
+                                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                            The actual data returned by the tool. Can be an
+                                            <strong>object</strong> (single item) or an <strong>array</strong> (list of
+                                            items) depending on the tool.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Metadata Block -->
+                                <div class="schema-block group">
+                                    <div
+                                        class="h-full p-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-800 hover:border-amber-400 dark:hover:border-amber-600 transition-colors"
+                                    >
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span
+                                                class="w-6 h-6 rounded-md bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center"
+                                            >
+                                                <svg
+                                                    class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    ></path>
+                                                </svg>
+                                            </span>
+                                            <code class="text-sm font-bold text-amber-700 dark:text-amber-400"
+                                                >"metadata"</code
+                                            >
+                                        </div>
+                                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                            Additional context about the response: pagination info, totals, and other
+                                            useful details.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Metadata Fields Detail -->
+                            <div
+                                class="metadata-detail bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+                            >
+                                <div
+                                    class="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border-b border-slate-200 dark:border-slate-700"
+                                >
+                                    <h4
+                                        class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2"
+                                    >
+                                        <svg
+                                            class="w-4 h-4 text-amber-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                                            ></path>
+                                        </svg>
+                                        Metadata Fields
+                                    </h4>
+                                </div>
+                                <div class="p-4">
+                                    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                        <div
+                                            class="metadata-field p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700"
+                                        >
+                                            <code class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                                                >total_records</code
+                                            >
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                                Total number of items in the result (for lists)
+                                            </p>
+                                        </div>
+                                        <div
+                                            class="metadata-field p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700"
+                                        >
+                                            <code class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                                                >offset</code
+                                            >
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                                Starting position for paginated results
+                                            </p>
+                                        </div>
+                                        <div
+                                            class="metadata-field p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700"
+                                        >
+                                            <code class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                                                >limit</code
+                                            >
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                                Maximum items per page requested
+                                            </p>
+                                        </div>
+                                        <div
+                                            class="metadata-field p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700"
+                                        >
+                                            <code class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                                                >has_more</code
+                                            >
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                                                Boolean indicating if more results exist
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Example JSON -->
+                            <details class="mt-4 group">
+                                <summary
+                                    class="cursor-pointer flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                >
+                                    <svg
+                                        class="w-4 h-4 transition-transform group-open:rotate-90"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M9 5l7 7-7 7"
+                                        ></path>
+                                    </svg>
+                                    View example response structure
+                                </summary>
+                                <div class="mt-3 code-block-wrapper">
+                                    <div class="code-block-header">
+                                        <span class="code-block-label">Example JSON Response</span>
+                                    </div>
+                                    <pre class="text-xs" translate="no"><code class="language-json">{
+  "request": {
+    "base_symbol": "BTC",
+    "quote_symbol": "EUR"
+  },
+  "result": [
+    {
+      "base_symbol": "BTC",
+      "quote_symbol": "EUR",
+      "price": "95000.50",
+      "date": "2024-12-04T10:30:00.000Z"
+    }
+  ],
+  "metadata": {
+    "total_records": 1,
+    "offset": 0,
+    "limit": 100,
+    "has_more": false
+  }
+}</code></pre>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
 
                     <div id="tools-container"></div>
                 </section>
@@ -2004,11 +3167,12 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     </div>
                 </section>
 
+                <!-- Frequently Asked Questions -->
                 <section id="faq" class="mt-20 mb-20 scroll-mt-10">
                     <h2
-                        class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-100 pb-2 group flex items-center gap-2"
+                        class="text-2xl font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-100 dark:border-slate-800 pb-2 group flex items-center gap-2"
                     >
-                        Troubleshooting & Errors
+                        Frequently Asked Questions
                         <button
                             onclick="copySectionLink('faq', this)"
                             class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-blue-600"
@@ -2024,6 +3188,288 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             </svg>
                         </button>
                     </h2>
+
+                    <div class="space-y-4 mb-12">
+                        <details
+                            class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                        >
+                            <summary
+                                class="px-6 py-4 cursor-pointer font-bold text-slate-900 dark:text-white flex items-center justify-between"
+                            >
+                                <span>What is MCP (Model Context Protocol)?</span>
+                                <svg
+                                    class="w-5 h-5 text-slate-400 transition-transform"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7"
+                                    ></path>
+                                </svg>
+                            </summary>
+                            <div class="px-6 pb-4 pt-2 text-slate-600 dark:text-slate-300">
+                                <p class="mb-2">
+                                    MCP (Model Context Protocol) is an <strong>open protocol</strong> developed by
+                                    Anthropic that enables AI assistants like <strong>Claude</strong> to securely
+                                    connect to external data sources and tools. Think of it as a universal adapter that
+                                    lets AI access real-world information and perform actions on your behalf.
+                                </p>
+                                <p>
+                                    The Bit2Me MCP Server implements this protocol to bridge your Bit2Me cryptocurrency
+                                    account with AI assistants, allowing you to manage your crypto portfolio using
+                                    natural language.
+                                </p>
+                            </div>
+                        </details>
+
+                        <details
+                            class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                        >
+                            <summary
+                                class="px-6 py-4 cursor-pointer font-bold text-slate-900 dark:text-white flex items-center justify-between"
+                            >
+                                <span>How do I connect Claude AI to Bit2Me?</span>
+                                <svg
+                                    class="w-5 h-5 text-slate-400 transition-transform"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7"
+                                    ></path>
+                                </svg>
+                            </summary>
+                            <div class="px-6 pb-4 pt-2 text-slate-600 dark:text-slate-300">
+                                <p class="mb-3">To connect Claude AI to Bit2Me, follow these steps:</p>
+                                <ol class="list-decimal list-inside space-y-2 text-sm">
+                                    <li>
+                                        Install the Bit2Me MCP Server via npm:
+                                        <code class="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded"
+                                            >npm install -g @bit2me/mcp-server</code
+                                        >
+                                    </li>
+                                    <li>
+                                        Generate API keys from your
+                                        <a
+                                            href="https://app.bit2me.com/profile/api"
+                                            target="_blank"
+                                            class="text-blue-600 dark:text-blue-400 hover:underline"
+                                            >Bit2Me API Dashboard</a
+                                        >
+                                    </li>
+                                    <li>Configure your Claude Desktop config file with your API keys</li>
+                                    <li>Restart Claude Desktop to load the MCP server</li>
+                                </ol>
+                                <p class="mt-3 text-sm">
+                                    Once connected, you can ask Claude to check crypto prices, manage your wallet,
+                                    execute trades, stake cryptocurrencies, and more - all using natural language.
+                                </p>
+                            </div>
+                        </details>
+
+                        <details
+                            class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                        >
+                            <summary
+                                class="px-6 py-4 cursor-pointer font-bold text-slate-900 dark:text-white flex items-center justify-between"
+                            >
+                                <span>What can I do with Bit2Me MCP Server?</span>
+                                <svg
+                                    class="w-5 h-5 text-slate-400 transition-transform"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7"
+                                    ></path>
+                                </svg>
+                            </summary>
+                            <div class="px-6 pb-4 pt-2 text-slate-600 dark:text-slate-300">
+                                <p class="mb-3">
+                                    The Bit2Me MCP Server provides <strong>51 tools</strong> across multiple categories:
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 text-sm">
+                                    <li>
+                                        <strong>Market Data:</strong> Check real-time crypto prices, historical charts,
+                                        and order books
+                                    </li>
+                                    <li>
+                                        <strong>Wallet Management:</strong> Query balances, view transaction history,
+                                        manage pockets
+                                    </li>
+                                    <li>
+                                        <strong>Pro Trading:</strong> Create limit/market orders, check open orders,
+                                        view trade history
+                                    </li>
+                                    <li>
+                                        <strong>Earn (Staking):</strong> Deposit funds for staking rewards, check APY
+                                        rates, manage Earn wallets
+                                    </li>
+                                    <li>
+                                        <strong>Loans:</strong> Create crypto-backed loans, manage collateral, check LTV
+                                        ratios
+                                    </li>
+                                    <li>
+                                        <strong>Portfolio:</strong> Get complete portfolio valuation across all Bit2Me
+                                        products
+                                    </li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details
+                            class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                        >
+                            <summary
+                                class="px-6 py-4 cursor-pointer font-bold text-slate-900 dark:text-white flex items-center justify-between"
+                            >
+                                <span>Is Bit2Me MCP Server secure?</span>
+                                <svg
+                                    class="w-5 h-5 text-slate-400 transition-transform"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7"
+                                    ></path>
+                                </svg>
+                            </summary>
+                            <div class="px-6 pb-4 pt-2 text-slate-600 dark:text-slate-300">
+                                <p class="mb-3">
+                                    Yes, the Bit2Me MCP Server uses secure API authentication with
+                                    <strong>HMAC signatures</strong> and follows security best practices:
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 text-sm">
+                                    <li>All API requests are authenticated using secure HMAC signatures</li>
+                                    <li>
+                                        The server does <strong>NOT</strong> support withdrawals to external blockchain
+                                        addresses
+                                    </li>
+                                    <li>
+                                        Only internal transfers between your own Bit2Me wallets are supported (Wallet ↔
+                                        Pro ↔ Earn)
+                                    </li>
+                                    <li>
+                                        For maximum security, do <strong>NOT</strong> enable withdrawal permissions on
+                                        your API key
+                                    </li>
+                                    <li>All sensitive data is automatically sanitized in logs</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details
+                            class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                        >
+                            <summary
+                                class="px-6 py-4 cursor-pointer font-bold text-slate-900 dark:text-white flex items-center justify-between"
+                            >
+                                <span>Do I need a Bit2Me account to use the MCP Server?</span>
+                                <svg
+                                    class="w-5 h-5 text-slate-400 transition-transform"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7"
+                                    ></path>
+                                </svg>
+                            </summary>
+                            <div class="px-6 pb-4 pt-2 text-slate-600 dark:text-slate-300">
+                                <p class="mb-3">
+                                    Yes, you need a <strong>verified Bit2Me account</strong> to use the MCP Server.
+                                    Here's what you need:
+                                </p>
+                                <ul class="list-disc list-inside space-y-2 text-sm">
+                                    <li>
+                                        A verified Bit2Me account (sign up at
+                                        <a
+                                            href="https://bit2me.com"
+                                            target="_blank"
+                                            class="text-blue-600 dark:text-blue-400 hover:underline"
+                                            >bit2me.com</a
+                                        >)
+                                    </li>
+                                    <li>
+                                        API keys generated from the
+                                        <a
+                                            href="https://app.bit2me.com/profile/api"
+                                            target="_blank"
+                                            class="text-blue-600 dark:text-blue-400 hover:underline"
+                                            >Bit2Me API Dashboard</a
+                                        >
+                                    </li>
+                                    <li>
+                                        Appropriate permissions enabled based on what you want to use:
+                                        <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
+                                            <li>Wallets permission for wallet operations</li>
+                                            <li>Trading permission for Pro Trading</li>
+                                            <li>Earn permission for staking operations</li>
+                                            <li>Loans permission for loan management</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details
+                            class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                        >
+                            <summary
+                                class="px-6 py-4 cursor-pointer font-bold text-slate-900 dark:text-white flex items-center justify-between"
+                            >
+                                <span>Can I use Bit2Me MCP Server with other AI assistants besides Claude?</span>
+                                <svg
+                                    class="w-5 h-5 text-slate-400 transition-transform"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7"
+                                    ></path>
+                                </svg>
+                            </summary>
+                            <div class="px-6 pb-4 pt-2 text-slate-600 dark:text-slate-300">
+                                <p>
+                                    Yes! The Bit2Me MCP Server works with any MCP-compatible client. While it's
+                                    optimized for <strong>Claude</strong> and <strong>Cursor</strong>, you can use it
+                                    with any AI assistant or application that supports the Model Context Protocol
+                                    standard. The server provides a standardized interface that any MCP client can
+                                    connect to.
+                                </p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <h3
+                        class="text-xl font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-100 dark:border-slate-800 pb-2"
+                    >
+                        Troubleshooting & Errors
+                    </h3>
 
                     <div class="space-y-6">
                         <!-- Auth Issues -->
@@ -2163,11 +3609,162 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     </div>
                 </section>
 
-                <footer class="border-t border-slate-200 pt-12 pb-12">
+                <!-- Contributing Section -->
+                <section id="contributing" class="mt-20 mb-20 scroll-mt-10">
+                    <h2
+                        class="text-2xl font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-100 dark:border-slate-800 pb-2 group flex items-center gap-2"
+                    >
+                        Contributing
+                        <button
+                            onclick="copySectionLink('contributing', this)"
+                            class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-blue-600"
+                            title="Copy Link"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                                ></path>
+                            </svg>
+                        </button>
+                    </h2>
+
+                    <div
+                        class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 p-8"
+                    >
+                        <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+                            <div class="flex-1">
+                                <h3
+                                    class="text-xl font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2"
+                                >
+                                    <svg
+                                        class="w-6 h-6 text-blue-600 dark:text-blue-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                                        ></path>
+                                    </svg>
+                                    Help Us Improve
+                                </h3>
+                                <p class="text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
+                                    We welcome contributions! Whether you're fixing bugs, adding features, improving
+                                    documentation, or suggesting enhancements, your pull requests help make this project
+                                    better for everyone.
+                                </p>
+                                <p class="text-sm text-slate-600 dark:text-slate-400">
+                                    Found a bug? Have an idea? Want to add a new feature? Open a pull request on GitHub
+                                    and let's build something amazing together!
+                                </p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <a
+                                    href="https://github.com/bit2me-devs/bit2me-mcp"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="inline-flex items-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-4 rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                                            clip-rule="evenodd"
+                                        ></path>
+                                    </svg>
+                                    <span>Contribute on GitHub</span>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M9 5l7 7-7 7"
+                                        ></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Useful Resources -->
+                <section class="mb-20">
+                    <div
+                        class="p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-slate-700"
+                    >
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                            <svg
+                                class="w-5 h-5 text-blue-600 dark:text-blue-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                                ></path>
+                            </svg>
+                            Useful Resources
+                        </h3>
+                        <div class="flex flex-wrap gap-3">
+                            <a
+                                href="https://github.com/bit2me-devs/bit2me-mcp"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                                        clip-rule="evenodd"
+                                    ></path>
+                                </svg>
+                                GitHub Repository
+                            </a>
+                            <a
+                                href="https://www.npmjs.com/package/@bit2me/mcp-server"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700"
+                            >
+                                <img
+                                    src="https://img.shields.io/npm/v/@bit2me/mcp-server?style=flat-square&color=0075FF&labelColor=slate-900"
+                                    alt="NPM Version"
+                                    class="h-5"
+                                />
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <footer class="border-t border-slate-200 dark:border-slate-800 pt-12 pb-12">
                     <div class="grid md:grid-cols-4 gap-8 mb-12">
                         <div class="col-span-2">
-                            <img src="assets/logo-blue.png" class="h-8 block dark:hidden mb-4" alt="Bit2Me" />
-                            <img src="assets/logo-white.png" class="h-8 hidden dark:block mb-4" alt="Bit2Me" />
+                            <img
+                                src="assets/logo-blue.png"
+                                class="h-8 block dark:hidden mb-4"
+                                alt="Bit2Me"
+                                loading="lazy"
+                                width="160"
+                                height="40"
+                            />
+                            <img
+                                src="assets/logo-white.png"
+                                class="h-8 hidden dark:block mb-4"
+                                alt="Bit2Me"
+                                loading="lazy"
+                                width="160"
+                                height="40"
+                            />
                             <p class="text-slate-500 text-sm leading-relaxed max-w-xs">
                                 The most complete crypto suite in Europe. Buy, sell, exchange, and manage your portfolio
                                 with ease.
@@ -2245,21 +3842,181 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 </footer>
             </div>
 
-            <!-- Back to Top Button -->
-            <button
-                id="backToTop"
-                onclick="scrollToTop()"
-                class="fixed bottom-8 right-8 bg-slate-900 text-white p-3 rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-blue-600 z-50"
-            >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 10l7-7m0 0l7 7m-7-7v18"
-                    ></path>
-                </svg>
-            </button>
+            <!-- Action Buttons: Share & Export (Functionality) -->
+            <div class="fixed bottom-8 right-8 flex flex-col gap-3 z-50">
+                <!-- Share Button with Dropdown -->
+                <div class="relative group-share">
+                    <button
+                        id="shareBtn"
+                        onclick="toggleShareMenu()"
+                        class="bg-slate-900 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-300"
+                        aria-label="Share this page"
+                        aria-expanded="false"
+                        aria-haspopup="true"
+                        title="Share page (Ctrl+Shift+S)"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                            ></path>
+                        </svg>
+                        <span class="sr-only">Share</span>
+                    </button>
+                    <!-- Share Dropdown Menu -->
+                    <div
+                        id="shareMenu"
+                        class="absolute bottom-full right-0 mb-2 hidden bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 p-2 min-w-[200px]"
+                    >
+                        <div class="space-y-1">
+                            <button
+                                onclick="
+                                    shareToSocial('twitter');
+                                    toggleShareMenu();
+                                "
+                                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                                    />
+                                </svg>
+                                <span>Twitter/X</span>
+                            </button>
+                            <button
+                                onclick="
+                                    shareToSocial('linkedin');
+                                    toggleShareMenu();
+                                "
+                                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                                    />
+                                </svg>
+                                <span>LinkedIn</span>
+                            </button>
+                            <button
+                                onclick="
+                                    shareToSocial('facebook');
+                                    toggleShareMenu();
+                                "
+                                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                                    />
+                                </svg>
+                                <span>Facebook</span>
+                            </button>
+                            <button
+                                onclick="
+                                    shareToSocial('reddit');
+                                    toggleShareMenu();
+                                "
+                                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 3.736.913 1.219 0 2.266-.056 3.092-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.657.73-1.016 0-2.138-.233-2.655-.73a.326.326 0 0 0-.232-.095z"
+                                    />
+                                </svg>
+                                <span>Reddit</span>
+                            </button>
+                            <button
+                                onclick="
+                                    shareToSocial('whatsapp');
+                                    toggleShareMenu();
+                                "
+                                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition"
+                            >
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.3 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"
+                                    />
+                                </svg>
+                                <span>WhatsApp</span>
+                            </button>
+                            <button
+                                onclick="
+                                    shareToSocial('email');
+                                    toggleShareMenu();
+                                "
+                                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                    />
+                                </svg>
+                                <span>Email</span>
+                            </button>
+                            <hr class="border-slate-200 dark:border-slate-700 my-1" />
+                            <button
+                                onclick="
+                                    sharePage();
+                                    toggleShareMenu();
+                                "
+                                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                                    ></path>
+                                </svg>
+                                <span>More options...</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Button -->
+                <button
+                    id="exportBtn"
+                    onclick="exportDocumentation()"
+                    class="bg-slate-900 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-300 group"
+                    aria-label="Export documentation"
+                    title="Export documentation as JSON (Ctrl+Shift+E)"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        ></path>
+                    </svg>
+                    <span class="sr-only">Export</span>
+                </button>
+
+                <!-- Back to Top Button -->
+                <button
+                    id="backToTop"
+                    onclick="scrollToTop()"
+                    class="bg-slate-900 text-white p-3 rounded-full shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-blue-600"
+                    aria-label="Back to top"
+                    title="Back to top (Ctrl+Home)"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 10l7-7m0 0l7 7m-7-7v18"
+                        ></path>
+                    </svg>
+                </button>
+            </div>
         </main>
 
         <!-- Load tools data from generated file -->
@@ -2388,7 +4145,12 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 toolsData.forEach((cat) => {
                     const filteredTools = cat.tools.filter((tool) => {
                         const matchesType = currentFilterType === "ALL" || tool.type === currentFilterType;
-                        return matchesType;
+                        const matchesText =
+                            !textFilter ||
+                            tool.name.toLowerCase().includes(textFilter.toLowerCase()) ||
+                            (tool.displayName && tool.displayName.toLowerCase().includes(textFilter.toLowerCase())) ||
+                            tool.desc.toLowerCase().includes(textFilter.toLowerCase());
+                        return matchesType && matchesText;
                     });
 
                     if (filteredTools.length === 0) return;
@@ -2426,7 +4188,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                             2
                                         );
 
-                                        // Function to render response schema fields
+                                        // Function to render response schema fields with improved design
                                         const renderResponseFields = (schema) => {
                                             if (!schema) return "";
 
@@ -2436,30 +4198,35 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 required = false,
                                                 indent = 0
                                             ) => {
-                                                const requiredBadge = required
-                                                    ? '<span class="text-[10px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-1 rounded ml-1">required</span>'
-                                                    : "";
                                                 const type = fieldSchema.type || "unknown";
                                                 const desc = fieldSchema.description || "";
-                                                const enumValues = fieldSchema.enum
-                                                    ? ` (${fieldSchema.enum.map((v) => `"${v}"`).join(", ")})`
-                                                    : "";
-                                                const nullable = fieldSchema.nullable ? " (nullable)" : "";
+                                                const enumValues = fieldSchema.enum;
+                                                const nullable = fieldSchema.nullable;
+                                                const marginClass = indent > 0 ? `ml-${indent * 4}` : "";
 
                                                 let html = `
-                                                    <li class="text-xs text-slate-600 dark:text-slate-400 flex flex-col gap-1 mb-2 ${indent > 0 ? "ml-4" : ""}">
-                                                        <div class="flex items-center gap-2 flex-wrap">
-                                                            <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 font-bold">${fieldName}</code>
-                                                            <span class="text-slate-400 text-[10px] border border-slate-200 dark:border-slate-700 rounded px-1">${type}</span>
-                                                            ${requiredBadge}
+                                                    <div class="schema-field ${required ? "required" : ""} ${marginClass}" style="${indent > 0 ? `margin-left: ${indent * 16}px` : ""}">
+                                                        <div class="schema-field-header">
+                                                            <span class="param-name">${fieldName}</span>
+                                                            <span class="param-type">${type}${nullable ? " | null" : ""}</span>
+                                                            ${required ? '<span class="param-required">Required</span>' : ""}
                                                         </div>
-                                                        ${desc ? `<p class="text-slate-500 dark:text-slate-500 pl-2 border-l-2 border-slate-200 dark:border-slate-700 text-[11px] leading-relaxed">${desc}${enumValues}${nullable}</p>` : ""}
-                                                    </li>
+                                                        ${desc ? `<p class="param-desc mt-1">${desc}</p>` : ""}
+                                                        ${
+                                                            enumValues
+                                                                ? `
+                                                            <div class="param-enum">
+                                                                ${enumValues.map((v) => `<span class="param-enum-value">"${v}"</span>`).join("")}
+                                                            </div>
+                                                        `
+                                                                : ""
+                                                        }
+                                                    </div>
                                                 `;
 
                                                 // Handle nested objects
                                                 if (fieldSchema.type === "object" && fieldSchema.properties) {
-                                                    html += '<ul class="mt-1 space-y-1">';
+                                                    html += '<div class="schema-node mt-2">';
                                                     for (const [nestedName, nestedSchema] of Object.entries(
                                                         fieldSchema.properties
                                                     )) {
@@ -2472,7 +4239,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                             indent + 1
                                                         );
                                                     }
-                                                    html += "</ul>";
+                                                    html += "</div>";
                                                 }
 
                                                 // Handle arrays
@@ -2481,34 +4248,37 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                         fieldSchema.items.type === "object" &&
                                                         fieldSchema.items.properties
                                                     ) {
-                                                        html +=
-                                                            '<ul class="mt-1 space-y-1"><li class="text-[10px] text-slate-400 italic">Array items:</li>';
+                                                        html += `
+                                                            <div class="mt-2 pl-3 border-l-2 border-dashed border-slate-200 dark:border-slate-700">
+                                                                <p class="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 font-semibold">Array items:</p>
+                                                        `;
                                                         for (const [itemName, itemSchema] of Object.entries(
                                                             fieldSchema.items.properties
                                                         )) {
                                                             const itemRequired =
                                                                 fieldSchema.items.required?.includes(itemName) || false;
-                                                            html += renderField(
-                                                                itemName,
-                                                                itemSchema,
-                                                                itemRequired,
-                                                                indent + 1
-                                                            );
+                                                            html += renderField(itemName, itemSchema, itemRequired, 0);
                                                         }
-                                                        html += "</ul>";
+                                                        html += "</div>";
                                                     } else {
-                                                        html += `<p class="text-[10px] text-slate-400 italic pl-2">Array of ${fieldSchema.items.type || "items"}</p>`;
+                                                        html += `<p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 italic">→ Array of ${fieldSchema.items.type || "items"}</p>`;
                                                     }
                                                 }
 
                                                 return html;
                                             };
 
-                                            let html = '<ul class="space-y-2">';
+                                            let html = '<div class="space-y-2">';
 
                                             if (schema.type === "array" && schema.items) {
-                                                html +=
-                                                    '<li class="text-xs text-slate-500 dark:text-slate-400 mb-2"><strong>Response is an array of objects:</strong></li>';
+                                                html += `
+                                                    <div class="flex items-center gap-2 mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                                        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                                        </svg>
+                                                        <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">Response is an array of objects</span>
+                                                    </div>
+                                                `;
                                                 if (schema.items.type === "object" && schema.items.properties) {
                                                     for (const [fieldName, fieldSchema] of Object.entries(
                                                         schema.items.properties
@@ -2527,30 +4297,35 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 }
                                             }
 
-                                            html += "</ul>";
+                                            html += "</div>";
                                             return html;
                                         };
 
                                         const displayName = tool.displayName || tool.name;
-                                        return `
-                                    <details id="tool-${tool.name}" class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg transition hover:border-blue-300 dark:hover:border-blue-700">
-                                        <summary class="flex items-center justify-between p-4 cursor-pointer select-none">
-                                            <div class="flex items-center gap-3">
-                                                <span class="badge ${badgeClass}">${tool.type}</span>
-                                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200">${displayName}</span>
+                                        const toolId = `tool-${tool.name}`;
+
+                                        // Render arguments as param cards
+                                        const renderArgsSection = () => {
+                                            if (Object.keys(tool.args).length === 0) {
+                                                return `
+                                                    <div class="empty-state">
+                                                        <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                                        </svg>
+                                                        <p>No parameters required</p>
                                             </div>
-                                            <svg class="w-5 h-5 text-slate-400 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                `;
+                                            }
+                                            return `
+                                                <div class="section-header">
+                                                    <div class="section-icon">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
                                             </svg>
-                                        </summary>
-                                        <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 space-y-3">
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">${tool.desc}</p>
-                                            ${
-                                                Object.keys(tool.args).length > 0
-                                                    ? `
-                                                <div>
-                                                    <h5 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Arguments</h5>
-                                                    <ul class="space-y-1">
+                                                    </div>
+                                                    <span class="section-title">Parameters</span>
+                                                </div>
+                                                <div class="param-grid">
                                                         ${Object.entries(tool.args)
                                                             .map(([key, details]) => {
                                                                 const type =
@@ -2559,48 +4334,140 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                                         : details;
                                                                 const desc =
                                                                     typeof details === "object" ? details.desc : "";
+                                                                const isRequired =
+                                                                    typeof details === "object" && details.required;
+                                                                const enumValues =
+                                                                    typeof details === "object" && details.enum;
                                                                 return `
-                                                            <li class="text-xs text-slate-600 dark:text-slate-400 flex flex-col gap-1 mb-2">
-                                                                <div class="flex items-center gap-2">
-                                                                    <code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 font-bold">${key}</code>
-                                                                    <span class="text-slate-400 text-[10px] border border-slate-200 dark:border-slate-700 rounded px-1">${type}</span>
+                                                                <div class="param-card ${isRequired ? "required" : ""}">
+                                                                    <div class="param-header">
+                                                                        <span class="param-name">${key}</span>
+                                                                        <span class="param-type">${type}</span>
+                                                                        ${isRequired ? '<span class="param-required">Required</span>' : ""}
                                                                 </div>
-                                                                ${desc ? `<p class="text-slate-500 dark:text-slate-500 pl-2 border-l-2 border-slate-200 dark:border-slate-700 text-[11px] leading-relaxed">${desc}</p>` : ""}
-                                                            </li>
+                                                                    ${desc ? `<p class="param-desc">${desc}</p>` : ""}
+                                                                    ${
+                                                                        enumValues
+                                                                            ? `
+                                                                        <div class="param-enum">
+                                                                            ${enumValues.map((v) => `<span class="param-enum-value">${v}</span>`).join("")}
+                                                                        </div>
+                                                                    `
+                                                                            : ""
+                                                                    }
+                                                                </div>
                                                         `;
                                                             })
                                                             .join("")}
-                                                    </ul>
                                                 </div>
-                                                                                                                                 `
-                                                    : ""
+                                            `;
+                                        };
+
+                                        // Render response schema as improved tree
+                                        const renderSchemaSection = () => {
+                                            if (!tool.responseSchema) {
+                                                return `
+                                                    <div class="empty-state">
+                                                        <svg class="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                        </svg>
+                                                        <p>Schema not documented</p>
+                                                    </div>
+                                                `;
                                             }
-                                            <div>
-                                                <h5 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Example Usage</h5>
-                                                <pre class="bg-slate-900 dark:bg-black rounded p-3 overflow-x-auto text-xs" translate="no"><code class="language-json">${jsonExample}</code></pre>
+                                            return `
+                                                <div class="section-header">
+                                                    <div class="section-icon">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                                        </svg>
                                             </div>
-                                            ${
-                                                tool.responseSchema
-                                                    ? `
-                                            <div class="mt-3">
-                                                <h5 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Response Fields</h5>
-                                                <div class="bg-slate-50 dark:bg-slate-800/50 rounded p-3 border border-slate-200 dark:border-slate-700">
+                                                    <span class="section-title">Response Schema</span>
+                                                </div>
+                                                <div class="schema-tree">
                                                     ${renderResponseFields(tool.responseSchema)}
                                                 </div>
+                                            `;
+                                        };
+
+                                        return `
+                                    <details id="${toolId}" class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl transition hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg">
+                                        <summary class="flex items-center justify-between p-4 cursor-pointer select-none">
+                                            <div class="flex items-center gap-3 flex-wrap">
+                                                <span class="badge ${badgeClass}">${tool.type}</span>
+                                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 font-mono">${displayName}</span>
                                             </div>
-                                            `
-                                                    : ""
-                                            }
-                                            ${
-                                                tool.response
-                                                    ? `
-                                            <div class="mt-3">
-                                                <h5 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-2">Example Response</h5>
-                                                <pre class="bg-slate-900 dark:bg-black rounded p-3 overflow-x-auto text-xs" translate="no"><code class="language-json">${JSON.stringify(tool.response, null, 2)}</code></pre>
+                                            <svg class="w-5 h-5 text-slate-400 transition group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </summary>
+                                        <div class="border-t border-slate-100 dark:border-slate-800 bg-gradient-to-b from-slate-50/80 to-white dark:from-slate-950/80 dark:to-slate-900">
+                                            <!-- Description -->
+                                            <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                                                <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">${tool.desc}</p>
                                             </div>
-                                            `
-                                                    : ""
-                                            }
+                                            
+                                            <!-- Tabs -->
+                                            <div class="p-4">
+                                                <div class="tool-tabs">
+                                                    <button class="tool-tab-btn active" onclick="switchTab('${toolId}', 'request', this)">
+                                                        <span>Request</span>
+                                                    </button>
+                                                    <button class="tool-tab-btn" onclick="switchTab('${toolId}', 'response', this)">
+                                                        <span>Response</span>
+                                                    </button>
+                                                </div>
+                                                
+                                                <!-- Request Panel -->
+                                                <div id="${toolId}-request" class="tool-tab-panel active">
+                                                    ${renderArgsSection()}
+                                                    
+                                                    <div class="mt-4">
+                                                <div class="section-header">
+                                                    <div class="section-icon">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                                        </svg>
+                                                    </div>
+                                                    <span class="section-title">Example Call</span>
+                                                </div>
+                                                        <div class="code-block-wrapper">
+                                                            <div class="code-block-header">
+                                                                <span class="code-block-label">JSON</span>
+                                                            </div>
+                                                            <pre class="text-xs" translate="no"><code class="language-json">${jsonExample}</code></pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Response Panel -->
+                                                <div id="${toolId}-response" class="tool-tab-panel">
+                                                    ${renderSchemaSection()}
+                                                    
+                                                    ${
+                                                        tool.response
+                                                            ? `
+                                                        <div class="mt-4">
+                                                            <div class="section-header">
+                                                                <div class="section-icon">
+                                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                                                    </svg>
+                                                                </div>
+                                                                <span class="section-title">Example Response</span>
+                                                            </div>
+                                                            <div class="code-block-wrapper">
+                                                                <div class="code-block-header">
+                                                                    <span class="code-block-label">JSON Response</span>
+                                                                </div>
+                                                                <pre class="text-xs" translate="no"><code class="language-json">${JSON.stringify(tool.response, null, 2)}</code></pre>
+                                                            </div>
+                                                        </div>
+                                                    `
+                                                            : ""
+                                                    }
+                                                </div>
+                                            </div>
                                         </div>
                                     </details>
                                 `;
@@ -2624,19 +4491,72 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 window.toggleMenu();
             });
 
+            // Tab switching function for tool cards
+            window.switchTab = function (toolId, tabName, buttonEl) {
+                // Hide all panels in this tool
+                const requestPanel = document.getElementById(`${toolId}-request`);
+                const responsePanel = document.getElementById(`${toolId}-response`);
+
+                if (requestPanel) requestPanel.classList.remove("active");
+                if (responsePanel) responsePanel.classList.remove("active");
+
+                // Show selected panel
+                const targetPanel = document.getElementById(`${toolId}-${tabName}`);
+                if (targetPanel) targetPanel.classList.add("active");
+
+                // Update button states
+                const tabsContainer = buttonEl.parentElement;
+                tabsContainer.querySelectorAll(".tool-tab-btn").forEach((btn) => {
+                    btn.classList.remove("active");
+                });
+                buttonEl.classList.add("active");
+
+                // Re-highlight code blocks in the newly visible panel
+                if (window.hljs && targetPanel) {
+                    targetPanel.querySelectorAll("pre code").forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                }
+            };
+
             // Filter function
             window.setFilter = function (type) {
                 currentFilterType = type;
 
                 // Update UI
                 document.querySelectorAll(".filter-chip").forEach((btn) => {
-                    if (btn.textContent === type) {
-                        btn.className =
-                            "filter-chip active px-2.5 py-1 rounded-md text-xs font-bold bg-slate-800 dark:bg-blue-600 text-white shadow-md transition whitespace-nowrap ring-2 ring-transparent focus:outline-none scale-105";
+                    const btnType = btn.textContent.trim();
+                    const isActive = btnType === type;
+
+                    // Base classes
+                    let classes = "filter-chip px-2.5 py-1 rounded-md text-xs font-bold transition whitespace-nowrap ";
+
+                    if (isActive) {
+                        // Active State - Consistent dark/blue style
+                        classes +=
+                            "active bg-slate-800 dark:bg-blue-600 text-white shadow-md ring-2 ring-transparent focus:outline-none scale-105";
                     } else {
-                        btn.className =
-                            "filter-chip px-2.5 py-1 rounded-md text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 transition whitespace-nowrap";
+                        // Inactive State
+                        classes +=
+                            "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 ";
+
+                        // Type-specific hover effects
+                        if (btnType === "READ") {
+                            classes +=
+                                "hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 hover:border-blue-200";
+                        } else if (btnType === "WRITE") {
+                            classes +=
+                                "hover:bg-orange-50 dark:hover:bg-orange-900/30 hover:text-orange-600 hover:border-orange-200";
+                        } else if (btnType === "META") {
+                            classes +=
+                                "hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:text-purple-600 hover:border-purple-200";
+                        } else {
+                            // Default / ALL
+                            classes += "hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300";
+                        }
                     }
+
+                    btn.className = classes;
                 });
 
                 renderTools(currentFilterText);
@@ -2692,8 +4612,44 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 );
             };
 
+            // Calculate total tools count
+            const totalToolsCount = toolsData.reduce((acc, cat) => acc + cat.tools.length, 0);
+
+            // Update all places with tools count
+            function updateToolsCount() {
+                // Update reference section
+                const refCount = document.getElementById("tools-count-reference");
+                if (refCount) refCount.textContent = totalToolsCount;
+
+                // Update testing section
+                const testCount = document.getElementById("tools-count-testing");
+                if (testCount) testCount.textContent = totalToolsCount;
+
+                // Update search placeholder
+                const searchInput = document.getElementById("toolSearch");
+                if (searchInput && searchInput.dataset.placeholderTemplate) {
+                    searchInput.placeholder = searchInput.dataset.placeholderTemplate.replace(
+                        "{count}",
+                        totalToolsCount
+                    );
+                }
+            }
+
+            // Update version badge
+            function updateVersion() {
+                const versionText = document.getElementById("version-text");
+                if (versionText && window.packageVersion) {
+                    versionText.textContent = `v${window.packageVersion} Stable`;
+                } else if (versionText) {
+                    // Fallback if version not loaded yet
+                    setTimeout(updateVersion, 100);
+                }
+            }
+
             // Initial Render
-            renderTools();
+            updateToolsCount();
+            updateVersion();
+            renderTools(currentFilterText);
 
             // Get main content element (used by multiple features)
             const mainContent = document.querySelector("main");
@@ -2911,6 +4867,11 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
 
             // Scroll to specific tool
             window.scrollToTool = function (toolName) {
+                // Reset filter to ALL to ensure tool is visible in DOM
+                if (currentFilterType !== "ALL") {
+                    window.setFilter("ALL");
+                }
+
                 const toolElement = document.getElementById(`tool-${toolName}`);
                 if (toolElement) {
                     // Close suggestions
@@ -2921,7 +4882,6 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     toolElement.open = true;
 
                     // Scroll to element with offset
-                    // Using scrollIntoView for simplicity as it handles nested scrolling contexts better usually
                     toolElement.scrollIntoView({ behavior: "smooth", block: "center" });
 
                     // Highlight effect
@@ -2945,6 +4905,316 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     }
                 }
             };
+
+            // === READING PROGRESS BAR (UX) ===
+            function updateReadingProgress() {
+                const mainContentScroll = document.getElementById("main-content-scroll");
+                const progressBar = document.getElementById("reading-progress");
+                if (!mainContentScroll || !progressBar) return;
+                const scrollTop = mainContentScroll.scrollTop;
+                const scrollHeight = mainContentScroll.scrollHeight - mainContentScroll.clientHeight;
+                const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+                progressBar.style.width = `${progress}%`;
+                progressBar.setAttribute("aria-valuenow", Math.round(progress));
+            }
+            const mainContentScrollEl = document.getElementById("main-content-scroll");
+            if (mainContentScrollEl) {
+                mainContentScrollEl.addEventListener("scroll", updateReadingProgress);
+                updateReadingProgress();
+            }
+
+            // === KEYBOARD SHORTCUTS (Functionality) ===
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    const activeElement = document.activeElement;
+                    const isInputFocused = activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA";
+                    if (!isInputFocused) {
+                        e.preventDefault();
+                        const searchInput = document.getElementById("toolSearch");
+                        if (searchInput) {
+                            searchInput.focus();
+                            searchInput.select();
+                        }
+                    }
+                }
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "S") {
+                    e.preventDefault();
+                    sharePage();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "E") {
+                    e.preventDefault();
+                    exportDocumentation();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === "Home") {
+                    e.preventDefault();
+                    scrollToTop();
+                }
+                if (e.key === "Escape") {
+                    const sidebar = document.getElementById("sidebar");
+                    if (sidebar && !sidebar.classList.contains("-translate-x-full")) {
+                        toggleMenu();
+                    }
+                }
+            });
+
+            // === SHARE PAGE FUNCTIONALITY ===
+            window.sharePage = async function () {
+                const shareData = {
+                    title: "Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio",
+                    text: "Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 51 tools for trading, staking, and portfolio management.",
+                    url: window.location.href,
+                };
+                try {
+                    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                        await navigator.share(shareData);
+                        showNotification("Page shared successfully!");
+                    } else {
+                        await navigator.clipboard.writeText(window.location.href);
+                        showNotification("Link copied to clipboard!");
+                    }
+                } catch (err) {
+                    if (err.name !== "AbortError") {
+                        try {
+                            await navigator.clipboard.writeText(window.location.href);
+                            showNotification("Link copied to clipboard!");
+                        } catch (clipboardErr) {
+                            showNotification("Unable to share. Please copy the URL manually.", "error");
+                        }
+                    }
+                }
+            };
+
+            // === SHARE TO SOCIAL NETWORKS ===
+            window.shareToSocial = function (platform) {
+                const url = encodeURIComponent(window.location.href);
+                const title = encodeURIComponent("Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio");
+                const text = encodeURIComponent(
+                    "Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 51 tools for trading, staking, and portfolio management."
+                );
+
+                let shareUrl = "";
+
+                switch (platform) {
+                    case "twitter":
+                        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+                        break;
+                    case "linkedin":
+                        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+                        break;
+                    case "facebook":
+                        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                        break;
+                    case "reddit":
+                        shareUrl = `https://reddit.com/submit?url=${url}&title=${title}`;
+                        break;
+                    case "whatsapp":
+                        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+                        break;
+                    case "email":
+                        shareUrl = `mailto:?subject=${title}&body=${text}%20${url}`;
+                        break;
+                    default:
+                        return;
+                }
+
+                if (shareUrl) {
+                    window.open(shareUrl, "_blank", "width=600,height=400");
+                    showNotification(`Sharing on ${platform.charAt(0).toUpperCase() + platform.slice(1)}...`);
+                }
+            };
+
+            // === TOGGLE SHARE MENU ===
+            window.toggleShareMenu = function () {
+                const menu = document.getElementById("shareMenu");
+                const button = document.getElementById("shareBtn");
+
+                if (menu && button) {
+                    const isHidden = menu.classList.contains("hidden");
+
+                    if (isHidden) {
+                        menu.classList.remove("hidden");
+                        button.setAttribute("aria-expanded", "true");
+                    } else {
+                        menu.classList.add("hidden");
+                        button.setAttribute("aria-expanded", "false");
+                    }
+                }
+            };
+
+            // Close share menu when clicking outside
+            document.addEventListener("click", (e) => {
+                const shareMenu = document.getElementById("shareMenu");
+                const shareBtn = document.getElementById("shareBtn");
+
+                if (shareMenu && shareBtn && !shareMenu.contains(e.target) && !shareBtn.contains(e.target)) {
+                    shareMenu.classList.add("hidden");
+                    shareBtn.setAttribute("aria-expanded", "false");
+                }
+            });
+
+            // === EXPORT DOCUMENTATION ===
+            window.exportDocumentation = function () {
+                try {
+                    const exportData = {
+                        metadata: {
+                            title: "Bit2Me MCP Server Documentation",
+                            version: document.getElementById("version-text")?.textContent || "Unknown",
+                            exportedAt: new Date().toISOString(),
+                            url: window.location.href,
+                        },
+                        tools: toolsData.map((cat) => ({
+                            category: cat.category,
+                            icon: cat.icon,
+                            tools: cat.tools.map((tool) => ({
+                                name: tool.name,
+                                displayName: tool.displayName || tool.name,
+                                description: tool.desc,
+                                type: tool.type,
+                                arguments: tool.args,
+                                responseSchema: tool.responseSchema,
+                            })),
+                        })),
+                    };
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `bit2me-mcp-documentation-${new Date().toISOString().split("T")[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showNotification("Documentation exported successfully!");
+                } catch (err) {
+                    console.error("Export error:", err);
+                    showNotification("Failed to export documentation.", "error");
+                }
+            };
+
+            // === NOTIFICATION SYSTEM ===
+            function showNotification(message, type = "success") {
+                const existing = document.getElementById("notification");
+                if (existing) existing.remove();
+                const notification = document.createElement("div");
+                notification.id = "notification";
+                notification.className = `fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+                    type === "error" ? "bg-red-500 text-white" : "bg-green-500 text-white"
+                }`;
+                notification.textContent = message;
+                notification.setAttribute("role", "alert");
+                notification.setAttribute("aria-live", "polite");
+                document.body.appendChild(notification);
+                setTimeout(() => notification.classList.remove("translate-x-full"), 10);
+                setTimeout(() => {
+                    notification.classList.add("translate-x-full");
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            // === IMPROVED COPY BUTTON FEEDBACK ===
+            const originalAddCopyButtons = window.addCopyButtons;
+            window.addCopyButtons = function () {
+                if (originalAddCopyButtons) originalAddCopyButtons();
+                document.querySelectorAll("pre code").forEach((block) => {
+                    if (block.parentElement.querySelector(".copy-btn")) return;
+                    const button = document.createElement("button");
+                    button.className =
+                        "copy-btn absolute top-2 right-2 bg-slate-700 hover:bg-slate-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all duration-200 focus:opacity-100";
+                    button.textContent = "Copy";
+                    button.setAttribute("aria-label", "Copy code to clipboard");
+                    button.addEventListener("click", async () => {
+                        try {
+                            await navigator.clipboard.writeText(block.textContent);
+                            button.textContent = "Copied!";
+                            button.classList.add("bg-green-600");
+                            showNotification("Code copied to clipboard!");
+                            setTimeout(() => {
+                                button.textContent = "Copy";
+                                button.classList.remove("bg-green-600");
+                            }, 2000);
+                        } catch (err) {
+                            button.textContent = "Error";
+                            setTimeout(() => (button.textContent = "Copy"), 2000);
+                        }
+                    });
+                    block.parentElement.style.position = "relative";
+                    block.parentElement.classList.add("group");
+                    block.parentElement.appendChild(button);
+                });
+            };
+            setTimeout(() => {
+                if (window.addCopyButtons) window.addCopyButtons();
+            }, 500);
+
+            // === UPDATE ARIA STATES ===
+            function updateAriaStates() {
+                const themeBtn = document.getElementById("theme-toggle-btn");
+                if (themeBtn) {
+                    themeBtn.setAttribute("aria-pressed", document.documentElement.classList.contains("dark"));
+                }
+                const menuBtn = document.getElementById("mobile-menu-btn");
+                if (menuBtn) {
+                    const sidebar = document.getElementById("sidebar");
+                    menuBtn.setAttribute("aria-expanded", sidebar && !sidebar.classList.contains("-translate-x-full"));
+                }
+            }
+            const originalToggleTheme = window.toggleTheme;
+            window.toggleTheme = function () {
+                originalToggleTheme();
+                setTimeout(updateAriaStates, 100);
+            };
+            const originalToggleMenu = window.toggleMenu;
+            window.toggleMenu = function () {
+                originalToggleMenu();
+                setTimeout(updateAriaStates, 100);
+            };
+            updateAriaStates();
+
+            // === ENHANCED SEARCH KEYBOARD NAVIGATION ===
+            const searchInputEl = document.getElementById("toolSearch");
+            if (searchInputEl) {
+                let selectedIndex = -1;
+                const suggestionsBoxEl = document.getElementById("searchSuggestions");
+                searchInputEl.addEventListener("keydown", (e) => {
+                    const suggestions = suggestionsBoxEl.querySelectorAll("div[onclick]");
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
+                        suggestions.forEach((s, i) => {
+                            if (i === selectedIndex) {
+                                s.classList.add("bg-blue-50", "dark:bg-blue-900/30");
+                                s.scrollIntoView({ block: "nearest" });
+                            } else {
+                                s.classList.remove("bg-blue-50", "dark:bg-blue-900/30");
+                            }
+                        });
+                    } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        selectedIndex = Math.max(selectedIndex - 1, -1);
+                        suggestions.forEach((s, i) => {
+                            if (i === selectedIndex) {
+                                s.classList.add("bg-blue-50", "dark:bg-blue-900/30");
+                            } else {
+                                s.classList.remove("bg-blue-50", "dark:bg-blue-900/30");
+                            }
+                        });
+                    } else if (e.key === "Enter" && selectedIndex >= 0) {
+                        e.preventDefault();
+                        suggestions[selectedIndex].click();
+                    } else if (e.key === "Escape") {
+                        suggestionsBoxEl.classList.add("hidden");
+                        selectedIndex = -1;
+                    }
+                });
+                searchInputEl.addEventListener("input", () => {
+                    selectedIndex = -1;
+                });
+            }
+
+            // === TOOLTIP INITIALIZATION ===
+            document.querySelectorAll("[data-tooltip]").forEach((element) => {
+                element.setAttribute("aria-label", element.getAttribute("data-tooltip"));
+            });
         </script>
     </body>
 </html>

@@ -215,12 +215,22 @@ export interface EarnSummaryResponse {
 }
 
 export interface EarnWalletResponse {
-    id: string;
+    wallet_id: string;
     symbol: string;
     balance: string;
     strategy: string;
-    status: string;
+    lock_period?: {
+        lock_period_id: string;
+        months: number;
+    };
+    converted_balance?: {
+        value: string;
+        symbol: string;
+    };
     created_at?: string;
+    updated_at?: string;
+    // Keep id for backward compatibility
+    id?: string;
     total_balance?: string; // v2/earn/wallets has totalBalance
 }
 
@@ -500,12 +510,22 @@ export interface WalletMovementDetailsResponse {
 // ============================================================================
 
 export interface EarnWalletDetailsResponse {
-    id: string;
+    wallet_id: string;
     symbol: string;
     balance: string;
     strategy: string;
-    status: "active" | "inactive" | "pending";
+    lock_period?: {
+        lock_period_id: string;
+        months: number;
+    };
+    converted_balance?: {
+        value: string;
+        symbol: string;
+    };
     created_at?: string;
+    updated_at?: string;
+    // Keep id for backward compatibility
+    id?: string;
     total_balance?: string;
 }
 

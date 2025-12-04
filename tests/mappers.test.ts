@@ -438,7 +438,6 @@ describe("Response Mappers", () => {
                 symbol: "BTC",
                 balance: "1",
                 strategy: "flexible",
-                status: "active",
                 total_balance: "1",
             });
             // APY should not be present
@@ -531,7 +530,6 @@ describe("Response Mappers", () => {
                 symbol: "BTC",
                 balance: "1",
                 strategy: "flexible",
-                status: "active",
                 created_at: "2023-01-01",
             });
             // APY should not be present

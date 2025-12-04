@@ -15,15 +15,18 @@ const toolsData = [
                 "args": {
                     "quote_symbol": {
                         "type": "string",
-                        "desc": "Target quote symbol (e.g., EUR, USD)"
+                        "desc": "Target quote symbol (e.g., EUR, USD)",
+                        "required": false
                     },
                     "base_symbol": {
                         "type": "string",
-                        "desc": "Filter by specific base symbol (e.g., BTC)"
+                        "desc": "Filter by specific base symbol (e.g., BTC)",
+                        "required": false
                     },
                     "date": {
                         "type": "string",
-                        "desc": "Timestamp or date string (ISO 8601) for historical rates"
+                        "desc": "Timestamp or date string (ISO 8601) for historical rates",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -87,11 +90,13 @@ const toolsData = [
                 "args": {
                     "base_symbol": {
                         "type": "string",
-                        "desc": "Base symbol (e.g., BTC, ETH, DOGE, SOL)"
+                        "desc": "Base symbol (e.g., BTC, ETH, DOGE, SOL)",
+                        "required": true
                     },
                     "quote_symbol": {
                         "type": "string",
-                        "desc": "Quote symbol for prices (default: EUR)"
+                        "desc": "Quote symbol for prices (default: EUR)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -171,11 +176,13 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Pair (e.g., BTC-USD)"
+                        "desc": "Pair (e.g., BTC-USD)",
+                        "required": true
                     },
                     "timeframe": {
                         "type": "string",
-                        "desc": "Timeframe (one-hour, one-day, one-week, one-month, one-year)"
+                        "desc": "Timeframe (one-hour, one-day, one-week, one-month, one-year)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -227,15 +234,18 @@ const toolsData = [
                 "args": {
                     "symbol": {
                         "type": "string",
-                        "desc": "Filter by specific asset symbol (e.g., BTC, ETH). If not provided, returns all assets."
+                        "desc": "Filter by specific asset symbol (e.g., BTC, ETH). If not provided, returns all assets.",
+                        "required": false
                     },
                     "include_testnet": {
                         "type": "boolean",
-                        "desc": "Include testnet assets"
+                        "desc": "Include testnet assets",
+                        "required": false
                     },
                     "show_exchange": {
                         "type": "boolean",
-                        "desc": "Include exchange property"
+                        "desc": "Include exchange property",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -334,7 +344,8 @@ const toolsData = [
                 "args": {
                     "symbol": {
                         "type": "string",
-                        "desc": "Filter by cryptocurrency or fiat symbol (e.g., BTC, EUR)"
+                        "desc": "Filter by cryptocurrency or fiat symbol (e.g., BTC, EUR)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {},
@@ -402,7 +413,8 @@ const toolsData = [
                 "args": {
                     "pocket_id": {
                         "type": "string",
-                        "desc": "Pocket UUID"
+                        "desc": "Pocket UUID",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -473,11 +485,13 @@ const toolsData = [
                 "args": {
                     "pocket_id": {
                         "type": "string",
-                        "desc": "Pocket UUID"
+                        "desc": "Pocket UUID",
+                        "required": false
                     },
                     "network": {
                         "type": "string",
-                        "desc": "Address network (e.g., bitcoin, ethereum, bsc)"
+                        "desc": "Address network (e.g., bitcoin, ethereum, bsc)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -551,7 +565,8 @@ const toolsData = [
                 "args": {
                     "symbol": {
                         "type": "string",
-                        "desc": "Cryptocurrency symbol (e.g., BTC, ETH)"
+                        "desc": "Cryptocurrency symbol (e.g., BTC, ETH)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -617,15 +632,18 @@ const toolsData = [
                 "args": {
                     "card_id": {
                         "type": "string",
-                        "desc": "Card UUID to retrieve details for a specific card (optional, if not specified returns all cards)"
+                        "desc": "Card UUID to retrieve details for a specific card (optional, if not specified returns all cards)",
+                        "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Maximum number of cards to return (default: 10, max: 150)"
+                        "desc": "Maximum number of cards to return (default: 10, max: 150)",
+                        "required": false
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Number of cards to skip for pagination (default: 0)"
+                        "desc": "Number of cards to skip for pagination (default: 0)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -768,15 +786,18 @@ const toolsData = [
                 "args": {
                     "symbol": {
                         "type": "string",
-                        "desc": "Filter by cryptocurrency or fiat symbol (e.g., BTC, EUR)"
+                        "desc": "Filter by cryptocurrency or fiat symbol (e.g., BTC, EUR)",
+                        "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Amount to show (default: 10)"
+                        "desc": "Amount to show (default: 10)",
+                        "required": false
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Offset for pagination (default: 0)"
+                        "desc": "Offset for pagination (default: 0)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -908,7 +929,8 @@ const toolsData = [
                 "args": {
                     "movement_id": {
                         "type": "string",
-                        "desc": "Movement UUID"
+                        "desc": "Movement UUID",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -1020,15 +1042,18 @@ const toolsData = [
                 "args": {
                     "origin_pocket_id": {
                         "type": "string",
-                        "desc": "Source pocket UUID containing fiat currency (e.g., EUR pocket)"
+                        "desc": "Source pocket UUID containing fiat currency (e.g., EUR pocket)",
+                        "required": true
                     },
                     "destination_pocket_id": {
                         "type": "string",
-                        "desc": "Target pocket UUID to receive cryptocurrency (e.g., BTC pocket)"
+                        "desc": "Target pocket UUID to receive cryptocurrency (e.g., BTC pocket)",
+                        "required": true
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to spend from origin pocket (in origin currency)"
+                        "desc": "Amount to spend from origin pocket (in origin currency)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -1109,15 +1134,18 @@ const toolsData = [
                 "args": {
                     "origin_pocket_id": {
                         "type": "string",
-                        "desc": "Source pocket UUID containing cryptocurrency (e.g., BTC pocket)"
+                        "desc": "Source pocket UUID containing cryptocurrency (e.g., BTC pocket)",
+                        "required": true
                     },
                     "destination_pocket_id": {
                         "type": "string",
-                        "desc": "Target pocket UUID to receive fiat currency (e.g., EUR pocket)"
+                        "desc": "Target pocket UUID to receive fiat currency (e.g., EUR pocket)",
+                        "required": true
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to sell from origin pocket (in origin cryptocurrency)"
+                        "desc": "Amount to sell from origin pocket (in origin cryptocurrency)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -1198,15 +1226,18 @@ const toolsData = [
                 "args": {
                     "origin_pocket_id": {
                         "type": "string",
-                        "desc": "Source pocket UUID containing cryptocurrency to swap (e.g., BTC pocket)"
+                        "desc": "Source pocket UUID containing cryptocurrency to swap (e.g., BTC pocket)",
+                        "required": true
                     },
                     "destination_pocket_id": {
                         "type": "string",
-                        "desc": "Target pocket UUID to receive different cryptocurrency (e.g., ETH pocket)"
+                        "desc": "Target pocket UUID to receive different cryptocurrency (e.g., ETH pocket)",
+                        "required": true
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to swap from origin pocket (in origin cryptocurrency)"
+                        "desc": "Amount to swap from origin pocket (in origin cryptocurrency)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -1287,19 +1318,23 @@ const toolsData = [
                 "args": {
                     "card_id": {
                         "type": "string",
-                        "desc": "Credit card ID registered in Bit2Me"
+                        "desc": "Credit card ID registered in Bit2Me",
+                        "required": true
                     },
                     "destination_pocket_id": {
                         "type": "string",
-                        "desc": "Target pocket UUID to receive cryptocurrency (e.g., BTC pocket)"
+                        "desc": "Target pocket UUID to receive cryptocurrency (e.g., BTC pocket)",
+                        "required": true
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to charge to the card (in fiat currency)"
+                        "desc": "Amount to charge to the card (in fiat currency)",
+                        "required": true
                     },
                     "currency": {
                         "type": "string",
-                        "desc": "Fiat currency of the amount (e.g., EUR, USD)"
+                        "desc": "Fiat currency of the amount (e.g., EUR, USD)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -1382,7 +1417,8 @@ const toolsData = [
                 "args": {
                     "proforma_id": {
                         "type": "string",
-                        "desc": "Proforma UUID"
+                        "desc": "Proforma UUID",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -1493,7 +1529,8 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Filter by trading pair (e.g., BTC-USD)"
+                        "desc": "Filter by trading pair (e.g., BTC-USD)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -1599,35 +1636,43 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Filter by trading pair (e.g., BTC-USD)"
+                        "desc": "Filter by trading pair (e.g., BTC-USD)",
+                        "required": false
                     },
                     "side": {
                         "type": "string",
-                        "desc": "Filter by order direction (buy, sell)"
+                        "desc": "Filter by order direction (buy, sell)",
+                        "required": false
                     },
                     "order_type": {
                         "type": "string",
-                        "desc": "Filter by order type (limit, stop-limit, market)"
+                        "desc": "Filter by order type (limit, stop-limit, market)",
+                        "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Maximum number of trades to fetch (max 50, default 50)"
+                        "desc": "Maximum number of trades to fetch (max 50, default 50)",
+                        "required": false
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Number of records to skip for pagination"
+                        "desc": "Number of records to skip for pagination",
+                        "required": false
                     },
                     "sort": {
                         "type": "string",
-                        "desc": "Sort order by date (ASC, DESC)"
+                        "desc": "Sort order by date (ASC, DESC)",
+                        "required": false
                     },
                     "start_time": {
                         "type": "string",
-                        "desc": "Filter trades from this date (ISO 8601 format)"
+                        "desc": "Filter trades from this date (ISO 8601 format)",
+                        "required": false
                     },
                     "end_time": {
                         "type": "string",
-                        "desc": "Filter trades until this date (ISO 8601 format)"
+                        "desc": "Filter trades until this date (ISO 8601 format)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -1749,7 +1794,8 @@ const toolsData = [
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Order ID"
+                        "desc": "Order ID",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -1828,7 +1874,8 @@ const toolsData = [
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Order ID"
+                        "desc": "Order ID",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -1926,27 +1973,33 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Trading pair (e.g., BTC-USD)"
+                        "desc": "Trading pair (e.g., BTC-USD)",
+                        "required": false
                     },
                     "side": {
                         "type": "string",
-                        "desc": "Order direction (buy, sell)"
+                        "desc": "Order direction (buy, sell)",
+                        "required": false
                     },
                     "type": {
                         "type": "string",
-                        "desc": "Order type (limit, market, stop-limit)"
+                        "desc": "Order type (limit, market, stop-limit)",
+                        "required": false
                     },
                     "amount": {
                         "type": "number",
-                        "desc": "Order amount"
+                        "desc": "Order amount",
+                        "required": false
                     },
                     "price": {
                         "type": "number",
-                        "desc": "Required for Limit/Stop orders"
+                        "desc": "Required for Limit/Stop orders",
+                        "required": false
                     },
                     "stop_price": {
                         "type": "number",
-                        "desc": "Required for Stop-Limit orders"
+                        "desc": "Required for Stop-Limit orders",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2046,7 +2099,8 @@ const toolsData = [
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Order ID"
+                        "desc": "Order ID",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2098,7 +2152,8 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Filter by trading pair (e.g., BTC-USD)"
+                        "desc": "Filter by trading pair (e.g., BTC-USD)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2138,11 +2193,13 @@ const toolsData = [
                 "args": {
                     "symbol": {
                         "type": "string",
-                        "desc": "Symbol - can be cryptocurrency or fiat (e.g., BTC, EUR)"
+                        "desc": "Symbol - can be cryptocurrency or fiat (e.g., BTC, EUR)",
+                        "required": false
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to transfer"
+                        "desc": "Amount to transfer",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2208,15 +2265,18 @@ const toolsData = [
                 "args": {
                     "symbol": {
                         "type": "string",
-                        "desc": "Symbol - can be cryptocurrency or fiat (e.g., BTC, EUR)"
+                        "desc": "Symbol - can be cryptocurrency or fiat (e.g., BTC, EUR)",
+                        "required": false
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to transfer"
+                        "desc": "Amount to transfer",
+                        "required": false
                     },
                     "to_pocket_id": {
                         "type": "string",
-                        "desc": "Destination pocket UUID in Simple Wallet (optional)"
+                        "desc": "Destination pocket UUID in Simple Wallet (optional)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2284,7 +2344,8 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Filter by trading pair (e.g., BTC-USD)"
+                        "desc": "Filter by trading pair (e.g., BTC-USD)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2362,7 +2423,8 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Trading pair (e.g., BTC-USD)"
+                        "desc": "Trading pair (e.g., BTC-USD)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2463,15 +2525,18 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Trading pair (e.g., BTC-USD)"
+                        "desc": "Trading pair (e.g., BTC-USD)",
+                        "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Result limit (max 100)"
+                        "desc": "Result limit (max 100)",
+                        "required": false
                     },
                     "sort": {
                         "type": "string",
-                        "desc": "Sort order (ASC/DESC)"
+                        "desc": "Sort order (ASC/DESC)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2552,15 +2617,18 @@ const toolsData = [
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Trading pair (e.g., BTC-USD)"
+                        "desc": "Trading pair (e.g., BTC-USD)",
+                        "required": false
                     },
                     "timeframe": {
                         "type": "string",
-                        "desc": "Timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M)"
+                        "desc": "Timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M)",
+                        "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Candle limit"
+                        "desc": "Candle limit",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2689,20 +2757,27 @@ const toolsData = [
             {
                 "name": "earn_get_wallets",
                 "type": "READ",
-                "desc": "List active Earn wallets/strategies. Returns wallet ID, symbol, balance, strategy, and status. Use earn_get_apy to get APY rates for each symbol.",
+                "desc": "List active Earn wallets/strategies. Returns an array of wallet objects containing: wallet_id (unique identifier), symbol (cryptocurrency symbol in uppercase), balance (current staking balance), strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_apy to get APY rates for each symbol.",
                 "args": {},
                 "exampleArgs": {},
                 "response": {
                     "request": {},
                     "result": [
                         {
-                            "id": "earn123-...",
-                            "symbol": "BTC",
-                            "balance": "0.5",
-                            "strategy": "flexible",
-                            "status": "active",
-                            "created_at": "2021-01-19T20:24:59.209Z",
-                            "total_balance": "0.5"
+                            "wallet_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
+                            "symbol": "B2M",
+                            "balance": "25865004.93005867",
+                            "strategy": "fixed",
+                            "lock_period": {
+                                "lock_period_id": "bfbc04b5-b7f8-4060-8ec0-bb2c924851b5",
+                                "months": 12
+                            },
+                            "converted_balance": {
+                                "value": "269293.50",
+                                "symbol": "EUR"
+                            },
+                            "created_at": "2024-06-24T11:59:28.905Z",
+                            "updated_at": "2025-12-04T11:05:54.389Z"
                         }
                     ],
                     "metadata": {
@@ -2714,13 +2789,13 @@ const toolsData = [
                     "items": {
                         "type": "object",
                         "properties": {
-                            "id": {
+                            "wallet_id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Earn wallet unique identifier"
                             },
                             "symbol": {
                                 "type": "string",
-                                "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
+                                "description": "Asset symbol in uppercase (e.g., BTC, ETH, B2M)"
                             },
                             "balance": {
                                 "type": "string",
@@ -2728,36 +2803,52 @@ const toolsData = [
                             },
                             "strategy": {
                                 "type": "string",
-                                "description": "strategy"
+                                "description": "Staking strategy (e.g., flexible, fixed)"
                             },
-                            "status": {
-                                "type": "string",
-                                "description": "Current order status",
-                                "enum": [
-                                    "open",
-                                    "filled",
-                                    "cancelled",
-                                    "inactive"
-                                ]
+                            "lock_period": {
+                                "type": "object",
+                                "description": "Lock period information (if applicable)",
+                                "properties": {
+                                    "lock_period_id": {
+                                        "type": "string",
+                                        "description": "Lock period identifier"
+                                    },
+                                    "months": {
+                                        "type": "number",
+                                        "description": "Number of months locked"
+                                    }
+                                }
+                            },
+                            "converted_balance": {
+                                "type": "object",
+                                "description": "Balance converted to fiat currency",
+                                "properties": {
+                                    "value": {
+                                        "type": "string",
+                                        "description": "Converted balance value"
+                                    },
+                                    "symbol": {
+                                        "type": "string",
+                                        "description": "Fiat currency symbol (e.g., EUR, USD)"
+                                    }
+                                }
                             },
                             "created_at": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time when the resource was created",
+                                "description": "ISO 8601 date/time when the wallet was created",
                                 "format": "date-time"
                             },
-                            "total_balance": {
+                            "updated_at": {
                                 "type": "string",
-                                "description": "total balance"
+                                "description": "ISO 8601 date/time when the wallet was last updated",
+                                "format": "date-time"
                             }
                         },
                         "required": [
-                            "id",
+                            "wallet_id",
                             "symbol",
                             "balance",
-                            "strategy",
-                            "status",
-                            "created_at",
-                            "total_balance"
+                            "strategy"
                         ]
                     }
                 }
@@ -2765,11 +2856,12 @@ const toolsData = [
             {
                 "name": "earn_get_wallet_details",
                 "type": "READ",
-                "desc": "Get detailed information of a specific Earn wallet. Returns balance, strategy, status, and configuration. Use earn_get_wallets first to get the wallet ID. Use earn_get_apy to get APY rates.",
+                "desc": "Get detailed information of a specific Earn wallet. Returns wallet_id, symbol, balance, strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_wallets first to get the wallet ID. Use earn_get_apy to get APY rates.",
                 "args": {
                     "wallet_id": {
                         "type": "string",
-                        "desc": "Earn wallet UUID"
+                        "desc": "Earn wallet UUID",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2780,24 +2872,32 @@ const toolsData = [
                         "wallet_id": "earn-wallet-uuid-1234"
                     },
                     "result": {
-                        "id": "earn123-...",
-                        "symbol": "BTC",
-                        "balance": "0.5",
-                        "strategy": "flexible",
-                        "status": "active",
-                        "created_at": "2021-01-19T20:24:59.209Z"
+                        "wallet_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
+                        "symbol": "B2M",
+                        "balance": "25865004.93005867",
+                        "strategy": "fixed",
+                        "lock_period": {
+                            "lock_period_id": "bfbc04b5-b7f8-4060-8ec0-bb2c924851b5",
+                            "months": 12
+                        },
+                        "converted_balance": {
+                            "value": "269293.50",
+                            "symbol": "EUR"
+                        },
+                        "created_at": "2024-06-24T11:59:28.905Z",
+                        "updated_at": "2025-12-04T11:05:54.389Z"
                     }
                 },
                 "responseSchema": {
                     "type": "object",
                     "properties": {
-                        "id": {
+                        "wallet_id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Earn wallet unique identifier"
                         },
                         "symbol": {
                             "type": "string",
-                            "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
+                            "description": "Asset symbol in uppercase (e.g., BTC, ETH, B2M)"
                         },
                         "balance": {
                             "type": "string",
@@ -2805,31 +2905,52 @@ const toolsData = [
                         },
                         "strategy": {
                             "type": "string",
-                            "description": "strategy"
+                            "description": "Staking strategy (e.g., flexible, fixed)"
                         },
-                        "status": {
-                            "type": "string",
-                            "description": "Current order status",
-                            "enum": [
-                                "open",
-                                "filled",
-                                "cancelled",
-                                "inactive"
-                            ]
+                        "lock_period": {
+                            "type": "object",
+                            "description": "Lock period information (if applicable)",
+                            "properties": {
+                                "lock_period_id": {
+                                    "type": "string",
+                                    "description": "Lock period identifier"
+                                },
+                                "months": {
+                                    "type": "number",
+                                    "description": "Number of months locked"
+                                }
+                            }
+                        },
+                        "converted_balance": {
+                            "type": "object",
+                            "description": "Balance converted to fiat currency",
+                            "properties": {
+                                "value": {
+                                    "type": "string",
+                                    "description": "Converted balance value"
+                                },
+                                "symbol": {
+                                    "type": "string",
+                                    "description": "Fiat currency symbol (e.g., EUR, USD)"
+                                }
+                            }
                         },
                         "created_at": {
                             "type": "string",
-                            "description": "ISO 8601 date/time when the resource was created",
+                            "description": "ISO 8601 date/time when the wallet was created",
+                            "format": "date-time"
+                        },
+                        "updated_at": {
+                            "type": "string",
+                            "description": "ISO 8601 date/time when the wallet was last updated",
                             "format": "date-time"
                         }
                     },
                     "required": [
-                        "id",
+                        "wallet_id",
                         "symbol",
                         "balance",
-                        "strategy",
-                        "status",
-                        "created_at"
+                        "strategy"
                     ]
                 }
             },
@@ -2840,15 +2961,18 @@ const toolsData = [
                 "args": {
                     "wallet_id": {
                         "type": "string",
-                        "desc": "Earn wallet UUID"
+                        "desc": "Earn wallet UUID",
+                        "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Result limit"
+                        "desc": "Result limit",
+                        "required": false
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Offset"
+                        "desc": "Offset",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2946,43 +3070,53 @@ const toolsData = [
                 "args": {
                     "user_symbol": {
                         "type": "string",
-                        "desc": "User's symbol for conversion"
+                        "desc": "User's symbol for conversion",
+                        "required": false
                     },
                     "symbol": {
                         "type": "string",
-                        "desc": "Filter by specific symbol"
+                        "desc": "Filter by specific symbol",
+                        "required": false
                     },
                     "related_symbol": {
                         "type": "string",
-                        "desc": "Filter by related symbol"
+                        "desc": "Filter by related symbol",
+                        "required": false
                     },
                     "wallet_id": {
                         "type": "string",
-                        "desc": "Filter by Earn wallet UUID"
+                        "desc": "Filter by Earn wallet UUID",
+                        "required": false
                     },
                     "from": {
                         "type": "string",
-                        "desc": "Start date-time (ISO 8601)"
+                        "desc": "Start date-time (ISO 8601)",
+                        "required": false
                     },
                     "to": {
                         "type": "string",
-                        "desc": "End date-time (ISO 8601)"
+                        "desc": "End date-time (ISO 8601)",
+                        "required": false
                     },
                     "type": {
                         "type": "string",
-                        "desc": "Filter by movement type. Valid values: deposit, reward, withdrawal, discount-funds, discount-rewards"
+                        "desc": "Filter by movement type. Valid values: deposit, reward, withdrawal, discount-funds, discount-rewards",
+                        "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Maximum results (default: 20, max: 100)"
+                        "desc": "Maximum results (default: 20, max: 100)",
+                        "required": false
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Pagination offset (default: 0)"
+                        "desc": "Pagination offset (default: 0)",
+                        "required": false
                     },
                     "sort_by": {
                         "type": "string",
-                        "desc": "Sort field (createdAt)"
+                        "desc": "Sort field (createdAt)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -3107,7 +3241,8 @@ const toolsData = [
                 "args": {
                     "type": {
                         "type": "string",
-                        "desc": "Movement type. Valid values: deposit, reward, withdrawal, discount-funds, discount-rewards"
+                        "desc": "Movement type. Valid values: deposit, reward, withdrawal, discount-funds, discount-rewards",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -3199,7 +3334,8 @@ const toolsData = [
                 "args": {
                     "symbol": {
                         "type": "string",
-                        "desc": "Filter by specific currency symbol (e.g., BTC). If omitted, returns all."
+                        "desc": "Filter by specific currency symbol (e.g., BTC). If omitted, returns all.",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -3320,7 +3456,8 @@ const toolsData = [
                 "args": {
                     "wallet_id": {
                         "type": "string",
-                        "desc": "Earn wallet UUID"
+                        "desc": "Earn wallet UUID",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -3392,11 +3529,13 @@ const toolsData = [
                 "args": {
                     "wallet_id": {
                         "type": "string",
-                        "desc": "Earn wallet UUID"
+                        "desc": "Earn wallet UUID",
+                        "required": true
                     },
                     "user_currency": {
                         "type": "string",
-                        "desc": "Fiat currency for conversion (e.g., EUR, USD). Optional, defaults to EUR."
+                        "desc": "Fiat currency for conversion (e.g., EUR, USD). Optional, defaults to EUR.",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -3450,15 +3589,18 @@ const toolsData = [
                 "args": {
                     "pocket_id": {
                         "type": "string",
-                        "desc": "Source pocket UUID from Simple Wallet"
+                        "desc": "Source pocket UUID from Simple Wallet",
+                        "required": false
                     },
                     "symbol": {
                         "type": "string",
-                        "desc": "Cryptocurrency symbol (e.g., BTC, ETH)"
+                        "desc": "Cryptocurrency symbol (e.g., BTC, ETH)",
+                        "required": false
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to deposit"
+                        "desc": "Amount to deposit",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -3537,15 +3679,18 @@ const toolsData = [
                 "args": {
                     "pocket_id": {
                         "type": "string",
-                        "desc": "Destination pocket UUID in Simple Wallet"
+                        "desc": "Destination pocket UUID in Simple Wallet",
+                        "required": false
                     },
                     "symbol": {
                         "type": "string",
-                        "desc": "Cryptocurrency symbol (e.g., BTC, ETH)"
+                        "desc": "Cryptocurrency symbol (e.g., BTC, ETH)",
+                        "required": false
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to withdraw"
+                        "desc": "Amount to withdraw",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -3632,23 +3777,28 @@ const toolsData = [
                 "args": {
                     "guarantee_symbol": {
                         "type": "string",
-                        "desc": "Guarantee cryptocurrency symbol (e.g., BTC)"
+                        "desc": "Guarantee cryptocurrency symbol (e.g., BTC)",
+                        "required": false
                     },
                     "loan_symbol": {
                         "type": "string",
-                        "desc": "Loan currency symbol (e.g., USDC, EURC, EUR). Can be any supported currency."
+                        "desc": "Loan currency symbol (e.g., USDC, EURC, EUR). Can be any supported currency.",
+                        "required": false
                     },
                     "user_symbol": {
                         "type": "string",
-                        "desc": "User's symbol (e.g., EUR)"
+                        "desc": "User's symbol (e.g., EUR)",
+                        "required": false
                     },
                     "guarantee_amount": {
                         "type": "string",
-                        "desc": "Guarantee amount (optional if loan_amount is given)"
+                        "desc": "Guarantee amount (optional if loan_amount is given)",
+                        "required": false
                     },
                     "loan_amount": {
                         "type": "string",
-                        "desc": "Loan amount (optional if guarantee_amount is given)"
+                        "desc": "Loan amount (optional if guarantee_amount is given)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -3904,15 +4054,18 @@ const toolsData = [
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Filter by order ID"
+                        "desc": "Filter by order ID",
+                        "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Amount to show (default: 10)"
+                        "desc": "Amount to show (default: 10)",
+                        "required": false
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Offset for pagination (default: 0)"
+                        "desc": "Offset for pagination (default: 0)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -4011,11 +4164,13 @@ const toolsData = [
                 "args": {
                     "limit": {
                         "type": "number",
-                        "desc": "Amount to show (default: 10)"
+                        "desc": "Amount to show (default: 10)",
+                        "required": false
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Offset for pagination (default: 0)"
+                        "desc": "Offset for pagination (default: 0)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -4101,7 +4256,8 @@ const toolsData = [
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Order ID"
+                        "desc": "Order ID",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -4209,19 +4365,23 @@ const toolsData = [
                 "args": {
                     "guarantee_symbol": {
                         "type": "string",
-                        "desc": "Guarantee cryptocurrency symbol (e.g., BTC)"
+                        "desc": "Guarantee cryptocurrency symbol (e.g., BTC)",
+                        "required": false
                     },
                     "guarantee_amount": {
                         "type": "string",
-                        "desc": "Guarantee amount"
+                        "desc": "Guarantee amount",
+                        "required": false
                     },
                     "loan_symbol": {
                         "type": "string",
-                        "desc": "Loan currency symbol (e.g., USDC, EURC, EUR). Can be any supported currency."
+                        "desc": "Loan currency symbol (e.g., USDC, EURC, EUR). Can be any supported currency.",
+                        "required": false
                     },
                     "loan_amount": {
                         "type": "string",
-                        "desc": "Loan amount"
+                        "desc": "Loan amount",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -4316,11 +4476,13 @@ const toolsData = [
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Loan order ID"
+                        "desc": "Loan order ID",
+                        "required": false
                     },
                     "guarantee_amount": {
                         "type": "string",
-                        "desc": "Additional guarantee amount"
+                        "desc": "Additional guarantee amount",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -4381,11 +4543,13 @@ const toolsData = [
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Loan order ID"
+                        "desc": "Loan order ID",
+                        "required": false
                     },
                     "payback_amount": {
                         "type": "string",
-                        "desc": "Amount to pay back"
+                        "desc": "Amount to pay back",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -4521,7 +4685,8 @@ const toolsData = [
                 "args": {
                     "fiat_symbol": {
                         "type": "string",
-                        "desc": "Base fiat symbol (e.g., EUR, USD)"
+                        "desc": "Base fiat symbol (e.g., EUR, USD)",
+                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -4542,22 +4707,22 @@ const toolsData = [
                         },
                         "details": [
                             {
-                                "asset": "BTC",
-                                "amount": "8.657983471809322",
+                                "symbol": "BTC",
+                                "balance": "8.657983471809322",
                                 "price_unit": "75936.5",
-                                "value_fiat": "657456.96"
+                                "converted_balance": "657456.96"
                             },
                             {
-                                "asset": "B2M",
-                                "amount": "3205806.09708881",
+                                "symbol": "B2M",
+                                "balance": "3205806.09708881",
                                 "price_unit": "0.0099566",
-                                "value_fiat": "31918.93"
+                                "converted_balance": "31918.93"
                             },
                             {
-                                "asset": "DOGE",
-                                "amount": "232444.85337828",
+                                "symbol": "DOGE",
+                                "balance": "232444.85337828",
                                 "price_unit": "0.1290807",
-                                "value_fiat": "30004.14"
+                                "converted_balance": "30004.14"
                             }
                         ]
                     }
@@ -4584,28 +4749,28 @@ const toolsData = [
                                 "type": {
                                     "type": "object",
                                     "properties": {
-                                        "asset": {
+                                        "symbol": {
                                             "type": "string",
-                                            "description": "asset"
+                                            "description": "Cryptocurrency symbol"
                                         },
-                                        "amount": {
+                                        "balance": {
                                             "type": "string",
-                                            "description": "Amount as string for precision"
+                                            "description": "Balance as string for precision"
                                         },
                                         "price_unit": {
                                             "type": "string",
                                             "description": "price unit"
                                         },
-                                        "value_fiat": {
+                                        "converted_balance": {
                                             "type": "string",
-                                            "description": "value fiat"
+                                            "description": "Balance converted to fiat currency"
                                         }
                                     },
                                     "required": [
-                                        "asset",
-                                        "amount",
+                                        "symbol",
+                                        "balance",
                                         "price_unit",
-                                        "value_fiat"
+                                        "converted_balance"
                                     ]
                                 }
                             }
@@ -4623,7 +4788,11 @@ const toolsData = [
     }
 ];
 
+// Package version
+const packageVersion = '2.0.0';
+
 // Export for use in landing page
 if (typeof window !== 'undefined') {
     window.toolsData = toolsData;
+    window.packageVersion = packageVersion;
 }

@@ -1,0 +1,29 @@
+{
+    "name": "Bit2Me MCP Server",
+    "short_name": "Bit2Me MCP",
+    "description": "Official MCP server for Bit2Me. Connect Claude AI to your crypto portfolio.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0075FF",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "assets/logo-blue.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "assets/logo-white.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["developer", "finance", "productivity"],
+    "lang": "en",
+    "dir": "ltr",
+    "scope": "/",
+    "prefer_related_applications": false
+}

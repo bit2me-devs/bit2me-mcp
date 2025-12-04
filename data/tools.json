@@ -92,7 +92,8 @@
                                 "type": "string",
                                 "description": "Quote symbol for prices (default: EUR)"
                             }
-                        }
+                        },
+                        "required": ["base_symbol"]
                     },
                     "exampleArgs": {
                         "base_symbol": "BTC",
@@ -171,7 +172,8 @@
                                 "type": "string",
                                 "description": "Timeframe (one-hour, one-day, one-week, one-month, one-year)"
                             }
-                        }
+                        },
+                        "required": ["pair", "timeframe"]
                     },
                     "exampleArgs": {
                         "pair": "BTC-USD",
@@ -2560,7 +2562,7 @@
                 },
                 {
                     "name": "earn_get_wallets",
-                    "description": "List active Earn wallets/strategies. Returns wallet ID, symbol, balance, strategy, and status. Use earn_get_apy to get APY rates for each symbol.",
+                    "description": "List active Earn wallets/strategies. Returns an array of wallet objects containing: wallet_id (unique identifier), symbol (cryptocurrency symbol in uppercase), balance (current staking balance), strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_apy to get APY rates for each symbol.",
                     "type": "READ",
                     "inputSchema": {
                         "type": "object",
@@ -2571,13 +2573,20 @@
                         "request": {},
                         "result": [
                             {
-                                "id": "earn123-...",
-                                "symbol": "BTC",
-                                "balance": "0.5",
-                                "strategy": "flexible",
-                                "status": "active",
-                                "created_at": "2021-01-19T20:24:59.209Z",
-                                "total_balance": "0.5"
+                                "wallet_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
+                                "symbol": "B2M",
+                                "balance": "25865004.93005867",
+                                "strategy": "fixed",
+                                "lock_period": {
+                                    "lock_period_id": "bfbc04b5-b7f8-4060-8ec0-bb2c924851b5",
+                                    "months": 12
+                                },
+                                "converted_balance": {
+                                    "value": "269293.50",
+                                    "symbol": "EUR"
+                                },
+                                "created_at": "2024-06-24T11:59:28.905Z",
+                                "updated_at": "2025-12-04T11:05:54.389Z"
                             }
                         ],
                         "metadata": {
@@ -2589,13 +2598,13 @@
                         "items": {
                             "type": "object",
                             "properties": {
-                                "id": {
+                                "wallet_id": {
                                     "type": "string",
-                                    "description": "Unique identifier"
+                                    "description": "Earn wallet unique identifier"
                                 },
                                 "symbol": {
                                     "type": "string",
-                                    "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
+                                    "description": "Asset symbol in uppercase (e.g., BTC, ETH, B2M)"
                                 },
                                 "balance": {
                                     "type": "string",
@@ -2603,30 +2612,54 @@
                                 },
                                 "strategy": {
                                     "type": "string",
-                                    "description": "strategy"
+                                    "description": "Staking strategy (e.g., flexible, fixed)"
                                 },
-                                "status": {
-                                    "type": "string",
-                                    "description": "Current order status",
-                                    "enum": ["open", "filled", "cancelled", "inactive"]
+                                "lock_period": {
+                                    "type": "object",
+                                    "description": "Lock period information (if applicable)",
+                                    "properties": {
+                                        "lock_period_id": {
+                                            "type": "string",
+                                            "description": "Lock period identifier"
+                                        },
+                                        "months": {
+                                            "type": "number",
+                                            "description": "Number of months locked"
+                                        }
+                                    }
+                                },
+                                "converted_balance": {
+                                    "type": "object",
+                                    "description": "Balance converted to fiat currency",
+                                    "properties": {
+                                        "value": {
+                                            "type": "string",
+                                            "description": "Converted balance value"
+                                        },
+                                        "symbol": {
+                                            "type": "string",
+                                            "description": "Fiat currency symbol (e.g., EUR, USD)"
+                                        }
+                                    }
                                 },
                                 "created_at": {
                                     "type": "string",
-                                    "description": "ISO 8601 date/time when the resource was created",
+                                    "description": "ISO 8601 date/time when the wallet was created",
                                     "format": "date-time"
                                 },
-                                "total_balance": {
+                                "updated_at": {
                                     "type": "string",
-                                    "description": "total balance"
+                                    "description": "ISO 8601 date/time when the wallet was last updated",
+                                    "format": "date-time"
                                 }
                             },
-                            "required": ["id", "symbol", "balance", "strategy", "status", "created_at", "total_balance"]
+                            "required": ["wallet_id", "symbol", "balance", "strategy"]
                         }
                     }
                 },
                 {
                     "name": "earn_get_wallet_details",
-                    "description": "Get detailed information of a specific Earn wallet. Returns balance, strategy, status, and configuration. Use earn_get_wallets first to get the wallet ID. Use earn_get_apy to get APY rates.",
+                    "description": "Get detailed information of a specific Earn wallet. Returns wallet_id, symbol, balance, strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_wallets first to get the wallet ID. Use earn_get_apy to get APY rates.",
                     "type": "READ",
                     "inputSchema": {
                         "type": "object",
@@ -2645,24 +2678,32 @@
                             "wallet_id": "earn-wallet-uuid-1234"
                         },
                         "result": {
-                            "id": "earn123-...",
-                            "symbol": "BTC",
-                            "balance": "0.5",
-                            "strategy": "flexible",
-                            "status": "active",
-                            "created_at": "2021-01-19T20:24:59.209Z"
+                            "wallet_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
+                            "symbol": "B2M",
+                            "balance": "25865004.93005867",
+                            "strategy": "fixed",
+                            "lock_period": {
+                                "lock_period_id": "bfbc04b5-b7f8-4060-8ec0-bb2c924851b5",
+                                "months": 12
+                            },
+                            "converted_balance": {
+                                "value": "269293.50",
+                                "symbol": "EUR"
+                            },
+                            "created_at": "2024-06-24T11:59:28.905Z",
+                            "updated_at": "2025-12-04T11:05:54.389Z"
                         }
                     },
                     "responseSchema": {
                         "type": "object",
                         "properties": {
-                            "id": {
+                            "wallet_id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Earn wallet unique identifier"
                             },
                             "symbol": {
                                 "type": "string",
-                                "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
+                                "description": "Asset symbol in uppercase (e.g., BTC, ETH, B2M)"
                             },
                             "balance": {
                                 "type": "string",
@@ -2670,20 +2711,48 @@
                             },
                             "strategy": {
                                 "type": "string",
-                                "description": "strategy"
+                                "description": "Staking strategy (e.g., flexible, fixed)"
                             },
-                            "status": {
-                                "type": "string",
-                                "description": "Current order status",
-                                "enum": ["open", "filled", "cancelled", "inactive"]
+                            "lock_period": {
+                                "type": "object",
+                                "description": "Lock period information (if applicable)",
+                                "properties": {
+                                    "lock_period_id": {
+                                        "type": "string",
+                                        "description": "Lock period identifier"
+                                    },
+                                    "months": {
+                                        "type": "number",
+                                        "description": "Number of months locked"
+                                    }
+                                }
+                            },
+                            "converted_balance": {
+                                "type": "object",
+                                "description": "Balance converted to fiat currency",
+                                "properties": {
+                                    "value": {
+                                        "type": "string",
+                                        "description": "Converted balance value"
+                                    },
+                                    "symbol": {
+                                        "type": "string",
+                                        "description": "Fiat currency symbol (e.g., EUR, USD)"
+                                    }
+                                }
                             },
                             "created_at": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time when the resource was created",
+                                "description": "ISO 8601 date/time when the wallet was created",
+                                "format": "date-time"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "description": "ISO 8601 date/time when the wallet was last updated",
                                 "format": "date-time"
                             }
                         },
-                        "required": ["id", "symbol", "balance", "strategy", "status", "created_at"]
+                        "required": ["wallet_id", "symbol", "balance", "strategy"]
                     }
                 },
                 {
@@ -4314,22 +4383,22 @@
                             },
                             "details": [
                                 {
-                                    "asset": "BTC",
-                                    "amount": "8.657983471809322",
+                                    "symbol": "BTC",
+                                    "balance": "8.657983471809322",
                                     "price_unit": "75936.5",
-                                    "value_fiat": "657456.96"
+                                    "converted_balance": "657456.96"
                                 },
                                 {
-                                    "asset": "B2M",
-                                    "amount": "3205806.09708881",
+                                    "symbol": "B2M",
+                                    "balance": "3205806.09708881",
                                     "price_unit": "0.0099566",
-                                    "value_fiat": "31918.93"
+                                    "converted_balance": "31918.93"
                                 },
                                 {
-                                    "asset": "DOGE",
-                                    "amount": "232444.85337828",
+                                    "symbol": "DOGE",
+                                    "balance": "232444.85337828",
                                     "price_unit": "0.1290807",
-                                    "value_fiat": "30004.14"
+                                    "converted_balance": "30004.14"
                                 }
                             ]
                         }
@@ -4356,24 +4425,24 @@
                                     "type": {
                                         "type": "object",
                                         "properties": {
-                                            "asset": {
+                                            "symbol": {
                                                 "type": "string",
-                                                "description": "asset"
+                                                "description": "Cryptocurrency symbol"
                                             },
-                                            "amount": {
+                                            "balance": {
                                                 "type": "string",
-                                                "description": "Amount as string for precision"
+                                                "description": "Balance as string for precision"
                                             },
                                             "price_unit": {
                                                 "type": "string",
                                                 "description": "price unit"
                                             },
-                                            "value_fiat": {
+                                            "converted_balance": {
                                                 "type": "string",
-                                                "description": "value fiat"
+                                                "description": "Balance converted to fiat currency"
                                             }
                                         },
-                                        "required": ["asset", "amount", "price_unit", "value_fiat"]
+                                        "required": ["symbol", "balance", "price_unit", "converted_balance"]
                                     }
                                 }
                             }

@@ -88,10 +88,10 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         expect(parseFloat(data.result.total_value)).toBeLessThan(100000);
 
         // Verify BTC is in the breakdown
-        const btcDetail = data.result.details.find((d: any) => d.asset === "BTC");
+        const btcDetail = data.result.details.find((d: any) => d.symbol === "BTC");
         expect(btcDetail).toBeDefined();
         // BTC: Wallet (0.5) + Pro (1.0) + Earn (0.1) = 1.6 BTC
-        expect(btcDetail.amount).toBe("1.6");
+        expect(btcDetail.balance).toBe("1.6");
         expect(btcDetail.price_unit).toBe("50000");
     });
 
@@ -149,11 +149,11 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         const data = JSON.parse(result.content[0].text);
 
         // DUST should be filtered out (value < 0.01)
-        const dustDetail = data.result.details.find((d: any) => d.asset === "DUST");
+        const dustDetail = data.result.details.find((d: any) => d.symbol === "DUST");
         expect(dustDetail).toBeUndefined();
 
         // BTC should be present
-        const btcDetail = data.result.details.find((d: any) => d.asset === "BTC");
+        const btcDetail = data.result.details.find((d: any) => d.symbol === "BTC");
         expect(btcDetail).toBeDefined();
     });
 
@@ -183,8 +183,8 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         const data = JSON.parse(result.content[0].text);
 
         // Should be sorted: EUR (10000) > BTC (5000) > ETH (3000)
-        expect(data.result.details[0].asset).toBe("EUR");
-        expect(data.result.details[1].asset).toBe("BTC");
-        expect(data.result.details[2].asset).toBe("ETH");
+        expect(data.result.details[0].symbol).toBe("EUR");
+        expect(data.result.details[1].symbol).toBe("BTC");
+        expect(data.result.details[2].symbol).toBe("ETH");
     });
 });
