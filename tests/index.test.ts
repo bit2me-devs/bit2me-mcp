@@ -42,7 +42,7 @@ vi.mock("../src/utils/logger.js", () => ({
 
 // Mock all tool modules
 vi.mock("../src/tools/market.js", () => ({
-    marketTools: [{ name: "market_get_ticker" }],
+    marketTools: [{ name: "market_get_data" }, { name: "market_get_ticker" }],
     handleMarketTool: vi.fn(),
 }));
 vi.mock("../src/tools/aggregation.js", () => ({ aggregationTools: [], handleAggregationTool: vi.fn() }));
@@ -66,7 +66,7 @@ describe("Server Entry Point", () => {
 
         // Verify Server construction
         expect(mockConstructor).toHaveBeenCalledWith(
-            { name: "bit2me-mcp-server", version: "1.1.1" },
+            { name: "bit2me-mcp-server", version: "1.6.3" },
             { capabilities: { tools: {}, prompts: {} } }
         );
 
@@ -89,6 +89,7 @@ describe("Server Entry Point", () => {
         const handler = listToolsHandler || mockSetRequestHandler.mock.calls[0][1];
         const result = await handler();
         expect(result.tools).toBeDefined();
+        expect(result.tools).toContainEqual({ name: "market_get_data" });
         expect(result.tools).toContainEqual({ name: "market_get_ticker" });
     });
 
@@ -170,12 +171,12 @@ describe("Server Entry Point", () => {
         // Test successful tool call
         const result = await callToolHandler({
             params: {
-                name: "market_get_ticker",
-                arguments: { symbol: "BTC" },
+                name: "market_get_data",
+                arguments: { base_symbol: "BTC" },
             },
         });
 
-        expect(handleMarketTool).toHaveBeenCalledWith("market_get_ticker", { symbol: "BTC" });
+        expect(handleMarketTool).toHaveBeenCalledWith("market_get_data", { base_symbol: "BTC" });
         expect(result).toEqual({ content: [{ type: "text", text: "success" }] });
     });
 
@@ -209,13 +210,13 @@ describe("Server Entry Point", () => {
 
         const result = await callToolHandler({
             params: {
-                name: "market_get_ticker",
+                name: "market_get_data",
                 arguments: {},
             },
         });
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toContain("Error executing market_get_ticker: Tool failed");
+        expect(result.content[0].text).toContain("Error executing market_get_data: Tool failed");
     });
 
     it("should handle startup errors gracefully", async () => {

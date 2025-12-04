@@ -23,14 +23,17 @@ describeE2E("E2E: Pro Trading Tools", () => {
         "should get open orders",
         async () => {
             const result = await handleProTool("pro_get_open_orders", {});
-            const orders = JSON.parse(result.content[0].text);
+            const response = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(orders)).toBe(true);
+            expect(response).toHaveProperty("orders");
+            expect(Array.isArray(response.orders)).toBe(true);
             // May be empty if no open orders
-            if (orders.length > 0) {
-                expect(orders[0]).toHaveProperty("id");
-                expect(orders[0]).toHaveProperty("symbol");
-                expect(orders[0]).toHaveProperty("type");
+            if (response.orders.length > 0) {
+                expect(response.orders[0]).toHaveProperty("id");
+                expect(response.orders[0]).toHaveProperty("pair");
+                expect(response.orders[0]).toHaveProperty("type");
+                expect(response.orders[0]).toHaveProperty("created_at");
+                expect(response.orders[0]).toHaveProperty("created_timestamp");
             }
         },
         E2E_TIMEOUT
@@ -39,15 +42,19 @@ describeE2E("E2E: Pro Trading Tools", () => {
     it(
         "should get trade history",
         async () => {
-            const result = await handleProTool("pro_get_transactions", { limit: 5 });
-            const transactions = JSON.parse(result.content[0].text);
+            const result = await handleProTool("pro_get_trades", { limit: 5 });
+            const response = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(transactions)).toBe(true);
+            expect(response).toHaveProperty("trades");
+            expect(Array.isArray(response.trades)).toBe(true);
             // May be empty if no trades yet
-            if (transactions.length > 0) {
-                expect(transactions[0]).toHaveProperty("id");
-                expect(transactions[0]).toHaveProperty("price");
-                expect(transactions[0]).toHaveProperty("amount");
+            if (response.trades.length > 0) {
+                expect(response.trades[0]).toHaveProperty("id");
+                expect(response.trades[0]).toHaveProperty("pair");
+                expect(response.trades[0]).toHaveProperty("price");
+                expect(response.trades[0]).toHaveProperty("amount");
+                expect(response.trades[0]).toHaveProperty("timestamp");
+                expect(response.trades[0]).toHaveProperty("date");
             }
         },
         E2E_TIMEOUT
@@ -58,22 +65,24 @@ describeE2E("E2E: Pro Trading Tools", () => {
         async () => {
             // First get open orders
             const ordersResult = await handleProTool("pro_get_open_orders", {});
-            const orders = JSON.parse(ordersResult.content[0].text);
+            const ordersResponse = JSON.parse(ordersResult.content[0].text);
 
-            if (orders.length === 0) {
+            if (ordersResponse.orders.length === 0) {
                 console.warn("⚠️ Skipping pro order details test - no open orders found");
                 return;
             }
 
-            const orderId = orders[0].id;
+            const orderId = ordersResponse.orders[0].id;
 
             // Get order details
-            const result = await handleProTool("pro_get_order_details", { orderId });
+            const result = await handleProTool("pro_get_order_details", { order_id: orderId });
             const details = JSON.parse(result.content[0].text);
 
             expect(details).toHaveProperty("id", orderId);
-            expect(details).toHaveProperty("symbol");
+            expect(details).toHaveProperty("pair");
             expect(details).toHaveProperty("type");
+            expect(details).toHaveProperty("created_at");
+            expect(details).toHaveProperty("created_timestamp");
         },
         E2E_TIMEOUT
     );
@@ -81,25 +90,30 @@ describeE2E("E2E: Pro Trading Tools", () => {
     it(
         "should get order trades",
         async () => {
-            // First get transactions to find an order ID
-            const txResult = await handleProTool("pro_get_transactions", { limit: 5 });
-            const transactions = JSON.parse(txResult.content[0].text);
+            // First get trades to find an order ID
+            const txResult = await handleProTool("pro_get_trades", { limit: 5 });
+            const txResponse = JSON.parse(txResult.content[0].text);
 
-            if (transactions.length === 0) {
+            if (txResponse.trades.length === 0) {
                 console.warn("⚠️ Skipping order trades test - no transactions found");
                 return;
             }
 
-            const orderId = transactions[0].order_id || transactions[0].id;
+            const orderId = txResponse.trades[0].order_id || txResponse.trades[0].id;
 
             // Get trades for this order
-            const result = await handleProTool("pro_get_order_trades", { orderId });
-            const trades = JSON.parse(result.content[0].text);
+            const result = await handleProTool("pro_get_order_trades", { order_id: orderId });
+            const tradesResponse = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(trades)).toBe(true);
-            if (trades.length > 0) {
-                expect(trades[0]).toHaveProperty("price");
-                expect(trades[0]).toHaveProperty("amount");
+            expect(tradesResponse).toHaveProperty("order_id");
+            expect(tradesResponse).toHaveProperty("trades");
+            expect(Array.isArray(tradesResponse.trades)).toBe(true);
+            if (tradesResponse.trades.length > 0) {
+                expect(tradesResponse.trades[0]).toHaveProperty("pair");
+                expect(tradesResponse.trades[0]).toHaveProperty("price");
+                expect(tradesResponse.trades[0]).toHaveProperty("amount");
+                expect(tradesResponse.trades[0]).toHaveProperty("timestamp");
+                expect(tradesResponse.trades[0]).toHaveProperty("date");
             }
         },
         E2E_TIMEOUT

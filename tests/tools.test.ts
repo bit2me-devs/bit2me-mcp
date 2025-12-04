@@ -208,22 +208,28 @@ describe("Tools - Market Data", () => {
         const axios = (await import("axios")).default;
 
         // Mock the direct axios.get call used in getTicker
-        const mockAxiosGet = vi.fn().mockResolvedValue({
+        // Since we migrated getTicker to use bit2meRequest, we should mock axios(config) instead of axios.get
+        // bit2meRequest calls axios(config)
+        vi.mocked(axios).mockResolvedValue({
+            status: 200,
             data: {
                 EUR: {
                     BTC: [MOCK_TICKER_BTC_EUR],
                 },
             },
         });
-        vi.mocked(axios).get = mockAxiosGet;
 
         const { getTicker } = await import("../src/services/bit2me.js");
         const result = await getTicker("BTC", "EUR");
 
         expect(result).toEqual(MOCK_TICKER_BTC_EUR);
-        expect(mockAxiosGet).toHaveBeenCalledWith(expect.stringContaining("/v3/currency/ticker/BTC"), {
-            params: { rateCurrency: "EUR" },
-        });
+        // Verify it uses bit2meRequest flow (full URL construction)
+        expect(axios).toHaveBeenCalledWith(
+            expect.objectContaining({
+                url: expect.stringContaining("/v3/currency/ticker/BTC"),
+                method: "GET",
+            })
+        );
     });
 });
 
@@ -276,7 +282,9 @@ describe("Tools - Error Handling", () => {
         const axios = (await import("axios")).default;
         const { getMarketPrice } = await import("../src/services/bit2me.js");
 
-        vi.mocked(axios.get).mockResolvedValue({
+        // Since we migrated to bit2meRequest, we mock the default axios call, not axios.get
+        vi.mocked(axios).mockResolvedValue({
+            status: 200,
             data: { EUR: { BTC: [{ price: "50000" }] } },
         });
 
@@ -288,7 +296,8 @@ describe("Tools - Error Handling", () => {
         const axios = (await import("axios")).default;
         const { getMarketPrice } = await import("../src/services/bit2me.js");
 
-        vi.mocked(axios.get).mockRejectedValue(new Error("Network Error"));
+        // Mock failure for bit2meRequest -> axios()
+        vi.mocked(axios).mockRejectedValue(new Error("Network Error"));
         const price = await getMarketPrice("BTC", "EUR");
         expect(price).toBe(0);
     });

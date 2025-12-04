@@ -7,15 +7,15 @@ describeE2E("E2E: Portfolio Tools", () => {
         "should get portfolio valuation",
         async () => {
             const result = await handleAggregationTool("portfolio_get_valuation", {
-                fiat_currency: "EUR",
+                fiat: "EUR",
             });
             const valuation = JSON.parse(result.content[0].text);
 
             expect(typeof valuation).toBe("object");
             expect(valuation).toHaveProperty("total_value");
             expect(valuation).toHaveProperty("currency", "EUR");
-            expect(valuation).toHaveProperty("assets");
-            expect(Array.isArray(valuation.assets)).toBe(true);
+            expect(valuation).toHaveProperty("details");
+            expect(Array.isArray(valuation.details)).toBe(true);
         },
         E2E_TIMEOUT
     );
@@ -24,7 +24,7 @@ describeE2E("E2E: Portfolio Tools", () => {
         "should support different fiat currencies",
         async () => {
             const result = await handleAggregationTool("portfolio_get_valuation", {
-                fiat_currency: "USD",
+                fiat: "USD",
             });
             const valuation = JSON.parse(result.content[0].text);
 

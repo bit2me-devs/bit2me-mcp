@@ -14,40 +14,52 @@ const clearEnv = () => {
     delete process.env.BIT2ME_LOG_LEVEL;
     delete process.env.BIT2ME_MAX_RETRIES;
     delete process.env.BIT2ME_RETRY_BASE_DELAY;
+    delete process.env.BIT2ME_INCLUDE_RAW_RESPONSE;
 };
 
-describe("Config - Validation and Defaults", () => {
-    let consoleErrorSpy: any;
+// Mock dotenv to prevent loading real .env file
+vi.mock("dotenv", () => ({
+    default: { config: vi.fn() },
+    config: vi.fn(),
+}));
 
+// Mock logger
+vi.mock("../src/utils/logger.js", () => ({
+    logger: {
+        debug: vi.fn(),
+        error: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+    },
+}));
+
+describe("Config - Validation and Defaults", () => {
     beforeEach(() => {
         // Clear config cache by reloading module
         vi.resetModules();
         clearEnv();
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.clearAllMocks();
     });
 
     afterEach(() => {
-        consoleErrorSpy.mockRestore();
         clearEnv();
     });
 
     it("should throw error when credentials are missing", async () => {
-        // Completely clear environment
         clearEnv();
-
-        // Force module reload
         vi.resetModules();
 
-        try {
-            const { getConfig } = await import("../src/config.js");
-            getConfig();
+        // Re-import modules to get fresh instances
+        const { logger } = await import("../src/utils/logger.js");
+        const { getConfig } = await import("../src/config.js");
 
-            // If we get here, the test should fail because we expected an error
+        try {
+            getConfig();
             expect.fail("Expected getConfig to throw, but it did not");
         } catch (error: any) {
-            // This is expected - verify it's a validation error
             expect(error).toBeDefined();
-            expect(consoleErrorSpy).toHaveBeenCalled();
+            // Verify logger.error was called on the re-imported instance
+            expect(logger.error).toHaveBeenCalled();
         }
     });
 
@@ -126,17 +138,19 @@ describe("Config - Validation and Defaults", () => {
             BIT2ME_API_SECRET: "test-secret",
         });
 
+        vi.resetModules();
         const { getConfig } = await import("../src/config.js");
+        const { logger } = await import("../src/utils/logger.js");
 
         const config1 = getConfig();
         const config2 = getConfig();
 
         expect(config1).toBe(config2); // Same reference
 
-        // Should only log once
-        const validationLogs = consoleErrorSpy.mock.calls.filter((call: any) =>
-            call[0].includes("Credentials validated successfully")
-        );
+        // Should only log "Credentials validated successfully" once
+        const validationLogs = vi
+            .mocked(logger.debug)
+            .mock.calls.filter((call: any) => call[0] === "Credentials validated successfully");
         expect(validationLogs.length).toBe(1);
     });
 
@@ -147,25 +161,24 @@ describe("Config - Validation and Defaults", () => {
         });
 
         vi.resetModules();
+        const { logger } = await import("../src/utils/logger.js");
 
-        // Mock envSchema.parse to throw a non-ZodError
-        const { getConfig } = await import("../src/config.js");
-
-        // This is tricky - we need to cause a non-Zod error
         // We'll test by mocking parseInt to throw
         const originalParseInt = global.parseInt;
         global.parseInt = (() => {
             throw new Error("Custom parse error");
         }) as any;
 
+        const { getConfig } = await import("../src/config.js");
+
         try {
             getConfig();
             expect.fail("Expected getConfig to throw");
         } catch (error: any) {
             expect(error.message).toBe("Custom parse error");
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                expect.stringContaining("Credential validation failed"),
-                expect.any(Error)
+            expect(logger.error).toHaveBeenCalledWith(
+                "Credential validation failed",
+                expect.objectContaining({ error: expect.any(Error) })
             );
         } finally {
             global.parseInt = originalParseInt;
@@ -180,7 +193,6 @@ describe("Config - Validation and Defaults", () => {
 
         const { config } = await import("../src/config.js");
 
-        // Access properties through proxy
         expect(config.BIT2ME_API_KEY).toBe("test-key");
         expect(config.REQUEST_TIMEOUT).toBe(30000);
         expect(config.LOG_LEVEL).toBe("info");

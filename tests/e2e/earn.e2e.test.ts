@@ -35,11 +35,13 @@ describeE2E("E2E: Earn/Staking Tools", () => {
         "should get available earn assets",
         async () => {
             const result = await handleEarnTool("earn_get_assets", {});
-            const assets = JSON.parse(result.content[0].text);
+            const response = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(assets)).toBe(true);
-            if (assets.length > 0) {
-                expect(assets[0]).toHaveProperty("currency");
+            expect(response).toHaveProperty("result");
+            expect(response.result).toHaveProperty("symbols");
+            expect(Array.isArray(response.result.symbols)).toBe(true);
+            if (response.result.symbols.length > 0) {
+                expect(typeof response.result.symbols[0]).toBe("string");
             }
         },
         E2E_TIMEOUT
@@ -51,8 +53,13 @@ describeE2E("E2E: Earn/Staking Tools", () => {
             const result = await handleEarnTool("earn_get_summary", {});
             const summary = JSON.parse(result.content[0].text);
 
-            expect(typeof summary).toBe("object");
-            expect(summary).toHaveProperty("total_rewards");
+            // Summary is an array of objects per currency
+            expect(Array.isArray(summary)).toBe(true);
+            if (summary.length > 0) {
+                expect(summary[0]).toHaveProperty("currency");
+                expect(summary[0]).toHaveProperty("total_balance");
+                expect(summary[0]).toHaveProperty("total_rewards");
+            }
         },
         E2E_TIMEOUT
     );
@@ -72,45 +79,75 @@ describeE2E("E2E: Earn/Staking Tools", () => {
             const walletId = wallets[0].id;
 
             // Get wallet details
-            const result = await handleEarnTool("earn_get_wallet_details", { walletId });
+            const result = await handleEarnTool("earn_get_wallet_details", { wallet_id: walletId });
             const details = JSON.parse(result.content[0].text);
 
             expect(details).toHaveProperty("id", walletId);
             expect(details).toHaveProperty("currency");
             expect(details).toHaveProperty("balance");
+            expect(details).toHaveProperty("created_at");
+            expect(details).toHaveProperty("created_timestamp");
         },
         E2E_TIMEOUT
     );
 
     it(
-        "should get earn transactions",
+        "should get earn wallet movements",
         async () => {
             // First get earn wallets
             const walletsResult = await handleEarnTool("earn_get_wallets", {});
             const wallets = JSON.parse(walletsResult.content[0].text);
 
             if (wallets.length === 0) {
-                console.warn("⚠️ Skipping earn transactions test - no earn wallets found");
+                console.warn("⚠️ Skipping earn wallet movements test - no earn wallets found");
                 return;
             }
 
             const walletId = wallets[0].id;
 
-            // Get transactions for this wallet
-            const result = await handleEarnTool("earn_get_transactions", {
-                walletId,
-                limit: "5",
+            // Get movements for this wallet
+            const result = await handleEarnTool("earn_get_wallet_movements", {
+                wallet_id: walletId,
+                limit: 5,
             });
-            const transactions = JSON.parse(result.content[0].text);
+            const response = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(transactions)).toBe(true);
-            if (transactions.length > 0) {
-                expect(transactions[0]).toHaveProperty("type");
-                expect(transactions[0]).toHaveProperty("amount");
+            expect(response).toHaveProperty("metadata");
+            expect(response).toHaveProperty("movements");
+            expect(Array.isArray(response.movements)).toBe(true);
+            if (response.movements.length > 0) {
+                expect(response.movements[0]).toHaveProperty("type");
+                expect(response.movements[0]).toHaveProperty("amount");
+                expect(response.movements[0]).toHaveProperty("wallet_id");
             }
         },
         E2E_TIMEOUT
     );
 
-    // NOTE: We don't test deposit/withdrawal in E2E to avoid real transactions
+    it(
+        "should get earn movements (global)",
+        async () => {
+            // Get all movements across all wallets
+            const result = await handleEarnTool("earn_get_movements", {
+                limit: 10,
+            });
+            const response = JSON.parse(result.content[0].text);
+
+            expect(response).toHaveProperty("metadata");
+            expect(response).toHaveProperty("movements");
+            expect(Array.isArray(response.movements)).toBe(true);
+            if (response.movements.length > 0) {
+                expect(response.movements[0]).toHaveProperty("id");
+                expect(response.movements[0]).toHaveProperty("type");
+                expect(response.movements[0]).toHaveProperty("amount");
+                expect(response.movements[0].amount).toHaveProperty("value");
+                expect(response.movements[0].amount).toHaveProperty("currency");
+                expect(response.movements[0]).toHaveProperty("created_at");
+                expect(response.movements[0]).toHaveProperty("created_timestamp");
+            }
+        },
+        E2E_TIMEOUT
+    );
+
+    // NOTE: We don't test earn_deposit/earn_withdraw in E2E to avoid real transactions
 });
