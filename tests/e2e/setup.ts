@@ -7,12 +7,9 @@ import { beforeAll, describe } from "vitest";
  * They require valid API credentials to be set in environment variables.
  */
 
-// E2E tests run if:
-// 1. RUN_E2E is explicitly set to "true", OR
-// 2. RUN_E2E is not set to "false" AND credentials are available
-export const isE2E =
-    process.env.RUN_E2E === "true" ||
-    (process.env.RUN_E2E !== "false" && !!process.env.BIT2ME_API_KEY && !!process.env.BIT2ME_API_SECRET);
+// E2E tests ONLY run when RUN_E2E is explicitly set to "true"
+// This prevents accidental E2E execution in CI or local development
+export const isE2E = process.env.RUN_E2E === "true";
 
 beforeAll(() => {
     if (isE2E) {
