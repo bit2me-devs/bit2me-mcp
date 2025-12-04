@@ -1,3 +1,24 @@
+# [2.0.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.4...v2.0.0) (2025-12-04)
+
+- feat!: release v2.0.0 - major API improvements ([f989110](https://github.com/bit2me-devs/bit2me-mcp/commit/f98911036426ca08b0cb8af70fef510ac7b48569))
+
+### BREAKING CHANGES
+
+- This release includes significant changes:
+
+* Centralized tool metadata in data/tools.json
+* Standardized pair format from BTC/EUR to BTC-USD (kebab-case)
+* Renamed loan_get_ltv to loan_get_simulation with expanded response
+* Removed redundant loan_get_active (use loan_get_orders instead)
+* Added responseSchema documentation to all 53 tools
+* Renamed 'currency' to 'symbol' for consistency across all tools
+* Removed 'next_steps' and 'is_empty' from responses
+* All numeric financial values now returned as strings
+* Type fields normalized to lowercase
+* Added wallet_get_cards tool
+* Improved contextual responses with request parameters
+* Enhanced field descriptions from Swagger documentation
+
 ## [1.8.4](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.3...v1.8.4) (2025-12-04)
 
 ### Bug Fixes
