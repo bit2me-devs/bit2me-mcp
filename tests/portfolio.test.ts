@@ -43,14 +43,16 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             return 0;
         });
 
-        const result = await handleAggregationTool("portfolio_get_valuation", { fiat_currency: "EUR" });
+        const result = await handleAggregationTool("portfolio_get_valuation", { quote_symbol: "EUR" });
         const data = JSON.parse(result.content[0].text);
 
-        // Verify structure
-        expect(data).toHaveProperty("currency", "EUR");
-        expect(data).toHaveProperty("total_value");
-        expect(data).toHaveProperty("details");
-        expect(Array.isArray(data.details)).toBe(true);
+        // Verify contextual structure
+        expect(data).toHaveProperty("request");
+        expect(data).toHaveProperty("result");
+        expect(data.result).toHaveProperty("quote_symbol", "EUR");
+        expect(data.result).toHaveProperty("total_value");
+        expect(data.result).toHaveProperty("details");
+        expect(Array.isArray(data.result.details)).toBe(true);
 
         // Verify calculations
         // BTC: Wallet (0.5) + Pro (1.0) = 1.5 BTC * 50000 = 75000 EUR
@@ -59,15 +61,15 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         // USDT: Earn (1000) * 0.95 = 950 EUR
         // Expected total: 75000 + 7500 + 6000.5 + 950 = 89450.5 EUR
 
-        expect(data.total_value).toBeGreaterThan(80000);
-        expect(data.total_value).toBeLessThan(100000);
+        expect(parseFloat(data.result.total_value)).toBeGreaterThan(80000);
+        expect(parseFloat(data.result.total_value)).toBeLessThan(100000);
 
         // Verify BTC is in the breakdown
-        const btcDetail = data.details.find((d: any) => d.asset === "BTC");
+        const btcDetail = data.result.details.find((d: any) => d.asset === "BTC");
         expect(btcDetail).toBeDefined();
         // BTC: Wallet (0.5) + Pro (1.0) + Earn (0.1) = 1.6 BTC
-        expect(btcDetail.amount).toBe(1.6);
-        expect(btcDetail.price_unit).toBe(50000);
+        expect(btcDetail.amount).toBe("1.6");
+        expect(btcDetail.price_unit).toBe("50000");
     });
 
     it("should handle API failures gracefully", async () => {
@@ -91,12 +93,12 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         });
 
         // Should not throw, but continue with available data
-        const result = await handleAggregationTool("portfolio_get_valuation", { fiat_currency: "EUR" });
+        const result = await handleAggregationTool("portfolio_get_valuation", { quote_symbol: "EUR" });
         const data = JSON.parse(result.content[0].text);
 
         // Should still have wallet data
-        expect(data.total_value).toBeGreaterThan(0);
-        expect(data.details.length).toBeGreaterThan(0);
+        expect(parseFloat(data.result.total_value)).toBeGreaterThan(0);
+        expect(data.result.details.length).toBeGreaterThan(0);
     });
 
     it("should filter out dust (very small amounts)", async () => {
@@ -120,15 +122,15 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             return 0;
         });
 
-        const result = await handleAggregationTool("portfolio_get_valuation", { fiat_currency: "EUR" });
+        const result = await handleAggregationTool("portfolio_get_valuation", { quote_symbol: "EUR" });
         const data = JSON.parse(result.content[0].text);
 
         // DUST should be filtered out (value < 0.01)
-        const dustDetail = data.details.find((d: any) => d.asset === "DUST");
+        const dustDetail = data.result.details.find((d: any) => d.asset === "DUST");
         expect(dustDetail).toBeUndefined();
 
         // BTC should be present
-        const btcDetail = data.details.find((d: any) => d.asset === "BTC");
+        const btcDetail = data.result.details.find((d: any) => d.asset === "BTC");
         expect(btcDetail).toBeDefined();
     });
 
@@ -154,12 +156,12 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             return 0;
         });
 
-        const result = await handleAggregationTool("portfolio_get_valuation", { fiat_currency: "EUR" });
+        const result = await handleAggregationTool("portfolio_get_valuation", { quote_symbol: "EUR" });
         const data = JSON.parse(result.content[0].text);
 
         // Should be sorted: EUR (10000) > BTC (5000) > ETH (3000)
-        expect(data.details[0].asset).toBe("EUR");
-        expect(data.details[1].asset).toBe("BTC");
-        expect(data.details[2].asset).toBe("ETH");
+        expect(data.result.details[0].asset).toBe("EUR");
+        expect(data.result.details[1].asset).toBe("BTC");
+        expect(data.result.details[2].asset).toBe("ETH");
     });
 });

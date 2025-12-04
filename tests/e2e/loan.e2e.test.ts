@@ -18,33 +18,19 @@ describeE2E("E2E: Loan Tools", () => {
     it(
         "should calculate LTV",
         async () => {
-            const result = await handleLoanTool("loan_get_ltv", {
-                guaranteeCurrency: "BTC",
-                loanCurrency: "EUR",
-                userCurrency: "EUR",
-                guaranteeAmount: "0.1",
+            const result = await handleLoanTool("loan_get_simulation", {
+                guarantee_symbol: "BTC",
+                loan_symbol: "EUR",
+                user_symbol: "EUR",
+                guarantee_amount: "0.1",
             });
-            const ltv = JSON.parse(result.content[0].text);
+            const simulation = JSON.parse(result.content[0].text);
 
-            expect(typeof ltv).toBe("object");
-            expect(ltv).toHaveProperty("ltv");
-        },
-        E2E_TIMEOUT
-    );
-
-    it(
-        "should get active loans",
-        async () => {
-            const result = await handleLoanTool("loan_get_active", {});
-            const loans = JSON.parse(result.content[0].text);
-
-            expect(Array.isArray(loans)).toBe(true);
-            // May be empty if no active loans
-            if (loans.length > 0) {
-                expect(loans[0]).toHaveProperty("id");
-                expect(loans[0]).toHaveProperty("guarantee_currency");
-                expect(loans[0]).toHaveProperty("loan_currency");
-            }
+            expect(typeof simulation).toBe("object");
+            expect(simulation.result).toHaveProperty("ltv");
+            expect(simulation.result).toHaveProperty("apr");
+            expect(simulation.result).toHaveProperty("guarantee_amount_converted");
+            expect(simulation.result).toHaveProperty("loan_amount_converted");
         },
         E2E_TIMEOUT
     );
@@ -52,11 +38,41 @@ describeE2E("E2E: Loan Tools", () => {
     it(
         "should get loan orders",
         async () => {
-            const result = await handleLoanTool("loan_get_orders", { limit: 5 });
-            const orders = JSON.parse(result.content[0].text);
+            const result = await handleLoanTool("loan_get_orders", { limit: 10 });
+            const response = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(orders)).toBe(true);
+            expect(response).toHaveProperty("result");
+            expect(Array.isArray(response.result)).toBe(true);
+            // May be empty if no loan orders
+            if (response.result.length > 0) {
+                expect(response.result[0]).toHaveProperty("id");
+                expect(response.result[0]).toHaveProperty("status");
+                expect(response.result[0]).toHaveProperty("guarantee_symbol");
+                expect(response.result[0]).toHaveProperty("loan_symbol");
+                expect(response.result[0]).toHaveProperty("created_at");
+                expect(loans[0]).toHaveProperty("expires_at");
+                expect(loans[0]).toHaveProperty("expires_timestamp");
+            }
+        },
+        E2E_TIMEOUT
+    );
+
+    it(
+        "should get loan orders with pagination",
+        async () => {
+            const result = await handleLoanTool("loan_get_orders", { limit: 5 });
+            const response = JSON.parse(result.content[0].text);
+
+            expect(response).toHaveProperty("metadata");
+            expect(response).toHaveProperty("result");
+            expect(Array.isArray(response.result)).toBe(true);
             // May be empty if no loan history
+            if (response.result.length > 0) {
+                expect(response.result[0]).toHaveProperty("id");
+                expect(response.result[0]).toHaveProperty("status");
+                expect(response.result[0]).toHaveProperty("guarantee_symbol");
+                expect(response.result[0]).toHaveProperty("loan_symbol");
+            }
         },
         E2E_TIMEOUT
     );
@@ -66,36 +82,38 @@ describeE2E("E2E: Loan Tools", () => {
         async () => {
             // First get loan orders
             const ordersResult = await handleLoanTool("loan_get_orders", { limit: 5 });
-            const orders = JSON.parse(ordersResult.content[0].text);
+            const ordersResponse = JSON.parse(ordersResult.content[0].text);
 
-            if (orders.length === 0) {
+            if (ordersResponse.result.length === 0) {
                 console.warn("⚠️ Skipping loan order details test - no loan orders found");
                 return;
             }
 
-            const orderId = orders[0].id;
+            const orderId = ordersResponse.result[0].id;
 
             // Get order details
-            const result = await handleLoanTool("loan_get_order_details", { orderId });
+            const result = await handleLoanTool("loan_get_order_details", { order_id: orderId });
             const details = JSON.parse(result.content[0].text);
 
             expect(details).toHaveProperty("id", orderId);
-            expect(details).toHaveProperty("guarantee_currency");
+            expect(details).toHaveProperty("guarantee_symbol");
             expect(details).toHaveProperty("loan_currency");
         },
         E2E_TIMEOUT
     );
 
     it(
-        "should get loan transactions",
+        "should get loan movements",
         async () => {
-            const result = await handleLoanTool("loan_get_transactions", { limit: 5 });
-            const transactions = JSON.parse(result.content[0].text);
+            const result = await handleLoanTool("loan_get_movements", { limit: 5 });
+            const response = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(transactions)).toBe(true);
-            if (transactions.length > 0) {
-                expect(transactions[0]).toHaveProperty("type");
-                expect(transactions[0]).toHaveProperty("amount");
+            expect(response).toHaveProperty("metadata");
+            expect(response).toHaveProperty("movements");
+            expect(Array.isArray(response.movements)).toBe(true);
+            if (response.movements.length > 0) {
+                expect(response.movements[0]).toHaveProperty("type");
+                expect(response.movements[0]).toHaveProperty("amount");
             }
         },
         E2E_TIMEOUT

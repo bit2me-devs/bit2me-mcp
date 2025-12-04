@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import {
     mapTickerResponse,
     mapAssetsResponse,
-    mapWalletPocketResponse,
+    mapWalletPocketsResponse,
     mapOrderBookResponse,
 } from "../src/utils/response-mappers.js";
 
@@ -49,10 +49,10 @@ describe("Fuzzing: Response Mappers", () => {
         );
     });
 
-    it("mapWalletPocketResponse should handle any JSON object", () => {
+    it("mapWalletPocketsResponse should handle any JSON object", () => {
         fc.assert(
             fc.property(fc.object(), (data) => {
-                return safeMap(mapWalletPocketResponse, data);
+                return safeMap(mapWalletPocketsResponse, data);
             }),
             { numRuns: 100 }
         );

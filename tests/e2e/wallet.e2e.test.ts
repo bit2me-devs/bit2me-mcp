@@ -19,14 +19,14 @@ describeE2E("E2E: Wallet Tools", () => {
     );
 
     it(
-        "should filter pockets by currency",
+        "should filter pockets by symbol",
         async () => {
-            const result = await handleWalletTool("wallet_get_pockets", { currency: "EUR" });
+            const result = await handleWalletTool("wallet_get_pockets", { symbol: "EUR" });
             const pockets = JSON.parse(result.content[0].text);
 
             expect(Array.isArray(pockets)).toBe(true);
             pockets.forEach((pocket: any) => {
-                expect(pocket.currency).toBe("EUR");
+                expect(pocket.symbol).toBe("EUR");
             });
         },
         E2E_TIMEOUT
@@ -41,12 +41,13 @@ describeE2E("E2E: Wallet Tools", () => {
             const pocketId = pockets[0].id;
 
             // Then get its details
-            const result = await handleWalletTool("wallet_get_pocket_details", { pocketId });
+            const result = await handleWalletTool("wallet_get_pocket_details", { pocket_id: pocketId });
             const details = JSON.parse(result.content[0].text);
 
             expect(details).toHaveProperty("id", pocketId);
             expect(details).toHaveProperty("currency");
             expect(details).toHaveProperty("balance");
+            expect(details).toHaveProperty("created_at");
         },
         E2E_TIMEOUT
     );
@@ -54,7 +55,7 @@ describeE2E("E2E: Wallet Tools", () => {
     it(
         "should get available networks for a currency",
         async () => {
-            const result = await handleWalletTool("wallet_get_networks", { currency: "BTC" });
+            const result = await handleWalletTool("wallet_get_networks", { symbol: "BTC" });
             const networks = JSON.parse(result.content[0].text);
 
             expect(Array.isArray(networks)).toBe(true);
@@ -66,25 +67,27 @@ describeE2E("E2E: Wallet Tools", () => {
     );
 
     it(
-        "should get wallet transactions",
+        "should get wallet movements",
         async () => {
-            const result = await handleWalletTool("wallet_get_transactions", { limit: "5" });
-            const transactions = JSON.parse(result.content[0].text);
+            const result = await handleWalletTool("wallet_get_movements", { limit: 5 });
+            const response = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(transactions)).toBe(true);
-            if (transactions.length > 0) {
-                expect(transactions[0]).toHaveProperty("id");
-                expect(transactions[0]).toHaveProperty("type");
+            expect(response).toHaveProperty("metadata");
+            expect(response).toHaveProperty("movements");
+            expect(Array.isArray(response.movements)).toBe(true);
+            if (response.movements.length > 0) {
+                expect(response.movements[0]).toHaveProperty("id");
+                expect(response.movements[0]).toHaveProperty("type");
             }
         },
         E2E_TIMEOUT
     );
 
     it(
-        "should validate transaction flow (create proforma)",
+        "should validate transaction flow (buy crypto)",
         async () => {
             // Get EUR and BTC pockets
-            const eurResult = await handleWalletTool("wallet_get_pockets", { currency: "EUR" });
+            const eurResult = await handleWalletTool("wallet_get_pockets", { symbol: "EUR" });
             const eurPockets = JSON.parse(eurResult.content[0].text);
             const eurPocket = eurPockets.find((p: any) => parseFloat(p.balance) > 1);
 
@@ -93,24 +96,28 @@ describeE2E("E2E: Wallet Tools", () => {
                 return;
             }
 
-            const btcResult = await handleWalletTool("wallet_get_pockets", { currency: "BTC" });
+            const btcResult = await handleWalletTool("wallet_get_pockets", { symbol: "BTC" });
             const btcPockets = JSON.parse(btcResult.content[0].text);
             const btcPocket = btcPockets[0];
 
+            if (!btcPocket) {
+                console.warn("⚠️ Skipping transaction test - no BTC pocket found");
+                return;
+            }
+
             // Create proforma (quote) - NOT confirming to avoid real transaction
-            const proformaResult = await handleWalletTool("wallet_create_proforma", {
+            const proformaResult = await handleWalletTool("wallet_buy_crypto", {
                 origin_pocket_id: eurPocket.id,
                 destination_pocket_id: btcPocket.id,
                 amount: "0.01", // Very small amount for testing
-                currency: "EUR",
             });
 
             const proforma = JSON.parse(proformaResult.content[0].text);
             expect(proforma).toHaveProperty("proforma_id");
-            expect(proforma).toHaveProperty("origin_currency", "EUR");
-            expect(proforma).toHaveProperty("destination_currency", "BTC");
+            expect(proforma).toHaveProperty("origin_symbol");
+            expect(proforma).toHaveProperty("destination_symbol");
 
-            // NOTE: We're NOT calling wallet_confirm_transaction in E2E tests
+            // NOTE: We're NOT calling wallet_confirm_operation in E2E tests
             // to avoid making real transactions. The proforma creation validates
             // the endpoint is correct.
         },
@@ -121,7 +128,7 @@ describeE2E("E2E: Wallet Tools", () => {
         "should get pocket addresses",
         async () => {
             // First get a crypto pocket (not fiat)
-            const btcResult = await handleWalletTool("wallet_get_pockets", { currency: "BTC" });
+            const btcResult = await handleWalletTool("wallet_get_pockets", { symbol: "BTC" });
             const btcPockets = JSON.parse(btcResult.content[0].text);
 
             if (btcPockets.length === 0) {
@@ -133,7 +140,7 @@ describeE2E("E2E: Wallet Tools", () => {
 
             // Get addresses for this pocket
             const result = await handleWalletTool("wallet_get_pocket_addresses", {
-                pocketId,
+                pocket_id: pocketId,
                 network: "bitcoin",
             });
             const addresses = JSON.parse(result.content[0].text);
@@ -142,31 +149,31 @@ describeE2E("E2E: Wallet Tools", () => {
             if (addresses.length > 0) {
                 expect(addresses[0]).toHaveProperty("address");
                 expect(addresses[0]).toHaveProperty("network");
-                expect(addresses[0]).toHaveProperty("currency");
+                expect(addresses[0]).toHaveProperty("created_at");
             }
         },
         E2E_TIMEOUT
     );
 
     it(
-        "should get transaction details",
+        "should get movement details",
         async () => {
-            // First get transactions
-            const txResult = await handleWalletTool("wallet_get_transactions", { limit: "5" });
-            const transactions = JSON.parse(txResult.content[0].text);
+            // First get movements
+            const txResult = await handleWalletTool("wallet_get_movements", { limit: 5 });
+            const response = JSON.parse(txResult.content[0].text);
 
-            if (transactions.length === 0) {
-                console.warn("⚠️ Skipping transaction details test - no transactions found");
+            if (response.movements.length === 0) {
+                console.warn("⚠️ Skipping movement details test - no movements found");
                 return;
             }
 
-            const transactionId = transactions[0].id;
+            const movementId = response.movements[0].id;
 
-            // Get transaction details
-            const result = await handleWalletTool("wallet_get_transaction_details", { transactionId });
+            // Get movement details
+            const result = await handleWalletTool("wallet_get_movement_details", { movement_id: movementId });
             const details = JSON.parse(result.content[0].text);
 
-            expect(details).toHaveProperty("id", transactionId);
+            expect(details).toHaveProperty("id", movementId);
             expect(details).toHaveProperty("type");
             expect(details).toHaveProperty("status");
             expect(details).toHaveProperty("amount");

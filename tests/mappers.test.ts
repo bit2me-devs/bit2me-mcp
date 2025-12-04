@@ -2,37 +2,38 @@ import { describe, it, expect } from "vitest";
 import {
     mapTickerResponse,
     mapAssetsResponse,
-    mapMarketConfigResponse,
+    mapProMarketConfigResponse,
     mapOrderBookResponse,
     mapPublicTradesResponse,
     mapCandlesResponse,
     mapWalletPocketsResponse,
     mapWalletNetworksResponse,
     mapWalletAddressesResponse,
-    mapWalletTransactionsResponse,
-    mapWalletTransactionDetailsResponse,
+    mapWalletMovementsResponse,
+    mapWalletMovementDetailsResponse,
     mapProformaResponse,
     mapEarnSummaryResponse,
     mapEarnAPYResponse,
     mapEarnWalletsResponse,
-    mapEarnTransactionsResponse,
+    mapEarnMovementsResponse,
+    mapEarnWalletMovementsResponse,
     mapEarnWalletDetailsResponse,
-    mapEarnTransactionsSummaryResponse,
+    mapEarnMovementsSummaryResponse,
     mapEarnAssetsResponse,
     mapEarnRewardsConfigResponse,
     mapEarnWalletRewardsConfigResponse,
     mapEarnWalletRewardsSummaryResponse,
     mapLoanOrdersResponse,
-    mapLoanTransactionsResponse,
+    mapLoanMovementsResponse,
     mapLoanConfigResponse,
-    mapLoanLTVResponse,
+    mapLoanSimulationResponse,
     mapLoanOrderDetailsResponse,
     mapProBalanceResponse,
     mapProOrderResponse,
     mapProOpenOrdersResponse,
     mapProOrderTradesResponse,
-    mapTransactionConfirmationResponse,
-    mapEarnCreateTransactionResponse,
+    mapOperationConfirmationResponse,
+    mapEarnOperationResponse,
     mapProDepositResponse,
 } from "../src/utils/response-mappers.js";
 import { ValidationError } from "../src/utils/errors.js";
@@ -48,11 +49,13 @@ describe("Response Mappers", () => {
                 maxSupply: "21M",
                 totalSupply: "19M",
             };
-            const result = mapTickerResponse(valid);
+            const result = mapTickerResponse(valid, "BTC", "EUR");
 
             // Verify critical fields are present and correctly mapped
             expect(result).toMatchObject({
-                time: 123,
+                base_symbol: "BTC",
+                quote_symbol: "EUR",
+                date: expect.any(String),
                 price: "100",
                 market_cap: expect.any(String),
                 volume_24h: expect.any(String),
@@ -61,10 +64,11 @@ describe("Response Mappers", () => {
             // Verify specific transformations
             expect(result.market_cap).toBe("1M");
             expect(result.volume_24h).toBe("10k");
+            expect(result.date).toBe(new Date(123).toISOString());
         });
 
         it("should throw ValidationError on invalid ticker data", () => {
-            expect(() => mapTickerResponse({})).toThrow(ValidationError);
+            expect(() => mapTickerResponse({}, "BTC", "EUR")).toThrow(ValidationError);
         });
 
         it("should validate assets response", () => {
@@ -83,21 +87,53 @@ describe("Response Mappers", () => {
                 {
                     symbol: "BTC",
                     name: "Bitcoin",
-                    asset_type: "crypto",
+                    type: "crypto",
                     network: "bitcoin",
                     enabled: true,
                     tradeable: true,
                     loanable: true,
-                    pairs_with: ["EUR"],
+                    pro_trading_pairs: ["BTC-EUR"],
                 },
             ]);
             expect(() => mapAssetsResponse(null)).toThrow(ValidationError);
         });
 
-        it("should map market config response", () => {
-            expect(mapMarketConfigResponse(null)).toEqual([]);
+        it("should normalize currency assetType to crypto", () => {
             const valid = {
-                "BTC/EUR": {
+                BTC: {
+                    name: "Bitcoin",
+                    assetType: "currency",
+                    network: "bitcoin",
+                    enabled: true,
+                    ticker: true,
+                    loanable: true,
+                    pairsWith: ["EUR"],
+                },
+            };
+            const result = mapAssetsResponse(valid);
+            expect(result[0].type).toBe("crypto");
+        });
+
+        it("should normalize currenct assetType to crypto", () => {
+            const valid = {
+                BTC: {
+                    name: "Bitcoin",
+                    assetType: "currenct",
+                    network: "bitcoin",
+                    enabled: true,
+                    ticker: true,
+                    loanable: true,
+                    pairsWith: ["EUR"],
+                },
+            };
+            const result = mapAssetsResponse(valid);
+            expect(result[0].type).toBe("crypto");
+        });
+
+        it("should map market config response", () => {
+            expect(mapProMarketConfigResponse(null)).toEqual([]);
+            const valid = {
+                "BTC-USD": {
                     basePrecision: 8,
                     quotePrecision: 2,
                     minAmount: "0.001",
@@ -105,9 +141,9 @@ describe("Response Mappers", () => {
                     status: "active",
                 },
             };
-            expect(mapMarketConfigResponse(valid)).toEqual([
+            expect(mapProMarketConfigResponse(valid)).toEqual([
                 {
-                    symbol: "BTC/EUR",
+                    pair: "BTC-USD",
                     base_precision: 8,
                     quote_precision: 2,
                     min_amount: "0.001",
@@ -120,48 +156,52 @@ describe("Response Mappers", () => {
         it("should map order book response", () => {
             expect(() => mapOrderBookResponse(null)).toThrow(ValidationError);
             const valid = {
-                symbol: "BTC/EUR",
+                symbol: "BTC-USD",
                 bids: [["100", "1"]],
                 asks: [{ price: "101", amount: "1" }],
                 timestamp: 123,
             };
-            expect(mapOrderBookResponse(valid)).toEqual({
-                symbol: "BTC/EUR",
+            const result = mapOrderBookResponse(valid);
+            expect(result).toMatchObject({
+                pair: "BTC-USD",
                 bids: [{ price: "100", amount: "1" }],
                 asks: [{ price: "101", amount: "1" }],
-                timestamp: 123,
+                date: expect.any(String),
             });
             // Test defaults
-            expect(mapOrderBookResponse({})).toEqual({
-                symbol: "",
+            const defaultResult = mapOrderBookResponse({});
+            expect(defaultResult).toMatchObject({
+                pair: "",
                 bids: [],
                 asks: [],
-                timestamp: expect.any(Number),
+                date: expect.any(String),
             });
         });
 
         it("should map public trades response", () => {
             expect(mapPublicTradesResponse(null)).toEqual([]);
-            const valid = [{ id: "1", symbol: "BTC/EUR", price: "100", amount: "1", side: "buy", timestamp: 123 }];
-            expect(mapPublicTradesResponse(valid)).toEqual([
+            const valid = [{ id: "1", symbol: "BTC-USD", price: "100", amount: "1", side: "buy", timestamp: 123 }];
+            const result = mapPublicTradesResponse(valid);
+            expect(result).toMatchObject([
                 {
                     id: "1",
-                    symbol: "BTC/EUR",
+                    pair: "BTC-USD",
                     price: "100",
                     amount: "1",
                     side: "buy",
-                    timestamp: 123,
+                    date: expect.any(String),
                 },
             ]);
             // Test defaults
-            expect(mapPublicTradesResponse([{}])).toEqual([
+            const defaultResult = mapPublicTradesResponse([{}]);
+            expect(defaultResult).toMatchObject([
                 {
                     id: "",
-                    symbol: "",
+                    pair: "",
                     price: "0",
                     amount: "0",
                     side: "buy",
-                    timestamp: expect.any(Number),
+                    date: expect.any(String),
                 },
             ]);
         });
@@ -169,9 +209,10 @@ describe("Response Mappers", () => {
         it("should map candles response", () => {
             expect(mapCandlesResponse(null)).toEqual([]);
             const valid = [{ timestamp: 123, open: "100", high: "110", low: "90", close: "105", volume: "10" }];
-            expect(mapCandlesResponse(valid)).toEqual([
+            const result = mapCandlesResponse(valid);
+            expect(result).toMatchObject([
                 {
-                    timestamp: 123,
+                    date: expect.any(String),
                     open: "100",
                     high: "110",
                     low: "90",
@@ -180,9 +221,10 @@ describe("Response Mappers", () => {
                 },
             ]);
             // Test array format
-            expect(mapCandlesResponse([[123, "100", "110", "90", "105", "10"]])).toEqual([
+            const arrayResult = mapCandlesResponse([[123, "100", "110", "90", "105", "10"]]);
+            expect(arrayResult).toMatchObject([
                 {
-                    timestamp: 123,
+                    date: expect.any(String),
                     open: "100",
                     high: "110",
                     low: "90",
@@ -197,7 +239,9 @@ describe("Response Mappers", () => {
         it("should validate wallet pockets response", () => {
             expect(() => mapWalletPocketsResponse({})).toThrow(ValidationError);
             const valid = [{ id: "1", currency: "EUR", balance: "100", available: "100", name: "Main" }];
-            expect(mapWalletPocketsResponse(valid)).toEqual(valid);
+            expect(mapWalletPocketsResponse(valid)).toEqual([
+                { id: "1", symbol: "EUR", balance: "100", available: "100", name: "Main" },
+            ]);
         });
 
         it("should map wallet addresses response", () => {
@@ -212,23 +256,25 @@ describe("Response Mappers", () => {
                     createdAt: "2023-01-01T00:00:00Z",
                 },
             ];
-            expect(mapWalletAddressesResponse(valid)).toEqual([
+            const result = mapWalletAddressesResponse(valid);
+            expect(result).toMatchObject([
                 {
                     id: "addr-id-123",
                     address: "addr1",
                     network: "btc",
-                    currency: "BTC",
+                    symbol: "BTC",
                     tag: "tag1",
                     created_at: "2023-01-01T00:00:00Z",
                 },
             ]);
             // Test defaults
-            expect(mapWalletAddressesResponse([{}])).toEqual([
+            const defaultResult = mapWalletAddressesResponse([{}]);
+            expect(defaultResult).toMatchObject([
                 {
                     id: "",
                     address: "",
                     network: "",
-                    currency: undefined,
+                    symbol: undefined,
                     tag: "",
                     created_at: "",
                 },
@@ -250,15 +296,15 @@ describe("Response Mappers", () => {
                 {
                     id: "bitcoin",
                     name: "Bitcoin",
-                    native_currency_code: "BTC",
-                    fee_currency_code: "BTC",
+                    native_symbol: "BTC",
+                    fee_symbol: "BTC",
                     has_tag: false,
                 },
             ]);
         });
 
-        it("should map wallet transactions response", () => {
-            expect(mapWalletTransactionsResponse(null)).toEqual([]);
+        it("should map wallet movements response", () => {
+            expect(mapWalletMovementsResponse(null)).toEqual([]);
             const valid = [
                 {
                     id: "tx1",
@@ -269,10 +315,10 @@ describe("Response Mappers", () => {
                     denomination: { amount: "100", currency: "EUR" },
                     origin: { amount: "100", currency: "EUR", class: "bank" },
                     destination: { amount: "100", currency: "EUR", class: "wallet" },
-                    fee: { mercantile: { amount: "1", currency: "EUR" } },
+                    fee: { mercantile: { amount: "1", currency: "EUR", class: "fee" } },
                 },
             ];
-            expect(mapWalletTransactionsResponse(valid)).toEqual([
+            expect(mapWalletMovementsResponse(valid)).toEqual([
                 {
                     id: "tx1",
                     date: "2023-01-01",
@@ -280,22 +326,22 @@ describe("Response Mappers", () => {
                     subtype: "fiat",
                     status: "completed",
                     amount: "100",
-                    currency: "EUR",
-                    origin: { amount: "100", currency: "EUR", class: "bank" },
-                    destination: { amount: "100", currency: "EUR", class: "wallet" },
-                    fee: { amount: "1", currency: "EUR" },
+                    symbol: "EUR",
+                    origin: { amount: "100", symbol: "EUR", class: "bank" },
+                    destination: { amount: "100", symbol: "EUR", class: "wallet" },
+                    fee: { amount: "1", symbol: "EUR", class: "fee" },
                 },
             ]);
             // Test defaults and missing optional fields
-            expect(mapWalletTransactionsResponse([{}])).toEqual([
+            expect(mapWalletMovementsResponse([{}])).toEqual([
                 {
                     id: "tx_0",
                     date: undefined,
                     type: undefined,
                     subtype: undefined,
-                    status: undefined,
+                    status: "unknown",
                     amount: "0",
-                    currency: "",
+                    symbol: "",
                     origin: undefined,
                     destination: undefined,
                     fee: undefined,
@@ -303,8 +349,8 @@ describe("Response Mappers", () => {
             ]);
         });
 
-        it("should map wallet transaction details response", () => {
-            expect(() => mapWalletTransactionDetailsResponse(null)).toThrow(ValidationError);
+        it("should map wallet movement details response", () => {
+            expect(() => mapWalletMovementDetailsResponse(null)).toThrow(ValidationError);
             const valid = {
                 id: "tx1",
                 date: "2023-01-01",
@@ -314,15 +360,15 @@ describe("Response Mappers", () => {
                 denomination: { amount: "100", currency: "EUR" },
                 origin: { amount: "100", currency: "EUR", class: "bank", rate: { value: "1" } },
             };
-            expect(mapWalletTransactionDetailsResponse(valid)).toEqual({
+            expect(mapWalletMovementDetailsResponse(valid)).toEqual({
                 id: "tx1",
                 date: "2023-01-01",
                 type: "deposit",
                 subtype: "fiat",
                 status: "completed",
                 amount: "100",
-                currency: "EUR",
-                origin: { amount: "100", currency: "EUR", class: "bank", rate_applied: "1" },
+                symbol: "EUR",
+                origin: { amount: "100", symbol: "EUR", class: "bank", rate_applied: "1" },
                 destination: undefined,
                 fee: undefined,
             });
@@ -343,9 +389,9 @@ describe("Response Mappers", () => {
             expect(mapProformaResponse(valid)).toEqual({
                 proforma_id: "pf1",
                 origin_amount: "100",
-                origin_currency: "EUR",
+                origin_symbol: "EUR",
                 destination_amount: "0.1",
-                destination_currency: "BTC",
+                destination_symbol: "BTC",
                 rate: "1000",
                 fee: "1",
                 expires_at: "2023-01-01",
@@ -355,64 +401,118 @@ describe("Response Mappers", () => {
 
     describe("Earn Mappers", () => {
         it("should map earn summary response", () => {
-            expect(mapEarnSummaryResponse(null)).toEqual({
-                currency: "",
-                total_balance: "0",
-                rewards_earned: "0",
-            });
-            const valid = [{ currency: "BTC", totalBalance: "1", rewardsEarned: "0.1", apy: "5" }];
-            expect(mapEarnSummaryResponse(valid)).toEqual({
-                currency: "BTC",
-                total_balance: "1",
-                rewards_earned: "0.1",
-            });
+            // API returns array of summaries per currency
+            expect(mapEarnSummaryResponse(null)).toEqual([]);
+            const valid = [{ currency: "BTC", totalBalance: "1", totalRewards: "0.1" }];
+            expect(mapEarnSummaryResponse(valid)).toEqual([
+                {
+                    symbol: "BTC",
+                    total_balance: "1",
+                    total_rewards: "0.1",
+                },
+            ]);
         });
 
         it("should map earn APY response", () => {
             expect(mapEarnAPYResponse(null)).toEqual({});
-            const valid = { BTC: { daily: "0.01", weekly: "0.07", monthly: "0.3" } };
+            const valid = { BTC: { daily: 0.01, weekly: 0.07, monthly: 0.3 } };
             expect(mapEarnAPYResponse(valid)).toEqual({
                 BTC: {
-                    currency: "BTC",
-                    daily: "0.01",
-                    weekly: "0.07",
-                    monthly: "0.3",
+                    symbol: "BTC",
+                    rates: {
+                        daily_yield_ratio: "0.01",
+                        weekly_yield_ratio: "0.07",
+                        monthly_yield_ratio: "0.3",
+                    },
                 },
             });
         });
 
         it("should map earn wallets response", () => {
             expect(mapEarnWalletsResponse(null)).toEqual([]);
-            const valid = [
-                { id: "1", currency: "BTC", totalBalance: "1", strategy: "flexible", apy: "5", status: "active" },
-            ];
-            expect(mapEarnWalletsResponse(valid)).toEqual([
-                {
-                    id: "1",
-                    currency: "BTC",
-                    balance: "1",
-                    strategy: "flexible",
-                    apy: "5",
-                    status: "active",
-                },
-            ]);
+            const valid = [{ id: "1", currency: "BTC", totalBalance: "1", strategy: "flexible", status: "active" }];
+            const result = mapEarnWalletsResponse(valid);
+            expect(result).toHaveLength(1);
+            expect(result[0]).toMatchObject({
+                id: "1",
+                symbol: "BTC",
+                balance: "1",
+                strategy: "flexible",
+                status: "active",
+                total_balance: "1",
+            });
+            // APY should not be present
+            expect(result[0]).not.toHaveProperty("apy");
         });
 
-        it("should map earn transactions response", () => {
-            expect(mapEarnTransactionsResponse(null)).toEqual([]);
-            const valid = [
-                { id: "1", type: "deposit", currency: "BTC", amount: "1", date: "2023-01-01", status: "completed" },
-            ];
-            expect(mapEarnTransactionsResponse(valid)).toEqual([
-                {
-                    id: "1",
-                    type: "deposit",
-                    currency: "BTC",
-                    amount: "1",
-                    date: "2023-01-01",
-                    status: "completed",
+        it("should map earn wallet movements response", () => {
+            // API returns { total, data } structure for wallet-specific endpoint
+            expect(mapEarnWalletMovementsResponse(null)).toEqual({ total: 0, movements: [] });
+            const valid = {
+                total: 1,
+                data: [
+                    {
+                        movementId: "1",
+                        type: "deposit",
+                        amount: { value: "1", currency: "BTC" },
+                        createdAt: "2023-01-01T00:00:00Z",
+                        walletId: "w1",
+                    },
+                ],
+            };
+            const result = mapEarnWalletMovementsResponse(valid);
+            expect(result.total).toBe(1);
+            expect(result.movements).toHaveLength(1);
+            expect(result.movements[0]).toMatchObject({
+                id: "1",
+                type: "deposit",
+                symbol: "BTC",
+                amount: "1",
+                wallet_id: "w1",
+            });
+        });
+
+        it("should map earn movements response (global endpoint)", () => {
+            // API returns { total, data } structure for global endpoint
+            expect(mapEarnMovementsResponse(null)).toEqual({ total: 0, movements: [] });
+            const valid = {
+                total: 1,
+                data: [
+                    {
+                        movementId: "mov-123",
+                        type: "deposit",
+                        createdAt: "2023-01-01T00:00:00Z",
+                        walletId: "wallet-789",
+                        amount: { value: "1.5", currency: "BTC" },
+                        rate: {
+                            amount: { value: "50000", currency: "EUR" },
+                            pair: "BTC-USD",
+                        },
+                        convertedAmount: { value: "75000", currency: "EUR" },
+                        source: { walletId: "source-123", currency: "EUR" },
+                        issuer: { id: "issuer-1", name: "Bit2Me", integrator: "bit2me" },
+                    },
+                ],
+            };
+            const result = mapEarnMovementsResponse(valid);
+            expect(result.total).toBe(1);
+            expect(result.movements).toHaveLength(1);
+            expect(result.movements[0]).toMatchObject({
+                id: "mov-123",
+                type: "deposit",
+                wallet_id: "wallet-789",
+                amount: { value: "1.5", symbol: "BTC" },
+                rate: {
+                    amount: { value: "50000", symbol: "EUR" },
+                    pair: "BTC-USD",
                 },
-            ]);
+                converted_amount: { value: "75000", symbol: "EUR" },
+                source: { wallet_id: "source-123", symbol: "EUR" },
+                issuer: { id: "issuer-1", name: "Bit2Me", integrator: "bit2me" },
+            });
+            expect(result.movements[0].created_at).toBeTypeOf("string");
+            // user_id should not be present (movements are always for the authenticated user)
+            expect(result.movements[0]).not.toHaveProperty("user_id");
         });
 
         it("should map earn wallet details response", () => {
@@ -422,83 +522,104 @@ describe("Response Mappers", () => {
                 currency: "BTC",
                 totalBalance: "1",
                 strategy: "flexible",
-                apy: "5",
                 status: "active",
                 createdAt: "2023-01-01",
             };
-            expect(mapEarnWalletDetailsResponse(valid)).toEqual({
+            const result = mapEarnWalletDetailsResponse(valid);
+            expect(result).toMatchObject({
                 id: "1",
-                currency: "BTC",
+                symbol: "BTC",
                 balance: "1",
                 strategy: "flexible",
-                apy: "5",
                 status: "active",
                 created_at: "2023-01-01",
             });
+            // APY should not be present
+            expect(result).not.toHaveProperty("apy");
         });
 
-        it("should map earn transactions summary response", () => {
-            expect(() => mapEarnTransactionsSummaryResponse(null)).toThrow(ValidationError);
+        it("should map earn movements summary response", () => {
+            expect(() => mapEarnMovementsSummaryResponse(null)).toThrow(ValidationError);
             const valid = { type: "deposit", totalAmount: "10", totalCount: 5, currency: "BTC" };
-            expect(mapEarnTransactionsSummaryResponse(valid)).toEqual({
+            expect(mapEarnMovementsSummaryResponse(valid)).toEqual({
                 type: "deposit",
                 total_amount: "10",
                 total_count: 5,
-                currency: "BTC",
+                symbol: "BTC",
             });
         });
 
         it("should map earn assets response", () => {
-            expect(mapEarnAssetsResponse(null)).toEqual({ assets: [] });
+            expect(mapEarnAssetsResponse(null)).toEqual({ symbols: [] });
             const valid = { assets: ["BTC", "ETH"] };
-            expect(mapEarnAssetsResponse(valid)).toEqual({ assets: ["BTC", "ETH"] });
+            expect(mapEarnAssetsResponse(valid)).toEqual({ symbols: ["BTC", "ETH"] });
         });
 
         it("should map earn rewards config response", () => {
-            expect(mapEarnRewardsConfigResponse(null)).toEqual({
-                distribution_frequency: "daily",
-                minimum_balance: "0",
-                compounding: true,
-            });
-            const valid = { distributionFrequency: "daily", minimumBalance: "0.001", compounding: true };
+            expect(() => mapEarnRewardsConfigResponse(null)).toThrow(ValidationError);
+            const valid = {
+                walletId: "d3841daf-b619-4903-838c-032f31fbd593",
+                userId: "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
+                currency: "B3X",
+                lockPeriodId: null,
+                rewardCurrency: "B3X",
+                createdAt: "2022-09-13T20:36:21.065Z",
+                updatedAt: "2025-07-02T13:37:26.141Z",
+            };
             expect(mapEarnRewardsConfigResponse(valid)).toEqual({
-                distribution_frequency: "daily",
-                minimum_balance: "0.001",
-                compounding: true,
+                wallet_id: "d3841daf-b619-4903-838c-032f31fbd593",
+                user_id: "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
+                symbol: "B3X",
+                lock_period_id: null,
+                reward_symbol: "B3X",
+                created_at: "2022-09-13T20:36:21.065Z",
+                updated_at: "2025-07-02T13:37:26.141Z",
             });
         });
 
         it("should map earn wallet rewards config response", () => {
             expect(() => mapEarnWalletRewardsConfigResponse(null)).toThrow(ValidationError);
             const valid = {
-                walletId: "1",
-                currency: "BTC",
-                distributionFrequency: "daily",
-                nextDistribution: "2023-01-02",
+                walletId: "f482981e-6f8e-4d43-841d-8585a1021f94",
+                userId: "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
+                currency: "DOT",
+                lockPeriodId: null,
+                rewardCurrency: "B2M",
+                createdAt: "2025-04-23T04:00:32.551Z",
+                updatedAt: "2025-07-02T13:37:26.141Z",
             };
-            expect(mapEarnWalletRewardsConfigResponse(valid)).toEqual({
-                wallet_id: "1",
-                currency: "BTC",
-                distribution_frequency: "daily",
-                next_distribution: "2023-01-02",
+            const result = mapEarnWalletRewardsConfigResponse(valid);
+            expect(result).toEqual({
+                wallet_id: "f482981e-6f8e-4d43-841d-8585a1021f94",
+                user_id: "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
+                symbol: "DOT",
+                lock_period_id: null,
+                reward_symbol: "B2M",
+                created_at: "2025-04-23T04:00:32.551Z",
+                updated_at: "2025-07-02T13:37:26.141Z",
             });
         });
 
         it("should map earn wallet rewards summary response", () => {
             expect(() => mapEarnWalletRewardsSummaryResponse(null)).toThrow(ValidationError);
             const valid = {
-                walletId: "1",
-                currency: "BTC",
-                totalRewards: "0.1",
-                lastReward: "0.001",
-                lastRewardDate: "2023-01-01",
+                accumulatedRewards: [
+                    {
+                        currency: "B2M",
+                        amount: "3861562.41527785",
+                    },
+                ],
+                totalConvertedReward: {
+                    currency: "EUR",
+                    amount: "46361.57588988",
+                },
             };
-            expect(mapEarnWalletRewardsSummaryResponse(valid)).toEqual({
-                wallet_id: "1",
-                currency: "BTC",
-                total_rewards: "0.1",
-                last_reward: "0.001",
-                last_reward_date: "2023-01-01",
+            const result = mapEarnWalletRewardsSummaryResponse(valid);
+            expect(result).toEqual({
+                reward_symbol: "B2M",
+                reward_amount: "3861562.41527785",
+                reward_converted_symbol: "EUR",
+                reward_converted_amount: "46361.57588988",
             });
         });
     });
@@ -524,26 +645,22 @@ describe("Response Mappers", () => {
                     },
                 ],
             };
-            expect(mapLoanOrdersResponse(valid)).toEqual([
+            const result = mapLoanOrdersResponse(valid);
+            expect(result).toMatchObject([
                 {
-                    order_id: "1",
+                    id: "1",
                     status: "active",
-                    guarantee_currency: "BTC",
+                    guarantee_symbol: "BTC",
                     guarantee_amount: "1",
-                    loan_currency: "EUR",
+                    loan_symbol: "EUR",
                     loan_amount: "1000",
-                    remaining_amount: "1000",
-                    ltv: "50",
-                    apr: "5",
-                    liquidation_price: "20000",
                     created_at: "2023-01-01",
-                    expires_at: "2024-01-01",
                 },
             ]);
         });
 
-        it("should map loan transactions response", () => {
-            expect(mapLoanTransactionsResponse(null)).toEqual([]);
+        it("should map loan movements response", () => {
+            expect(mapLoanMovementsResponse(null)).toEqual([]);
             const valid = [
                 {
                     id: "1",
@@ -555,13 +672,13 @@ describe("Response Mappers", () => {
                     status: "completed",
                 },
             ];
-            expect(mapLoanTransactionsResponse(valid)).toEqual([
+            expect(mapLoanMovementsResponse(valid)).toEqual([
                 {
                     id: "1",
                     order_id: "o1",
-                    type: "repayment",
+                    type: "payment", // "repayment" normalizes to "payment"
                     amount: "100",
-                    currency: "EUR",
+                    symbol: "EUR",
                     date: "2023-01-01",
                     status: "completed",
                 },
@@ -569,37 +686,128 @@ describe("Response Mappers", () => {
         });
 
         it("should map loan config response", () => {
-            expect(mapLoanConfigResponse(null)).toEqual([]);
-            const valid = [
-                {
-                    currency: "BTC",
-                    minGuarantee: "0.001",
-                    maxLtv: "70",
-                    apr: "5",
-                    availableAsGuarantee: true,
-                    availableAsLoan: false,
-                },
-            ];
-            expect(mapLoanConfigResponse(valid)).toEqual([
-                {
-                    currency: "BTC",
-                    min_guarantee: "0.001",
-                    max_ltv: "70",
-                    apr: "5",
-                    available_as_guarantee: true,
-                    available_as_loan: false,
-                },
-            ]);
+            expect(mapLoanConfigResponse(null)).toEqual({
+                guarantee_currencies: [],
+                loan_currencies: [],
+            });
+            const valid = {
+                loanCurrencies: [
+                    {
+                        currencyConfigurationLoanId: "loan-id-123",
+                        currency: "USDC",
+                        enabled: true,
+                        liquidity: "250000.000000000000000000",
+                        liquidityStatus: "high",
+                        apr: "0.130000000000000000",
+                        minimumAmount: "100.000000000000000000",
+                        maximumAmount: "250000.000000000000000000",
+                        createdAt: "2024-07-16T15:49:30.646Z",
+                        updatedAt: "2024-07-16T15:49:30.646Z",
+                    },
+                    {
+                        currencyConfigurationLoanId: "loan-id-456",
+                        currency: "EURC",
+                        enabled: true,
+                        liquidity: "150000.000000000000000000",
+                        liquidityStatus: "medium",
+                        apr: "0.120000000000000000",
+                        minimumAmount: "50.000000000000000000",
+                        maximumAmount: "150000.000000000000000000",
+                        createdAt: "2024-07-16T15:49:30.646Z",
+                        updatedAt: "2024-07-16T15:49:30.646Z",
+                    },
+                ],
+                guaranteeCurrencies: [
+                    {
+                        currencyConfigurationGuaranteeId: "guarantee-id-123",
+                        currency: "BTC",
+                        enabled: true,
+                        liquidationLtv: "0.8500",
+                        initialLtv: "0.5000",
+                        createdAt: "2024-07-16T15:49:30.646Z",
+                        updatedAt: "2024-07-16T15:49:30.646Z",
+                    },
+                    {
+                        currencyConfigurationGuaranteeId: "guarantee-id-456",
+                        currency: "ETH",
+                        enabled: true,
+                        liquidationLtv: "0.8000",
+                        initialLtv: "0.4500",
+                        createdAt: "2024-07-16T15:49:30.646Z",
+                        updatedAt: "2024-07-16T15:49:30.646Z",
+                    },
+                ],
+            };
+            const result = mapLoanConfigResponse(valid);
+            expect(result).toEqual({
+                guarantee_currencies: [
+                    {
+                        symbol: "BTC",
+                        enabled: true,
+                        liquidation_ltv: "0.8500",
+                        initial_ltv: "0.5000",
+                        created_at: "2024-07-16T15:49:30.646Z",
+                        updated_at: "2024-07-16T15:49:30.646Z",
+                    },
+                    {
+                        symbol: "ETH",
+                        enabled: true,
+                        liquidation_ltv: "0.8000",
+                        initial_ltv: "0.4500",
+                        created_at: "2024-07-16T15:49:30.646Z",
+                        updated_at: "2024-07-16T15:49:30.646Z",
+                    },
+                ],
+                loan_currencies: [
+                    {
+                        symbol: "USDC",
+                        enabled: true,
+                        liquidity: "250000.000000000000000000",
+                        liquidity_status: "high",
+                        apr: "0.130000000000000000",
+                        minimum_amount: "100.000000000000000000",
+                        maximum_amount: "250000.000000000000000000",
+                        created_at: "2024-07-16T15:49:30.646Z",
+                        updated_at: "2024-07-16T15:49:30.646Z",
+                    },
+                    {
+                        symbol: "EURC",
+                        enabled: true,
+                        liquidity: "150000.000000000000000000",
+                        liquidity_status: "medium",
+                        apr: "0.120000000000000000",
+                        minimum_amount: "50.000000000000000000",
+                        maximum_amount: "150000.000000000000000000",
+                        created_at: "2024-07-16T15:49:30.646Z",
+                        updated_at: "2024-07-16T15:49:30.646Z",
+                    },
+                ],
+            });
         });
 
-        it("should map loan LTV response", () => {
-            expect(() => mapLoanLTVResponse(null)).toThrow(ValidationError);
-            const valid = { ltv: "50", maxLoanAmount: "1000", liquidationPrice: "20000", healthFactor: "1.5" };
-            expect(mapLoanLTVResponse(valid)).toEqual({
-                ltv: "50",
-                max_loan_amount: "1000",
-                liquidation_price: "20000",
-                health_factor: "1.5",
+        it("should map loan simulation response", () => {
+            expect(() => mapLoanSimulationResponse(null)).toThrow(ValidationError);
+            const valid = {
+                guaranteeCurrency: "BTC",
+                guaranteeAmount: "0.5678",
+                guaranteeAmountConverted: "57000.34",
+                loanCurrency: "USDC",
+                loanAmount: "1250.34",
+                loanAmountConverted: "1300.34",
+                userCurrency: "EUR",
+                ltv: "0.5",
+                apr: "13.12",
+            };
+            expect(mapLoanSimulationResponse(valid)).toEqual({
+                guarantee_symbol: "BTC",
+                guarantee_amount: "0.5678",
+                guarantee_amount_converted: "57000.34",
+                loan_symbol: "USDC",
+                loan_amount: "1250.34",
+                loan_amount_converted: "1300.34",
+                user_symbol: "EUR",
+                ltv: "0.5",
+                apr: "13.12",
             });
         });
 
@@ -619,12 +827,13 @@ describe("Response Mappers", () => {
                 createdAt: "2023-01-01",
                 expiresAt: "2024-01-01",
             };
-            expect(mapLoanOrderDetailsResponse(valid)).toEqual({
-                order_id: "1",
+            const result = mapLoanOrderDetailsResponse(valid);
+            expect(result).toMatchObject({
+                id: "1",
                 status: "active",
-                guarantee_currency: "BTC",
+                guarantee_symbol: "BTC",
                 guarantee_amount: "1",
-                loan_currency: "EUR",
+                loan_symbol: "EUR",
                 loan_amount: "1000",
                 remaining_amount: "1000",
                 ltv: "50",
@@ -632,7 +841,6 @@ describe("Response Mappers", () => {
                 liquidation_price: "20000",
                 created_at: "2023-01-01",
                 expires_at: "2024-01-01",
-                apr_details: undefined,
             });
         });
     });
@@ -646,10 +854,10 @@ describe("Response Mappers", () => {
             ];
             expect(mapProBalanceResponse(valid)).toEqual([
                 {
-                    currency: "EUR",
-                    balance: 100,
-                    blocked_balance: 10,
-                    available: 90,
+                    symbol: "EUR",
+                    balance: "100",
+                    blocked_balance: "10",
+                    available: "90",
                 },
             ]);
         });
@@ -658,7 +866,7 @@ describe("Response Mappers", () => {
             expect(() => mapProOrderResponse(null)).toThrow(ValidationError);
             const valid = {
                 id: "1",
-                symbol: "BTC/EUR",
+                symbol: "BTC-USD",
                 side: "buy",
                 type: "limit",
                 status: "open",
@@ -668,12 +876,13 @@ describe("Response Mappers", () => {
                 remaining: "1",
                 createdAt: "2023-01-01",
             };
-            expect(mapProOrderResponse(valid)).toEqual({
+            const result = mapProOrderResponse(valid);
+            expect(result).toMatchObject({
                 id: "1",
-                symbol: "BTC/EUR",
+                pair: "BTC-USD",
                 side: "buy",
                 type: "limit",
-                status: "open",
+                status: "active",
                 price: "20000",
                 amount: "1",
                 filled: "0",
@@ -687,7 +896,7 @@ describe("Response Mappers", () => {
             const valid = [
                 {
                     id: "1",
-                    symbol: "BTC/EUR",
+                    symbol: "BTC-USD",
                     side: "buy",
                     type: "limit",
                     status: "open",
@@ -698,11 +907,12 @@ describe("Response Mappers", () => {
                     createdAt: "2023-01-01",
                 },
             ];
-            expect(mapProOpenOrdersResponse(valid)).toEqual({
+            const result = mapProOpenOrdersResponse(valid);
+            expect(result).toMatchObject({
                 orders: [
                     {
                         id: "1",
-                        symbol: "BTC/EUR",
+                        pair: "BTC-USD",
                         side: "buy",
                         type: "limit",
                         status: "open",
@@ -724,7 +934,7 @@ describe("Response Mappers", () => {
                     {
                         id: "t1",
                         orderId: "o1",
-                        symbol: "BTC/EUR",
+                        symbol: "BTC-USD",
                         side: "buy",
                         price: "20000",
                         amount: "0.1",
@@ -733,18 +943,19 @@ describe("Response Mappers", () => {
                     },
                 ],
             };
-            expect(mapProOrderTradesResponse(valid)).toEqual({
+            const result = mapProOrderTradesResponse(valid);
+            expect(result).toMatchObject({
                 order_id: "o1",
                 trades: [
                     {
                         id: "t1",
                         order_id: "o1",
-                        symbol: "BTC/EUR",
+                        pair: "BTC-USD",
                         side: "buy",
                         price: "20000",
                         amount: "0.1",
                         fee: "1",
-                        timestamp: 123,
+                        date: expect.any(String),
                     },
                 ],
             });
@@ -752,18 +963,17 @@ describe("Response Mappers", () => {
     });
 
     describe("Operation Mappers", () => {
-        it("should map transaction confirmation response", () => {
-            expect(() => mapTransactionConfirmationResponse(null)).toThrow(ValidationError);
+        it("should map operation confirmation response", () => {
+            expect(() => mapOperationConfirmationResponse(null)).toThrow(ValidationError);
             const valid = { id: "tx1", status: "confirmed", message: "Success" };
-            expect(mapTransactionConfirmationResponse(valid)).toEqual({
-                transaction_id: "tx1",
+            expect(mapOperationConfirmationResponse(valid)).toEqual({
+                id: "tx1",
                 status: "confirmed",
-                message: "Success",
             });
         });
 
-        it("should map earn create transaction response", () => {
-            expect(() => mapEarnCreateTransactionResponse(null)).toThrow(ValidationError);
+        it("should map earn operation response", () => {
+            expect(() => mapEarnOperationResponse(null)).toThrow(ValidationError);
             const valid = {
                 id: "tx1",
                 type: "deposit",
@@ -772,10 +982,10 @@ describe("Response Mappers", () => {
                 status: "pending",
                 message: "Created",
             };
-            expect(mapEarnCreateTransactionResponse(valid)).toEqual({
-                transaction_id: "tx1",
+            expect(mapEarnOperationResponse(valid)).toEqual({
+                id: "tx1",
                 type: "deposit",
-                currency: "BTC",
+                symbol: "BTC",
                 amount: "1",
                 status: "pending",
                 message: "Created",
@@ -786,8 +996,8 @@ describe("Response Mappers", () => {
             expect(() => mapProDepositResponse(null)).toThrow(ValidationError);
             const valid = { id: "tx1", currency: "EUR", amount: "100", status: "completed", message: "Deposited" };
             expect(mapProDepositResponse(valid)).toEqual({
-                transaction_id: "tx1",
-                currency: "EUR",
+                id: "tx1",
+                symbol: "EUR",
                 amount: "100",
                 status: "completed",
                 message: "Deposited",
