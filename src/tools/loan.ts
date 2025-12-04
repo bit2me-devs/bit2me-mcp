@@ -11,11 +11,7 @@ import {
     mapLoanIncreaseGuaranteeResponse,
     mapLoanPaybackResponse,
 } from "../utils/response-mappers.js";
-import {
-    buildSimpleContextualResponse,
-    buildFilteredContextualResponse,
-    buildPaginatedContextualResponse,
-} from "../utils/contextual-response.js";
+import { buildSimpleContextualResponse, buildPaginatedContextualResponse } from "../utils/contextual-response.js";
 import {
     LoanSimulationArgs,
     LoanMovementsArgs,
