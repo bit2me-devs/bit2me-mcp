@@ -577,7 +577,7 @@ export function mapEarnSummaryResponse(raw: unknown): EarnSummaryResponse[] {
             for (const item of data) {
                 extractItems(item);
             }
-        } else if (data !== null && typeof data === "object" && !Array.isArray(data)) {
+        } else if (typeof data === "object") {
             const obj = data as Record<string, unknown>;
             // Check if this looks like a summary item
             if ("currency" in obj || "totalBalance" in obj || "totalRewards" in obj) {
