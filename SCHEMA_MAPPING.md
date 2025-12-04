@@ -2,39 +2,44 @@
 
 Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP Bit2Me.
 
-## Tool Count (47 total)
+## Tool Count (51 total)
 
-- 8 Market Tools
-- 6 Wallet Tools
-- 10 Earn Tools
-- 6 Loan Tools
-- 4 Pro Trading Tools
+- 4 Wallet Market Data Tools
+- 8 Wallet Tools
+- 13 Earn Tools
+- 9 Loan Tools
+- 14 Pro Trading Tools
 - 1 Account Tool
 - 1 Aggregation Tool
-- 12 Operation Tools
+
+_Nota: Las herramientas de operaciones (write actions) están incluidas en sus respectivas categorías._
 
 ---
 
-## Market Tools (8 tools)
+## Wallet Market Data Tools (4 tools)
 
-### market_get_currency_rate
-
-```json
-[
-    {
-        "symbol": "BTC",
-        "rate": "90000",
-        "currency": "EUR",
-        "timestamp": 1672531200000
-    }
-]
-```
+> **Note:** These tools return market prices and data used by the **Wallet/Broker** service, not Pro Trading prices. For Pro Trading market data (order books, candles, public trades), see the **Pro Trading Tools** section below.
 
 ### market_get_ticker
 
 ```json
+[
+    {
+        "base_symbol": "BTC",
+        "price": "90000",
+        "quote_symbol": "EUR",
+        "date": "2023-01-01T00:00:00.000Z"
+    }
+]
+```
+
+### market_get_data
+
+```json
 {
-    "time": 1764072740258,
+    "base_symbol": "BTC",
+    "quote_symbol": "EUR",
+    "date": "2025-11-25T10:30:00.258Z",
     "price": "75869.89",
     "market_cap": "1510730550631.13",
     "volume_24h": "62022281357.81",
@@ -48,31 +53,29 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 [
     {
-        "timestamp": 1732492800000,
         "date": "2024-11-25T10:30:00.000Z",
-        "price_usd": 75869.89,
-        "price_fiat": 72145.32,
-        "currency": "EUR"
+        "price": "72145.32",
+        "quote_symbol": "EUR"
     },
     {
-        "timestamp": 1732579200000,
         "date": "2024-11-26T14:45:00.000Z",
-        "price_usd": 76234.12,
-        "price_fiat": 72489.56,
-        "currency": "EUR"
+        "price": "72489.56",
+        "quote_symbol": "EUR"
     }
 ]
 ```
 
-### market_get_assets
+### market_get_assets_details
+
+**Without symbol parameter (returns all assets):**
 
 ```json
 [
     {
         "symbol": "BTC",
         "name": "Bitcoin",
-        "asset_type": "currency",
-        "network": "BITCOIN",
+        "type": "crypto",
+        "network": "bitcoin",
         "enabled": true,
         "tradeable": true,
         "loanable": true,
@@ -81,8 +84,8 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
     {
         "symbol": "ETH",
         "name": "Ethereum",
-        "asset_type": "platform",
-        "network": "ETHEREUM (ERC20)",
+        "type": "crypto",
+        "network": "ethereum",
         "enabled": true,
         "tradeable": true,
         "loanable": true,
@@ -91,14 +94,14 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ]
 ```
 
-### market_get_asset_details
+**With symbol parameter (returns single asset):**
 
 ```json
 {
     "symbol": "BTC",
     "name": "Bitcoin",
-    "asset_type": "currency",
-    "network": "BITCOIN",
+    "type": "crypto",
+    "network": "bitcoin",
     "enabled": true,
     "tradeable": true,
     "loanable": true,
@@ -106,69 +109,9 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 }
 ```
 
-### market_get_config
-
-```json
-{
-    "symbol": "BTC/EUR",
-    "basePrecision": 8,
-    "quotePrecision": 2,
-    "minAmount": "0.0001",
-    "maxAmount": "100",
-    "status": "active"
-}
-```
-
-### market_get_order_book
-
-```json
-{
-    "symbol": "BTC/EUR",
-    "bids": [
-        ["75800.00", "0.5"],
-        ["75750.00", "1.2"]
-    ],
-    "asks": [
-        ["75900.00", "0.8"],
-        ["75950.00", "1.5"]
-    ],
-    "timestamp": 1764072740258
-}
-```
-
-### market_get_public_trades
-
-```json
-[
-    {
-        "id": "12345",
-        "symbol": "BTC/EUR",
-        "price": "75869.89",
-        "amount": "0.5",
-        "side": "buy",
-        "timestamp": 1764072740258
-    }
-]
-```
-
-### market_get_candles
-
-```json
-[
-    {
-        "timestamp": 1764072000000,
-        "open": "75800.00",
-        "high": "76100.00",
-        "low": "75600.00",
-        "close": "75869.89",
-        "volume": "125.5"
-    }
-]
-```
-
 ---
 
-## Wallet Tools (7 tools)
+## Wallet Tools (8 tools)
 
 ### wallet_get_pockets
 
@@ -176,14 +119,14 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 [
     {
         "id": "abc123-def456-...",
-        "currency": "EUR",
+        "symbol": "EUR",
         "balance": "1250.50",
         "available": "1200.00",
         "name": "EUR Wallet"
     },
     {
         "id": "def456-abc123-...",
-        "currency": "BTC",
+        "symbol": "BTC",
         "balance": "0.5",
         "available": "0.5"
     }
@@ -195,12 +138,12 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 {
     "id": "abc123-def456-...",
-    "currency": "EUR",
+    "symbol": "EUR",
     "balance": "1250.50",
     "available": "1200.00",
     "blocked": "50.50",
     "name": "EUR Wallet",
-    "createdAt": "2021-01-19T20:24:59.209Z"
+    "created_at": "2021-01-19T20:24:59.209Z"
 }
 ```
 
@@ -209,10 +152,12 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 [
     {
+        "id": "addr123-...",
         "address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
         "network": "bitcoin",
-        "currency": "BTC",
-        "createdAt": "2021-01-19T20:24:59.209Z"
+        "symbol": "BTC",
+        "tag": "",
+        "created_at": "2021-01-19T20:24:59.209Z"
     }
 ]
 ```
@@ -224,53 +169,55 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
     {
         "id": "bitcoin",
         "name": "bitcoin",
-        "native_currency_code": "BTC",
-        "fee_currency_code": "BTC",
+        "native_symbol": "BTC",
+        "fee_symbol": "BTC",
         "has_tag": false
     }
 ]
 ```
 
-### wallet_get_transactions
+### wallet_get_movements
 
 ```json
 {
     "metadata": {
         "total_records": 150,
-        "limit": 2,
+        "limit": 10,
         "offset": 0,
-        "filter_currency": "ALL"
+        "has_more": true,
+        "is_empty": false,
+        "filter_symbol": "EUR"
     },
-    "transactions": [
+    "movements": [
         {
-            "index": 1,
             "id": "tx123-...",
             "date": "2024-11-25T10:30:00.000Z",
             "type": "deposit",
             "subtype": "bank_transfer",
             "status": "completed",
             "amount": "1000.00",
-            "currency": "EUR",
+            "symbol": "EUR",
             "origin": {
                 "amount": "1000.00",
-                "currency": "EUR",
+                "symbol": "EUR",
                 "class": "bank"
             },
             "destination": {
                 "amount": "1000.00",
-                "currency": "EUR",
+                "symbol": "EUR",
                 "class": "pocket"
             },
             "fee": {
                 "amount": "0.00",
-                "currency": "EUR"
+                "symbol": "EUR",
+                "class": "fee"
             }
         }
     ]
 }
 ```
 
-### wallet_get_transaction_details
+### wallet_get_movement_details
 
 ```json
 {
@@ -280,36 +227,109 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
     "subtype": "bank_transfer",
     "status": "completed",
     "amount": "1000.00",
-    "currency": "EUR",
+    "symbol": "EUR",
     "origin": {
         "amount": "1000.00",
-        "currency": "EUR",
+        "symbol": "EUR",
         "class": "bank"
     },
     "destination": {
         "amount": "1000.00",
-        "currency": "EUR",
+        "symbol": "EUR",
         "class": "pocket"
     },
     "fee": {
         "amount": "0.00",
-        "currency": "EUR"
+        "symbol": "EUR",
+        "class": "fee"
     }
+}
+```
+
+### wallet_buy_crypto
+
+```json
+{
+    "proforma_id": "proforma123-...",
+    "origin_amount": "100.00",
+    "origin_symbol": "EUR",
+    "destination_amount": "0.00131579",
+    "destination_symbol": "BTC",
+    "rate": "75869.89",
+    "fee": "0.50",
+    "expires_at": "2024-11-25T10:35:00.000Z"
+}
+```
+
+### wallet_sell_crypto
+
+```json
+{
+    "proforma_id": "proforma123-...",
+    "origin_amount": "0.001",
+    "origin_symbol": "BTC",
+    "destination_amount": "75.87",
+    "destination_symbol": "EUR",
+    "rate": "75869.89",
+    "fee": "0.50",
+    "expires_at": "2024-11-25T10:35:00.000Z"
+}
+```
+
+### wallet_swap_crypto
+
+```json
+{
+    "proforma_id": "proforma123-...",
+    "origin_amount": "0.001",
+    "origin_symbol": "BTC",
+    "destination_amount": "0.025",
+    "destination_symbol": "ETH",
+    "rate": "0.04",
+    "fee": "0.0001",
+    "expires_at": "2024-11-25T10:35:00.000Z"
+}
+```
+
+### wallet_buy_crypto_with_card
+
+```json
+{
+    "proforma_id": "proforma123-...",
+    "origin_amount": "100.00",
+    "origin_symbol": "EUR",
+    "destination_amount": "0.00131579",
+    "destination_symbol": "BTC",
+    "rate": "75869.89",
+    "fee": "0.50",
+    "expires_at": "2024-11-25T10:35:00.000Z"
+}
+```
+
+### wallet_confirm_operation
+
+```json
+{
+    "id": "tx123-...",
+    "status": "completed",
+    "message": "✅ Operación confirmada. ID: tx123-..."
 }
 ```
 
 ---
 
-## Earn Tools (12 tools)
+## Earn Tools (13 tools)
 
 ### earn_get_summary
 
 ```json
-{
-    "currency": "BTC",
-    "total_balance": "0.5",
-    "rewards_earned": "0.0001"
-}
+[
+    {
+        "symbol": "BTC",
+        "total_balance": "0.5",
+        "total_rewards": "0.0001"
+    }
+]
 ```
 
 ### earn_get_wallets
@@ -318,11 +338,13 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 [
     {
         "id": "earn123-...",
-        "currency": "BTC",
+        "symbol": "BTC",
         "balance": "0.5",
         "strategy": "flexible",
-        "apy": "0.05",
-        "status": "active"
+        "status": "active",
+        "created_at": "2021-01-19T20:24:59.209Z",
+,
+        "total_balance": "0.5"
     }
 ]
 ```
@@ -332,45 +354,103 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 {
     "id": "earn123-...",
-    "currency": "BTC",
+    "symbol": "BTC",
     "balance": "0.5",
     "strategy": "flexible",
-    "apy": "0.05",
     "status": "active",
-    "createdAt": "2021-01-19T20:24:59.209Z"
+    "created_at": "2021-01-19T20:24:59.209Z",
+,
+    "total_balance": "0.5"
 }
 ```
 
-### earn_get_transactions
-
-```json
-[
-    {
-        "id": "tx123-...",
-        "type": "deposit",
-        "currency": "BTC",
-        "amount": "0.1",
-        "date": "2024-11-25T10:30:00.000Z",
-        "status": "completed"
-    }
-]
-```
-
-### earn_get_transactions_summary
+### earn_get_wallet_movements
 
 ```json
 {
-    "type": "DEPOSIT",
-    "totalAmount": "1.5",
-    "totalCount": 10,
-    "currency": "BTC"
+    "metadata": {
+        "total_records": 25,
+        "limit": 10,
+        "offset": 0,
+        "has_more": true,
+        "is_empty": false
+    },
+    "movements": [
+        {
+            "id": "mov123-...",
+            "type": "deposit",
+            "symbol": "BTC",
+            "amount": "0.1",
+            "created_at": "2024-11-25T10:30:00.000Z",
+            "wallet_id": "earn123-..."
+        }
+    ]
+}
+```
+
+### earn_get_movements
+
+```json
+{
+    "metadata": {
+        "total_records": 100,
+        "limit": 20,
+        "offset": 0,
+        "has_more": true,
+        "is_empty": false
+    },
+    "movements": [
+        {
+            "id": "mov123-...",
+            "type": "deposit",
+            "created_at": "2024-11-25T10:30:00.000Z",
+            "wallet_id": "earn123-...",
+            "amount": {
+                "value": "0.1",
+                "symbol": "BTC"
+            },
+            "rate": {
+                "amount": {
+                    "value": "75869.89",
+                    "symbol": "EUR"
+                },
+                "pair": "BTC/EUR"
+            },
+            "converted_amount": {
+                "value": "7586.99",
+                "symbol": "EUR"
+            },
+            "source": {
+                "wallet_id": "pocket123-...",
+                "symbol": "BTC"
+            },
+            "issuer": {
+                "id": "issuer123",
+                "name": "Bit2Me",
+                "integrator": "bit2me"
+            }
+        }
+    ]
+}
+```
+
+### earn_get_movements_summary
+
+```json
+{
+    "type": "deposit",
+    "total_amount": "1.5",
+    "total_count": 10,
+    "symbol": "BTC"
 }
 ```
 
 ### earn_get_assets
 
 ```json
-["BTC", "ETH", "USDC", "USDT", "ADA", "DOT"]
+{
+    "symbols": ["BTC", "ETH", "USDC", "USDT", "ADA", "DOT"]
+}
 ```
 
 ### earn_get_apy
@@ -378,16 +458,20 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 {
     "BTC": {
-        "currency": "BTC",
-        "daily": 0.0001,
-        "weekly": 0.000099999917563314,
-        "monthly": 0.000099999597052597
+        "symbol": "BTC",
+        "rates": {
+            "daily_yield_ratio": "0.0001",
+            "weekly_yield_ratio": "0.000099999917563314",
+            "monthly_yield_ratio": "0.000099999597052597"
+        }
     },
     "ETH": {
-        "currency": "ETH",
-        "daily": 0.00008,
-        "weekly": 0.000079999934050651,
-        "monthly": 0.000079999677642078
+        "symbol": "ETH",
+        "rates": {
+            "daily_yield_ratio": "0.00008",
+            "weekly_yield_ratio": "0.000079999934050651",
+            "monthly_yield_ratio": "0.000079999677642078"
+        }
     }
 }
 ```
@@ -396,8 +480,8 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ```json
 {
-    "distributionFrequency": "daily",
-    "minimumBalance": "0.0001",
+    "distribution_frequency": "daily",
+    "minimum_balance": "0.0001",
     "compounding": true
 }
 ```
@@ -406,10 +490,10 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ```json
 {
-    "walletId": "earn123-...",
-    "currency": "BTC",
-    "distributionFrequency": "daily",
-    "nextDistribution": "2024-11-26T00:00:00.000Z"
+    "wallet_id": "earn123-...",
+    "symbol": "BTC",
+    "distribution_frequency": "daily",
+    "next_distribution": "2024-11-26T00:00:00.000Z"
 }
 ```
 
@@ -417,28 +501,54 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ```json
 {
-    "walletId": "earn123-...",
-    "currency": "BTC",
-    "totalRewards": "0.0001",
-    "lastReward": "0.0000027",
-    "lastRewardDate": "2024-11-25T00:00:00.000Z"
+    "wallet_id": "earn123-...",
+    "symbol": "BTC",
+    "total_rewards": "0.0001",
+    "last_reward": "0.0000027",
+    "last_reward_date": "2024-11-25T00:00:00.000Z"
+}
+```
+
+### earn_deposit
+
+```json
+{
+    "id": "mov123-...",
+    "type": "deposit",
+    "symbol": "BTC",
+    "amount": "0.1",
+    "status": "completed",
+    "message": "Deposit successful"
+}
+```
+
+### earn_withdraw
+
+```json
+{
+    "id": "mov123-...",
+    "type": "withdrawal",
+    "symbol": "BTC",
+    "amount": "0.1",
+    "status": "completed",
+    "message": "Withdrawal successful"
 }
 ```
 
 ---
 
-## Loan Tools (11 tools)
+## Loan Tools (9 tools)
 
 ### loan_get_active
 
 ```json
 [
     {
-        "order_id": "fb930f0c-8e90-403a-95e4-112394183cf2",
+        "id": "fb930f0c-8e90-403a-95e4-112394183cf2",
         "status": "active",
-        "guarantee_currency": "BTC",
+        "guarantee_symbol": "BTC",
         "guarantee_amount": "1.000000000000000000",
-        "loan_currency": "EURR",
+        "loan_symbol": "EURR",
         "loan_amount": "52100.455127197287622924",
         "remaining_amount": "52100.455127197287622924",
         "ltv": "0.6863",
@@ -454,10 +564,12 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 
 ```json
 {
-    "ltv": "0.65",
-    "maxLoanAmount": "50000.00",
-    "liquidationPrice": "60000.00",
-    "healthFactor": "1.54"
+    "guarantee_symbol": "BTC",
+    "loan_symbol": "EUR",
+    "ltv_ratio": "0.65",
+    "max_loan_amount": "50000.00",
+    "liquidation_price": "60000.00",
+    "health_factor": "1.54"
 }
 ```
 
@@ -466,70 +578,88 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 [
     {
-        "currency": "BTC",
-        "minGuarantee": "0.001",
-        "maxLtv": "0.70",
+        "symbol": "BTC",
+        "min_guarantee": "0.001",
+        "max_ltv": "0.70",
         "apr": "0.15",
-        "availableAsGuarantee": true,
-        "availableAsLoan": false
+        "available_as_guarantee": true,
+        "available_as_loan": false
     },
     {
-        "currency": "ETH",
-        "minGuarantee": "0.01",
-        "maxLtv": "0.70",
+        "symbol": "ETH",
+        "min_guarantee": "0.01",
+        "max_ltv": "0.70",
         "apr": "0.15",
-        "availableAsGuarantee": true,
-        "availableAsLoan": false
+        "available_as_guarantee": true,
+        "available_as_loan": false
     }
 ]
 ```
 
-### loan_get_transactions
+### loan_get_movements
 
 ```json
-[
-    {
-        "id": "tx123-...",
-        "orderId": "fb930f0c-...",
-        "type": "disbursement",
-        "amount": "50000.00",
-        "currency": "EURR",
-        "date": "2025-07-27T16:24:00.119Z",
-        "status": "completed"
-    }
-]
+{
+    "metadata": {
+        "total_records": 50,
+        "limit": 10,
+        "offset": 0,
+        "has_more": true,
+        "is_empty": false
+    },
+    "movements": [
+        {
+            "id": "mov123-...",
+            "order_id": "fb930f0c-...",
+            "type": "payment",
+            "amount": "50000.00",
+            "symbol": "EUR",
+            "date": "2025-07-27T16:24:00.119Z",
+            "status": "completed"
+        }
+    ]
+}
 ```
 
 ### loan_get_orders
 
 ```json
-[
-    {
-        "order_id": "6ee84520-b399-4a93-9a48-8ba852d78ac5",
-        "status": "active",
-        "guarantee_currency": "BTC",
-        "guarantee_amount": "0.407452069999999900",
-        "loan_currency": "EURR",
-        "loan_amount": "19780.869923949592558916",
-        "remaining_amount": "19780.869923949592558916",
-        "ltv": "0.6404",
-        "apr": "0.1700",
-        "liquidation_price": "57211.452470588239403676",
-        "created_at": "2025-05-13T22:59:38.096Z",
-        "expires_at": "2025-05-16T22:59:38.094Z"
-    }
-]
+{
+    "metadata": {
+        "total_records": 15,
+        "limit": 10,
+        "offset": 0,
+        "has_more": true,
+        "is_empty": false
+    },
+    "orders": [
+        {
+            "id": "6ee84520-b399-4a93-9a48-8ba852d78ac5",
+            "status": "active",
+            "guarantee_symbol": "BTC",
+            "guarantee_amount": "0.407452069999999900",
+            "loan_symbol": "EURR",
+            "loan_amount": "19780.869923949592558916",
+            "remaining_amount": "19780.869923949592558916",
+            "ltv": "0.6404",
+            "apr": "0.1700",
+            "liquidation_price": "57211.452470588239403676",
+            "created_at": "2025-05-13T22:59:38.096Z",
+            "expires_at": "2025-05-16T22:59:38.094Z"
+        }
+    ]
+}
 ```
 
 ### loan_get_order_details
 
 ```json
 {
-    "order_id": "fb930f0c-8e90-403a-95e4-112394183cf2",
+    "id": "fb930f0c-8e90-403a-95e4-112394183cf2",
     "status": "active",
-    "guarantee_currency": "BTC",
+    "guarantee_symbol": "BTC",
     "guarantee_amount": "1.000000000000000000",
-    "loan_currency": "EURR",
+    "loan_symbol": "EURR",
     "loan_amount": "52100.455127197287622924",
     "remaining_amount": "52100.455127197287622924",
     "ltv": "0.6863",
@@ -540,67 +670,123 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 }
 ```
 
+### loan_create
+
+```json
+{
+    "id": "loan123-...",
+    "guarantee_symbol": "BTC",
+    "guarantee_amount": "1.0",
+    "loan_symbol": "EUR",
+    "loan_amount": "50000.00",
+    "ltv": "0.65",
+    "apr": "0.15",
+    "status": "active",
+    "created_at": "2024-11-25T10:00:00.000Z"
+}
+```
+
+### loan_increase_guarantee
+
+```json
+{
+    "id": "loan123-...",
+    "new_guarantee_amount": "1.5",
+    "new_ltv": "0.43",
+    "status": "updated",
+    "message": "Guarantee increased successfully"
+}
+```
+
+### loan_payback
+
+```json
+{
+    "id": "loan123-...",
+    "payback_amount": "10000.00",
+    "remaining_amount": "40000.00",
+    "status": "active",
+    "message": "Payback successful"
+}
+```
+
 ---
 
-## Pro Trading Tools (8 tools)
+## Pro Trading Tools (14 tools)
 
 ### pro_get_balance
 
 ```json
 [
     {
-        "currency": "BTC",
-        "balance": 0.00689471,
-        "blocked_balance": 0,
-        "available": 0.00689471
+        "symbol": "BTC",
+        "balance": "0.00689471",
+        "blocked_balance": "0",
+        "available": "0.00689471"
     },
     {
-        "currency": "FLOW",
-        "balance": 27812.0234142,
-        "blocked_balance": 0,
-        "available": 27812.0234142
+        "symbol": "FLOW",
+        "balance": "27812.0234142",
+        "blocked_balance": "0",
+        "available": "27812.0234142"
     },
     {
-        "currency": "EUR",
-        "balance": 0,
-        "blocked_balance": 0.00011102,
-        "available": -0.00011102
+        "symbol": "EUR",
+        "balance": "0",
+        "blocked_balance": "0.00011102",
+        "available": "-0.00011102"
     }
 ]
 ```
 
-### pro_get_transactions
+### pro_get_trades
 
 ```json
-[
-    {
-        "id": "trade123",
-        "orderId": "order456",
-        "symbol": "BTC/EUR",
-        "side": "buy",
-        "price": "75869.89",
-        "amount": "0.1",
-        "fee": "0.75",
-        "timestamp": 1764072740258
-    }
-]
+{
+    "metadata": {
+        "total_records": 150,
+        "limit": 50,
+        "offset": 0,
+        "has_more": true,
+        "is_empty": false
+    },
+    "trades": [
+        {
+            "id": "trade123",
+            "order_id": "order456",
+            "pair": "BTC/EUR",
+            "side": "buy",
+            "price": "75869.89",
+            "amount": "0.1",
+            "fee": "0.75",
+            "fee_symbol": "EUR",
+            "cost": "7586.99",
+            "is_maker": false,
+            "order_type": "limit",
+            "date": "2025-11-25T10:30:00.258Z"
+        }
+    ]
+}
 ```
 
 ### pro_get_order_trades
 
 ```json
-[
-    {
-        "id": "trade123",
-        "orderId": "order456",
-        "symbol": "BTC/EUR",
-        "side": "buy",
-        "price": "75869.89",
-        "amount": "0.1",
-        "fee": "0.75",
-        "timestamp": 1764072740258
-    }
-]
+{
+    "order_id": "order456",
+    "trades": [
+        {
+            "id": "trade123",
+            "order_id": "order456",
+            "pair": "BTC/EUR",
+            "side": "buy",
+            "price": "75869.89",
+            "amount": "0.1",
+            "fee": "0.75",
+            "date": "2025-11-25T10:30:00.258Z"
+        }
+    ]
+}
 ```
 
 ### pro_get_order_details
@@ -608,127 +794,37 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 {
     "id": "order789",
-    "symbol": "BTC/EUR",
+    "pair": "BTC/EUR",
     "side": "buy",
     "type": "limit",
-    "status": "open",
+    "status": "active",
     "price": "75000.00",
     "amount": "0.1",
     "filled": "0.0",
     "remaining": "0.1",
-    "createdAt": "2024-11-25T10:00:00.000Z"
-}
-```
-
----
-
-## Account Tools (1 tool)
-
-### account_get_info
-
-```json
-{
-    "userId": "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
-    "email": "user@example.com",
-    "level": "verified",
-    "kycStatus": "approved",
-    "createdAt": "2021-01-19T20:24:59.209Z",
-    "features": {
-        "trading": true,
-        "earn": true,
-        "loans": true
-    }
-}
-```
-
----
-
-## Aggregation Tools (1 tool)
-
-### portfolio_get_valuation
-
-```json
-{
-    "currency": "EUR",
-    "total_value": 771789.52,
-    "details": [
-        {
-            "asset": "BTC",
-            "amount": 8.657983471809322,
-            "price_unit": 75936.5,
-            "value_fiat": 657456.96
-        },
-        {
-            "asset": "B2M",
-            "amount": 3205806.09708881,
-            "price_unit": 0.0099566,
-            "value_fiat": 31918.93
-        },
-        {
-            "asset": "DOGE",
-            "amount": 232444.85337828,
-            "price_unit": 0.1290807,
-            "value_fiat": 30004.14
-        }
-    ]
-}
-```
-
----
-
-## Operation Tools (12 tools)
-
-### wallet_create_proforma
-
-```json
-{
-    "proforma": "proforma123-...",
-    "origin": {
-        "pocket": "pocket123-...",
-        "currency": "EUR",
-        "amount": "100.00"
-    },
-    "destination": {
-        "pocket": "pocket456-...",
-        "currency": "BTC",
-        "amount": "0.00131579"
-    },
-    "rate": "75869.89",
-    "fee": {
-        "amount": "0.50",
-        "currency": "EUR"
-    },
-    "expiresAt": "2024-11-25T10:35:00.000Z"
-}
-```
-
-### wallet_confirm_transaction
-
-```json
-{
-    "id": "tx123-...",
-    "status": "completed",
-    "message": "✅ Transacción confirmada. ID: tx123-..."
+    "created_at": "2024-11-25T10:00:00.000Z"
 }
 ```
 
 ### pro_get_open_orders
 
 ```json
-[
-    {
-        "id": "order789",
-        "symbol": "BTC/EUR",
-        "side": "buy",
-        "type": "limit",
-        "status": "open",
-        "price": "75000.00",
-        "amount": "0.1",
-        "filled": "0.0",
-        "remaining": "0.1",
-        "createdAt": "2024-11-25T10:00:00.000Z"
-    }
-]
+{
+    "orders": [
+        {
+            "id": "order789",
+            "pair": "BTC/EUR",
+            "side": "buy",
+            "type": "limit",
+            "status": "active",
+            "price": "75000.00",
+            "amount": "0.1",
+            "filled": "0.0",
+            "remaining": "0.1",
+            "created_at": "2024-11-25T10:00:00.000Z"
+        }
+    ]
+}
 ```
 
 ### pro_create_order
@@ -736,13 +832,15 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 {
     "id": "order123-...",
-    "symbol": "BTC/EUR",
+    "pair": "BTC/EUR",
     "side": "buy",
     "type": "limit",
-    "status": "open",
+    "status": "active",
     "price": "75000.00",
     "amount": "0.1",
-    "createdAt": "2024-11-25T10:00:00.000Z"
+    "filled": "0.0",
+    "remaining": "0.1",
+    "created_at": "2024-11-25T10:00:00.000Z"
 }
 ```
 
@@ -770,7 +868,7 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 {
     "id": "transfer123-...",
-    "currency": "EUR",
+    "symbol": "EUR",
     "amount": "1000.00",
     "status": "completed",
     "message": "Deposit successful"
@@ -782,62 +880,159 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
 ```json
 {
     "id": "transfer456-...",
-    "currency": "EUR",
+    "symbol": "EUR",
     "amount": "500.00",
     "status": "completed",
     "message": "Withdrawal successful"
 }
 ```
 
-### earn_create_transaction
+### pro_get_market_config
+
+```json
+[
+    {
+        "pair": "BTC/EUR",
+        "base_precision": 8,
+        "quote_precision": 2,
+        "min_amount": "0.0001",
+        "max_amount": "100",
+        "status": "active"
+    }
+]
+```
+
+### pro_get_order_book
 
 ```json
 {
-    "id": "tx123-...",
-    "type": "deposit",
-    "currency": "BTC",
-    "amount": "0.1",
-    "status": "completed",
-    "message": "Earn deposit successful"
+    "pair": "BTC/EUR",
+    "bids": [
+        {
+            "price": "75800.00",
+            "amount": "0.5"
+        },
+        {
+            "price": "75750.00",
+            "amount": "1.2"
+        }
+    ],
+    "asks": [
+        {
+            "price": "75900.00",
+            "amount": "0.8"
+        },
+        {
+            "price": "75950.00",
+            "amount": "1.5"
+        }
+    ],
+    "date": "2025-11-25T10:30:00.258Z"
 }
 ```
 
-### loan_create
+### pro_get_public_trades
 
 ```json
 {
-    "orderId": "loan123-...",
-    "guaranteeCurrency": "BTC",
-    "guaranteeAmount": "1.0",
-    "loanCurrency": "EUR",
-    "loanAmount": "50000.00",
-    "ltv": "0.65",
-    "apr": "0.15",
-    "status": "active",
-    "createdAt": "2024-11-25T10:00:00.000Z"
+    "metadata": {
+        "total_records": 100,
+        "limit": 100,
+        "sort": "DESC"
+    },
+    "trades": [
+        {
+            "id": "12345",
+            "pair": "BTC/EUR",
+            "price": "75869.89",
+            "amount": "0.5",
+            "side": "buy",
+            "date": "2025-11-25T10:30:00.258Z"
+        }
+    ]
 }
 ```
 
-### loan_increase_guarantee
+### pro_get_candles
 
 ```json
 {
-    "orderId": "loan123-...",
-    "newGuaranteeAmount": "1.5",
-    "newLtv": "0.43",
-    "status": "updated",
-    "message": "Guarantee increased successfully"
+    "metadata": {
+        "total_records": 100,
+        "limit": 100,
+        "timeframe": "1h",
+        "pair": "BTC/EUR"
+    },
+    "candles": [
+        {
+            "date": "2025-11-25T10:00:00.000Z",
+            "open": "75800.00",
+            "high": "76100.00",
+            "low": "75600.00",
+            "close": "75869.89",
+            "volume": "125.5"
+        }
+    ]
 }
 ```
 
-### loan_payback
+---
+
+## Account Tools (1 tool)
+
+### account_get_info
 
 ```json
 {
-    "orderId": "loan123-...",
-    "paybackAmount": "10000.00",
-    "remainingAmount": "40000.00",
-    "status": "active",
-    "message": "Payback successful"
+    "user_id": "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
+    "email": "user@example.com",
+    "level": "verified",
+    "kyc_status": "approved",
+    "created_at": "2021-01-19T20:24:59.209Z",
+,
+    "features": {
+        "trading": true,
+        "earn": true,
+        "loans": true
+    }
+}
+```
+
+---
+
+## Aggregation Tools (1 tool)
+
+### portfolio_get_valuation
+
+```json
+{
+    "quote_symbol": "EUR",
+    "total_value": "771789.52",
+    "by_service": {
+        "wallet": "50000.00",
+        "pro": "100000.00",
+        "earn": "200000.00",
+        "loan_guarantees": "421789.52"
+    },
+    "details": [
+        {
+            "asset": "BTC",
+            "amount": "8.657983471809322",
+            "price_unit": "75936.5",
+            "value_fiat": "657456.96"
+        },
+        {
+            "asset": "B2M",
+            "amount": "3205806.09708881",
+            "price_unit": "0.0099566",
+            "value_fiat": "31918.93"
+        },
+        {
+            "asset": "DOGE",
+            "amount": "232444.85337828",
+            "price_unit": "0.1290807",
+            "value_fiat": "30004.14"
+        }
+    ]
 }
 ```
