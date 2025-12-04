@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { it, expect } from "vitest";
 import { describeE2E, E2E_TIMEOUT } from "./setup.js";
 import { handleAggregationTool } from "../../src/tools/aggregation.js";
 

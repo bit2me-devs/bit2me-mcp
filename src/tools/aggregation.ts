@@ -4,7 +4,6 @@ import { bit2meRequest, getMarketPrice } from "../services/bit2me.js";
 import { MIN_DUST_VALUE, PORTFOLIO_REQUEST_TIMEOUT } from "../constants.js";
 import { smartRound, normalizeSymbol } from "../utils/format.js";
 import { buildSimpleContextualResponse } from "../utils/contextual-response.js";
-import { logger } from "../utils/logger.js";
 import { PortfolioValuationArgs } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
