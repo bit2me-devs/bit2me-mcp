@@ -163,10 +163,10 @@ export async function bit2meRequest<T = any>(
         logger.debug(`API Request: ${method} ${urlToSign}`);
         const response = await axios(requestConfig);
         logger.debug(`API Response: ${method} ${urlToSign} - Status ${response.status}`);
-        
+
         // Record success in circuit breaker
         apiCircuitBreaker.recordSuccess();
-        
+
         return response.data;
     } catch (error: unknown) {
         const axiosError = error as AxiosError;

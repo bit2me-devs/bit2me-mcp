@@ -28,14 +28,14 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
 - **`name`** (string) **(required)**: Human-readable pocket name or currency name
 - **`type`** (string) **(required)**: Order type: "limit" executes at specified price or better, "market" executes immediately at best available price, "stop-limit" triggers when stop price is reached
-  - Possible values: `"crypto"`, `"fiat"`
+    - Possible values: `"crypto"`, `"fiat"`
 - **`network`** (string): Blockchain network name in lowercase (e.g., bitcoin, ethereum, binance_smart_chain)
-  - Can be `null`
+    - Can be `null`
 - **`enabled`** (boolean) **(required)**: Whether the asset is enabled for use
 - **`tradeable`** (boolean) **(required)**: Whether the asset can be traded
 - **`loanable`** (boolean) **(required)**: Whether the asset can be used as collateral for loans
 - **`pro_trading_pairs`** (array) **(required)**: List of complete trading pairs available for Pro Trading in BASE-QUOTE format (e.g., BTC-EUR, BTC-USD)
-  - Array items: string
+    - Array items: string
 
 #### Example Response
 
@@ -54,9 +54,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
         "enabled": true,
         "tradeable": true,
         "loanable": true,
-        "pro_trading_pairs": [
-            "BTC-EUR"
-        ]
+        "pro_trading_pairs": ["BTC-EUR"]
     }
 }
 ```
@@ -72,11 +70,11 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`base_symbol`** (string) **(required)**: Base cryptocurrency symbol in uppercase (e.g., BTC, ETH)
-  - **`quote_symbol`** (string) **(required)**: Quote currency symbol in uppercase (e.g., EUR, USD)
-  - **`date`** (string) **(required)**: ISO 8601 date/time when the rate was recorded
-    - Format: `date-time`
-  - **`price`** (string) **(required)**: Price of one unit of base_symbol in quote_symbol (as string for precision)
+    - **`base_symbol`** (string) **(required)**: Base cryptocurrency symbol in uppercase (e.g., BTC, ETH)
+    - **`quote_symbol`** (string) **(required)**: Quote currency symbol in uppercase (e.g., EUR, USD)
+    - **`date`** (string) **(required)**: ISO 8601 date/time when the rate was recorded
+        - Format: `date-time`
+    - **`price`** (string) **(required)**: Price of one unit of base_symbol in quote_symbol (as string for precision)
 
 #### Example Response
 
@@ -107,14 +105,14 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`base_symbol`** (string) **(required)**: Base cryptocurrency symbol in uppercase (e.g., BTC, ETH)
 - **`quote_symbol`** (string) **(required)**: Quote currency symbol in uppercase (e.g., EUR, USD)
 - **`date`** (string) **(required)**: ISO 8601 date/time when the data was recorded
-  - Format: `date-time`
+    - Format: `date-time`
 - **`price`** (string) **(required)**: Current price of base_symbol in quote_symbol (as string for precision)
 - **`market_cap`** (string) **(required)**: Total market capitalization in quote_symbol (as string for precision)
 - **`volume_24h`** (string) **(required)**: 24-hour trading volume in quote_symbol (as string for precision)
 - **`max_supply`** (string): Maximum supply of the cryptocurrency (as string, nullable)
-  - Can be `null`
+    - Can be `null`
 - **`total_supply`** (string): Total current supply of the cryptocurrency (as string, nullable)
-  - Can be `null`
+    - Can be `null`
 
 #### Example Response
 
@@ -142,9 +140,9 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`date`** (string) **(required)**: ISO 8601 date/time for this data point
-    - Format: `date-time`
-  - **`price`** (string) **(required)**: Price at this point in time in the quote symbol from the pair (as string for precision)
+    - **`date`** (string) **(required)**: ISO 8601 date/time for this data point
+        - Format: `date-time`
+    - **`price`** (string) **(required)**: Price at this point in time in the quote symbol from the pair (as string for precision)
 
 #### Example Response
 
@@ -178,7 +176,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`rate`** (string) **(required)**: Exchange rate as string for precision
 - **`fee`** (string) **(required)**: Fee amount as string for precision
 - **`expires_at`** (string) **(required)**: ISO 8601 date/time when the resource expires
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -214,7 +212,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`rate`** (string) **(required)**: Exchange rate as string for precision
 - **`fee`** (string) **(required)**: Fee amount as string for precision
 - **`expires_at`** (string) **(required)**: ISO 8601 date/time when the resource expires
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -250,7 +248,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`rate`** (string) **(required)**: Exchange rate as string for precision
 - **`fee`** (string) **(required)**: Fee amount as string for precision
 - **`expires_at`** (string) **(required)**: ISO 8601 date/time when the resource expires
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -280,16 +278,16 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 - **`movement_id`** (string) **(required)**: Movement UUID
 - **`type`** (string) **(required)**: Movement type
-  - Possible values: `"deposit"`, `"withdrawal"`, `"swap"`, `"purchase"`, `"transfer"`, `"fee"`, `"other"`
+    - Possible values: `"deposit"`, `"withdrawal"`, `"swap"`, `"purchase"`, `"transfer"`, `"fee"`, `"other"`
 - **`status`** (string) **(required)**: Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
-  - Possible values: `"pending"`, `"completed"`, `"failed"`
+    - Possible values: `"pending"`, `"completed"`, `"failed"`
 - **`origin_amount`** (string) **(required)**: origin amount
 - **`origin_symbol`** (string) **(required)**: origin symbol
 - **`destination_amount`** (string) **(required)**: destination amount
 - **`destination_symbol`** (string) **(required)**: destination symbol
 - **`fee`** (string) **(required)**: Fee amount as string for precision
 - **`created_at`** (string) **(required)**: ISO 8601 date/time when the movement was created
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -323,11 +321,11 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
-  - **`balance`** (string) **(required)**: Current balance as string for precision
-  - **`available`** (string) **(required)**: Available balance as string for precision
-  - **`name`** (string) **(required)**: Human-readable pocket name or currency name
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
+    - **`balance`** (string) **(required)**: Current balance as string for precision
+    - **`available`** (string) **(required)**: Available balance as string for precision
+    - **`name`** (string) **(required)**: Human-readable pocket name or currency name
 
 #### Example Response
 
@@ -366,7 +364,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`blocked`** (string) **(required)**: Blocked balance as string for precision
 - **`name`** (string) **(required)**: Human-readable pocket name or currency name
 - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -392,13 +390,13 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`address`** (string) **(required)**: Blockchain address for receiving deposits on the specified network
-  - **`network`** (string) **(required)**: Blockchain network for deposits/withdrawals (e.g., bitcoin, ethereum, polygon)
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
-  - **`tag`** (string): tag
-  - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-    - Format: `date-time`
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`address`** (string) **(required)**: Blockchain address for receiving deposits on the specified network
+    - **`network`** (string) **(required)**: Blockchain network for deposits/withdrawals (e.g., bitcoin, ethereum, polygon)
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
+    - **`tag`** (string): tag
+    - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
+        - Format: `date-time`
 
 #### Example Response
 
@@ -429,11 +427,11 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`name`** (string) **(required)**: Human-readable pocket name or currency name
-  - **`native_currency_code`** (string) **(required)**: native currency code
-  - **`fee_currency_code`** (string) **(required)**: fee currency code
-  - **`has_tag`** (boolean) **(required)**: If true, deposits require a memo/tag in addition to the address (common for XRP, XLM)
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`name`** (string) **(required)**: Human-readable pocket name or currency name
+    - **`native_currency_code`** (string) **(required)**: native currency code
+    - **`fee_currency_code`** (string) **(required)**: fee currency code
+    - **`has_tag`** (boolean) **(required)**: If true, deposits require a memo/tag in addition to the address (common for XRP, XLM)
 
 #### Example Response
 
@@ -462,16 +460,16 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`card_id`** (string) **(required)**: Unique identifier for the payment card
-  - **`type`** (string) **(required)**: Card type (e.g., "credit", "debit")
-  - **`brand`** (string) **(required)**: Card network brand (e.g., "visa", "mastercard")
-  - **`country`** (string) **(required)**: Country code where the card was issued
-  - **`last4`** (string) **(required)**: Last 4 digits of the card number for identification
-  - **`expire_month`** (string) **(required)**: Card expiration month (01-12)
-  - **`expire_year`** (string) **(required)**: Card expiration year (4 digits)
-  - **`alias`** (string) **(required)**: User-defined alias for the card
-  - **`created_at`** (string) **(required)**: ISO 8601 date/time when the card was registered
-    - Format: `date-time`
+    - **`card_id`** (string) **(required)**: Unique identifier for the payment card
+    - **`type`** (string) **(required)**: Card type (e.g., "credit", "debit")
+    - **`brand`** (string) **(required)**: Card network brand (e.g., "visa", "mastercard")
+    - **`country`** (string) **(required)**: Country code where the card was issued
+    - **`last4`** (string) **(required)**: Last 4 digits of the card number for identification
+    - **`expire_month`** (string) **(required)**: Card expiration month (01-12)
+    - **`expire_year`** (string) **(required)**: Card expiration year (4 digits)
+    - **`alias`** (string) **(required)**: User-defined alias for the card
+    - **`created_at`** (string) **(required)**: ISO 8601 date/time when the card was registered
+        - Format: `date-time`
 
 #### Example Response
 
@@ -508,19 +506,19 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`date`** (string) **(required)**: ISO 8601 date/time
-    - Format: `date-time`
-  - **`type`** (string) **(required)**: Type of the resource or operation
-    - Possible values: `"deposit"`, `"withdrawal"`, `"swap"`, `"purchase"`, `"transfer"`, `"fee"`, `"other"`
-  - **`subtype`** (string) **(required)**: subtype
-  - **`status`** (string) **(required)**: Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
-    - Possible values: `"pending"`, `"completed"`, `"failed"`
-  - **`amount`** (string) **(required)**: Amount as string for precision
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
-  - **`origin`** (object) **(required)**: origin
-  - **`destination`** (object) **(required)**: destination
-  - **`fee`** (object) **(required)**: Fee amount as string for precision
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`date`** (string) **(required)**: ISO 8601 date/time
+        - Format: `date-time`
+    - **`type`** (string) **(required)**: Type of the resource or operation
+        - Possible values: `"deposit"`, `"withdrawal"`, `"swap"`, `"purchase"`, `"transfer"`, `"fee"`, `"other"`
+    - **`subtype`** (string) **(required)**: subtype
+    - **`status`** (string) **(required)**: Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
+        - Possible values: `"pending"`, `"completed"`, `"failed"`
+    - **`amount`** (string) **(required)**: Amount as string for precision
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
+    - **`origin`** (object) **(required)**: origin
+    - **`destination`** (object) **(required)**: destination
+    - **`fee`** (object) **(required)**: Fee amount as string for precision
 
 #### Example Response
 
@@ -572,12 +570,12 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 - **`id`** (string) **(required)**: Unique identifier
 - **`date`** (string) **(required)**: ISO 8601 date/time
-  - Format: `date-time`
+    - Format: `date-time`
 - **`type`** (string) **(required)**: Type of the resource or operation
-  - Possible values: `"limit"`, `"market"`, `"stop-limit"`
+    - Possible values: `"limit"`, `"market"`, `"stop-limit"`
 - **`subtype`** (string) **(required)**: subtype
 - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
-  - Possible values: `"open"`, `"filled"`, `"cancelled"`
+    - Possible values: `"open"`, `"filled"`, `"cancelled"`
 - **`amount`** (string) **(required)**: Amount as string for precision
 - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
 - **`origin`** (object) **(required)**: origin
@@ -630,7 +628,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`rate`** (string) **(required)**: Exchange rate as string for precision
 - **`fee`** (string) **(required)**: Fee amount as string for precision
 - **`expires_at`** (string) **(required)**: ISO 8601 date/time when the resource expires
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -663,10 +661,10 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
-  - **`balance`** (string) **(required)**: Current balance as string for precision
-  - **`blocked_balance`** (string) **(required)**: blocked balance
-  - **`available`** (string) **(required)**: Available balance as string for precision
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
+    - **`balance`** (string) **(required)**: Current balance as string for precision
+    - **`blocked_balance`** (string) **(required)**: blocked balance
+    - **`available`** (string) **(required)**: Available balance as string for precision
 
 #### Example Response
 
@@ -698,19 +696,19 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
-  - **`side`** (string) **(required)**: Order direction: "buy" to purchase base currency, "sell" to dispose base currency
-    - Possible values: `"buy"`, `"sell"`
-  - **`type`** (string) **(required)**: Type of the resource or operation
-    - Possible values: `"limit"`, `"market"`, `"stop-limit"`
-  - **`amount`** (string) **(required)**: Amount as string for precision
-  - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
-  - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
-    - Possible values: `"open"`, `"filled"`, `"cancelled"`
-  - **`filled_amount`** (string) **(required)**: Amount of the order that has been executed (as string for precision)
-  - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-    - Format: `date-time`
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
+    - **`side`** (string) **(required)**: Order direction: "buy" to purchase base currency, "sell" to dispose base currency
+        - Possible values: `"buy"`, `"sell"`
+    - **`type`** (string) **(required)**: Type of the resource or operation
+        - Possible values: `"limit"`, `"market"`, `"stop-limit"`
+    - **`amount`** (string) **(required)**: Amount as string for precision
+    - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
+    - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
+        - Possible values: `"open"`, `"filled"`, `"cancelled"`
+    - **`filled_amount`** (string) **(required)**: Amount of the order that has been executed (as string for precision)
+    - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
+        - Format: `date-time`
 
 #### Example Response
 
@@ -743,20 +741,20 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`order_id`** (string) **(required)**: Unique identifier (UUID) for the order
-  - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
-  - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
-  - **`amount`** (string) **(required)**: Amount as string for precision
-  - **`side`** (string) **(required)**: Order direction: "buy" to purchase base currency, "sell" to dispose base currency
-    - Possible values: `"buy"`, `"sell"`
-  - **`order_type`** (string) **(required)**: order type
-  - **`fee`** (string) **(required)**: Fee amount as string for precision
-  - **`fee_symbol`** (string) **(required)**: fee symbol
-  - **`cost`** (string) **(required)**: Total cost of executed trades in quote currency (price × filled_amount)
-  - **`is_maker`** (boolean) **(required)**: true if the order added liquidity (maker), false if it removed liquidity (taker). Makers typically get lower fees
-  - **`date`** (string) **(required)**: ISO 8601 date/time
-    - Format: `date-time`
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`order_id`** (string) **(required)**: Unique identifier (UUID) for the order
+    - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
+    - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
+    - **`amount`** (string) **(required)**: Amount as string for precision
+    - **`side`** (string) **(required)**: Order direction: "buy" to purchase base currency, "sell" to dispose base currency
+        - Possible values: `"buy"`, `"sell"`
+    - **`order_type`** (string) **(required)**: order type
+    - **`fee`** (string) **(required)**: Fee amount as string for precision
+    - **`fee_symbol`** (string) **(required)**: fee symbol
+    - **`cost`** (string) **(required)**: Total cost of executed trades in quote currency (price × filled_amount)
+    - **`is_maker`** (boolean) **(required)**: true if the order added liquidity (maker), false if it removed liquidity (taker). Makers typically get lower fees
+    - **`date`** (string) **(required)**: ISO 8601 date/time
+        - Format: `date-time`
 
 #### Example Response
 
@@ -798,14 +796,14 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`order_id`** (string) **(required)**: Unique identifier (UUID) for the order
-  - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
-  - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
-  - **`amount`** (string) **(required)**: Amount as string for precision
-  - **`fee`** (string) **(required)**: Fee amount as string for precision
-  - **`date`** (string) **(required)**: ISO 8601 date/time
-    - Format: `date-time`
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`order_id`** (string) **(required)**: Unique identifier (UUID) for the order
+    - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
+    - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
+    - **`amount`** (string) **(required)**: Amount as string for precision
+    - **`fee`** (string) **(required)**: Fee amount as string for precision
+    - **`date`** (string) **(required)**: ISO 8601 date/time
+        - Format: `date-time`
 
 #### Example Response
 
@@ -838,16 +836,16 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`id`** (string) **(required)**: Unique identifier
 - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
 - **`side`** (string) **(required)**: Order direction: "buy" to purchase base currency, "sell" to dispose base currency
-  - Possible values: `"buy"`, `"sell"`
+    - Possible values: `"buy"`, `"sell"`
 - **`type`** (string) **(required)**: Type of the resource or operation
-  - Possible values: `"limit"`, `"market"`, `"stop-limit"`
+    - Possible values: `"limit"`, `"market"`, `"stop-limit"`
 - **`amount`** (string) **(required)**: Amount as string for precision
 - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
 - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
-  - Possible values: `"open"`, `"filled"`, `"cancelled"`
+    - Possible values: `"open"`, `"filled"`, `"cancelled"`
 - **`filled_amount`** (string) **(required)**: Amount of the order that has been executed (as string for precision)
 - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -877,15 +875,15 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`id`** (string) **(required)**: Unique identifier
 - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
 - **`side`** (string) **(required)**: Order direction: "buy" to purchase base currency, "sell" to dispose base currency
-  - Possible values: `"buy"`, `"sell"`
+    - Possible values: `"buy"`, `"sell"`
 - **`type`** (string) **(required)**: Type of the resource or operation
-  - Possible values: `"limit"`, `"market"`, `"stop-limit"`
+    - Possible values: `"limit"`, `"market"`, `"stop-limit"`
 - **`amount`** (string) **(required)**: Amount as string for precision
 - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
 - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
-  - Possible values: `"open"`, `"filled"`, `"cancelled"`
+    - Possible values: `"open"`, `"filled"`, `"cancelled"`
 - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -917,7 +915,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 - **`id`** (string) **(required)**: Unique identifier
 - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
-  - Possible values: `"open"`, `"filled"`, `"cancelled"`
+    - Possible values: `"open"`, `"filled"`, `"cancelled"`
 - **`message`** (string) **(required)**: message
 
 #### Example Response
@@ -964,7 +962,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
 - **`amount`** (string) **(required)**: Amount as string for precision
 - **`status`** (string) **(required)**: Transfer status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
-  - Possible values: `"pending"`, `"completed"`, `"failed"`
+    - Possible values: `"pending"`, `"completed"`, `"failed"`
 - **`message`** (string) **(required)**: message
 
 #### Example Response
@@ -993,7 +991,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
 - **`amount`** (string) **(required)**: Amount as string for precision
 - **`status`** (string) **(required)**: Transfer status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
-  - Possible values: `"pending"`, `"completed"`, `"failed"`
+    - Possible values: `"pending"`, `"completed"`, `"failed"`
 - **`message`** (string) **(required)**: message
 
 #### Example Response
@@ -1020,13 +1018,13 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
-  - **`base_precision`** (number) **(required)**: base precision
-  - **`quote_precision`** (number) **(required)**: quote precision
-  - **`min_amount`** (string) **(required)**: Minimum order amount allowed in base currency
-  - **`max_amount`** (string) **(required)**: Maximum order amount allowed in base currency
-  - **`status`** (string) **(required)**: Current order status
-    - Possible values: `"open"`, `"filled"`, `"cancelled"`, `"inactive"`
+    - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
+    - **`base_precision`** (number) **(required)**: base precision
+    - **`quote_precision`** (number) **(required)**: quote precision
+    - **`min_amount`** (string) **(required)**: Minimum order amount allowed in base currency
+    - **`max_amount`** (string) **(required)**: Maximum order amount allowed in base currency
+    - **`status`** (string) **(required)**: Current order status
+        - Possible values: `"open"`, `"filled"`, `"cancelled"`, `"inactive"`
 
 #### Example Response
 
@@ -1057,11 +1055,11 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
 - **`bids`** (array) **(required)**: Array of buy orders sorted by price (highest first). Each bid represents demand at that price level
-  - Array items: [object Object]
+    - Array items: [object Object]
 - **`asks`** (array) **(required)**: Array of sell orders sorted by price (lowest first). Each ask represents supply at that price level
-  - Array items: [object Object]
+    - Array items: [object Object]
 - **`date`** (string) **(required)**: ISO 8601 date/time
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -1094,14 +1092,14 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
-  - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
-  - **`amount`** (string) **(required)**: Amount as string for precision
-  - **`side`** (string) **(required)**: Order direction: "buy" to purchase base currency, "sell" to dispose base currency
-    - Possible values: `"buy"`, `"sell"`
-  - **`date`** (string) **(required)**: ISO 8601 date/time
-    - Format: `date-time`
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`pair`** (string) **(required)**: Trading pair in BASE-QUOTE format (e.g., BTC-USD)
+    - **`price`** (string) **(required)**: Order price in quote currency (as string for precision). For limit orders, this is the target price
+    - **`amount`** (string) **(required)**: Amount as string for precision
+    - **`side`** (string) **(required)**: Order direction: "buy" to purchase base currency, "sell" to dispose base currency
+        - Possible values: `"buy"`, `"sell"`
+    - **`date`** (string) **(required)**: ISO 8601 date/time
+        - Format: `date-time`
 
 #### Example Response
 
@@ -1134,13 +1132,13 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`date`** (string) **(required)**: ISO 8601 date/time
-    - Format: `date-time`
-  - **`open`** (string) **(required)**: Opening price at the start of the time period
-  - **`high`** (string) **(required)**: Highest price reached during the time period
-  - **`low`** (string) **(required)**: Lowest price reached during the time period
-  - **`close`** (string) **(required)**: Closing price at the end of the time period
-  - **`volume`** (string) **(required)**: Total trading volume during the time period in base currency
+    - **`date`** (string) **(required)**: ISO 8601 date/time
+        - Format: `date-time`
+    - **`open`** (string) **(required)**: Opening price at the start of the time period
+    - **`high`** (string) **(required)**: Highest price reached during the time period
+    - **`low`** (string) **(required)**: Lowest price reached during the time period
+    - **`close`** (string) **(required)**: Closing price at the end of the time period
+    - **`volume`** (string) **(required)**: Total trading volume during the time period in base currency
 
 #### Example Response
 
@@ -1179,9 +1177,9 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
-  - **`total_balance`** (string) **(required)**: total balance
-  - **`total_rewards`** (string) **(required)**: total rewards
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
+    - **`total_balance`** (string) **(required)**: total balance
+    - **`total_rewards`** (string) **(required)**: total rewards
 
 #### Example Response
 
@@ -1206,22 +1204,22 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`position_id`** (string) **(required)**: Earn position unique identifier
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, B2M)
-  - **`balance`** (string) **(required)**: Current balance as string for precision
-  - **`strategy`** (string) **(required)**: Staking strategy (e.g., flexible, fixed)
-  - **`lock_period`** (object): Lock period information (if applicable)
-    - **`lock_period_id`** (string): Lock period identifier
-    - **`months`** (number): Number of months locked
+    - **`position_id`** (string) **(required)**: Earn position unique identifier
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, B2M)
+    - **`balance`** (string) **(required)**: Current balance as string for precision
+    - **`strategy`** (string) **(required)**: Staking strategy (e.g., flexible, fixed)
+    - **`lock_period`** (object): Lock period information (if applicable)
+        - **`lock_period_id`** (string): Lock period identifier
+        - **`months`** (number): Number of months locked
 
-  - **`converted_balance`** (object): Balance converted to fiat currency
-    - **`value`** (string): Converted balance value
-    - **`symbol`** (string): Fiat currency symbol (e.g., EUR, USD)
+    - **`converted_balance`** (object): Balance converted to fiat currency
+        - **`value`** (string): Converted balance value
+        - **`symbol`** (string): Fiat currency symbol (e.g., EUR, USD)
 
-  - **`created_at`** (string): ISO 8601 date/time when the wallet was created
-    - Format: `date-time`
-  - **`updated_at`** (string): ISO 8601 date/time when the wallet was last updated
-    - Format: `date-time`
+    - **`created_at`** (string): ISO 8601 date/time when the wallet was created
+        - Format: `date-time`
+    - **`updated_at`** (string): ISO 8601 date/time when the wallet was last updated
+        - Format: `date-time`
 
 #### Example Response
 
@@ -1261,17 +1259,17 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`balance`** (string) **(required)**: Current balance as string for precision
 - **`strategy`** (string) **(required)**: Staking strategy (e.g., flexible, fixed)
 - **`lock_period`** (object): Lock period information (if applicable)
-  - **`lock_period_id`** (string): Lock period identifier
-  - **`months`** (number): Number of months locked
+    - **`lock_period_id`** (string): Lock period identifier
+    - **`months`** (number): Number of months locked
 
 - **`converted_balance`** (object): Balance converted to fiat currency
-  - **`value`** (string): Converted balance value
-  - **`symbol`** (string): Fiat currency symbol (e.g., EUR, USD)
+    - **`value`** (string): Converted balance value
+    - **`symbol`** (string): Fiat currency symbol (e.g., EUR, USD)
 
 - **`created_at`** (string): ISO 8601 date/time when the position was created
-  - Format: `date-time`
+    - Format: `date-time`
 - **`updated_at`** (string): ISO 8601 date/time when the position was last updated
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -1304,16 +1302,16 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`type`** (string) **(required)**: Type of the resource or operation
-    - Possible values: `"deposit"`, `"withdrawal"`, `"reward"`, `"fee"`
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
-  - **`amount`** (string) **(required)**: Amount as string for precision
-  - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-    - Format: `date-time`
-  - **`position_id`** (string) **(required)**: Unique identifier (UUID) for the Earn position
-  - **`status`** (string) **(required)**: Current order status
-    - Possible values: `"open"`, `"filled"`, `"cancelled"`, `"inactive"`
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`type`** (string) **(required)**: Type of the resource or operation
+        - Possible values: `"deposit"`, `"withdrawal"`, `"reward"`, `"fee"`
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
+    - **`amount`** (string) **(required)**: Amount as string for precision
+    - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
+        - Format: `date-time`
+    - **`position_id`** (string) **(required)**: Unique identifier (UUID) for the Earn position
+    - **`status`** (string) **(required)**: Current order status
+        - Possible values: `"open"`, `"filled"`, `"cancelled"`, `"inactive"`
 
 #### Example Response
 
@@ -1349,17 +1347,17 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`type`** (string) **(required)**: Type of the resource or operation
-    - Possible values: `"deposit"`, `"reward"`, `"withdrawal"`, `"discount-funds"`, `"discount-rewards"`, `"fee"`
-  - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-    - Format: `date-time`
-  - **`position_id`** (string): Unique identifier (UUID) for the Earn position
-  - **`amount`** (object) **(required)**: Amount as string for precision
-  - **`rate`** (object) **(required)**: Exchange rate as string for precision
-  - **`converted_amount`** (object) **(required)**: converted amount
-  - **`source`** (object) **(required)**: source
-  - **`issuer`** (object) **(required)**: issuer
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`type`** (string) **(required)**: Type of the resource or operation
+        - Possible values: `"deposit"`, `"reward"`, `"withdrawal"`, `"discount-funds"`, `"discount-rewards"`, `"fee"`
+    - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
+        - Format: `date-time`
+    - **`position_id`** (string): Unique identifier (UUID) for the Earn position
+    - **`amount`** (object) **(required)**: Amount as string for precision
+    - **`rate`** (object) **(required)**: Exchange rate as string for precision
+    - **`converted_amount`** (object) **(required)**: converted amount
+    - **`source`** (object) **(required)**: source
+    - **`issuer`** (object) **(required)**: issuer
 
 #### Example Response
 
@@ -1416,7 +1414,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - **`type`** (string) **(required)**: Type of the resource or operation
-  - Possible values: `"limit"`, `"market"`, `"stop-limit"`
+    - Possible values: `"limit"`, `"market"`, `"stop-limit"`
 - **`total_amount`** (string) **(required)**: total amount
 - **`total_count`** (number) **(required)**: total count
 - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
@@ -1442,7 +1440,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - **`symbols`** (array) **(required)**: symbols
-  - Array items: string
+    - Array items: string
 
 #### Example Response
 
@@ -1450,14 +1448,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 {
     "request": {},
     "result": {
-        "symbols": [
-            "BTC",
-            "ETH",
-            "USDC",
-            "USDT",
-            "ADA",
-            "DOT"
-        ]
+        "symbols": ["BTC", "ETH", "USDC", "USDT", "ADA", "DOT"]
     }
 }
 ```
@@ -1493,16 +1484,16 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`position_id`** (string) **(required)**: Unique identifier (UUID) for the Earn position
-  - **`user_id`** (string) **(required)**: User identifier who owns the wallet
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
-  - **`lock_period_id`** (string): Identifier for the staking lock period configuration
-    - Can be `null`
-  - **`reward_symbol`** (string) **(required)**: Currency symbol in which staking rewards are paid
-  - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-    - Format: `date-time`
-  - **`updated_at`** (string) **(required)**: ISO 8601 date/time when the resource was last updated
-    - Format: `date-time`
+    - **`position_id`** (string) **(required)**: Unique identifier (UUID) for the Earn position
+    - **`user_id`** (string) **(required)**: User identifier who owns the wallet
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
+    - **`lock_period_id`** (string): Identifier for the staking lock period configuration
+        - Can be `null`
+    - **`reward_symbol`** (string) **(required)**: Currency symbol in which staking rewards are paid
+    - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
+        - Format: `date-time`
+    - **`updated_at`** (string) **(required)**: ISO 8601 date/time when the resource was last updated
+        - Format: `date-time`
 
 #### Example Response
 
@@ -1543,12 +1534,12 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`user_id`** (string) **(required)**: User identifier who owns the wallet
 - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
 - **`lock_period_id`** (string): Identifier for the staking lock period configuration
-  - Can be `null`
+    - Can be `null`
 - **`reward_symbol`** (string) **(required)**: Currency symbol in which staking rewards are paid
 - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-  - Format: `date-time`
+    - Format: `date-time`
 - **`updated_at`** (string) **(required)**: ISO 8601 date/time when the resource was last updated
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -1601,11 +1592,11 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 - **`id`** (string) **(required)**: Unique identifier
 - **`type`** (string) **(required)**: Type of the resource or operation
-  - Possible values: `"limit"`, `"market"`, `"stop-limit"`
+    - Possible values: `"limit"`, `"market"`, `"stop-limit"`
 - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
 - **`amount`** (string) **(required)**: Amount as string for precision
 - **`status`** (string) **(required)**: Operation status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
-  - Possible values: `"pending"`, `"completed"`, `"failed"`
+    - Possible values: `"pending"`, `"completed"`, `"failed"`
 - **`message`** (string) **(required)**: message
 
 #### Example Response
@@ -1634,11 +1625,11 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 - **`id`** (string) **(required)**: Unique identifier
 - **`type`** (string) **(required)**: Type of the resource or operation
-  - Possible values: `"limit"`, `"market"`, `"stop-limit"`
+    - Possible values: `"limit"`, `"market"`, `"stop-limit"`
 - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
 - **`amount`** (string) **(required)**: Amount as string for precision
 - **`status`** (string) **(required)**: Operation status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
-  - Possible values: `"pending"`, `"completed"`, `"failed"`
+    - Possible values: `"pending"`, `"completed"`, `"failed"`
 - **`message`** (string) **(required)**: message
 
 #### Example Response
@@ -1708,9 +1699,9 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - **`guarantee_currencies`** (array) **(required)**: guarantee currencies
-  - Array items: [object Object]
+    - Array items: [object Object]
 - **`loan_currencies`** (array) **(required)**: loan currencies
-  - Array items: [object Object]
+    - Array items: [object Object]
 
 #### Example Response
 
@@ -1769,16 +1760,16 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`order_id`** (string) **(required)**: Unique identifier (UUID) for the order
-  - **`type`** (string) **(required)**: Type of the resource or operation
-    - Possible values: `"payment"`, `"interest"`, `"guarantee_change"`, `"liquidation"`, `"other"`
-  - **`amount`** (string) **(required)**: Amount as string for precision
-  - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
-  - **`date`** (string) **(required)**: ISO 8601 date/time
-    - Format: `date-time`
-  - **`status`** (string) **(required)**: Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
-    - Possible values: `"pending"`, `"completed"`, `"failed"`
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`order_id`** (string) **(required)**: Unique identifier (UUID) for the order
+    - **`type`** (string) **(required)**: Type of the resource or operation
+        - Possible values: `"payment"`, `"interest"`, `"guarantee_change"`, `"liquidation"`, `"other"`
+    - **`amount`** (string) **(required)**: Amount as string for precision
+    - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
+    - **`date`** (string) **(required)**: ISO 8601 date/time
+        - Format: `date-time`
+    - **`status`** (string) **(required)**: Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)
+        - Possible values: `"pending"`, `"completed"`, `"failed"`
 
 #### Example Response
 
@@ -1814,15 +1805,15 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 #### Response Fields
 
 - Array of object
-  - **`id`** (string) **(required)**: Unique identifier
-  - **`status`** (string) **(required)**: Current order status
-    - Possible values: `"active"`, `"completed"`, `"expired"`
-  - **`guarantee_symbol`** (string) **(required)**: Cryptocurrency symbol used as collateral (e.g., BTC, ETH)
-  - **`guarantee_amount`** (string) **(required)**: Amount of collateral deposited (as string for precision)
-  - **`loan_symbol`** (string) **(required)**: Currency symbol in which the loan is denominated (e.g., USDC, EUR)
-  - **`loan_amount`** (string) **(required)**: Principal loan amount (as string for precision)
-  - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-    - Format: `date-time`
+    - **`id`** (string) **(required)**: Unique identifier
+    - **`status`** (string) **(required)**: Current order status
+        - Possible values: `"active"`, `"completed"`, `"expired"`
+    - **`guarantee_symbol`** (string) **(required)**: Cryptocurrency symbol used as collateral (e.g., BTC, ETH)
+    - **`guarantee_amount`** (string) **(required)**: Amount of collateral deposited (as string for precision)
+    - **`loan_symbol`** (string) **(required)**: Currency symbol in which the loan is denominated (e.g., USDC, EUR)
+    - **`loan_amount`** (string) **(required)**: Principal loan amount (as string for precision)
+    - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
+        - Format: `date-time`
 
 #### Example Response
 
@@ -1855,7 +1846,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 - **`id`** (string) **(required)**: Unique identifier
 - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
-  - Possible values: `"open"`, `"filled"`, `"cancelled"`
+    - Possible values: `"open"`, `"filled"`, `"cancelled"`
 - **`guarantee_symbol`** (string) **(required)**: Cryptocurrency symbol used as collateral (e.g., BTC, ETH)
 - **`guarantee_amount`** (string) **(required)**: Amount of collateral deposited (as string for precision)
 - **`loan_symbol`** (string) **(required)**: Currency symbol in which the loan is denominated (e.g., USDC, EUR)
@@ -1865,9 +1856,9 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`apr`** (string) **(required)**: Annual Percentage Rate as string
 - **`liquidation_price`** (string) **(required)**: liquidation price
 - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-  - Format: `date-time`
+    - Format: `date-time`
 - **`expires_at`** (string) **(required)**: ISO 8601 date/time when the resource expires
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -1899,7 +1890,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 - **`id`** (string) **(required)**: Unique identifier
 - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
-  - Possible values: `"open"`, `"filled"`, `"cancelled"`
+    - Possible values: `"open"`, `"filled"`, `"cancelled"`
 - **`guarantee_symbol`** (string) **(required)**: Cryptocurrency symbol used as collateral (e.g., BTC, ETH)
 - **`guarantee_amount`** (string) **(required)**: Amount of collateral deposited (as string for precision)
 - **`loan_symbol`** (string) **(required)**: Currency symbol in which the loan is denominated (e.g., USDC, EUR)
@@ -1907,7 +1898,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`ltv`** (string) **(required)**: Loan-to-Value ratio as string (1.0 = 100%)
 - **`apr`** (string) **(required)**: Annual Percentage Rate as string
 - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-  - Format: `date-time`
+    - Format: `date-time`
 
 #### Example Response
 
@@ -1941,7 +1932,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`guarantee_amount`** (string) **(required)**: Amount of collateral deposited (as string for precision)
 - **`new_ltv`** (string) **(required)**: new ltv
 - **`updated_at`** (string) **(required)**: ISO 8601 date/time when the resource was last updated
-  - Format: `date-time`
+    - Format: `date-time`
 - **`message`** (string) **(required)**: message
 
 #### Example Response
@@ -1969,7 +1960,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`id`** (string) **(required)**: Unique identifier
 - **`remaining_amount`** (string) **(required)**: Outstanding loan balance including interest
 - **`status`** (string) **(required)**: Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)
-  - Possible values: `"open"`, `"filled"`, `"cancelled"`
+    - Possible values: `"open"`, `"filled"`, `"cancelled"`
 - **`message`** (string) **(required)**: message
 
 #### Example Response
@@ -2002,7 +1993,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`level`** (string) **(required)**: level
 - **`kyc_status`** (string) **(required)**: kyc status
 - **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-  - Format: `date-time`
+    - Format: `date-time`
 - **`features`** (object) **(required)**: features
 
 #### Example Response
@@ -2037,7 +2028,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - **`total_value`** (string) **(required)**: total value
 - **`by_service`** (object) **(required)**: by service
 - **`details`** (array) **(required)**: details
-  - Array items: [object Object]
+    - Array items: [object Object]
 
 #### Example Response
 
@@ -2080,4 +2071,3 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 ```
 
 ---
-

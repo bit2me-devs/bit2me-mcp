@@ -3,7 +3,6 @@ import { describeE2E, E2E_TIMEOUT } from "./setup.js";
 import { handleMarketTool } from "../../src/tools/market.js";
 
 describeE2E("E2E: Market Tools", () => {
-
     it(
         "should get all available assets",
         async () => {
@@ -37,5 +36,4 @@ describeE2E("E2E: Market Tools", () => {
         },
         E2E_TIMEOUT
     );
-
 });

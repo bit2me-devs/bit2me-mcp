@@ -1,9 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest, getTicker } from "../services/bit2me.js";
-import { mapTickerResponse, mapCurrencyRateResponse, mapProformaResponse, mapOperationConfirmationResponse, mapWalletCardsResponse } from "../utils/response-mappers.js";
-import { buildSimpleContextualResponse, buildFilteredContextualResponse, buildPaginatedContextualResponse } from "../utils/contextual-response.js";
-import { MarketTickerArgs, WalletBuyCryptoArgs, WalletSellCryptoArgs, WalletSwapCryptoArgs, WalletConfirmOperationArgs, WalletCardsArgs } from "../utils/args.js";
+import {
+    mapTickerResponse,
+    mapCurrencyRateResponse,
+    mapProformaResponse,
+    mapOperationConfirmationResponse,
+    mapWalletCardsResponse,
+} from "../utils/response-mappers.js";
+import {
+    buildSimpleContextualResponse,
+    buildFilteredContextualResponse,
+    buildPaginatedContextualResponse,
+} from "../utils/contextual-response.js";
+import {
+    MarketTickerArgs,
+    WalletBuyCryptoArgs,
+    WalletSellCryptoArgs,
+    WalletSwapCryptoArgs,
+    WalletConfirmOperationArgs,
+    WalletCardsArgs,
+} from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import {
     smartRound,

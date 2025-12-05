@@ -61,12 +61,7 @@ export class CacheManager {
      * @param category - Cache category (determines TTL)
      * @param ttlSeconds - Optional custom TTL override
      */
-    public set<T>(
-        key: string,
-        data: T,
-        category: CacheCategory = CacheCategory.STATIC,
-        ttlSeconds?: number
-    ): void {
+    public set<T>(key: string, data: T, category: CacheCategory = CacheCategory.STATIC, ttlSeconds?: number): void {
         // Evict oldest entries if cache is full
         if (this.cache.size >= this.maxSize) {
             this.evictOldest();
@@ -186,13 +181,13 @@ export class CacheManager {
         const entries = Array.from(this.cache.entries());
         // Sort by last accessed time, oldest first
         entries.sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
-        
+
         // Remove 10% of oldest entries
         const toRemove = Math.max(1, Math.floor(entries.length * 0.1));
         for (let i = 0; i < toRemove; i++) {
             this.cache.delete(entries[i][0]);
         }
-        
+
         logger.debug(`Evicted ${toRemove} oldest cache entries`, {
             correlationId: getCorrelationId(),
         });

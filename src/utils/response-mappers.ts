@@ -134,15 +134,16 @@ function isValidObject(data: unknown): data is Record<string, any> {
 export function mapTickerResponse(raw: unknown, base_symbol: string, quote_symbol: string): MarketTickerResponse {
     // Validate with Zod schema
     const validated = validateResponse(MarketTickerRawSchema, raw, "ticker response");
-    
-    const timeValue = validated.time instanceof Date 
-        ? validated.time.getTime() 
-        : typeof validated.time === "string" 
-        ? validated.time 
-        : validated.time || Date.now();
+
+    const timeValue =
+        validated.time instanceof Date
+            ? validated.time.getTime()
+            : typeof validated.time === "string"
+              ? validated.time
+              : validated.time || Date.now();
     const { date } = formatTimestamp(timeValue);
     const priceValue = typeof validated.price === "string" ? parseFloat(validated.price) : validated.price;
-    
+
     return {
         base_symbol,
         quote_symbol,
@@ -774,7 +775,8 @@ function mapSingleEarnMovement(tx: any): EarnMovementResponse {
     }
 
     if (tx.source) {
-        const sourcePocketId = tx.source.walletId || tx.source.wallet_id || tx.source.pocketId || tx.source.pocket_id || "";
+        const sourcePocketId =
+            tx.source.walletId || tx.source.wallet_id || tx.source.pocketId || tx.source.pocket_id || "";
         movement.source = {
             pocket_id: sourcePocketId,
             symbol: tx.source.currency || "",

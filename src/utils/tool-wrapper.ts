@@ -20,26 +20,26 @@ export async function executeTool<T>(name: string, args: any, executor: () => Pr
     try {
         const result = await executor();
         const duration = Date.now() - startTime;
-        
+
         // Record successful execution
         metricsCollector.recordToolExecution(name, duration, true);
-        logger.debug(`Tool ${name} completed successfully`, { 
-            duration, 
-            correlationId: context.correlationId 
+        logger.debug(`Tool ${name} completed successfully`, {
+            duration,
+            correlationId: context.correlationId,
         });
-        
+
         return result;
     } catch (error: any) {
         const duration = Date.now() - startTime;
-        
+
         // Record failed execution
         metricsCollector.recordToolExecution(name, duration, false);
-        logger.error(`Tool ${name} failed`, { 
-            duration, 
+        logger.error(`Tool ${name} failed`, {
+            duration,
             error: error.message,
-            correlationId: context.correlationId 
+            correlationId: context.correlationId,
         });
-        
+
         throw error;
     } finally {
         // Cleanup context

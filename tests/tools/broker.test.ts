@@ -32,11 +32,7 @@ describe("Broker Tools Handler", () => {
 
         const result = await handleBrokerTool("broker_get_price", { quote_symbol: "EUR", base_symbol: "BTC" });
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
-            "GET",
-            "/v1/currency/rate",
-            expect.any(Object)
-        );
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/currency/rate", expect.any(Object));
         const parsed = JSON.parse(result.content[0].text);
         expect(parsed).toHaveProperty("request");
         expect(parsed).toHaveProperty("result");
