@@ -2701,8 +2701,213 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                 class="p-6 min-h-[320px] bg-gradient-to-b from-slate-900 to-slate-950"
                                 id="chat-content"
                             >
-                                <!-- Example 0: Balance -->
+                                <!-- Example 0: Buy (default) -->
                                 <div class="example-content space-y-4" data-example="0">
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"
+                                        >
+                                            <span class="text-white text-sm">👤</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div
+                                                class="inline-block bg-slate-800 rounded-2xl rounded-tl-md px-4 py-2.5 max-w-md"
+                                            >
+                                                <p class="text-sm text-slate-200">Buy €500 of Bitcoin please</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+                                        >
+                                            <span class="text-white text-sm">⚡</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div
+                                                class="inline-block bg-purple-500/20 border border-purple-500/30 rounded-2xl rounded-tl-md px-4 py-2.5 space-y-1"
+                                            >
+                                                <code class="text-xs text-purple-300 font-mono block"
+                                                    >broker_quote_buy({ amount: "500", symbol: "BTC" })</code
+                                                >
+                                                <code class="text-xs text-purple-300 font-mono block"
+                                                    >broker_confirm_quote({ proforma_id: "..." })</code
+                                                >
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg"
+                                        >
+                                            <span class="text-white text-sm">🤖</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div
+                                                class="inline-block bg-emerald-500/10 border border-emerald-500/20 rounded-2xl rounded-tl-md px-4 py-3 max-w-md"
+                                            >
+                                                <p class="text-sm text-slate-200">
+                                                    ✅ Purchase complete! You bought
+                                                    <span class="text-emerald-400 font-bold">0.00526 BTC</span> for
+                                                    €500. Your new BTC balance is
+                                                    <span class="text-emerald-400 font-bold">0.45526 BTC</span>.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Example 1: Price with Chart -->
+                                <div class="example-content hidden space-y-4" data-example="1">
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"
+                                        >
+                                            <span class="text-white text-sm">👤</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div
+                                                class="inline-block bg-slate-800 rounded-2xl rounded-tl-md px-4 py-2.5 max-w-md"
+                                            >
+                                                <p class="text-sm text-slate-200">Show me Bitcoin's price this week</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+                                        >
+                                            <span class="text-white text-sm">⚡</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div
+                                                class="inline-block bg-purple-500/20 border border-purple-500/30 rounded-2xl rounded-tl-md px-4 py-2.5"
+                                            >
+                                                <code class="text-xs text-purple-300 font-mono"
+                                                    >broker_get_chart({ pair: "BTC-EUR", timeframe: "one-week" })</code
+                                                >
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg"
+                                        >
+                                            <span class="text-white text-sm">🤖</span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div
+                                                class="inline-block bg-emerald-500/10 border border-emerald-500/20 rounded-2xl rounded-tl-md px-4 py-3 max-w-md w-full"
+                                            >
+                                                <p class="text-sm text-slate-200 mb-3">
+                                                    📈 BTC weekly chart • Current:
+                                                    <span class="text-emerald-400 font-bold">€95,240</span>
+                                                    <span class="text-green-400">(+4.2%)</span>
+                                                </p>
+                                                <!-- Mini Chart SVG -->
+                                                <div class="bg-slate-800/50 rounded-lg p-3">
+                                                    <svg
+                                                        class="w-full h-24"
+                                                        viewBox="0 0 300 80"
+                                                        preserveAspectRatio="none"
+                                                    >
+                                                        <!-- Grid lines -->
+                                                        <line
+                                                            x1="0"
+                                                            y1="20"
+                                                            x2="300"
+                                                            y2="20"
+                                                            stroke="#334155"
+                                                            stroke-width="0.5"
+                                                            stroke-dasharray="4"
+                                                        />
+                                                        <line
+                                                            x1="0"
+                                                            y1="40"
+                                                            x2="300"
+                                                            y2="40"
+                                                            stroke="#334155"
+                                                            stroke-width="0.5"
+                                                            stroke-dasharray="4"
+                                                        />
+                                                        <line
+                                                            x1="0"
+                                                            y1="60"
+                                                            x2="300"
+                                                            y2="60"
+                                                            stroke="#334155"
+                                                            stroke-width="0.5"
+                                                            stroke-dasharray="4"
+                                                        />
+                                                        <!-- Gradient fill -->
+                                                        <defs>
+                                                            <linearGradient
+                                                                id="chartGradient"
+                                                                x1="0%"
+                                                                y1="0%"
+                                                                x2="0%"
+                                                                y2="100%"
+                                                            >
+                                                                <stop
+                                                                    offset="0%"
+                                                                    style="stop-color: #10b981; stop-opacity: 0.3"
+                                                                />
+                                                                <stop
+                                                                    offset="100%"
+                                                                    style="stop-color: #10b981; stop-opacity: 0"
+                                                                />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <!-- Area fill -->
+                                                        <path
+                                                            d="M0,55 L43,50 L86,58 L129,45 L172,35 L215,40 L258,25 L300,18 L300,80 L0,80 Z"
+                                                            fill="url(#chartGradient)"
+                                                        />
+                                                        <!-- Line -->
+                                                        <polyline
+                                                            points="0,55 43,50 86,58 129,45 172,35 215,40 258,25 300,18"
+                                                            fill="none"
+                                                            stroke="#10b981"
+                                                            stroke-width="2"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        />
+                                                        <!-- Data points -->
+                                                        <circle cx="0" cy="55" r="3" fill="#10b981" />
+                                                        <circle cx="43" cy="50" r="3" fill="#10b981" />
+                                                        <circle cx="86" cy="58" r="3" fill="#10b981" />
+                                                        <circle cx="129" cy="45" r="3" fill="#10b981" />
+                                                        <circle cx="172" cy="35" r="3" fill="#10b981" />
+                                                        <circle cx="215" cy="40" r="3" fill="#10b981" />
+                                                        <circle cx="258" cy="25" r="3" fill="#10b981" />
+                                                        <circle
+                                                            cx="300"
+                                                            cy="18"
+                                                            r="4"
+                                                            fill="#10b981"
+                                                            stroke="#fff"
+                                                            stroke-width="1"
+                                                        />
+                                                    </svg>
+                                                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                                                        <span>Mon</span>
+                                                        <span>Tue</span>
+                                                        <span>Wed</span>
+                                                        <span>Thu</span>
+                                                        <span>Fri</span>
+                                                        <span>Sat</span>
+                                                        <span>Sun</span>
+                                                        <span class="text-emerald-400">Now</span>
+                                                    </div>
+                                                </div>
+                                                <p class="text-xs text-slate-400 mt-2">High: €96,100 • Low: €91,350</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Example 2: Balance -->
+                                <div class="example-content hidden space-y-4" data-example="2">
                                     <div class="flex items-start gap-3">
                                         <div
                                             class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"
@@ -2746,116 +2951,8 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 <p class="text-sm text-slate-200">
                                                     You have <span class="text-emerald-400 font-bold">0.45 BTC</span> in
                                                     your wallet, worth approximately
-                                                    <span class="text-emerald-400 font-bold">€42,500</span> at current
+                                                    <span class="text-emerald-400 font-bold">€42,858</span> at current
                                                     prices.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Example 1: Price -->
-                                <div class="example-content hidden space-y-4" data-example="1">
-                                    <div class="flex items-start gap-3">
-                                        <div
-                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"
-                                        >
-                                            <span class="text-white text-sm">👤</span>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div
-                                                class="inline-block bg-slate-800 rounded-2xl rounded-tl-md px-4 py-2.5 max-w-md"
-                                            >
-                                                <p class="text-sm text-slate-200">
-                                                    What's the current price of Ethereum?
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start gap-3">
-                                        <div
-                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
-                                        >
-                                            <span class="text-white text-sm">⚡</span>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div
-                                                class="inline-block bg-purple-500/20 border border-purple-500/30 rounded-2xl rounded-tl-md px-4 py-2.5"
-                                            >
-                                                <code class="text-xs text-purple-300 font-mono"
-                                                    >broker_get_price_info({ base_symbol: "ETH" })</code
-                                                >
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start gap-3">
-                                        <div
-                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg"
-                                        >
-                                            <span class="text-white text-sm">🤖</span>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div
-                                                class="inline-block bg-emerald-500/10 border border-emerald-500/20 rounded-2xl rounded-tl-md px-4 py-3 max-w-md"
-                                            >
-                                                <p class="text-sm text-slate-200">
-                                                    ETH is currently at
-                                                    <span class="text-emerald-400 font-bold">€3,240.50</span>
-                                                    <span class="text-green-400">(+2.4%)</span> in the last 24 hours.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Example 2: Buy -->
-                                <div class="example-content hidden space-y-4" data-example="2">
-                                    <div class="flex items-start gap-3">
-                                        <div
-                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg"
-                                        >
-                                            <span class="text-white text-sm">👤</span>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div
-                                                class="inline-block bg-slate-800 rounded-2xl rounded-tl-md px-4 py-2.5 max-w-md"
-                                            >
-                                                <p class="text-sm text-slate-200">Buy €100 of Solana please</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start gap-3">
-                                        <div
-                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
-                                        >
-                                            <span class="text-white text-sm">⚡</span>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div
-                                                class="inline-block bg-purple-500/20 border border-purple-500/30 rounded-2xl rounded-tl-md px-4 py-2.5 space-y-1"
-                                            >
-                                                <code class="text-xs text-purple-300 font-mono block"
-                                                    >wallet_buy_crypto({ amount: "100", ... })</code
-                                                >
-                                                <code class="text-xs text-purple-300 font-mono block"
-                                                    >wallet_confirm_operation({ ... })</code
-                                                >
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-start gap-3">
-                                        <div
-                                            class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg"
-                                        >
-                                            <span class="text-white text-sm">🤖</span>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div
-                                                class="inline-block bg-emerald-500/10 border border-emerald-500/20 rounded-2xl rounded-tl-md px-4 py-3 max-w-md"
-                                            >
-                                                <p class="text-sm text-slate-200">
-                                                    ✅ Transaction complete! You bought
-                                                    <span class="text-emerald-400 font-bold">0.75 SOL</span> for €100.
                                                 </p>
                                             </div>
                                         </div>
@@ -3033,7 +3130,9 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                             <div
                                                 class="inline-block bg-slate-800 rounded-2xl rounded-tl-md px-4 py-2.5 max-w-md"
                                             >
-                                                <p class="text-sm text-slate-200">How much can I borrow with 1 BTC?</p>
+                                                <p class="text-sm text-slate-200">
+                                                    I need a loan of €10,000. Use my ETH as collateral.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -3045,10 +3144,13 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                         </div>
                                         <div class="flex-1">
                                             <div
-                                                class="inline-block bg-purple-500/20 border border-purple-500/30 rounded-2xl rounded-tl-md px-4 py-2.5"
+                                                class="inline-block bg-purple-500/20 border border-purple-500/30 rounded-2xl rounded-tl-md px-4 py-2.5 space-y-1"
                                             >
-                                                <code class="text-xs text-purple-300 font-mono"
-                                                    >loan_get_simulation({ guarantee_amount: "1", ... })</code
+                                                <code class="text-xs text-purple-300 font-mono block"
+                                                    >loan_get_simulation({ loan_amount: "10000", ... })</code
+                                                >
+                                                <code class="text-xs text-purple-300 font-mono block"
+                                                    >loan_create({ amount_type: "fixed_loan", ... })</code
                                                 >
                                             </div>
                                         </div>
@@ -3064,8 +3166,13 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 class="inline-block bg-emerald-500/10 border border-emerald-500/20 rounded-2xl rounded-tl-md px-4 py-3 max-w-md"
                                             >
                                                 <p class="text-sm text-slate-200">
-                                                    With 1 BTC (~€95k) as collateral, you can borrow up to
-                                                    <span class="text-emerald-400 font-bold">€47,500</span> (50% LTV)
+                                                    ✅ Loan approved! You received
+                                                    <span class="text-emerald-400 font-bold">€10,000</span> using
+                                                    <span class="text-emerald-400 font-bold">6.2 ETH</span> as
+                                                    collateral.
+                                                </p>
+                                                <p class="text-xs text-slate-400 mt-1">
+                                                    LTV: 50% • APR: 12% • No fixed term
                                                 </p>
                                             </div>
                                         </div>
@@ -3083,7 +3190,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                             class="example-tab active flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 hover:border-blue-500/50"
                                             data-tab="0"
                                         >
-                                            💰 Balance
+                                            🛒 Buy
                                         </button>
                                         <button
                                             onclick="showExample(1)"
@@ -3097,7 +3204,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                             class="example-tab flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-slate-600/50 hover:border-slate-500/70"
                                             data-tab="2"
                                         >
-                                            🛒 Buy
+                                            💰 Balance
                                         </button>
                                         <button
                                             onclick="showExample(3)"

@@ -84,7 +84,7 @@ describe("Broker Tools Handler", () => {
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
-            expect.stringContaining("/v3/currency/chart?ticker=BTC[USD]&temporality=one-hour"),
+            expect.stringContaining("/v3/currency/chart?ticker=BTC/USD&temporality=one-hour"),
             undefined
         );
         const parsed = JSON.parse(result.content[0].text);
