@@ -3,230 +3,11 @@
 
 const toolsData = [
     {
-        "category": "Wallet Market Data",
+        "category": "Market Data",
         "id": "cat-market",
         "icon": "💰",
-        "description": "These tools return market prices and data used by the Wallet/Broker service, not Pro Trading prices. For Pro Trading market data, see the Pro Trading Tools section.",
+        "description": "Asset information and details. For broker prices and trading, see Broker Tools. For Pro Trading market data, see Pro Trading Tools.",
         "tools": [
-            {
-                "name": "market_get_ticker",
-                "type": "READ",
-                "desc": "Get Wallet exchange rates for cryptocurrencies in a specific quote symbol and date. Returns the price of one unit of the base symbol in the requested quote symbol (default: USD) as used by the Wallet/Broker service. Optional base_symbol filter and date for historical rates. Response is a list of prices.",
-                "args": {
-                    "quote_symbol": {
-                        "type": "string",
-                        "desc": "Target quote symbol (e.g., EUR, USD)",
-                        "required": false
-                    },
-                    "base_symbol": {
-                        "type": "string",
-                        "desc": "Filter by specific base symbol (e.g., BTC)",
-                        "required": false
-                    },
-                    "date": {
-                        "type": "string",
-                        "desc": "Timestamp or date string (ISO 8601) for historical rates",
-                        "required": false
-                    }
-                },
-                "exampleArgs": {
-                    "quote_symbol": "EUR",
-                    "base_symbol": "BTC"
-                },
-                "response": {
-                    "request": {
-                        "quote_symbol": "EUR",
-                        "base_symbol": "BTC"
-                    },
-                    "result": [
-                        {
-                            "base_symbol": "BTC",
-                            "price": "90000",
-                            "quote_symbol": "EUR",
-                            "date": "2024-11-25T10:30:00.000Z"
-                        }
-                    ],
-                    "metadata": {
-                        "total_records": 1
-                    }
-                },
-                "responseSchema": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "base_symbol": {
-                                "type": "string",
-                                "description": "Base cryptocurrency symbol in uppercase (e.g., BTC, ETH)"
-                            },
-                            "quote_symbol": {
-                                "type": "string",
-                                "description": "Quote currency symbol in uppercase (e.g., EUR, USD)"
-                            },
-                            "date": {
-                                "type": "string",
-                                "description": "ISO 8601 date/time when the rate was recorded",
-                                "format": "date-time"
-                            },
-                            "price": {
-                                "type": "string",
-                                "description": "Price of one unit of base_symbol in quote_symbol (as string for precision)"
-                            }
-                        },
-                        "required": [
-                            "base_symbol",
-                            "quote_symbol",
-                            "date",
-                            "price"
-                        ]
-                    }
-                },
-                "displayName": "wallet_market_get_ticker"
-            },
-            {
-                "name": "market_get_data",
-                "type": "READ",
-                "desc": "Gets current Wallet price, 24h volume, market highs and lows for a cryptocurrency. These prices are used by the Wallet/Broker service (not Pro Trading). Specify base_symbol (e.g., BTC) and optional quote_symbol (default: EUR). Returns price, volume, market cap, and supply information. Response is a single object.",
-                "args": {
-                    "base_symbol": {
-                        "type": "string",
-                        "desc": "Base symbol (e.g., BTC, ETH, DOGE, SOL)",
-                        "required": true
-                    },
-                    "quote_symbol": {
-                        "type": "string",
-                        "desc": "Quote symbol for prices (default: EUR)",
-                        "required": false
-                    }
-                },
-                "exampleArgs": {
-                    "base_symbol": "BTC",
-                    "quote_symbol": "EUR"
-                },
-                "response": {
-                    "request": {
-                        "base_symbol": "BTC",
-                        "quote_symbol": "EUR"
-                    },
-                    "result": {
-                        "base_symbol": "BTC",
-                        "quote_symbol": "EUR",
-                        "date": "2025-11-25T10:30:00.258Z",
-                        "price": "75869.89",
-                        "market_cap": "1510730550631.13",
-                        "volume_24h": "62022281357.81",
-                        "max_supply": "21000000",
-                        "total_supply": "19953446"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "base_symbol": {
-                            "type": "string",
-                            "description": "Base cryptocurrency symbol in uppercase (e.g., BTC, ETH)"
-                        },
-                        "quote_symbol": {
-                            "type": "string",
-                            "description": "Quote currency symbol in uppercase (e.g., EUR, USD)"
-                        },
-                        "date": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the data was recorded",
-                            "format": "date-time"
-                        },
-                        "price": {
-                            "type": "string",
-                            "description": "Current price of base_symbol in quote_symbol (as string for precision)"
-                        },
-                        "market_cap": {
-                            "type": "string",
-                            "description": "Total market capitalization in quote_symbol (as string for precision)"
-                        },
-                        "volume_24h": {
-                            "type": "string",
-                            "description": "24-hour trading volume in quote_symbol (as string for precision)"
-                        },
-                        "max_supply": {
-                            "type": "string",
-                            "description": "Maximum supply of the cryptocurrency (as string, nullable)",
-                            "nullable": true
-                        },
-                        "total_supply": {
-                            "type": "string",
-                            "description": "Total current supply of the cryptocurrency (as string, nullable)",
-                            "nullable": true
-                        }
-                    },
-                    "required": [
-                        "base_symbol",
-                        "quote_symbol",
-                        "date",
-                        "price",
-                        "market_cap",
-                        "volume_24h"
-                    ]
-                },
-                "displayName": "wallet_market_get_data"
-            },
-            {
-                "name": "market_get_chart",
-                "type": "READ",
-                "desc": "Gets Wallet price history (candles/chart) with date and price in the quote symbol. These prices reflect the Wallet/Broker service, not Pro Trading. Requires pair (e.g., BTC-USD) and timeframe (one-hour, one-day, one-week, one-month, one-year). Returns data points with ISO 8601 date/time and price in the quote symbol from the pair.",
-                "args": {
-                    "pair": {
-                        "type": "string",
-                        "desc": "Pair (e.g., BTC-USD)",
-                        "required": true
-                    },
-                    "timeframe": {
-                        "type": "string",
-                        "desc": "Timeframe (one-hour, one-day, one-week, one-month, one-year)",
-                        "required": true
-                    }
-                },
-                "exampleArgs": {
-                    "pair": "BTC-USD",
-                    "timeframe": "one-day"
-                },
-                "response": {
-                    "request": {
-                        "pair": "BTC-USD",
-                        "timeframe": "one-day"
-                    },
-                    "result": [
-                        {
-                            "date": "2024-11-25T10:30:00.000Z",
-                            "price": "72145.32"
-                        }
-                    ],
-                    "metadata": {
-                        "total_records": 1
-                    }
-                },
-                "responseSchema": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "date": {
-                                "type": "string",
-                                "description": "ISO 8601 date/time for this data point",
-                                "format": "date-time"
-                            },
-                            "price": {
-                                "type": "string",
-                                "description": "Price at this point in time in the quote symbol from the pair (as string for precision)"
-                            }
-                        },
-                        "required": [
-                            "date",
-                            "price"
-                        ]
-                    }
-                },
-                "displayName": "wallet_market_get_chart"
-            },
             {
                 "name": "market_get_assets_details",
                 "type": "READ",
@@ -326,16 +107,727 @@ const toolsData = [
                         "loanable",
                         "pro_trading_pairs"
                     ]
-                },
-                "displayName": "wallet_market_get_assets_details"
+                }
             }
         ]
     },
     {
-        "category": "Wallet & Broker",
+        "category": "Broker (Simple Trading)",
+        "id": "cat-broker",
+        "icon": "💱",
+        "description": "Tools for simple trading operations and broker prices. Includes market data (prices, charts) and trading actions (buy, sell, swap) for the Wallet/Broker service. These prices include spread and are different from Pro Trading prices.",
+        "tools": [
+            {
+                "name": "broker_get_price",
+                "type": "READ",
+                "desc": "Get Wallet exchange rates for cryptocurrencies in a specific quote symbol and date. Returns the price of one unit of the base symbol in the requested quote symbol (default: USD) as used by the Wallet/Broker service. Optional base_symbol filter and date for historical rates. Response is a list of prices.",
+                "args": {
+                    "quote_symbol": {
+                        "type": "string",
+                        "desc": "Target quote symbol (e.g., EUR, USD)",
+                        "required": false
+                    },
+                    "base_symbol": {
+                        "type": "string",
+                        "desc": "Filter by specific base symbol (e.g., BTC)",
+                        "required": false
+                    },
+                    "date": {
+                        "type": "string",
+                        "desc": "Timestamp or date string (ISO 8601) for historical rates",
+                        "required": false
+                    }
+                },
+                "exampleArgs": {
+                    "quote_symbol": "EUR",
+                    "base_symbol": "BTC"
+                },
+                "response": {
+                    "request": {
+                        "quote_symbol": "EUR",
+                        "base_symbol": "BTC"
+                    },
+                    "result": [
+                        {
+                            "base_symbol": "BTC",
+                            "price": "90000",
+                            "quote_symbol": "EUR",
+                            "date": "2024-11-25T10:30:00.000Z"
+                        }
+                    ],
+                    "metadata": {
+                        "total_records": 1
+                    }
+                },
+                "responseSchema": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "base_symbol": {
+                                "type": "string",
+                                "description": "Base cryptocurrency symbol in uppercase (e.g., BTC, ETH)"
+                            },
+                            "quote_symbol": {
+                                "type": "string",
+                                "description": "Quote currency symbol in uppercase (e.g., EUR, USD)"
+                            },
+                            "date": {
+                                "type": "string",
+                                "description": "ISO 8601 date/time when the rate was recorded",
+                                "format": "date-time"
+                            },
+                            "price": {
+                                "type": "string",
+                                "description": "Price of one unit of base_symbol in quote_symbol (as string for precision)"
+                            }
+                        },
+                        "required": [
+                            "base_symbol",
+                            "quote_symbol",
+                            "date",
+                            "price"
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "broker_get_info",
+                "type": "READ",
+                "desc": "Gets current Wallet price, 24h volume, market highs and lows for a cryptocurrency. These prices are used by the Wallet/Broker service (not Pro Trading). Specify base_symbol (e.g., BTC) and optional quote_symbol (default: EUR). Returns price, volume, market cap, and supply information. Response is a single object.",
+                "args": {
+                    "base_symbol": {
+                        "type": "string",
+                        "desc": "Base symbol (e.g., BTC, ETH, DOGE, SOL)",
+                        "required": true
+                    },
+                    "quote_symbol": {
+                        "type": "string",
+                        "desc": "Quote symbol for prices (default: EUR)",
+                        "required": false
+                    }
+                },
+                "exampleArgs": {
+                    "base_symbol": "BTC",
+                    "quote_symbol": "EUR"
+                },
+                "response": {
+                    "request": {
+                        "base_symbol": "BTC",
+                        "quote_symbol": "EUR"
+                    },
+                    "result": {
+                        "base_symbol": "BTC",
+                        "quote_symbol": "EUR",
+                        "date": "2025-11-25T10:30:00.258Z",
+                        "price": "75869.89",
+                        "market_cap": "1510730550631.13",
+                        "volume_24h": "62022281357.81",
+                        "max_supply": "21000000",
+                        "total_supply": "19953446"
+                    }
+                },
+                "responseSchema": {
+                    "type": "object",
+                    "properties": {
+                        "base_symbol": {
+                            "type": "string",
+                            "description": "Base cryptocurrency symbol in uppercase (e.g., BTC, ETH)"
+                        },
+                        "quote_symbol": {
+                            "type": "string",
+                            "description": "Quote currency symbol in uppercase (e.g., EUR, USD)"
+                        },
+                        "date": {
+                            "type": "string",
+                            "description": "ISO 8601 date/time when the data was recorded",
+                            "format": "date-time"
+                        },
+                        "price": {
+                            "type": "string",
+                            "description": "Current price of base_symbol in quote_symbol (as string for precision)"
+                        },
+                        "market_cap": {
+                            "type": "string",
+                            "description": "Total market capitalization in quote_symbol (as string for precision)"
+                        },
+                        "volume_24h": {
+                            "type": "string",
+                            "description": "24-hour trading volume in quote_symbol (as string for precision)"
+                        },
+                        "max_supply": {
+                            "type": "string",
+                            "description": "Maximum supply of the cryptocurrency (as string, nullable)",
+                            "nullable": true
+                        },
+                        "total_supply": {
+                            "type": "string",
+                            "description": "Total current supply of the cryptocurrency (as string, nullable)",
+                            "nullable": true
+                        }
+                    },
+                    "required": [
+                        "base_symbol",
+                        "quote_symbol",
+                        "date",
+                        "price",
+                        "market_cap",
+                        "volume_24h"
+                    ]
+                }
+            },
+            {
+                "name": "broker_get_chart",
+                "type": "READ",
+                "desc": "Gets Wallet price history (candles/chart) with date and price in the quote symbol. These prices reflect the Wallet/Broker service, not Pro Trading. Requires pair (e.g., BTC-USD) and timeframe. Returns data points with ISO 8601 date/time and price in the quote symbol from the pair.",
+                "args": {
+                    "pair": {
+                        "type": "string",
+                        "desc": "Pair (e.g., BTC-USD)",
+                        "required": true
+                    },
+                    "timeframe": {
+                        "type": "string",
+                        "desc": "Candle duration",
+                        "required": true,
+                        "enum": [
+                            "1h",
+                            "1d",
+                            "1w",
+                            "1M",
+                            "1y"
+                        ]
+                    }
+                },
+                "exampleArgs": {
+                    "pair": "BTC-USD",
+                    "timeframe": "1d"
+                },
+                "response": {
+                    "request": {
+                        "pair": "BTC-USD",
+                        "timeframe": "1d"
+                    },
+                    "result": [
+                        {
+                            "date": "2024-11-25T10:30:00.000Z",
+                            "price": "72145.32"
+                        }
+                    ],
+                    "metadata": {
+                        "total_records": 1
+                    }
+                },
+                "responseSchema": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "date": {
+                                "type": "string",
+                                "description": "ISO 8601 date/time for this data point",
+                                "format": "date-time"
+                            },
+                            "price": {
+                                "type": "string",
+                                "description": "Price at this point in time in the quote symbol from the pair (as string for precision)"
+                            }
+                        },
+                        "required": [
+                            "date",
+                            "price"
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "broker_quote_buy",
+                "type": "WRITE",
+                "desc": "STEP 1: Buy cryptocurrency using fiat balance from a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote.",
+                "args": {
+                    "origin_pocket_id": {
+                        "type": "string",
+                        "desc": "Source pocket UUID containing fiat currency (e.g., EUR pocket)",
+                        "required": true
+                    },
+                    "destination_pocket_id": {
+                        "type": "string",
+                        "desc": "Target pocket UUID to receive cryptocurrency (e.g., BTC pocket)",
+                        "required": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "desc": "Amount to spend from origin pocket (in origin currency)",
+                        "required": true
+                    }
+                },
+                "exampleArgs": {
+                    "origin_pocket_id": "pocket-eur-uuid",
+                    "destination_pocket_id": "pocket-btc-uuid",
+                    "amount": "100.00"
+                },
+                "response": {
+                    "request": {
+                        "origin_pocket_id": "pocket-eur-uuid",
+                        "destination_pocket_id": "pocket-btc-uuid",
+                        "amount": "100.00"
+                    },
+                    "result": {
+                        "proforma_id": "proforma123-...",
+                        "origin_amount": "100.00",
+                        "origin_symbol": "EUR",
+                        "destination_amount": "0.00131579",
+                        "destination_symbol": "BTC",
+                        "rate": "75869.89",
+                        "fee": "0.50",
+                        "expires_at": "2024-11-25T10:35:00.000Z"
+                    }
+                },
+                "responseSchema": {
+                    "type": "object",
+                    "properties": {
+                        "proforma_id": {
+                            "type": "string",
+                            "description": "Proforma UUID"
+                        },
+                        "origin_amount": {
+                            "type": "string",
+                            "description": "origin amount"
+                        },
+                        "origin_symbol": {
+                            "type": "string",
+                            "description": "origin symbol"
+                        },
+                        "destination_amount": {
+                            "type": "string",
+                            "description": "destination amount"
+                        },
+                        "destination_symbol": {
+                            "type": "string",
+                            "description": "destination symbol"
+                        },
+                        "rate": {
+                            "type": "string",
+                            "description": "Exchange rate as string for precision"
+                        },
+                        "fee": {
+                            "type": "string",
+                            "description": "Fee amount as string for precision"
+                        },
+                        "expires_at": {
+                            "type": "string",
+                            "description": "ISO 8601 date/time when the resource expires",
+                            "format": "date-time"
+                        }
+                    },
+                    "required": [
+                        "proforma_id",
+                        "origin_amount",
+                        "origin_symbol",
+                        "destination_amount",
+                        "destination_symbol",
+                        "rate",
+                        "fee",
+                        "expires_at"
+                    ]
+                }
+            },
+            {
+                "name": "broker_quote_sell",
+                "type": "WRITE",
+                "desc": "STEP 1: Sell cryptocurrency to receive fiat balance in a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote.",
+                "args": {
+                    "origin_pocket_id": {
+                        "type": "string",
+                        "desc": "Source pocket UUID containing cryptocurrency (e.g., BTC pocket)",
+                        "required": true
+                    },
+                    "destination_pocket_id": {
+                        "type": "string",
+                        "desc": "Target pocket UUID to receive fiat currency (e.g., EUR pocket)",
+                        "required": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "desc": "Amount to sell from origin pocket (in origin cryptocurrency)",
+                        "required": true
+                    }
+                },
+                "exampleArgs": {
+                    "origin_pocket_id": "pocket-btc-uuid",
+                    "destination_pocket_id": "pocket-eur-uuid",
+                    "amount": "0.001"
+                },
+                "response": {
+                    "request": {
+                        "origin_pocket_id": "pocket-btc-uuid",
+                        "destination_pocket_id": "pocket-eur-uuid",
+                        "amount": "0.001"
+                    },
+                    "result": {
+                        "proforma_id": "proforma123-...",
+                        "origin_amount": "0.001",
+                        "origin_symbol": "BTC",
+                        "destination_amount": "75.87",
+                        "destination_symbol": "EUR",
+                        "rate": "75869.89",
+                        "fee": "0.50",
+                        "expires_at": "2024-11-25T10:35:00.000Z"
+                    }
+                },
+                "responseSchema": {
+                    "type": "object",
+                    "properties": {
+                        "proforma_id": {
+                            "type": "string",
+                            "description": "Proforma UUID"
+                        },
+                        "origin_amount": {
+                            "type": "string",
+                            "description": "origin amount"
+                        },
+                        "origin_symbol": {
+                            "type": "string",
+                            "description": "origin symbol"
+                        },
+                        "destination_amount": {
+                            "type": "string",
+                            "description": "destination amount"
+                        },
+                        "destination_symbol": {
+                            "type": "string",
+                            "description": "destination symbol"
+                        },
+                        "rate": {
+                            "type": "string",
+                            "description": "Exchange rate as string for precision"
+                        },
+                        "fee": {
+                            "type": "string",
+                            "description": "Fee amount as string for precision"
+                        },
+                        "expires_at": {
+                            "type": "string",
+                            "description": "ISO 8601 date/time when the resource expires",
+                            "format": "date-time"
+                        }
+                    },
+                    "required": [
+                        "proforma_id",
+                        "origin_amount",
+                        "origin_symbol",
+                        "destination_amount",
+                        "destination_symbol",
+                        "rate",
+                        "fee",
+                        "expires_at"
+                    ]
+                }
+            },
+            {
+                "name": "broker_quote_swap",
+                "type": "WRITE",
+                "desc": "STEP 1: Swap/exchange one cryptocurrency for another between pockets. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote.",
+                "args": {
+                    "origin_pocket_id": {
+                        "type": "string",
+                        "desc": "Source pocket UUID containing cryptocurrency to swap (e.g., BTC pocket)",
+                        "required": true
+                    },
+                    "destination_pocket_id": {
+                        "type": "string",
+                        "desc": "Target pocket UUID to receive different cryptocurrency (e.g., ETH pocket)",
+                        "required": true
+                    },
+                    "amount": {
+                        "type": "string",
+                        "desc": "Amount to swap from origin pocket (in origin cryptocurrency)",
+                        "required": true
+                    }
+                },
+                "exampleArgs": {
+                    "origin_pocket_id": "pocket-btc-uuid",
+                    "destination_pocket_id": "pocket-eth-uuid",
+                    "amount": "0.001"
+                },
+                "response": {
+                    "request": {
+                        "origin_pocket_id": "pocket-btc-uuid",
+                        "destination_pocket_id": "pocket-eth-uuid",
+                        "amount": "0.001"
+                    },
+                    "result": {
+                        "proforma_id": "proforma123-...",
+                        "origin_amount": "0.001",
+                        "origin_symbol": "BTC",
+                        "destination_amount": "0.025",
+                        "destination_symbol": "ETH",
+                        "rate": "0.04",
+                        "fee": "0.0001",
+                        "expires_at": "2024-11-25T10:35:00.000Z"
+                    }
+                },
+                "responseSchema": {
+                    "type": "object",
+                    "properties": {
+                        "proforma_id": {
+                            "type": "string",
+                            "description": "Proforma UUID"
+                        },
+                        "origin_amount": {
+                            "type": "string",
+                            "description": "origin amount"
+                        },
+                        "origin_symbol": {
+                            "type": "string",
+                            "description": "origin symbol"
+                        },
+                        "destination_amount": {
+                            "type": "string",
+                            "description": "destination amount"
+                        },
+                        "destination_symbol": {
+                            "type": "string",
+                            "description": "destination symbol"
+                        },
+                        "rate": {
+                            "type": "string",
+                            "description": "Exchange rate as string for precision"
+                        },
+                        "fee": {
+                            "type": "string",
+                            "description": "Fee amount as string for precision"
+                        },
+                        "expires_at": {
+                            "type": "string",
+                            "description": "ISO 8601 date/time when the resource expires",
+                            "format": "date-time"
+                        }
+                    },
+                    "required": [
+                        "proforma_id",
+                        "origin_amount",
+                        "origin_symbol",
+                        "destination_amount",
+                        "destination_symbol",
+                        "rate",
+                        "fee",
+                        "expires_at"
+                    ]
+                }
+            },
+            {
+                "name": "broker_confirm_quote",
+                "type": "WRITE",
+                "desc": "STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action.",
+                "args": {
+                    "proforma_id": {
+                        "type": "string",
+                        "desc": "Proforma UUID",
+                        "required": false
+                    }
+                },
+                "exampleArgs": {
+                    "proforma_id": "proforma-uuid-1234-5678"
+                },
+                "response": {
+                    "request": {
+                        "proforma_id": "proforma-uuid-1234-5678"
+                    },
+                    "result": {
+                        "movement_id": "movement-uuid-1234-5678",
+                        "type": "swap",
+                        "status": "completed",
+                        "origin_amount": "0.001",
+                        "origin_symbol": "BTC",
+                        "destination_amount": "0.025",
+                        "destination_symbol": "ETH",
+                        "fee": "0.0001",
+                        "created_at": "2024-11-25T10:35:00.000Z"
+                    }
+                },
+                "responseSchema": {
+                    "type": "object",
+                    "properties": {
+                        "movement_id": {
+                            "type": "string",
+                            "description": "Movement UUID"
+                        },
+                        "type": {
+                            "type": "string",
+                            "description": "Movement type",
+                            "enum": [
+                                "deposit",
+                                "withdrawal",
+                                "swap",
+                                "purchase",
+                                "transfer",
+                                "fee",
+                                "other"
+                            ]
+                        },
+                        "status": {
+                            "type": "string",
+                            "description": "Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)",
+                            "enum": [
+                                "pending",
+                                "completed",
+                                "failed"
+                            ]
+                        },
+                        "origin_amount": {
+                            "type": "string",
+                            "description": "origin amount"
+                        },
+                        "origin_symbol": {
+                            "type": "string",
+                            "description": "origin symbol"
+                        },
+                        "destination_amount": {
+                            "type": "string",
+                            "description": "destination amount"
+                        },
+                        "destination_symbol": {
+                            "type": "string",
+                            "description": "destination symbol"
+                        },
+                        "fee": {
+                            "type": "string",
+                            "description": "Fee amount as string for precision"
+                        },
+                        "created_at": {
+                            "type": "string",
+                            "description": "ISO 8601 date/time when the movement was created",
+                            "format": "date-time"
+                        }
+                    },
+                    "required": [
+                        "movement_id",
+                        "type",
+                        "status",
+                        "origin_amount",
+                        "origin_symbol",
+                        "destination_amount",
+                        "destination_symbol",
+                        "fee",
+                        "created_at"
+                    ]
+                }
+            },
+            {
+                "name": "wallet_get_cards",
+                "type": "READ",
+                "desc": "List credit/debit cards registered in Bit2Me. Returns card details including card ID, brand, last 4 digits, expiration date, and alias. Optional card_id filter to retrieve a specific card. Use limit and offset for pagination.",
+                "args": {
+                    "card_id": {
+                        "type": "string",
+                        "desc": "Card UUID to retrieve details for a specific card (optional, if not specified returns all cards)",
+                        "required": false
+                    },
+                    "limit": {
+                        "type": "number",
+                        "desc": "Maximum number of cards to return (default: 10, max: 150)",
+                        "required": false
+                    },
+                    "offset": {
+                        "type": "number",
+                        "desc": "Number of cards to skip for pagination (default: 0)",
+                        "required": false
+                    }
+                },
+                "exampleArgs": {
+                    "limit": 10,
+                    "offset": 0
+                },
+                "response": {
+                    "request": {
+                        "limit": 10,
+                        "offset": 0
+                    },
+                    "result": [
+                        {
+                            "card_id": "card-uuid-1234",
+                            "type": "credit",
+                            "brand": "VISA",
+                            "country": "ES",
+                            "last4": "1234",
+                            "expire_month": "12",
+                            "expire_year": "2025",
+                            "alias": "My Visa Card",
+                            "created_at": "2025-12-04T01:31:14.303Z"
+                        }
+                    ],
+                    "metadata": {
+                        "total_records": 1,
+                        "limit": 10,
+                        "offset": 0,
+                        "has_more": false
+                    }
+                },
+                "responseSchema": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "card_id": {
+                                "type": "string",
+                                "description": "Unique identifier for the payment card"
+                            },
+                            "type": {
+                                "type": "string",
+                                "description": "Card type (e.g., \"credit\", \"debit\")"
+                            },
+                            "brand": {
+                                "type": "string",
+                                "description": "Card network brand (e.g., \"visa\", \"mastercard\")"
+                            },
+                            "country": {
+                                "type": "string",
+                                "description": "Country code where the card was issued"
+                            },
+                            "last4": {
+                                "type": "string",
+                                "description": "Last 4 digits of the card number for identification"
+                            },
+                            "expire_month": {
+                                "type": "string",
+                                "description": "Card expiration month (01-12)"
+                            },
+                            "expire_year": {
+                                "type": "string",
+                                "description": "Card expiration year (4 digits)"
+                            },
+                            "alias": {
+                                "type": "string",
+                                "description": "User-defined alias for the card"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "description": "ISO 8601 date/time when the card was registered",
+                                "format": "date-time"
+                            }
+                        },
+                        "required": [
+                            "card_id",
+                            "type",
+                            "brand",
+                            "country",
+                            "last4",
+                            "expire_month",
+                            "expire_year",
+                            "alias",
+                            "created_at"
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "category": "Wallet (Storage)",
         "id": "cat-wallet",
         "icon": "👛",
-        "description": "",
+        "description": "Tools for managing wallet balances, movements, and addresses. For trading operations and cards, see Broker Tools.",
         "tools": [
             {
                 "name": "wallet_get_pockets",
@@ -626,163 +1118,9 @@ const toolsData = [
                 }
             },
             {
-                "name": "wallet_get_cards",
-                "type": "READ",
-                "desc": "List credit/debit cards registered in Bit2Me. Returns card details including card ID, brand, last 4 digits, expiration date, holder name, verification status, and alias. Optional card_id filter to retrieve a specific card. Use limit and offset for pagination. Use this to get card_id for wallet_buy_crypto_with_card.",
-                "args": {
-                    "card_id": {
-                        "type": "string",
-                        "desc": "Card UUID to retrieve details for a specific card (optional, if not specified returns all cards)",
-                        "required": false
-                    },
-                    "limit": {
-                        "type": "number",
-                        "desc": "Maximum number of cards to return (default: 10, max: 150)",
-                        "required": false
-                    },
-                    "offset": {
-                        "type": "number",
-                        "desc": "Number of cards to skip for pagination (default: 0)",
-                        "required": false
-                    }
-                },
-                "exampleArgs": {
-                    "limit": 10,
-                    "offset": 0
-                },
-                "response": {
-                    "request": {
-                        "limit": 10,
-                        "offset": 0
-                    },
-                    "result": [
-                        {
-                            "card_id": "card-uuid-1234",
-                            "user_id": "user-uuid-5678",
-                            "source": "paylands",
-                            "source_id": "source-123",
-                            "type": "credit",
-                            "paylands_token": "token-abc123",
-                            "brand": "VISA",
-                            "country": "ES",
-                            "holder": "John Doe",
-                            "last4": "1234",
-                            "expire_month": "12",
-                            "expire_year": "2025",
-                            "alias": "My Visa Card",
-                            "created_at": "2025-12-04T01:31:14.303Z",
-                            "verified": true,
-                            "invalid": false
-                        }
-                    ],
-                    "metadata": {
-                        "total_records": 1,
-                        "limit": 10,
-                        "offset": 0,
-                        "has_more": false
-                    }
-                },
-                "responseSchema": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "card_id": {
-                                "type": "string",
-                                "description": "Unique identifier for the payment card"
-                            },
-                            "user_id": {
-                                "type": "string",
-                                "description": "User identifier who owns the wallet"
-                            },
-                            "source": {
-                                "type": "string",
-                                "description": "source"
-                            },
-                            "source_id": {
-                                "type": "string",
-                                "description": "source id"
-                            },
-                            "type": {
-                                "type": "string",
-                                "description": "Type of the resource or operation",
-                                "enum": [
-                                    "limit",
-                                    "market",
-                                    "stop-limit"
-                                ]
-                            },
-                            "paylands_token": {
-                                "type": "string",
-                                "description": "paylands token"
-                            },
-                            "brand": {
-                                "type": "string",
-                                "description": "Card network brand (e.g., \"visa\", \"mastercard\")"
-                            },
-                            "country": {
-                                "type": "string",
-                                "description": "country"
-                            },
-                            "holder": {
-                                "type": "string",
-                                "description": "Cardholder name as it appears on the card"
-                            },
-                            "last4": {
-                                "type": "string",
-                                "description": "Last 4 digits of the card number for identification"
-                            },
-                            "expire_month": {
-                                "type": "string",
-                                "description": "Card expiration month (01-12)"
-                            },
-                            "expire_year": {
-                                "type": "string",
-                                "description": "Card expiration year (4 digits)"
-                            },
-                            "alias": {
-                                "type": "string",
-                                "description": "alias"
-                            },
-                            "created_at": {
-                                "type": "string",
-                                "description": "ISO 8601 date/time when the resource was created",
-                                "format": "date-time"
-                            },
-                            "verified": {
-                                "type": "boolean",
-                                "description": "true if the card has been verified for payments"
-                            },
-                            "invalid": {
-                                "type": "boolean",
-                                "description": "true if the card has been marked as invalid or expired"
-                            }
-                        },
-                        "required": [
-                            "card_id",
-                            "user_id",
-                            "source",
-                            "source_id",
-                            "type",
-                            "paylands_token",
-                            "brand",
-                            "country",
-                            "holder",
-                            "last4",
-                            "expire_month",
-                            "expire_year",
-                            "alias",
-                            "created_at",
-                            "verified",
-                            "invalid"
-                        ]
-                    }
-                }
-            },
-            {
                 "name": "wallet_get_movements",
                 "type": "READ",
-                "desc": "History of past Wallet operations. Optional symbol filter. Use limit and offset for pagination (default limit: 10). Returns movement list with type (deposit, withdrawal, swap, purchase, transfer, fee, other), amount, symbol, status, and date. Response is a paginated list with metadata.",
+                "desc": "History of past Wallet operations. Optional symbol filter. Use limit and offset for pagination (default limit: 10). Returns movement list with type (deposit, withdrawal, swap, purchase, transfer, fee, other), amount, symbol, status, and date. Response is a paginated list with metadata. Movement status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
                 "args": {
                     "symbol": {
                         "type": "string",
@@ -877,13 +1215,11 @@ const toolsData = [
                             },
                             "status": {
                                 "type": "string",
-                                "description": "Current order status",
+                                "description": "Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)",
                                 "enum": [
                                     "pending",
                                     "completed",
-                                    "failed",
-                                    "cancelled",
-                                    "unknown"
+                                    "failed"
                                 ]
                             },
                             "amount": {
@@ -925,7 +1261,7 @@ const toolsData = [
             {
                 "name": "wallet_get_movement_details",
                 "type": "READ",
-                "desc": "Gets detailed information of a specific movement by its ID. Returns complete movement data including type (deposit, withdrawal, swap, purchase, transfer, fee, other), amount, currency, status, fees, timestamps, and related pocket IDs. Use wallet_get_movements first to get movement IDs.",
+                "desc": "Gets detailed information of a specific movement by its ID. Returns complete movement data including type (deposit, withdrawal, swap, purchase, transfer, fee, other), amount, currency, status, fees, timestamps, and related pocket IDs. Use wallet_get_movements first to get movement IDs. Movement status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
                 "args": {
                     "movement_id": {
                         "type": "string",
@@ -992,12 +1328,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
                             "enum": [
                                 "open",
                                 "filled",
-                                "cancelled",
-                                "inactive"
+                                "cancelled"
                             ]
                         },
                         "amount": {
@@ -1034,433 +1369,11 @@ const toolsData = [
                         "fee"
                     ]
                 }
-            },
-            {
-                "name": "wallet_buy_crypto",
-                "type": "WRITE",
-                "desc": "STEP 1: Buy cryptocurrency using fiat balance from a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with wallet_confirm_operation.",
-                "args": {
-                    "origin_pocket_id": {
-                        "type": "string",
-                        "desc": "Source pocket UUID containing fiat currency (e.g., EUR pocket)",
-                        "required": true
-                    },
-                    "destination_pocket_id": {
-                        "type": "string",
-                        "desc": "Target pocket UUID to receive cryptocurrency (e.g., BTC pocket)",
-                        "required": true
-                    },
-                    "amount": {
-                        "type": "string",
-                        "desc": "Amount to spend from origin pocket (in origin currency)",
-                        "required": true
-                    }
-                },
-                "exampleArgs": {
-                    "origin_pocket_id": "pocket-eur-uuid",
-                    "destination_pocket_id": "pocket-btc-uuid",
-                    "amount": "100.00"
-                },
-                "response": {
-                    "request": {
-                        "origin_pocket_id": "pocket-eur-uuid",
-                        "destination_pocket_id": "pocket-btc-uuid",
-                        "amount": "100.00"
-                    },
-                    "result": {
-                        "proforma_id": "proforma123-...",
-                        "origin_amount": "100.00",
-                        "origin_symbol": "EUR",
-                        "destination_amount": "0.00131579",
-                        "destination_symbol": "BTC",
-                        "rate": "75869.89",
-                        "fee": "0.50",
-                        "expires_at": "2024-11-25T10:35:00.000Z"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "proforma_id": {
-                            "type": "string",
-                            "description": "Proforma UUID"
-                        },
-                        "origin_amount": {
-                            "type": "string",
-                            "description": "origin amount"
-                        },
-                        "origin_symbol": {
-                            "type": "string",
-                            "description": "origin symbol"
-                        },
-                        "destination_amount": {
-                            "type": "string",
-                            "description": "destination amount"
-                        },
-                        "destination_symbol": {
-                            "type": "string",
-                            "description": "destination symbol"
-                        },
-                        "rate": {
-                            "type": "string",
-                            "description": "Exchange rate as string for precision"
-                        },
-                        "fee": {
-                            "type": "string",
-                            "description": "Fee amount as string for precision"
-                        },
-                        "expires_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource expires",
-                            "format": "date-time"
-                        }
-                    },
-                    "required": [
-                        "proforma_id",
-                        "origin_amount",
-                        "origin_symbol",
-                        "destination_amount",
-                        "destination_symbol",
-                        "rate",
-                        "fee",
-                        "expires_at"
-                    ]
-                }
-            },
-            {
-                "name": "wallet_sell_crypto",
-                "type": "WRITE",
-                "desc": "STEP 1: Sell cryptocurrency to receive fiat balance in a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with wallet_confirm_operation.",
-                "args": {
-                    "origin_pocket_id": {
-                        "type": "string",
-                        "desc": "Source pocket UUID containing cryptocurrency (e.g., BTC pocket)",
-                        "required": true
-                    },
-                    "destination_pocket_id": {
-                        "type": "string",
-                        "desc": "Target pocket UUID to receive fiat currency (e.g., EUR pocket)",
-                        "required": true
-                    },
-                    "amount": {
-                        "type": "string",
-                        "desc": "Amount to sell from origin pocket (in origin cryptocurrency)",
-                        "required": true
-                    }
-                },
-                "exampleArgs": {
-                    "origin_pocket_id": "pocket-btc-uuid",
-                    "destination_pocket_id": "pocket-eur-uuid",
-                    "amount": "0.001"
-                },
-                "response": {
-                    "request": {
-                        "origin_pocket_id": "pocket-btc-uuid",
-                        "destination_pocket_id": "pocket-eur-uuid",
-                        "amount": "0.001"
-                    },
-                    "result": {
-                        "proforma_id": "proforma123-...",
-                        "origin_amount": "0.001",
-                        "origin_symbol": "BTC",
-                        "destination_amount": "75.87",
-                        "destination_symbol": "EUR",
-                        "rate": "75869.89",
-                        "fee": "0.50",
-                        "expires_at": "2024-11-25T10:35:00.000Z"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "proforma_id": {
-                            "type": "string",
-                            "description": "Proforma UUID"
-                        },
-                        "origin_amount": {
-                            "type": "string",
-                            "description": "origin amount"
-                        },
-                        "origin_symbol": {
-                            "type": "string",
-                            "description": "origin symbol"
-                        },
-                        "destination_amount": {
-                            "type": "string",
-                            "description": "destination amount"
-                        },
-                        "destination_symbol": {
-                            "type": "string",
-                            "description": "destination symbol"
-                        },
-                        "rate": {
-                            "type": "string",
-                            "description": "Exchange rate as string for precision"
-                        },
-                        "fee": {
-                            "type": "string",
-                            "description": "Fee amount as string for precision"
-                        },
-                        "expires_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource expires",
-                            "format": "date-time"
-                        }
-                    },
-                    "required": [
-                        "proforma_id",
-                        "origin_amount",
-                        "origin_symbol",
-                        "destination_amount",
-                        "destination_symbol",
-                        "rate",
-                        "fee",
-                        "expires_at"
-                    ]
-                }
-            },
-            {
-                "name": "wallet_swap_crypto",
-                "type": "WRITE",
-                "desc": "STEP 1: Swap/exchange one cryptocurrency for another between pockets. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with wallet_confirm_operation.",
-                "args": {
-                    "origin_pocket_id": {
-                        "type": "string",
-                        "desc": "Source pocket UUID containing cryptocurrency to swap (e.g., BTC pocket)",
-                        "required": true
-                    },
-                    "destination_pocket_id": {
-                        "type": "string",
-                        "desc": "Target pocket UUID to receive different cryptocurrency (e.g., ETH pocket)",
-                        "required": true
-                    },
-                    "amount": {
-                        "type": "string",
-                        "desc": "Amount to swap from origin pocket (in origin cryptocurrency)",
-                        "required": true
-                    }
-                },
-                "exampleArgs": {
-                    "origin_pocket_id": "pocket-btc-uuid",
-                    "destination_pocket_id": "pocket-eth-uuid",
-                    "amount": "0.001"
-                },
-                "response": {
-                    "request": {
-                        "origin_pocket_id": "pocket-btc-uuid",
-                        "destination_pocket_id": "pocket-eth-uuid",
-                        "amount": "0.001"
-                    },
-                    "result": {
-                        "proforma_id": "proforma123-...",
-                        "origin_amount": "0.001",
-                        "origin_symbol": "BTC",
-                        "destination_amount": "0.025",
-                        "destination_symbol": "ETH",
-                        "rate": "0.04",
-                        "fee": "0.0001",
-                        "expires_at": "2024-11-25T10:35:00.000Z"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "proforma_id": {
-                            "type": "string",
-                            "description": "Proforma UUID"
-                        },
-                        "origin_amount": {
-                            "type": "string",
-                            "description": "origin amount"
-                        },
-                        "origin_symbol": {
-                            "type": "string",
-                            "description": "origin symbol"
-                        },
-                        "destination_amount": {
-                            "type": "string",
-                            "description": "destination amount"
-                        },
-                        "destination_symbol": {
-                            "type": "string",
-                            "description": "destination symbol"
-                        },
-                        "rate": {
-                            "type": "string",
-                            "description": "Exchange rate as string for precision"
-                        },
-                        "fee": {
-                            "type": "string",
-                            "description": "Fee amount as string for precision"
-                        },
-                        "expires_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource expires",
-                            "format": "date-time"
-                        }
-                    },
-                    "required": [
-                        "proforma_id",
-                        "origin_amount",
-                        "origin_symbol",
-                        "destination_amount",
-                        "destination_symbol",
-                        "rate",
-                        "fee",
-                        "expires_at"
-                    ]
-                }
-            },
-            {
-                "name": "wallet_buy_crypto_with_card",
-                "type": "WRITE",
-                "desc": "STEP 1: Buy cryptocurrency using a credit card. Creates a proforma quote. REQUIRES subsequent confirmation with wallet_confirm_operation.",
-                "args": {
-                    "card_id": {
-                        "type": "string",
-                        "desc": "Credit card ID registered in Bit2Me",
-                        "required": true
-                    },
-                    "destination_pocket_id": {
-                        "type": "string",
-                        "desc": "Target pocket UUID to receive cryptocurrency (e.g., BTC pocket)",
-                        "required": true
-                    },
-                    "amount": {
-                        "type": "string",
-                        "desc": "Amount to charge to the card (in fiat currency)",
-                        "required": true
-                    },
-                    "currency": {
-                        "type": "string",
-                        "desc": "Fiat currency of the amount (e.g., EUR, USD)",
-                        "required": true
-                    }
-                },
-                "exampleArgs": {
-                    "card_id": "card-uuid-1234",
-                    "destination_pocket_id": "pocket-btc-uuid",
-                    "amount": "100.00",
-                    "currency": "EUR"
-                },
-                "response": {
-                    "request": {
-                        "card_id": "card-uuid-1234",
-                        "destination_pocket_id": "pocket-btc-uuid",
-                        "amount": "100.00",
-                        "currency": "EUR"
-                    },
-                    "result": {
-                        "proforma_id": "proforma123-...",
-                        "origin_amount": "100.00",
-                        "origin_symbol": "EUR",
-                        "destination_amount": "0.00131579",
-                        "destination_symbol": "BTC",
-                        "rate": "75869.89",
-                        "fee": "0.50",
-                        "expires_at": "2024-11-25T10:35:00.000Z"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "proforma_id": {
-                            "type": "string",
-                            "description": "Proforma UUID"
-                        },
-                        "origin_amount": {
-                            "type": "string",
-                            "description": "origin amount"
-                        },
-                        "origin_symbol": {
-                            "type": "string",
-                            "description": "origin symbol"
-                        },
-                        "destination_amount": {
-                            "type": "string",
-                            "description": "destination amount"
-                        },
-                        "destination_symbol": {
-                            "type": "string",
-                            "description": "destination symbol"
-                        },
-                        "rate": {
-                            "type": "string",
-                            "description": "Exchange rate as string for precision"
-                        },
-                        "fee": {
-                            "type": "string",
-                            "description": "Fee amount as string for precision"
-                        },
-                        "expires_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource expires",
-                            "format": "date-time"
-                        }
-                    },
-                    "required": [
-                        "proforma_id",
-                        "origin_amount",
-                        "origin_symbol",
-                        "destination_amount",
-                        "destination_symbol",
-                        "rate",
-                        "fee",
-                        "expires_at"
-                    ]
-                }
-            },
-            {
-                "name": "wallet_confirm_operation",
-                "type": "WRITE",
-                "desc": "STEP 2: Confirms and executes a previously created proforma from wallet_buy_crypto, wallet_sell_crypto, wallet_swap_crypto, or wallet_buy_crypto_with_card. Final action.",
-                "args": {
-                    "proforma_id": {
-                        "type": "string",
-                        "desc": "Proforma UUID",
-                        "required": false
-                    }
-                },
-                "exampleArgs": {
-                    "proforma_id": "proforma-uuid-1234-5678"
-                },
-                "response": {
-                    "request": {
-                        "proforma_id": "proforma-uuid-1234-5678"
-                    },
-                    "result": {
-                        "id": "tx123-...",
-                        "status": "completed"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "string",
-                            "description": "Unique identifier"
-                        },
-                        "status": {
-                            "type": "string",
-                            "description": "Current order status",
-                            "enum": [
-                                "open",
-                                "filled",
-                                "cancelled",
-                                "inactive"
-                            ]
-                        }
-                    },
-                    "required": [
-                        "id",
-                        "status"
-                    ]
-                }
             }
         ]
     },
     {
-        "category": "Trading Pro",
+        "category": "Pro (Advanced Trading)",
         "id": "cat-pro",
         "icon": "📈",
         "description": "",
@@ -1525,7 +1438,7 @@ const toolsData = [
             {
                 "name": "pro_get_open_orders",
                 "type": "READ",
-                "desc": "View open trading orders in PRO. Returns all active orders (pending, partially filled). Optional pair filter to see orders for a specific market. Use this to monitor order status after pro_create_order.",
+                "desc": "View open trading orders in PRO. Returns all active orders (pending, partially filled). Optional pair filter to see orders for a specific market. Use this to monitor order status after pro_create_order. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired).",
                 "args": {
                     "pair": {
                         "type": "string",
@@ -1597,12 +1510,11 @@ const toolsData = [
                             },
                             "status": {
                                 "type": "string",
-                                "description": "Current order status",
+                                "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
                                 "enum": [
                                     "open",
                                     "filled",
-                                    "cancelled",
-                                    "inactive"
+                                    "cancelled"
                                 ]
                             },
                             "filled_amount": {
@@ -1664,12 +1576,12 @@ const toolsData = [
                         "desc": "Sort order by date (ASC, DESC)",
                         "required": false
                     },
-                    "start_time": {
+                    "start_date": {
                         "type": "string",
                         "desc": "Filter trades from this date (ISO 8601 format)",
                         "required": false
                     },
-                    "end_time": {
+                    "end_date": {
                         "type": "string",
                         "desc": "Filter trades until this date (ISO 8601 format)",
                         "required": false
@@ -1870,7 +1782,7 @@ const toolsData = [
             {
                 "name": "pro_get_order_details",
                 "type": "READ",
-                "desc": "Gets detailed information of a specific Pro order. Returns order type, trading pair, side, amount, price, status, filled amount, creation time, and execution details. Use pro_get_open_orders or pro_get_trades first to get the order ID.",
+                "desc": "Gets detailed information of a specific Pro order. Returns order type, trading pair, side, amount, price, status, filled amount, creation time, and execution details. Use pro_get_open_orders or pro_get_trades first to get the order ID. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired).",
                 "args": {
                     "order_id": {
                         "type": "string",
@@ -1935,12 +1847,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
                             "enum": [
                                 "open",
                                 "filled",
-                                "cancelled",
-                                "inactive"
+                                "cancelled"
                             ]
                         },
                         "filled_amount": {
@@ -1969,7 +1880,7 @@ const toolsData = [
             {
                 "name": "pro_create_order",
                 "type": "WRITE",
-                "desc": "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status.",
+                "desc": "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired).",
                 "args": {
                     "pair": {
                         "type": "string",
@@ -2066,12 +1977,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
                             "enum": [
                                 "open",
                                 "filled",
-                                "cancelled",
-                                "inactive"
+                                "cancelled"
                             ]
                         },
                         "created_at": {
@@ -2095,7 +2005,7 @@ const toolsData = [
             {
                 "name": "pro_cancel_order",
                 "type": "WRITE",
-                "desc": "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled.",
+                "desc": "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired).",
                 "args": {
                     "order_id": {
                         "type": "string",
@@ -2125,12 +2035,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
                             "enum": [
                                 "open",
                                 "filled",
-                                "cancelled",
-                                "inactive"
+                                "cancelled"
                             ]
                         },
                         "message": {
@@ -2189,7 +2098,7 @@ const toolsData = [
             {
                 "name": "pro_deposit",
                 "type": "WRITE",
-                "desc": "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit.",
+                "desc": "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
                 "args": {
                     "symbol": {
                         "type": "string",
@@ -2236,12 +2145,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Transfer status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)",
                             "enum": [
-                                "open",
-                                "filled",
-                                "cancelled",
-                                "inactive"
+                                "pending",
+                                "completed",
+                                "failed"
                             ]
                         },
                         "message": {
@@ -2261,7 +2169,7 @@ const toolsData = [
             {
                 "name": "pro_withdraw",
                 "type": "WRITE",
-                "desc": "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal.",
+                "desc": "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
                 "args": {
                     "symbol": {
                         "type": "string",
@@ -2315,12 +2223,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Transfer status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)",
                             "enum": [
-                                "open",
-                                "filled",
-                                "cancelled",
-                                "inactive"
+                                "pending",
+                                "completed",
+                                "failed"
                             ]
                         },
                         "message": {
@@ -2613,7 +2520,7 @@ const toolsData = [
             {
                 "name": "pro_get_candles",
                 "type": "READ",
-                "desc": "Gets OHLCV (Open, High, Low, Close, Volume) candles for Trading Pro. Requires trading pair (e.g., BTC-USD) and timeframe. Returns price data in specified timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M) with timestamp and date. Optional limit to control number of candles. Essential for technical analysis and charting. Response is a list of candles with metadata.",
+                "desc": "Gets OHLCV (Open, High, Low, Close, Volume) candles for Pro (Advanced Trading). Requires trading pair (e.g., BTC-USD) and timeframe. Returns price data in specified timeframe with timestamp and date. Optional limit to control number of candles. Essential for technical analysis and charting. Response is a list of candles with metadata.",
                 "args": {
                     "pair": {
                         "type": "string",
@@ -2622,8 +2529,19 @@ const toolsData = [
                     },
                     "timeframe": {
                         "type": "string",
-                        "desc": "Timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M)",
-                        "required": false
+                        "desc": "Candle duration",
+                        "required": false,
+                        "enum": [
+                            "1m",
+                            "5m",
+                            "15m",
+                            "30m",
+                            "1h",
+                            "4h",
+                            "1d",
+                            "1w",
+                            "1M"
+                        ]
                     },
                     "limit": {
                         "type": "number",
@@ -2712,7 +2630,7 @@ const toolsData = [
             {
                 "name": "earn_get_summary",
                 "type": "READ",
-                "desc": "View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn wallets, breakdown by symbol, and overall performance. Use this to see your total staking rewards.",
+                "desc": "View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn positions, breakdown by symbol, and overall performance. Use this to see your total staking rewards.",
                 "args": {},
                 "exampleArgs": {},
                 "response": {
@@ -2755,16 +2673,16 @@ const toolsData = [
                 }
             },
             {
-                "name": "earn_get_wallets",
+                "name": "earn_get_positions",
                 "type": "READ",
-                "desc": "List active Earn wallets/strategies. Returns an array of wallet objects containing: wallet_id (unique identifier), symbol (cryptocurrency symbol in uppercase), balance (current staking balance), strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_apy to get APY rates for each symbol.",
+                "desc": "List active Earn positions/strategies. Returns an array of position objects containing: position_id (unique identifier), symbol (cryptocurrency symbol in uppercase), balance (current staking balance), strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_apy to get APY rates for each symbol. Note: Positions represent money that is locked or generating yield (invested money), different from Pockets which represent liquid available funds.",
                 "args": {},
                 "exampleArgs": {},
                 "response": {
                     "request": {},
                     "result": [
                         {
-                            "wallet_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
+                            "position_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
                             "symbol": "B2M",
                             "balance": "25865004.93005867",
                             "strategy": "fixed",
@@ -2789,9 +2707,9 @@ const toolsData = [
                     "items": {
                         "type": "object",
                         "properties": {
-                            "wallet_id": {
+                            "position_id": {
                                 "type": "string",
-                                "description": "Earn wallet unique identifier"
+                                "description": "Earn position unique identifier"
                             },
                             "symbol": {
                                 "type": "string",
@@ -2845,7 +2763,7 @@ const toolsData = [
                             }
                         },
                         "required": [
-                            "wallet_id",
+                            "position_id",
                             "symbol",
                             "balance",
                             "strategy"
@@ -2854,25 +2772,25 @@ const toolsData = [
                 }
             },
             {
-                "name": "earn_get_wallet_details",
+                "name": "earn_get_position_details",
                 "type": "READ",
-                "desc": "Get detailed information of a specific Earn wallet. Returns wallet_id, symbol, balance, strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_wallets first to get the wallet ID. Use earn_get_apy to get APY rates.",
+                "desc": "Get detailed information of a specific Earn position. Returns position_id, symbol, balance, strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_positions first to get the position ID. Use earn_get_apy to get APY rates.",
                 "args": {
-                    "wallet_id": {
+                    "position_id": {
                         "type": "string",
-                        "desc": "Earn wallet UUID",
+                        "desc": "Earn position UUID",
                         "required": false
                     }
                 },
                 "exampleArgs": {
-                    "wallet_id": "earn-wallet-uuid-1234"
+                    "position_id": "earn-position-uuid-1234"
                 },
                 "response": {
                     "request": {
-                        "wallet_id": "earn-wallet-uuid-1234"
+                        "position_id": "earn-position-uuid-1234"
                     },
                     "result": {
-                        "wallet_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
+                        "position_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
                         "symbol": "B2M",
                         "balance": "25865004.93005867",
                         "strategy": "fixed",
@@ -2891,9 +2809,9 @@ const toolsData = [
                 "responseSchema": {
                     "type": "object",
                     "properties": {
-                        "wallet_id": {
+                        "position_id": {
                             "type": "string",
-                            "description": "Earn wallet unique identifier"
+                            "description": "Earn position unique identifier"
                         },
                         "symbol": {
                             "type": "string",
@@ -2937,17 +2855,17 @@ const toolsData = [
                         },
                         "created_at": {
                             "type": "string",
-                            "description": "ISO 8601 date/time when the wallet was created",
+                            "description": "ISO 8601 date/time when the position was created",
                             "format": "date-time"
                         },
                         "updated_at": {
                             "type": "string",
-                            "description": "ISO 8601 date/time when the wallet was last updated",
+                            "description": "ISO 8601 date/time when the position was last updated",
                             "format": "date-time"
                         }
                     },
                     "required": [
-                        "wallet_id",
+                        "position_id",
                         "symbol",
                         "balance",
                         "strategy"
@@ -2955,13 +2873,13 @@ const toolsData = [
                 }
             },
             {
-                "name": "earn_get_wallet_movements",
+                "name": "earn_get_position_movements",
                 "type": "READ",
-                "desc": "Get movement history of a specific Earn wallet. Returns movements with type (deposit, withdrawal, reward, fee), amounts, dates, and status. Optional limit and offset for pagination. Use earn_get_wallets first to get the wallet ID. Response is a paginated list with metadata.",
+                "desc": "Get movement history of a specific Earn position. Returns movements with type (deposit, withdrawal, reward, fee), amounts, dates, and status. Optional limit and offset for pagination. Use earn_get_positions first to get the position ID. Response is a paginated list with metadata.",
                 "args": {
-                    "wallet_id": {
+                    "position_id": {
                         "type": "string",
-                        "desc": "Earn wallet UUID",
+                        "desc": "Earn position UUID",
                         "required": false
                     },
                     "limit": {
@@ -2976,13 +2894,13 @@ const toolsData = [
                     }
                 },
                 "exampleArgs": {
-                    "wallet_id": "earn-wallet-uuid-1234",
+                    "position_id": "earn-position-uuid-1234",
                     "limit": 10,
                     "offset": 0
                 },
                 "response": {
                     "request": {
-                        "wallet_id": "earn-wallet-uuid-1234",
+                        "position_id": "earn-position-uuid-1234",
                         "limit": 10,
                         "offset": 0
                     },
@@ -2993,7 +2911,7 @@ const toolsData = [
                             "symbol": "BTC",
                             "amount": "0.1",
                             "created_at": "2024-11-25T10:30:00.000Z",
-                            "wallet_id": "earn123-...",
+                            "position_id": "earn123-...",
                             "status": "completed"
                         }
                     ],
@@ -3036,9 +2954,9 @@ const toolsData = [
                                 "description": "ISO 8601 date/time when the resource was created",
                                 "format": "date-time"
                             },
-                            "wallet_id": {
+                            "position_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the Earn wallet"
+                                "description": "Unique identifier (UUID) for the Earn position"
                             },
                             "status": {
                                 "type": "string",
@@ -3057,7 +2975,7 @@ const toolsData = [
                             "symbol",
                             "amount",
                             "created_at",
-                            "wallet_id",
+                            "position_id",
                             "status"
                         ]
                     }
@@ -3066,7 +2984,7 @@ const toolsData = [
             {
                 "name": "earn_get_movements",
                 "type": "READ",
-                "desc": "Get movement history across all Earn wallets. Returns movements with type (deposit, reward, withdrawal, discount-funds, discount-rewards, fee), amounts, dates, rates, source, and issuer information. Supports filtering by symbol, wallet, type (deposit, reward, withdrawal, discount-funds, discount-rewards), date range, and pagination. All parameters are optional. Response is a paginated list with metadata.",
+                "desc": "Get movement history across all Earn positions. Returns movements with type (deposit, reward, withdrawal, discount-funds, discount-rewards, fee), amounts, dates, rates, source, and issuer information. Supports filtering by symbol, position_id, type (deposit, reward, withdrawal, discount-funds, discount-rewards), date range, and pagination. All parameters are optional. Response is a paginated list with metadata.",
                 "args": {
                     "user_symbol": {
                         "type": "string",
@@ -3083,17 +3001,17 @@ const toolsData = [
                         "desc": "Filter by related symbol",
                         "required": false
                     },
-                    "wallet_id": {
+                    "position_id": {
                         "type": "string",
-                        "desc": "Filter by Earn wallet UUID",
+                        "desc": "Filter by Earn position UUID",
                         "required": false
                     },
-                    "from": {
+                    "start_date": {
                         "type": "string",
                         "desc": "Start date-time (ISO 8601)",
                         "required": false
                     },
-                    "to": {
+                    "end_date": {
                         "type": "string",
                         "desc": "End date-time (ISO 8601)",
                         "required": false
@@ -3135,7 +3053,7 @@ const toolsData = [
                             "id": "mov123-...",
                             "type": "deposit",
                             "created_at": "2024-11-25T10:30:00.000Z",
-                            "wallet_id": "earn123-...",
+                            "position_id": "earn123-...",
                             "amount": {
                                 "value": "0.1",
                                 "symbol": "BTC"
@@ -3152,7 +3070,7 @@ const toolsData = [
                                 "symbol": "EUR"
                             },
                             "source": {
-                                "wallet_id": "pocket123-...",
+                                "pocket_id": "pocket123-...",
                                 "symbol": "BTC"
                             },
                             "issuer": {
@@ -3195,9 +3113,9 @@ const toolsData = [
                                 "description": "ISO 8601 date/time when the resource was created",
                                 "format": "date-time"
                             },
-                            "wallet_id": {
+                            "position_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the Earn wallet"
+                                "description": "Unique identifier (UUID) for the Earn position"
                             },
                             "amount": {
                                 "type": "object",
@@ -3237,7 +3155,7 @@ const toolsData = [
             {
                 "name": "earn_get_movements_summary",
                 "type": "READ",
-                "desc": "Get summary statistics of Earn movements filtered by type. Valid type values: deposit, reward, withdrawal, discount-funds, discount-rewards. Returns total count, total amounts, and aggregated data for the specified movement type across all Earn wallets.",
+                "desc": "Get summary statistics of Earn movements filtered by type. Valid type values: deposit, reward, withdrawal, discount-funds, discount-rewards. Returns total count, total amounts, and aggregated data for the specified movement type across all Earn positions.",
                 "args": {
                     "type": {
                         "type": "string",
@@ -3372,7 +3290,7 @@ const toolsData = [
             {
                 "name": "earn_get_rewards_config",
                 "type": "READ",
-                "desc": "Get global rewards configuration for Earn/Staking. Returns wallet rewards configuration including wallet_id, user_id, symbol, lock_period_id, reward_symbol, and timestamps. Use this to understand reward configuration for all wallets.",
+                "desc": "Get global rewards configuration for Earn/Staking. Returns position rewards configuration including position_id, user_id, symbol, lock_period_id, reward_symbol, and timestamps. Use this to understand reward configuration for all positions.",
                 "args": {},
                 "exampleArgs": {},
                 "response": {
@@ -3406,9 +3324,9 @@ const toolsData = [
                     "items": {
                         "type": "object",
                         "properties": {
-                            "wallet_id": {
+                            "position_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the Earn wallet"
+                                "description": "Unique identifier (UUID) for the Earn position"
                             },
                             "user_id": {
                                 "type": "string",
@@ -3439,7 +3357,7 @@ const toolsData = [
                             }
                         },
                         "required": [
-                            "wallet_id",
+                            "position_id",
                             "user_id",
                             "symbol",
                             "reward_symbol",
@@ -3450,22 +3368,22 @@ const toolsData = [
                 }
             },
             {
-                "name": "earn_get_wallet_rewards_config",
+                "name": "earn_get_position_rewards_config",
                 "type": "READ",
-                "desc": "Get rewards configuration for a specific Earn wallet. Returns reward calculation rules, APY details, and wallet-specific staking parameters. Use earn_get_wallets first to get the wallet ID.",
+                "desc": "Get rewards configuration for a specific Earn position. Returns reward calculation rules, APY details, and position-specific staking parameters. Use earn_get_positions first to get the position ID.",
                 "args": {
-                    "wallet_id": {
+                    "position_id": {
                         "type": "string",
-                        "desc": "Earn wallet UUID",
+                        "desc": "Earn position UUID",
                         "required": true
                     }
                 },
                 "exampleArgs": {
-                    "wallet_id": "earn-wallet-uuid-1234"
+                    "position_id": "earn-position-uuid-1234"
                 },
                 "response": {
                     "request": {
-                        "wallet_id": "earn-wallet-uuid-1234"
+                        "position_id": "earn-position-uuid-1234"
                     },
                     "result": {
                         "wallet_id": "f482981e-6f8e-4d43-841d-8585a1021f94",
@@ -3480,9 +3398,9 @@ const toolsData = [
                 "responseSchema": {
                     "type": "object",
                     "properties": {
-                        "wallet_id": {
+                        "position_id": {
                             "type": "string",
-                            "description": "Unique identifier (UUID) for the Earn wallet"
+                            "description": "Unique identifier (UUID) for the Earn position"
                         },
                         "user_id": {
                             "type": "string",
@@ -3523,13 +3441,13 @@ const toolsData = [
                 }
             },
             {
-                "name": "earn_get_wallet_rewards_summary",
+                "name": "earn_get_position_rewards_summary",
                 "type": "READ",
-                "desc": "Get rewards summary for a specific Earn wallet. Returns reward symbol, reward amount, and converted reward amount in fiat currency. Use earn_get_wallets first to get the wallet ID. Optional user_currency parameter to specify the fiat currency for conversion (default: EUR).",
+                "desc": "Get rewards summary for a specific Earn position. Returns reward symbol, reward amount, and converted reward amount in fiat currency. Use earn_get_positions first to get the position ID. Optional user_currency parameter to specify the fiat currency for conversion (default: EUR).",
                 "args": {
-                    "wallet_id": {
+                    "position_id": {
                         "type": "string",
-                        "desc": "Earn wallet UUID",
+                        "desc": "Earn position UUID",
                         "required": true
                     },
                     "user_currency": {
@@ -3539,12 +3457,12 @@ const toolsData = [
                     }
                 },
                 "exampleArgs": {
-                    "wallet_id": "earn-wallet-uuid-1234",
+                    "position_id": "earn-position-uuid-1234",
                     "user_currency": "EUR"
                 },
                 "response": {
                     "request": {
-                        "wallet_id": "earn-wallet-uuid-1234",
+                        "position_id": "earn-position-uuid-1234",
                         "user_currency": "EUR"
                     },
                     "result": {
@@ -3585,7 +3503,7 @@ const toolsData = [
             {
                 "name": "earn_deposit",
                 "type": "WRITE",
-                "desc": "Deposit funds from Simple Wallet pocket to Earn (Staking). Funds will start earning rewards based on the asset's APY. Returns operation details with type: deposit. Use wallet_get_pockets to find your pocket ID and earn_get_wallets to see available Earn strategies.",
+                "desc": "Deposit funds from Simple Wallet pocket to Earn (Staking). Funds will start earning rewards based on the asset's APY. Returns operation details with type: deposit. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
                 "args": {
                     "pocket_id": {
                         "type": "string",
@@ -3649,12 +3567,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Operation status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)",
                             "enum": [
-                                "open",
-                                "filled",
-                                "cancelled",
-                                "inactive"
+                                "pending",
+                                "completed",
+                                "failed"
                             ]
                         },
                         "message": {
@@ -3675,7 +3592,7 @@ const toolsData = [
             {
                 "name": "earn_withdraw",
                 "type": "WRITE",
-                "desc": "Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Funds will stop earning rewards after withdrawal. Returns operation details with type: withdrawal. Use earn_get_wallets to check your Earn balance.",
+                "desc": "Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Funds will stop earning rewards after withdrawal. Returns operation details with type: withdrawal. Use earn_get_positions to check your Earn balance. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
                 "args": {
                     "pocket_id": {
                         "type": "string",
@@ -3739,12 +3656,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Operation status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)",
                             "enum": [
-                                "open",
-                                "filled",
-                                "cancelled",
-                                "inactive"
+                                "pending",
+                                "completed",
+                                "failed"
                             ]
                         },
                         "message": {
@@ -4050,7 +3966,7 @@ const toolsData = [
             {
                 "name": "loan_get_movements",
                 "type": "READ",
-                "desc": "Get loan movement history. Returns movements with type (payment, interest, guarantee_change, liquidation, other), amounts, dates, and status. Optional order_id filter to see movements for a specific loan. Use limit and offset for pagination. Response is a paginated list with metadata.",
+                "desc": "Get loan movement history. Returns movements with type (payment, interest, guarantee_change, liquidation, other), amounts, dates, and status. Optional order_id filter to see movements for a specific loan. Use limit and offset for pagination. Response is a paginated list with metadata. Movement status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
                 "args": {
                     "order_id": {
                         "type": "string",
@@ -4136,12 +4052,11 @@ const toolsData = [
                             },
                             "status": {
                                 "type": "string",
-                                "description": "Current order status",
+                                "description": "Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)",
                                 "enum": [
-                                    "open",
-                                    "filled",
-                                    "cancelled",
-                                    "inactive"
+                                    "pending",
+                                    "completed",
+                                    "failed"
                                 ]
                             }
                         },
@@ -4291,12 +4206,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
                             "enum": [
                                 "open",
                                 "filled",
-                                "cancelled",
-                                "inactive"
+                                "cancelled"
                             ]
                         },
                         "guarantee_symbol": {
@@ -4361,41 +4275,55 @@ const toolsData = [
             {
                 "name": "loan_create",
                 "type": "WRITE",
-                "desc": "Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). The guarantee amount determines the maximum loan amount based on LTV (Loan To Value) ratio. Use loan_get_simulation first to calculate optimal amounts. Returns loan order details with status.",
+                "desc": "Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Specify amount_type to determine calculation mode: 'fixed_collateral' (guarantee amount is fixed, loan amount is calculated) or 'fixed_loan' (loan amount is fixed, guarantee amount is calculated). This avoids mathematical errors where the model tries to guess the exact LTV manually. Returns loan order details with status.",
                 "args": {
                     "guarantee_symbol": {
                         "type": "string",
                         "desc": "Guarantee cryptocurrency symbol (e.g., BTC)",
-                        "required": false
-                    },
-                    "guarantee_amount": {
-                        "type": "string",
-                        "desc": "Guarantee amount",
-                        "required": false
+                        "required": true
                     },
                     "loan_symbol": {
                         "type": "string",
                         "desc": "Loan currency symbol (e.g., USDC, EURC, EUR). Can be any supported currency.",
+                        "required": true
+                    },
+                    "amount_type": {
+                        "type": "string",
+                        "desc": "Calculation mode: 'fixed_collateral' means guarantee amount is fixed and loan amount will be calculated; 'fixed_loan' means loan amount is fixed and guarantee amount will be calculated",
+                        "required": true,
+                        "enum": [
+                            "fixed_collateral",
+                            "fixed_loan"
+                        ]
+                    },
+                    "guarantee_amount": {
+                        "type": "string",
+                        "desc": "Guarantee amount (required when amount_type is 'fixed_collateral')",
                         "required": false
                     },
                     "loan_amount": {
                         "type": "string",
-                        "desc": "Loan amount",
+                        "desc": "Loan amount (required when amount_type is 'fixed_loan')",
+                        "required": false
+                    },
+                    "user_symbol": {
+                        "type": "string",
+                        "desc": "User's fiat currency symbol for conversion (e.g., EUR, USD). Optional, defaults to EUR. Used internally for calculations.",
                         "required": false
                     }
                 },
                 "exampleArgs": {
                     "guarantee_symbol": "BTC",
-                    "guarantee_amount": "0.5",
                     "loan_symbol": "EUR",
-                    "loan_amount": "15000.00"
+                    "amount_type": "fixed_collateral",
+                    "guarantee_amount": "0.5"
                 },
                 "response": {
                     "request": {
                         "guarantee_symbol": "BTC",
-                        "guarantee_amount": "0.5",
                         "loan_symbol": "EUR",
-                        "loan_amount": "15000.00"
+                        "amount_type": "fixed_collateral",
+                        "guarantee_amount": "0.5"
                     },
                     "result": {
                         "id": "loan123-...",
@@ -4418,12 +4346,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
                             "enum": [
                                 "open",
                                 "filled",
-                                "cancelled",
-                                "inactive"
+                                "cancelled"
                             ]
                         },
                         "guarantee_symbol": {
@@ -4581,12 +4508,11 @@ const toolsData = [
                         },
                         "status": {
                             "type": "string",
-                            "description": "Current order status",
+                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
                             "enum": [
                                 "open",
                                 "filled",
-                                "cancelled",
-                                "inactive"
+                                "cancelled"
                             ]
                         },
                         "message": {

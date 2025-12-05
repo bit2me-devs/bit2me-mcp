@@ -21,12 +21,14 @@ export const VERSION = packageJson.version;
 import { getConfig } from "./config.js";
 import { initLogger, logger } from "./utils/logger.js";
 import { marketTools, handleMarketTool } from "./tools/market.js";
+import { brokerTools, handleBrokerTool } from "./tools/broker.js";
 import { aggregationTools, handleAggregationTool } from "./tools/aggregation.js";
 import { walletTools, handleWalletTool } from "./tools/wallet.js";
 import { earnTools, handleEarnTool } from "./tools/earn.js";
 import { loanTools, handleLoanTool } from "./tools/loan.js";
 import { proTools, handleProTool } from "./tools/pro.js";
 import { accountTools, handleAccountTool } from "./tools/account.js";
+import { healthTools, handleHealthTool } from "./tools/health.js";
 import { prompts, handleGetPrompt } from "./prompts/index.js";
 
 // --- STARTUP VALIDATION ---
@@ -64,12 +66,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
         tools: [
             ...marketTools,
+            ...brokerTools,
             ...walletTools,
             ...earnTools,
             ...loanTools,
             ...proTools,
             ...accountTools,
             ...aggregationTools,
+            ...healthTools,
         ],
     };
 });
@@ -93,6 +97,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (marketTools.find((t) => t.name === name)) {
             return await handleMarketTool(name, args);
         }
+        if (brokerTools.find((t) => t.name === name)) {
+            return await handleBrokerTool(name, args);
+        }
         if (aggregationTools.find((t) => t.name === name)) {
             return await handleAggregationTool(name, args);
         }
@@ -110,6 +117,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         if (accountTools.find((t) => t.name === name)) {
             return await handleAccountTool(name, args);
+        }
+        if (healthTools.find((t) => t.name === name)) {
+            return await handleHealthTool(name, args);
         }
 
         throw new Error(`Unknown tool: ${name}`);

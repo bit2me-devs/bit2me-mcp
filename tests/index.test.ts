@@ -26,6 +26,7 @@ vi.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
 }));
 
 vi.mock("../src/config.js", () => ({
+    BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
     getConfig: vi.fn(() => ({
         BIT2ME_API_KEY: "test-key",
         BIT2ME_API_SECRET: "test-secret",
@@ -47,8 +48,12 @@ vi.mock("../src/utils/logger.js", () => ({
 
 // Mock all tool modules
 vi.mock("../src/tools/market.js", () => ({
-    marketTools: [{ name: "market_get_data" }, { name: "market_get_ticker" }],
+    marketTools: [{ name: "market_get_assets_details" }],
     handleMarketTool: vi.fn(),
+}));
+vi.mock("../src/tools/broker.js", () => ({
+    brokerTools: [{ name: "broker_get_price" }, { name: "broker_get_info" }],
+    handleBrokerTool: vi.fn(),
 }));
 vi.mock("../src/tools/aggregation.js", () => ({ aggregationTools: [], handleAggregationTool: vi.fn() }));
 vi.mock("../src/tools/wallet.js", () => ({ walletTools: [], handleWalletTool: vi.fn() }));
@@ -94,8 +99,9 @@ describe("Server Entry Point", () => {
         const handler = listToolsHandler || mockSetRequestHandler.mock.calls[0][1];
         const result = await handler();
         expect(result.tools).toBeDefined();
-        expect(result.tools).toContainEqual({ name: "market_get_data" });
-        expect(result.tools).toContainEqual({ name: "market_get_ticker" });
+        expect(result.tools).toContainEqual({ name: "market_get_assets_details" });
+        expect(result.tools).toContainEqual({ name: "broker_get_price" });
+        expect(result.tools).toContainEqual({ name: "broker_get_info" });
     });
 
     it("should handle ListPrompts request", async () => {
@@ -174,14 +180,17 @@ describe("Server Entry Point", () => {
         vi.mocked(handleMarketTool).mockResolvedValue({ content: [{ type: "text", text: "success" }] });
 
         // Test successful tool call
+        const { handleBrokerTool } = await import("../src/tools/broker.js");
+        vi.mocked(handleBrokerTool).mockResolvedValue({ content: [{ type: "text", text: "success" }] });
+
         const result = await callToolHandler({
             params: {
-                name: "market_get_data",
+                name: "broker_get_info",
                 arguments: { base_symbol: "BTC" },
             },
         });
 
-        expect(handleMarketTool).toHaveBeenCalledWith("market_get_data", { base_symbol: "BTC" });
+        expect(handleBrokerTool).toHaveBeenCalledWith("broker_get_info", { base_symbol: "BTC" });
         expect(result).toEqual({ content: [{ type: "text", text: "success" }] });
     });
 
@@ -213,15 +222,18 @@ describe("Server Entry Point", () => {
         const { handleMarketTool } = await import("../src/tools/market.js");
         vi.mocked(handleMarketTool).mockRejectedValue(new Error("Tool failed"));
 
+        const { handleBrokerTool } = await import("../src/tools/broker.js");
+        vi.mocked(handleBrokerTool).mockRejectedValue(new Error("Tool failed"));
+
         const result = await callToolHandler({
             params: {
-                name: "market_get_data",
+                name: "broker_get_info",
                 arguments: {},
             },
         });
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toContain("Error executing market_get_data: Tool failed");
+        expect(result.content[0].text).toContain("Error executing broker_get_info: Tool failed");
     });
 
     it("should handle startup errors gracefully", async () => {

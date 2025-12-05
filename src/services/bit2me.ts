@@ -38,6 +38,9 @@ export function generateSignature(nonce: number, endpoint: string, data: any, se
 }
 
 import { rateLimiter } from "../utils/rate-limiter.js";
+import { endpointRateLimiter } from "../utils/rate-limiter-config.js";
+import { apiCircuitBreaker, CircuitState } from "../utils/circuit-breaker.js";
+import { getCorrelationId } from "../utils/context.js";
 
 // ============================================================================
 // API REQUEST HANDLING
@@ -76,8 +79,31 @@ export async function bit2meRequest<T = any>(
     const baseDelay = appConfig.RETRY_BASE_DELAY;
     const timeout = timeoutOverride ?? appConfig.REQUEST_TIMEOUT;
 
-    // Rate Limiting: Wait for token before making request
-    await rateLimiter.waitForToken();
+    // Circuit Breaker: Check if circuit allows request
+    if (!apiCircuitBreaker.canExecute()) {
+        const circuitState = apiCircuitBreaker.getState();
+        const stats = apiCircuitBreaker.getStats();
+        logger.error("Circuit breaker is OPEN, request rejected", {
+            correlationId: getCorrelationId(),
+            endpoint,
+            circuitState,
+            stats,
+        });
+        throw new Bit2MeAPIError(
+            503,
+            `Service temporarily unavailable. Circuit breaker is ${circuitState}. Please try again later.`,
+            endpoint
+        );
+    }
+
+    // Rate Limiting: Wait for token before making request (endpoint-specific)
+    // Use endpoint-specific rate limiter if available, fallback to global
+    try {
+        await endpointRateLimiter.waitForToken(endpoint);
+    } catch {
+        // Fallback to global rate limiter if endpoint-specific fails
+        await rateLimiter.waitForToken();
+    }
 
     const apiKey = config.BIT2ME_API_KEY;
     const apiSecret = config.BIT2ME_API_SECRET;
@@ -137,6 +163,10 @@ export async function bit2meRequest<T = any>(
         logger.debug(`API Request: ${method} ${urlToSign}`);
         const response = await axios(requestConfig);
         logger.debug(`API Response: ${method} ${urlToSign} - Status ${response.status}`);
+        
+        // Record success in circuit breaker
+        apiCircuitBreaker.recordSuccess();
+        
         return response.data;
     } catch (error: unknown) {
         const axiosError = error as AxiosError;
@@ -152,6 +182,12 @@ export async function bit2meRequest<T = any>(
             message: errorMsg,
             endpoint: urlToSign,
         });
+
+        // Record failure in circuit breaker (except for 429 which is handled separately)
+        // Don't record 429 as a failure since it's a rate limit, not a service failure
+        if (status !== 429) {
+            apiCircuitBreaker.recordFailure();
+        }
 
         // Implement exponential backoff for rate limiting
         if (status === 429 && maxRetries > 0) {

@@ -144,7 +144,7 @@ export interface WalletMovementResponse {
     date: string;
     type: string;
     subtype?: string;
-    status: "pending" | "completed" | "failed" | "cancelled" | "unknown";
+    status: "pending" | "completed" | "failed";
     amount: string;
     symbol: string;
     origin?: {
@@ -183,21 +183,14 @@ export interface WalletNetworkResponse {
 
 export interface WalletCardResponse {
     card_id: string;
-    user_id: string;
-    source: string;
-    source_id: string;
     type: string;
-    paylands_token: string;
     brand: string;
     country: string;
-    holder: string;
     last4: string;
     expire_month: string;
     expire_year: string;
     alias: string;
     created_at: string;
-    verified: boolean;
-    invalid: boolean;
 }
 
 // ============================================================================
@@ -214,8 +207,8 @@ export interface EarnSummaryResponse {
     total_rewards: string;
 }
 
-export interface EarnWalletResponse {
-    wallet_id: string;
+export interface EarnPositionResponse {
+    position_id: string;
     symbol: string;
     balance: string;
     strategy: string;
@@ -229,8 +222,9 @@ export interface EarnWalletResponse {
     };
     created_at?: string;
     updated_at?: string;
-    // Keep id for backward compatibility
+    // Keep id and wallet_id for backward compatibility
     id?: string;
+    wallet_id?: string;
     total_balance?: string; // v2/earn/wallets has totalBalance
 }
 
@@ -252,27 +246,29 @@ export interface EarnAPYResponse {
 }
 
 /**
- * Earn movement for a specific wallet
+ * Earn movement for a specific position
  * API: GET /v1/earn/wallets/{walletId}/movements
  */
-export interface EarnWalletMovementResponse {
+export interface EarnPositionMovementResponse {
     id: string;
     type: "deposit" | "withdrawal" | "reward" | "fee";
     symbol: string;
     amount: string;
     created_at: string;
-    wallet_id: string;
+    position_id: string;
+    // Keep wallet_id for backward compatibility
+    wallet_id?: string;
 }
 
 /**
- * Earn movement (global, all wallets)
+ * Earn movement (global, all positions)
  * API: GET /v2/earn/movements
  */
 export interface EarnMovementResponse {
     id: string;
     type: "deposit" | "reward" | "withdrawal" | "discount-funds" | "discount-rewards" | "fee";
     created_at: string;
-    wallet_id: string;
+    position_id: string;
     amount: {
         value: string;
         symbol: string;
@@ -289,7 +285,7 @@ export interface EarnMovementResponse {
         symbol: string;
     };
     source?: {
-        wallet_id: string;
+        pocket_id: string;
         symbol: string;
     };
     issuer?: {
@@ -297,6 +293,8 @@ export interface EarnMovementResponse {
         name: string;
         integrator: string;
     };
+    // Keep wallet_id for backward compatibility
+    wallet_id?: string;
 }
 
 // ============================================================================
@@ -374,7 +372,7 @@ export interface ProOrderResponse {
     pair: string;
     side: "buy" | "sell";
     type: "limit" | "market" | "stop-limit";
-    status: "pending" | "active" | "partial" | "completed" | "cancelled" | "expired";
+    status: "open" | "filled" | "cancelled";
     price?: string;
     amount: string;
     filled: string;
@@ -484,7 +482,7 @@ export interface WalletMovementDetailsResponse {
     date: string;
     type: "deposit" | "withdrawal" | "swap" | "purchase" | "transfer" | "fee" | "other";
     subtype?: string;
-    status: "pending" | "completed" | "failed" | "cancelled" | "unknown";
+    status: "pending" | "completed" | "failed";
     amount: string;
     symbol: string;
     origin?: {
@@ -509,8 +507,8 @@ export interface WalletMovementDetailsResponse {
 // ADDITIONAL EARN TOOL RESPONSES
 // ============================================================================
 
-export interface EarnWalletDetailsResponse {
-    wallet_id: string;
+export interface EarnPositionDetailsResponse {
+    position_id: string;
     symbol: string;
     balance: string;
     strategy: string;
@@ -524,8 +522,9 @@ export interface EarnWalletDetailsResponse {
     };
     created_at?: string;
     updated_at?: string;
-    // Keep id for backward compatibility
+    // Keep id and wallet_id for backward compatibility
     id?: string;
+    wallet_id?: string;
     total_balance?: string;
 }
 
@@ -541,34 +540,38 @@ export interface EarnAssetsResponse {
 }
 
 export interface EarnRewardsConfigResponse {
-    wallet_id: string;
+    position_id: string;
     user_id: string;
     symbol: string;
     lock_period_id: string | null;
     reward_symbol: string;
     created_at: string;
     updated_at: string;
+    // Keep wallet_id for backward compatibility
+    wallet_id?: string;
 }
 
 /**
- * Earn wallet rewards configuration
+ * Earn position rewards configuration
  * API: GET /v1/earn/wallets/{walletId}/rewards/config
  */
-export interface EarnWalletRewardsConfigResponse {
-    wallet_id: string;
+export interface EarnPositionRewardsConfigResponse {
+    position_id: string;
     user_id: string;
     symbol: string;
     lock_period_id: string | null;
     reward_symbol: string;
     created_at: string;
     updated_at: string;
+    // Keep wallet_id for backward compatibility
+    wallet_id?: string;
 }
 
 /**
- * Earn wallet rewards summary
+ * Earn position rewards summary
  * API: GET /v1/earn/wallets/{walletId}/rewards/summary
  */
-export interface EarnWalletRewardsSummaryResponse {
+export interface EarnPositionRewardsSummaryResponse {
     reward_symbol: string;
     reward_amount: string;
     reward_converted_symbol: string;
@@ -646,7 +649,7 @@ export interface ProDepositResponse {
     id: string;
     symbol: string;
     amount: string;
-    status: string;
+    status: "pending" | "completed" | "failed";
     message: string;
 }
 
@@ -654,7 +657,7 @@ export interface ProWithdrawResponse {
     id: string;
     symbol: string;
     amount: string;
-    status: string;
+    status: "pending" | "completed" | "failed";
     message: string;
 }
 
@@ -663,7 +666,7 @@ export interface EarnOperationResponse {
     type: "deposit" | "withdrawal";
     symbol: string;
     amount: string;
-    status: string;
+    status: "pending" | "completed" | "failed";
     message: string;
 }
 

@@ -4,16 +4,16 @@ import { handleEarnTool } from "../../src/tools/earn.js";
 
 describeE2E("E2E: Earn/Staking Tools", () => {
     it(
-        "should get earn wallets",
+        "should get earn positions",
         async () => {
-            const result = await handleEarnTool("earn_get_wallets", {});
-            const wallets = JSON.parse(result.content[0].text);
+            const result = await handleEarnTool("earn_get_positions", {});
+            const positions = JSON.parse(result.content[0].text);
 
-            expect(Array.isArray(wallets)).toBe(true);
-            if (wallets.length > 0) {
-                expect(wallets[0]).toHaveProperty("id");
-                expect(wallets[0]).toHaveProperty("currency");
-                expect(wallets[0]).toHaveProperty("balance");
+            expect(Array.isArray(positions)).toBe(true);
+            if (positions.length > 0) {
+                expect(positions[0]).toHaveProperty("position_id");
+                expect(positions[0]).toHaveProperty("symbol");
+                expect(positions[0]).toHaveProperty("balance");
             }
         },
         E2E_TIMEOUT
@@ -65,49 +65,48 @@ describeE2E("E2E: Earn/Staking Tools", () => {
     );
 
     it(
-        "should get earn wallet details",
+        "should get earn position details",
         async () => {
-            // First get earn wallets
-            const walletsResult = await handleEarnTool("earn_get_wallets", {});
-            const wallets = JSON.parse(walletsResult.content[0].text);
+            // First get earn positions
+            const positionsResult = await handleEarnTool("earn_get_positions", {});
+            const positions = JSON.parse(positionsResult.content[0].text);
 
-            if (wallets.length === 0) {
-                console.warn("⚠️ Skipping earn wallet details test - no earn wallets found");
+            if (positions.length === 0) {
+                console.warn("⚠️ Skipping earn position details test - no earn positions found");
                 return;
             }
 
-            const walletId = wallets[0].id;
+            const positionId = positions[0].position_id || positions[0].id;
 
-            // Get wallet details
-            const result = await handleEarnTool("earn_get_wallet_details", { wallet_id: walletId });
+            // Get position details
+            const result = await handleEarnTool("earn_get_position_details", { position_id: positionId });
             const details = JSON.parse(result.content[0].text);
 
-            expect(details).toHaveProperty("id", walletId);
-            expect(details).toHaveProperty("currency");
+            expect(details).toHaveProperty("position_id", positionId);
+            expect(details).toHaveProperty("symbol");
             expect(details).toHaveProperty("balance");
             expect(details).toHaveProperty("created_at");
-            expect(details).toHaveProperty("created_timestamp");
         },
         E2E_TIMEOUT
     );
 
     it(
-        "should get earn wallet movements",
+        "should get earn position movements",
         async () => {
-            // First get earn wallets
-            const walletsResult = await handleEarnTool("earn_get_wallets", {});
-            const wallets = JSON.parse(walletsResult.content[0].text);
+            // First get earn positions
+            const positionsResult = await handleEarnTool("earn_get_positions", {});
+            const positions = JSON.parse(positionsResult.content[0].text);
 
-            if (wallets.length === 0) {
-                console.warn("⚠️ Skipping earn wallet movements test - no earn wallets found");
+            if (positions.length === 0) {
+                console.warn("⚠️ Skipping earn position movements test - no earn positions found");
                 return;
             }
 
-            const walletId = wallets[0].id;
+            const positionId = positions[0].position_id || positions[0].id;
 
-            // Get movements for this wallet
-            const result = await handleEarnTool("earn_get_wallet_movements", {
-                wallet_id: walletId,
+            // Get movements for this position
+            const result = await handleEarnTool("earn_get_position_movements", {
+                position_id: positionId,
                 limit: 5,
             });
             const response = JSON.parse(result.content[0].text);
@@ -118,7 +117,7 @@ describeE2E("E2E: Earn/Staking Tools", () => {
             if (response.movements.length > 0) {
                 expect(response.movements[0]).toHaveProperty("type");
                 expect(response.movements[0]).toHaveProperty("amount");
-                expect(response.movements[0]).toHaveProperty("wallet_id");
+                expect(response.movements[0]).toHaveProperty("position_id");
             }
         },
         E2E_TIMEOUT
@@ -127,7 +126,7 @@ describeE2E("E2E: Earn/Staking Tools", () => {
     it(
         "should get earn movements (global)",
         async () => {
-            // Get all movements across all wallets
+            // Get all movements across all positions
             const result = await handleEarnTool("earn_get_movements", {
                 limit: 10,
             });

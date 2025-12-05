@@ -14,15 +14,15 @@ import {
     mapProformaResponse,
     mapEarnSummaryResponse,
     mapEarnAPYResponse,
-    mapEarnWalletsResponse,
+    mapEarnPositionsResponse,
     mapEarnMovementsResponse,
-    mapEarnWalletMovementsResponse,
-    mapEarnWalletDetailsResponse,
+    mapEarnPositionMovementsResponse,
+    mapEarnPositionDetailsResponse,
     mapEarnMovementsSummaryResponse,
     mapEarnAssetsResponse,
     mapEarnRewardsConfigResponse,
-    mapEarnWalletRewardsConfigResponse,
-    mapEarnWalletRewardsSummaryResponse,
+    mapEarnPositionRewardsConfigResponse,
+    mapEarnPositionRewardsSummaryResponse,
     mapLoanOrdersResponse,
     mapLoanMovementsResponse,
     mapLoanConfigResponse,
@@ -339,7 +339,7 @@ describe("Response Mappers", () => {
                     date: undefined,
                     type: undefined,
                     subtype: undefined,
-                    status: "unknown",
+                    status: "pending",
                     amount: "0",
                     symbol: "",
                     origin: undefined,
@@ -429,9 +429,9 @@ describe("Response Mappers", () => {
         });
 
         it("should map earn wallets response", () => {
-            expect(mapEarnWalletsResponse(null)).toEqual([]);
+            expect(mapEarnPositionsResponse(null)).toEqual([]);
             const valid = [{ id: "1", currency: "BTC", totalBalance: "1", strategy: "flexible", status: "active" }];
-            const result = mapEarnWalletsResponse(valid);
+            const result = mapEarnPositionsResponse(valid);
             expect(result).toHaveLength(1);
             expect(result[0]).toMatchObject({
                 id: "1",
@@ -446,7 +446,7 @@ describe("Response Mappers", () => {
 
         it("should map earn wallet movements response", () => {
             // API returns { total, data } structure for wallet-specific endpoint
-            expect(mapEarnWalletMovementsResponse(null)).toEqual({ total: 0, movements: [] });
+            expect(mapEarnPositionMovementsResponse(null)).toEqual({ total: 0, movements: [] });
             const valid = {
                 total: 1,
                 data: [
@@ -459,7 +459,7 @@ describe("Response Mappers", () => {
                     },
                 ],
             };
-            const result = mapEarnWalletMovementsResponse(valid);
+            const result = mapEarnPositionMovementsResponse(valid);
             expect(result.total).toBe(1);
             expect(result.movements).toHaveLength(1);
             expect(result.movements[0]).toMatchObject({
@@ -467,7 +467,7 @@ describe("Response Mappers", () => {
                 type: "deposit",
                 symbol: "BTC",
                 amount: "1",
-                wallet_id: "w1",
+                position_id: "w1",
             });
         });
 
@@ -499,14 +499,14 @@ describe("Response Mappers", () => {
             expect(result.movements[0]).toMatchObject({
                 id: "mov-123",
                 type: "deposit",
-                wallet_id: "wallet-789",
+                position_id: "wallet-789",
                 amount: { value: "1.5", symbol: "BTC" },
                 rate: {
                     amount: { value: "50000", symbol: "EUR" },
                     pair: "BTC-USD",
                 },
                 converted_amount: { value: "75000", symbol: "EUR" },
-                source: { wallet_id: "source-123", symbol: "EUR" },
+                source: { pocket_id: "source-123", symbol: "EUR" },
                 issuer: { id: "issuer-1", name: "Bit2Me", integrator: "bit2me" },
             });
             expect(result.movements[0].created_at).toBeTypeOf("string");
@@ -515,7 +515,7 @@ describe("Response Mappers", () => {
         });
 
         it("should map earn wallet details response", () => {
-            expect(() => mapEarnWalletDetailsResponse(null)).toThrow(ValidationError);
+            expect(() => mapEarnPositionDetailsResponse(null)).toThrow(ValidationError);
             const valid = {
                 id: "1",
                 currency: "BTC",
@@ -524,7 +524,7 @@ describe("Response Mappers", () => {
                 status: "active",
                 createdAt: "2023-01-01",
             };
-            const result = mapEarnWalletDetailsResponse(valid);
+            const result = mapEarnPositionDetailsResponse(valid);
             expect(result).toMatchObject({
                 id: "1",
                 symbol: "BTC",
@@ -564,8 +564,9 @@ describe("Response Mappers", () => {
                 createdAt: "2022-09-13T20:36:21.065Z",
                 updatedAt: "2025-07-02T13:37:26.141Z",
             };
-            expect(mapEarnRewardsConfigResponse(valid)).toEqual({
-                wallet_id: "d3841daf-b619-4903-838c-032f31fbd593",
+            const result = mapEarnRewardsConfigResponse(valid);
+            expect(result).toMatchObject({
+                position_id: "d3841daf-b619-4903-838c-032f31fbd593",
                 user_id: "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
                 symbol: "B3X",
                 lock_period_id: null,
@@ -573,10 +574,12 @@ describe("Response Mappers", () => {
                 created_at: "2022-09-13T20:36:21.065Z",
                 updated_at: "2025-07-02T13:37:26.141Z",
             });
+            // wallet_id should still be present for backward compatibility
+            expect(result).toHaveProperty("wallet_id", "d3841daf-b619-4903-838c-032f31fbd593");
         });
 
         it("should map earn wallet rewards config response", () => {
-            expect(() => mapEarnWalletRewardsConfigResponse(null)).toThrow(ValidationError);
+            expect(() => mapEarnPositionRewardsConfigResponse(null)).toThrow(ValidationError);
             const valid = {
                 walletId: "f482981e-6f8e-4d43-841d-8585a1021f94",
                 userId: "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
@@ -586,9 +589,9 @@ describe("Response Mappers", () => {
                 createdAt: "2025-04-23T04:00:32.551Z",
                 updatedAt: "2025-07-02T13:37:26.141Z",
             };
-            const result = mapEarnWalletRewardsConfigResponse(valid);
-            expect(result).toEqual({
-                wallet_id: "f482981e-6f8e-4d43-841d-8585a1021f94",
+            const result = mapEarnPositionRewardsConfigResponse(valid);
+            expect(result).toMatchObject({
+                position_id: "f482981e-6f8e-4d43-841d-8585a1021f94",
                 user_id: "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
                 symbol: "DOT",
                 lock_period_id: null,
@@ -596,10 +599,12 @@ describe("Response Mappers", () => {
                 created_at: "2025-04-23T04:00:32.551Z",
                 updated_at: "2025-07-02T13:37:26.141Z",
             });
+            // wallet_id should still be present for backward compatibility
+            expect(result).toHaveProperty("wallet_id", "f482981e-6f8e-4d43-841d-8585a1021f94");
         });
 
         it("should map earn wallet rewards summary response", () => {
-            expect(() => mapEarnWalletRewardsSummaryResponse(null)).toThrow(ValidationError);
+            expect(() => mapEarnPositionRewardsSummaryResponse(null)).toThrow(ValidationError);
             const valid = {
                 accumulatedRewards: [
                     {
@@ -612,7 +617,7 @@ describe("Response Mappers", () => {
                     amount: "46361.57588988",
                 },
             };
-            const result = mapEarnWalletRewardsSummaryResponse(valid);
+            const result = mapEarnPositionRewardsSummaryResponse(valid);
             expect(result).toEqual({
                 reward_symbol: "B2M",
                 reward_amount: "3861562.41527785",
@@ -880,7 +885,7 @@ describe("Response Mappers", () => {
                 pair: "BTC-USD",
                 side: "buy",
                 type: "limit",
-                status: "active",
+                status: "open",
                 price: "20000",
                 amount: "1",
                 filled: "0",

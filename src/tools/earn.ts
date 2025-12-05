@@ -4,15 +4,15 @@ import { bit2meRequest } from "../services/bit2me.js";
 import {
     mapEarnSummaryResponse,
     mapEarnAPYResponse,
-    mapEarnWalletsResponse,
+    mapEarnPositionsResponse,
     mapEarnMovementsResponse,
-    mapEarnWalletMovementsResponse,
-    mapEarnWalletDetailsResponse,
+    mapEarnPositionMovementsResponse,
+    mapEarnPositionDetailsResponse,
     mapEarnMovementsSummaryResponse,
     mapEarnAssetsResponse,
     mapEarnRewardsConfigResponse,
-    mapEarnWalletRewardsConfigResponse,
-    mapEarnWalletRewardsSummaryResponse,
+    mapEarnPositionRewardsConfigResponse,
+    mapEarnPositionRewardsSummaryResponse,
     mapEarnOperationResponse,
 } from "../utils/response-mappers.js";
 import {
@@ -21,18 +21,17 @@ import {
     buildPaginatedContextualResponse,
 } from "../utils/contextual-response.js";
 import {
-    EarnWalletDetailsArgs,
+    EarnPositionDetailsArgs,
     EarnMovementsArgs,
-    EarnWalletMovementsArgs,
+    EarnPositionMovementsArgs,
     EarnMovementsSummaryArgs,
     EarnDepositArgs,
     EarnWithdrawArgs,
-    EarnWalletRewardsConfigArgs,
-    EarnWalletRewardsSummaryArgs,
+    EarnPositionRewardsConfigArgs,
+    EarnPositionRewardsSummaryArgs,
     EarnAPYArgs,
 } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
-import { cache } from "../utils/cache.js";
 import {
     normalizeSymbol,
     validatePaginationLimit,
@@ -73,10 +72,10 @@ export async function handleEarnTool(name: string, args: any) {
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "earn_get_wallets") {
+        if (name === "earn_get_positions") {
             const requestContext = {};
             const data = await bit2meRequest("GET", "/v2/earn/wallets");
-            const optimized = mapEarnWalletsResponse(data);
+            const optimized = mapEarnPositionsResponse(data);
             const contextual = buildFilteredContextualResponse(
                 requestContext,
                 optimized,
@@ -88,27 +87,27 @@ export async function handleEarnTool(name: string, args: any) {
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "earn_get_wallet_details") {
-            const params = args as EarnWalletDetailsArgs;
-            if (!params.wallet_id) {
-                throw new ValidationError("wallet_id is required", "wallet_id");
+        if (name === "earn_get_position_details") {
+            const params = args as EarnPositionDetailsArgs;
+            if (!params.position_id) {
+                throw new ValidationError("position_id is required", "position_id");
             }
-            validateUUID(params.wallet_id, "wallet_id");
+            validateUUID(params.position_id, "position_id");
             const requestContext = {
-                wallet_id: params.wallet_id,
+                position_id: params.position_id,
             };
-            const data = await bit2meRequest("GET", `/v1/earn/wallets/${encodeURIComponent(params.wallet_id)}`);
-            const optimized = mapEarnWalletDetailsResponse(data);
+            const data = await bit2meRequest("GET", `/v1/earn/wallets/${encodeURIComponent(params.position_id)}`);
+            const optimized = mapEarnPositionDetailsResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "earn_get_wallet_movements") {
-            const params = args as EarnWalletMovementsArgs;
-            if (!params.wallet_id) {
-                throw new ValidationError("wallet_id is required", "wallet_id");
+        if (name === "earn_get_position_movements") {
+            const params = args as EarnPositionMovementsArgs;
+            if (!params.position_id) {
+                throw new ValidationError("position_id is required", "position_id");
             }
-            validateUUID(params.wallet_id, "wallet_id");
+            validateUUID(params.position_id, "position_id");
             const limit = validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT);
             const offset = validatePaginationOffset(params.offset);
 
@@ -117,16 +116,16 @@ export async function handleEarnTool(name: string, args: any) {
                 offset,
             };
             const requestContext = {
-                wallet_id: params.wallet_id,
+                position_id: params.position_id,
                 limit,
                 offset,
             };
             const data = await bit2meRequest(
                 "GET",
-                `/v1/earn/wallets/${encodeURIComponent(params.wallet_id)}/movements`,
+                `/v1/earn/wallets/${encodeURIComponent(params.position_id)}/movements`,
                 queryParams
             );
-            const response = mapEarnWalletMovementsResponse(data);
+            const response = mapEarnPositionMovementsResponse(data);
 
             const contextual = buildPaginatedContextualResponse(
                 requestContext,
@@ -162,17 +161,17 @@ export async function handleEarnTool(name: string, args: any) {
             if (params.related_symbol) {
                 queryParams.relatedCurrency = normalizeSymbol(params.related_symbol);
             }
-            if (params.wallet_id) {
-                validateUUID(params.wallet_id, "wallet_id");
-                queryParams.walletId = params.wallet_id;
+            if (params.position_id) {
+                validateUUID(params.position_id, "position_id");
+                queryParams.walletId = params.position_id;
             }
-            if (params.from) {
-                validateISO8601(params.from);
-                queryParams.from = params.from;
+            if (params.start_date) {
+                validateISO8601(params.start_date);
+                queryParams.from = params.start_date;
             }
-            if (params.to) {
-                validateISO8601(params.to);
-                queryParams.to = params.to;
+            if (params.end_date) {
+                validateISO8601(params.end_date);
+                queryParams.to = params.end_date;
             }
             if (params.type) {
                 queryParams.type = params.type;
@@ -188,9 +187,9 @@ export async function handleEarnTool(name: string, args: any) {
             if (params.user_symbol) requestContext.user_symbol = normalizeSymbol(params.user_symbol);
             if (params.symbol) requestContext.symbol = normalizeSymbol(params.symbol);
             if (params.related_symbol) requestContext.related_symbol = normalizeSymbol(params.related_symbol);
-            if (params.wallet_id) requestContext.wallet_id = params.wallet_id;
-            if (params.from) requestContext.from = params.from;
-            if (params.to) requestContext.to = params.to;
+            if (params.position_id) requestContext.position_id = params.position_id;
+            if (params.start_date) requestContext.start_date = params.start_date;
+            if (params.end_date) requestContext.end_date = params.end_date;
             if (params.type) requestContext.type = params.type;
             if (params.sort_by) requestContext.sort_by = params.sort_by;
 
@@ -296,16 +295,7 @@ export async function handleEarnTool(name: string, args: any) {
         }
 
         if (name === "earn_get_assets") {
-            const cacheKey = "earn_assets";
-            const cachedData = cache.get(cacheKey);
-
-            let data;
-            if (cachedData) {
-                data = cachedData;
-            } else {
-                data = await bit2meRequest("GET", "/v2/earn/assets");
-                cache.set(cacheKey, data, 3600); // 1 hour cache
-            }
+            const data = await bit2meRequest("GET", "/v2/earn/assets");
 
             const requestContext = {};
             const optimized = mapEarnAssetsResponse(data);
@@ -322,16 +312,7 @@ export async function handleEarnTool(name: string, args: any) {
 
         if (name === "earn_get_apy") {
             const params = args as EarnAPYArgs;
-            const cacheKey = "earn_apy";
-            const cachedData = cache.get(cacheKey);
-
-            let data;
-            if (cachedData) {
-                data = cachedData;
-            } else {
-                data = await bit2meRequest("GET", "/v2/earn/apy");
-                cache.set(cacheKey, data, 60); // 1 minute cache
-            }
+            const data = await bit2meRequest("GET", "/v2/earn/apy");
 
             const requestContext: any = {};
             if (params.symbol) {
@@ -359,30 +340,30 @@ export async function handleEarnTool(name: string, args: any) {
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "earn_get_wallet_rewards_config") {
-            const params = args as EarnWalletRewardsConfigArgs;
-            if (!params.wallet_id) {
-                throw new ValidationError("wallet_id is required", "wallet_id");
+        if (name === "earn_get_position_rewards_config") {
+            const params = args as EarnPositionRewardsConfigArgs;
+            if (!params.position_id) {
+                throw new ValidationError("position_id is required", "position_id");
             }
-            validateUUID(params.wallet_id, "wallet_id");
+            validateUUID(params.position_id, "position_id");
             const requestContext = {
-                wallet_id: params.wallet_id,
+                position_id: params.position_id,
             };
             const data = await bit2meRequest(
                 "GET",
-                `/v1/earn/wallets/${encodeURIComponent(params.wallet_id)}/rewards/config`
+                `/v1/earn/wallets/${encodeURIComponent(params.position_id)}/rewards/config`
             );
-            const optimized = mapEarnWalletRewardsConfigResponse(data);
+            const optimized = mapEarnPositionRewardsConfigResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "earn_get_wallet_rewards_summary") {
-            const params = args as EarnWalletRewardsSummaryArgs;
-            if (!params.wallet_id) {
-                throw new ValidationError("wallet_id is required", "wallet_id");
+        if (name === "earn_get_position_rewards_summary") {
+            const params = args as EarnPositionRewardsSummaryArgs;
+            if (!params.position_id) {
+                throw new ValidationError("position_id is required", "position_id");
             }
-            validateUUID(params.wallet_id, "wallet_id");
+            validateUUID(params.position_id, "position_id");
 
             const queryParams: Record<string, any> = {};
             if (params.user_currency) {
@@ -391,7 +372,7 @@ export async function handleEarnTool(name: string, args: any) {
             }
 
             const requestContext: any = {
-                wallet_id: params.wallet_id,
+                position_id: params.position_id,
             };
             if (params.user_currency) {
                 requestContext.user_currency = normalizeSymbol(params.user_currency);
@@ -399,10 +380,10 @@ export async function handleEarnTool(name: string, args: any) {
 
             const data = await bit2meRequest(
                 "GET",
-                `/v1/earn/wallets/${encodeURIComponent(params.wallet_id)}/rewards/summary`,
+                `/v1/earn/wallets/${encodeURIComponent(params.position_id)}/rewards/summary`,
                 queryParams
             );
-            const optimized = mapEarnWalletRewardsSummaryResponse(data);
+            const optimized = mapEarnPositionRewardsSummaryResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }

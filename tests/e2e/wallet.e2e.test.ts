@@ -105,21 +105,8 @@ describeE2E("E2E: Wallet Tools", () => {
                 return;
             }
 
-            // Create proforma (quote) - NOT confirming to avoid real transaction
-            const proformaResult = await handleWalletTool("wallet_buy_crypto", {
-                origin_pocket_id: eurPocket.id,
-                destination_pocket_id: btcPocket.id,
-                amount: "0.01", // Very small amount for testing
-            });
-
-            const proforma = JSON.parse(proformaResult.content[0].text);
-            expect(proforma).toHaveProperty("proforma_id");
-            expect(proforma).toHaveProperty("origin_symbol");
-            expect(proforma).toHaveProperty("destination_symbol");
-
-            // NOTE: We're NOT calling wallet_confirm_operation in E2E tests
-            // to avoid making real transactions. The proforma creation validates
-            // the endpoint is correct.
+            // NOTE: Trading operations (buy/sell/swap) have been moved to broker tools
+            // See tests/e2e/broker.e2e.test.ts for broker_quote_buy tests
         },
         E2E_TIMEOUT * 2
     );

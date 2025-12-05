@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { handleMarketTool } from "../../src/tools/market.js";
+import { handleBrokerTool } from "../../src/tools/broker.js";
 import * as bit2meService from "../../src/services/bit2me.js";
 
 vi.mock("axios");
@@ -25,7 +25,7 @@ describe("Market Tools - Currency Rate", () => {
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleMarketTool("market_get_ticker", {});
+        const result = await handleBrokerTool("broker_get_price", {});
         const content = JSON.parse(result.content[0].text);
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
@@ -55,7 +55,7 @@ describe("Market Tools - Currency Rate", () => {
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleMarketTool("market_get_ticker", { quote_symbol: "EUR" });
+        const result = await handleBrokerTool("broker_get_price", { quote_symbol: "EUR" });
         const content = JSON.parse(result.content[0].text);
 
         // Price BTC in EUR = Rate(EUR) / Rate(BTC) = 0.9 / 0.00001 = 90,000
@@ -81,7 +81,7 @@ describe("Market Tools - Currency Rate", () => {
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleMarketTool("market_get_ticker", { base_symbol: "BTC" });
+        const result = await handleBrokerTool("broker_get_price", { base_symbol: "BTC" });
         const content = JSON.parse(result.content[0].text);
 
         expect(content).toHaveProperty("request");
@@ -99,7 +99,7 @@ describe("Market Tools - Currency Rate", () => {
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        await handleMarketTool("market_get_ticker", { date: "2023-01-01" });
+        await handleBrokerTool("broker_get_price", { date: "2023-01-01" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",

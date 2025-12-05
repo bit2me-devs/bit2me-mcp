@@ -292,6 +292,86 @@ export function normalizeStatus(status: string | undefined): string {
 }
 
 /**
+ * Normalizes order status values for Pro Trading orders
+ * Maps to unified enum: "open" | "filled" | "cancelled"
+ * @param status - Raw status string from API
+ * @returns Normalized order status
+ */
+export function normalizeOrderStatus(status: string | undefined): "open" | "filled" | "cancelled" {
+    if (!status) return "open";
+
+    const normalized = status.toLowerCase().trim();
+
+    // Map to unified order statuses
+    const statusMap: Record<string, "open" | "filled" | "cancelled"> = {
+        // Open states
+        open: "open",
+        active: "open",
+        pending: "open",
+        partial: "open",
+        partially_filled: "open",
+        // Filled states
+        filled: "filled",
+        completed: "filled",
+        complete: "filled",
+        executed: "filled",
+        done: "filled",
+        success: "filled",
+        successful: "filled",
+        // Cancelled states
+        cancelled: "cancelled",
+        canceled: "cancelled",
+        cancel: "cancelled",
+        // Expired/inactive treated as cancelled
+        expired: "cancelled",
+        inactive: "cancelled",
+        closed: "cancelled",
+    };
+
+    return statusMap[normalized] || "open";
+}
+
+/**
+ * Normalizes movement status values for Wallet/Loan movements
+ * Maps to unified enum: "pending" | "completed" | "failed"
+ * @param status - Raw status string from API
+ * @returns Normalized movement status
+ */
+export function normalizeMovementStatus(status: string | undefined): "pending" | "completed" | "failed" {
+    if (!status) return "pending";
+
+    const normalized = status.toLowerCase().trim();
+
+    // Map to unified movement statuses
+    const statusMap: Record<string, "pending" | "completed" | "failed"> = {
+        // Pending states
+        pending: "pending",
+        processing: "pending",
+        waiting: "pending",
+        in_progress: "pending",
+        inprogress: "pending",
+        // Completed states
+        completed: "completed",
+        complete: "completed",
+        done: "completed",
+        success: "completed",
+        successful: "completed",
+        // Failed states
+        failed: "failed",
+        failure: "failed",
+        error: "failed",
+        rejected: "failed",
+        // Cancelled/unknown treated as failed
+        cancelled: "failed",
+        canceled: "failed",
+        cancel: "failed",
+        unknown: "failed",
+    };
+
+    return statusMap[normalized] || "pending";
+}
+
+/**
  * Normalizes network identifiers to lowercase snake_case
  * @param network - Raw network string from API
  * @returns Normalized network identifier
@@ -367,4 +447,35 @@ export function normalizeLoanMovementType(type: string | undefined): string {
     };
 
     return typeMap[normalized] || "other";
+}
+
+/**
+ * Converts trading notation timeframe to API format for broker chart endpoint
+ * Trading notation: "1h", "1d", "1w", "1M", "1y"
+ * API format: "one-hour", "one-day", "one-week", "one-month", "one-year"
+ * @param timeframe - Trading notation timeframe (e.g., "1h", "1d")
+ * @returns API format timeframe (e.g., "one-hour", "one-day")
+ * @throws ValidationError if timeframe is not supported
+ */
+export function convertBrokerTimeframe(timeframe: string): string {
+    const timeframeMap: Record<string, string> = {
+        "1h": "one-hour",
+        "1d": "one-day",
+        "1w": "one-week",
+        "1M": "one-month",
+        "1y": "one-year",
+    };
+
+    const normalized = timeframe.trim();
+    const apiFormat = timeframeMap[normalized];
+
+    if (!apiFormat) {
+        throw new ValidationError(
+            `Invalid timeframe: ${timeframe}. Supported values: 1h, 1d, 1w, 1M, 1y`,
+            "timeframe",
+            timeframe
+        );
+    }
+
+    return apiFormat;
 }

@@ -1,7 +1,10 @@
 /**
  * Structured logging system for Bit2Me MCP Server
  * Automatically sanitizes sensitive data and provides configurable log levels
+ * Includes correlation ID support for request tracking
  */
+
+import { getCorrelationId } from "./context.js";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -75,12 +78,27 @@ class Logger {
     private format(level: LogLevel, message: string, context?: unknown): string {
         const timestamp = new Date().toISOString();
         const levelUpper = level.toUpperCase().padEnd(5);
+        const correlationId = getCorrelationId();
 
         let formatted = `[${timestamp}] ${levelUpper} ${message}`;
 
+        // Add correlation ID if available
+        if (correlationId) {
+            formatted += ` [correlationId: ${correlationId}]`;
+        }
+
         if (context) {
             const sanitizedContext = this.sanitize(context);
-            formatted += " " + JSON.stringify(sanitizedContext);
+            // Ensure correlationId is in context if not already present
+            const contextWithCorrelation = {
+                ...(sanitizedContext as Record<string, unknown>),
+                ...(correlationId && !(sanitizedContext as Record<string, unknown>)?.correlationId
+                    ? { correlationId }
+                    : {}),
+            };
+            formatted += " " + JSON.stringify(contextWithCorrelation);
+        } else if (correlationId) {
+            formatted += " " + JSON.stringify({ correlationId });
         }
 
         return formatted;

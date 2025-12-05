@@ -94,14 +94,14 @@ describe("Other Tool Handlers", () => {
             ]);
         });
 
-        it("should handle earn_get_wallets with nested data structure", async () => {
+        it("should handle earn_get_positions with nested data structure", async () => {
             const mockResponse = {
                 total: 1,
                 data: [{ walletId: VALID_UUID, currency: "EUR", totalBalance: "100", status: "active" }],
             };
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockResponse);
 
-            const result = await handleEarnTool("earn_get_wallets", {});
+            const result = await handleEarnTool("earn_get_positions", {});
 
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/wallets");
             const parsed = JSON.parse(result.content[0].text);
@@ -110,18 +110,18 @@ describe("Other Tool Handlers", () => {
             expect(parsed.result).toHaveLength(1);
             expect(parsed.result[0]).toEqual(
                 expect.objectContaining({
-                    id: VALID_UUID,
+                    position_id: VALID_UUID,
                     symbol: "EUR",
                     balance: "100",
                 })
             );
         });
 
-        it("should handle earn_get_wallets with direct array structure", async () => {
+        it("should handle earn_get_positions with direct array structure", async () => {
             const mockResponse = [{ walletId: VALID_UUID_2, currency: "BTC", balance: "0.1" }];
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockResponse);
 
-            const result = await handleEarnTool("earn_get_wallets", {});
+            const result = await handleEarnTool("earn_get_positions", {});
 
             const parsed = JSON.parse(result.content[0].text);
             expect(parsed).toHaveProperty("request");
@@ -129,26 +129,26 @@ describe("Other Tool Handlers", () => {
             expect(parsed.result).toHaveLength(1);
             expect(parsed.result[0]).toEqual(
                 expect.objectContaining({
-                    id: VALID_UUID_2,
+                    position_id: VALID_UUID_2,
                     symbol: "BTC",
                 })
             );
         });
 
-        it("should handle earn_get_wallet_details", async () => {
+        it("should handle earn_get_position_details", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({
                 id: VALID_UUID,
                 currency: "BTC",
                 balance: "1",
                 status: "active",
             });
-            await handleEarnTool("earn_get_wallet_details", { wallet_id: VALID_UUID });
+            await handleEarnTool("earn_get_position_details", { position_id: VALID_UUID });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", `/v1/earn/wallets/${VALID_UUID}`);
         });
 
-        it("should handle earn_get_wallet_movements", async () => {
+        it("should handle earn_get_position_movements", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue([]);
-            await handleEarnTool("earn_get_wallet_movements", { wallet_id: VALID_UUID });
+            await handleEarnTool("earn_get_position_movements", { position_id: VALID_UUID });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "GET",
                 `/v1/earn/wallets/${VALID_UUID}/movements`,
@@ -166,7 +166,7 @@ describe("Other Tool Handlers", () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({ total: 0, data: [] });
             await handleEarnTool("earn_get_movements", {
                 symbol: "BTC",
-                wallet_id: VALID_UUID,
+                position_id: VALID_UUID,
                 type: "deposit",
                 limit: 50,
                 offset: 10,
@@ -252,22 +252,22 @@ describe("Other Tool Handlers", () => {
             expect(parsed).toHaveProperty("request");
             expect(parsed).toHaveProperty("result");
             expect(Array.isArray(parsed.result) ? parsed.result[0] : parsed.result).toEqual(
-                expect.objectContaining({ symbol: "B2M", wallet_id: VALID_UUID })
+                expect.objectContaining({ symbol: "B2M", position_id: VALID_UUID })
             );
         });
 
-        it("should handle earn_get_wallet_rewards_config", async () => {
+        it("should handle earn_get_position_rewards_config", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleEarnTool("earn_get_wallet_rewards_config", { wallet_id: VALID_UUID });
+            await handleEarnTool("earn_get_position_rewards_config", { position_id: VALID_UUID });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "GET",
                 `/v1/earn/wallets/${VALID_UUID}/rewards/config`
             );
         });
 
-        it("should handle earn_get_wallet_rewards_summary", async () => {
+        it("should handle earn_get_position_rewards_summary", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleEarnTool("earn_get_wallet_rewards_summary", { wallet_id: VALID_UUID });
+            await handleEarnTool("earn_get_position_rewards_summary", { position_id: VALID_UUID });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "GET",
                 `/v1/earn/wallets/${VALID_UUID}/rewards/summary`,
@@ -295,6 +295,7 @@ describe("Other Tool Handlers", () => {
                 guarantee_amount: "1",
                 loan_symbol: "EUR",
                 loan_amount: "100",
+                amount_type: "fixed_collateral",
             });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("POST", "/v1/loan", expect.any(Object));
         });

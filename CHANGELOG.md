@@ -1,23 +1,36 @@
-# [2.0.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.4...v2.0.0) (2025-12-04)
+## [Unreleased]
 
-- feat!: release v2.0.0 - major API improvements ([f989110](https://github.com/bit2me-devs/bit2me-mcp/commit/f98911036426ca08b0cb8af70fef510ac7b48569))
+### Breaking Changes
 
-### BREAKING CHANGES
-
-- This release includes significant changes:
-
-* Centralized tool metadata in data/tools.json
-* Standardized pair format from BTC/EUR to BTC-USD (kebab-case)
-* Renamed loan_get_ltv to loan_get_simulation with expanded response
-* Removed redundant loan_get_active (use loan_get_orders instead)
-* Added responseSchema documentation to all 53 tools
-* Renamed 'currency' to 'symbol' for consistency across all tools
-* Removed 'next_steps' and 'is_empty' from responses
-* All numeric financial values now returned as strings
-* Type fields normalized to lowercase
-* Added wallet_get_cards tool
-* Improved contextual responses with request parameters
-* Enhanced field descriptions from Swagger documentation
+- **reorganization:** Major reorganization of tool categories to improve semantic clarity for AI models:
+  - **New category `broker` (Simple Trading):** Created new category consolidating broker market data and trading operations:
+    - `market_get_ticker` → `broker_get_price`
+    - `market_get_data` → `broker_get_info` (previously renamed to `broker_get_price_info`)
+    - `market_get_chart` → `broker_get_chart`
+    - `wallet_buy_crypto` → `broker_quote_buy`
+    - `wallet_sell_crypto` → `broker_quote_sell`
+    - `wallet_swap_crypto` → `broker_quote_swap`
+    - `wallet_confirm_operation` → `broker_confirm_quote`
+  - **Category `market`:** Now only contains `market_get_assets_details` (asset information)
+  - **Category `wallet`:** Now only contains storage/balance tools (pockets, movements, addresses, cards)
+  
+  This reorganization provides clearer semantic separation: "Wallet" for storage/balances, "Broker" for simple trading and broker prices, and "Pro" for advanced trading. This prevents AI models from confusing Broker prices (which include spread) with Pro Trading prices when making trading decisions.
+- **earn:** Rename Earn tools to use "position" terminology instead of "wallet" for better clarity:
+  - `earn_get_wallets` → `earn_get_positions`
+  - `earn_get_wallet_details` → `earn_get_position_details`
+  - `earn_get_wallet_movements` → `earn_get_position_movements`
+  - `earn_get_wallet_rewards_config` → `earn_get_position_rewards_config`
+  - `earn_get_wallet_rewards_summary` → `earn_get_position_rewards_summary`
+  - Parameter `wallet_id` → `position_id` in all Earn tools
+  - Response fields `wallet_id` → `position_id` (backward compatibility: `wallet_id` still included in responses)
+  
+  This change clarifies that Earn "positions" represent money that is locked or generating yield (invested money), different from Wallet "pockets" which represent liquid available funds.
+- **timeframes:** Standardize timeframe notation to trading standard and migrate validations to strict enums:
+  - **Unified notation:** Changed `broker_get_chart` timeframe from natural language ("one-hour", "one-day", "one-week", "one-month", "one-year") to trading notation ("1h", "1d", "1w", "1M", "1y") to match `pro_get_candles` and industry standards (TradingView, CCXT)
+  - **Strict validation:** Added `enum` arrays to `inputSchema` for `broker_get_chart` and `pro_get_candles` timeframe parameters, preventing LLM hallucinations and ensuring server-side validation
+  - **Internal conversion:** Added `convertBrokerTimeframe()` function to map trading notation to API format internally, maintaining backward compatibility with API expectations
+  
+  This improvement reduces ambiguity for LLMs, saves tokens, unifies logic between Broker and Pro Trading tools, and provides robust validation at the schema level.
 
 ## [1.8.4](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.8.3...v1.8.4) (2025-12-04)
 

@@ -47,11 +47,6 @@ function generateLandingToolsData(metadata, version) {
         icon: cat.icon,
         description: cat.description || '',
         tools: cat.tools.map(tool => {
-            // For "market" category (Wallet Market Data), add wallet_ prefix to display name
-            const displayName = cat.id === 'market' && tool.name.startsWith('market_')
-                ? `wallet_${tool.name}`
-                : tool.name;
-            
             const toolData = {
                 name: tool.name, // Keep original name for API compatibility
                 type: tool.type,
@@ -61,11 +56,6 @@ function generateLandingToolsData(metadata, version) {
                 response: tool.exampleResponse,
                 responseSchema: tool.responseSchema // Include response schema for field descriptions
             };
-            
-            // Only add displayName if it's different from name
-            if (displayName !== tool.name) {
-                toolData.displayName = displayName;
-            }
             
             return toolData;
         })

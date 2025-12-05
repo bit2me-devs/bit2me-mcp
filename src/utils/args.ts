@@ -99,27 +99,27 @@ export interface WalletConfirmOperationArgs {
 // EARN TOOLS ARGS
 // ============================================================================
 
-export interface EarnWalletDetailsArgs {
-    wallet_id: string;
+export interface EarnPositionDetailsArgs {
+    position_id: string;
 }
 
-/** Args for earn_get_movements - all movements across all wallets */
+/** Args for earn_get_movements - all movements across all positions */
 export interface EarnMovementsArgs {
     user_symbol?: string;
     symbol?: string;
     related_symbol?: string;
-    wallet_id?: string;
-    from?: string;
-    to?: string;
+    position_id?: string;
+    start_date?: string;
+    end_date?: string;
     type?: "deposit" | "reward" | "withdrawal" | "discount-funds" | "discount-rewards";
     limit?: number;
     offset?: number;
     sort_by?: "createdAt";
 }
 
-/** Args for earn_get_wallet_movements - movements for a specific wallet */
-export interface EarnWalletMovementsArgs {
-    wallet_id: string;
+/** Args for earn_get_position_movements - movements for a specific position */
+export interface EarnPositionMovementsArgs {
+    position_id: string;
     limit?: number;
     offset?: number;
 }
@@ -140,12 +140,12 @@ export interface EarnWithdrawArgs {
     amount: string;
 }
 
-export interface EarnWalletRewardsConfigArgs {
-    wallet_id: string;
+export interface EarnPositionRewardsConfigArgs {
+    position_id: string;
 }
 
-export interface EarnWalletRewardsSummaryArgs {
-    wallet_id: string;
+export interface EarnPositionRewardsSummaryArgs {
+    position_id: string;
     user_currency?: string;
 }
 
@@ -182,9 +182,11 @@ export interface LoanOrderDetailsArgs {
 
 export interface LoanCreateArgs {
     guarantee_symbol: string;
-    guarantee_amount: string;
     loan_symbol: string;
-    loan_amount: string;
+    amount_type: "fixed_collateral" | "fixed_loan";
+    guarantee_amount?: string;
+    loan_amount?: string;
+    user_symbol?: string;
 }
 
 export interface LoanIncreaseGuaranteeArgs {
@@ -208,8 +210,8 @@ export interface ProTradesArgs {
     limit?: number;
     offset?: number;
     sort?: "ASC" | "DESC";
-    start_time?: string;
-    end_time?: string;
+    start_date?: string;
+    end_date?: string;
 }
 
 export interface ProOrderTradesArgs {

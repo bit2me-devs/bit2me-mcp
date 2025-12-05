@@ -1202,7 +1202,7 @@
                             <a
                                 href="#cat-pro"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-100 transition"
-                                >📈 Trading Pro</a
+                                >📈 Pro (Advanced Trading)</a
                             >
                         </li>
                         <li>
@@ -2381,7 +2381,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                     <div
                                         class="bg-slate-100 dark:bg-slate-900 rounded p-2 text-xs font-mono text-slate-600 dark:text-slate-400"
                                     >
-                                        wallet_market_get_data
+                                        broker_get_price_info
                                     </div>
                                 </div>
                                 <div>
@@ -2809,7 +2809,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                     <span class="font-bold text-purple-600 dark:text-purple-400">Tool:</span>
                                     <code
                                         class="font-mono text-xs bg-white dark:bg-slate-900 border border-purple-100 dark:border-purple-900 px-2 py-0.5 rounded text-purple-700 dark:text-purple-300"
-                                        >wallet_market_get_data({ base_symbol: "ETH", quote_symbol: "EUR" })</code
+                                        >broker_get_price_info({ base_symbol: "ETH", quote_symbol: "EUR" })</code
                                     >
                                 </div>
                                 <div class="flex gap-3 text-sm">
@@ -2971,7 +2971,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             </div>
                         </details>
 
-                        <!-- 6. Trading Pro Order -->
+                        <!-- 6. Pro (Advanced Trading) Order -->
                         <details
                             class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg open:ring-2 open:ring-blue-100 dark:open:ring-blue-900 transition-all shadow-sm hover:border-blue-300 dark:hover:border-blue-700"
                         >
@@ -3542,7 +3542,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                     <h4 class="font-bold text-slate-800 mb-2 text-sm">"Symbol Not Found"</h4>
                                     <p class="text-sm text-slate-600">The trading pair does not exist.</p>
                                     <ul class="list-disc list-inside text-xs text-slate-500 mt-2 space-y-1">
-                                        <li>Use <code>wallet_market_get_data</code> to check pairs</li>
+                                        <li>Use <code>broker_get_price_info</code> to check pairs</li>
                                         <li>Format must be <code>BASE-QUOTE</code> (e.g., BTC-USD)</li>
                                     </ul>
                                 </div>
@@ -3751,7 +3751,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                         <div class="col-span-2">
                             <img
                                 src="assets/logo-blue.png"
-                                class="h-8 block dark:hidden mb-4"
+                                class="h-8 w-auto block dark:hidden mb-4 object-contain"
                                 alt="Bit2Me"
                                 loading="lazy"
                                 width="160"
@@ -3759,7 +3759,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             />
                             <img
                                 src="assets/logo-white.png"
-                                class="h-8 hidden dark:block mb-4"
+                                class="h-8 w-auto hidden dark:block mb-4 object-contain"
                                 alt="Bit2Me"
                                 loading="lazy"
                                 width="160"

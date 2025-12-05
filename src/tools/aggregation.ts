@@ -66,9 +66,9 @@ export async function handleAggregationTool(name: string, args: any) {
 
             // Process Earn
             // /v2/earn/wallets returns { total, data: [...] } structure
-            const earnWallets = Array.isArray(earn) ? earn : earn?.data || [];
-            if (Array.isArray(earnWallets))
-                earnWallets.forEach((e: any) => {
+            const earnPositions = Array.isArray(earn) ? earn : earn?.data || [];
+            if (Array.isArray(earnPositions))
+                earnPositions.forEach((e: any) => {
                     // Support both totalBalance (legacy/mapped) and balance (raw v2)
                     const val = parseFloat(e.totalBalance || e.balance || "0");
                     if (val > 0) {
@@ -131,9 +131,9 @@ export async function handleAggregationTool(name: string, args: any) {
                     if (val > 0) proTotal += val * price;
                 });
 
-            const earnWalletsForTotal = Array.isArray(earn) ? earn : earn?.data || [];
-            if (Array.isArray(earnWalletsForTotal))
-                earnWalletsForTotal.forEach((e: any) => {
+            const earnPositionsForTotal = Array.isArray(earn) ? earn : earn?.data || [];
+            if (Array.isArray(earnPositionsForTotal))
+                earnPositionsForTotal.forEach((e: any) => {
                     const val = parseFloat(e.totalBalance || e.balance || "0");
                     const price = priceMap[e.currency] || 0;
                     if (val > 0) earnTotal += val * price;

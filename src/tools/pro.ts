@@ -38,7 +38,6 @@ import {
 } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
-import { cache } from "../utils/cache.js";
 import {
     normalizeSymbol,
     normalizePair,
@@ -99,13 +98,13 @@ export async function handleProTool(name: string, args: any) {
             }
             if (params.side) queryParams.side = params.side.toLowerCase();
             if (params.order_type) queryParams.orderType = params.order_type.toLowerCase();
-            if (params.start_time) {
-                validateISO8601(params.start_time);
-                queryParams.startTime = params.start_time;
+            if (params.start_date) {
+                validateISO8601(params.start_date);
+                queryParams.startTime = params.start_date;
             }
-            if (params.end_time) {
-                validateISO8601(params.end_time);
-                queryParams.endTime = params.end_time;
+            if (params.end_date) {
+                validateISO8601(params.end_date);
+                queryParams.endTime = params.end_date;
             }
 
             const data = await bit2meRequest("GET", "/v1/trading/trade", queryParams);
@@ -119,8 +118,8 @@ export async function handleProTool(name: string, args: any) {
             if (params.side) requestContext.side = params.side.toLowerCase();
             if (params.order_type) requestContext.order_type = params.order_type.toLowerCase();
             if (params.sort) requestContext.sort = params.sort;
-            if (params.start_time) requestContext.start_time = params.start_time;
-            if (params.end_time) requestContext.end_time = params.end_time;
+            if (params.start_date) requestContext.start_date = params.start_date;
+            if (params.end_date) requestContext.end_date = params.end_date;
 
             const contextual = buildPaginatedContextualResponse(
                 requestContext,
@@ -348,16 +347,7 @@ export async function handleProTool(name: string, args: any) {
             const queryParams: any = {};
             if (params.pair) queryParams.symbol = normalizePair(params.pair);
 
-            const cacheKey = `market_config:${JSON.stringify(queryParams)}`;
-            const cachedData = cache.get(cacheKey);
-
-            let data;
-            if (cachedData) {
-                data = cachedData;
-            } else {
-                data = await bit2meRequest("GET", "/v1/trading/market-config", queryParams);
-                cache.set(cacheKey, data, 600); // 10 minutes cache
-            }
+            const data = await bit2meRequest("GET", "/v1/trading/market-config", queryParams);
 
             const requestContext: any = {};
             if (params.pair) {
