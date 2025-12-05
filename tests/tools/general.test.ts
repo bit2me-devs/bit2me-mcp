@@ -113,7 +113,7 @@ describe("Pro Trading Market Tools", () => {
     });
 
     it("should handle pro_get_order_book", async () => {
-        const mockBook = { orderBook: { bids: [], asks: [] } };
+        const mockBook = { bids: [], asks: [], timestamp: 123456789, symbol: "BTC/USD" };
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockBook);
 
         await handleProTool("pro_get_order_book", { pair: "BTC-USD" });
@@ -121,7 +121,7 @@ describe("Pro Trading Market Tools", () => {
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
             expect.stringContaining("/v2/trading/order-book"),
-            expect.objectContaining({ symbol: "BTC-USD" })
+            expect.objectContaining({ symbol: "BTC/USD" })
         );
     });
 
@@ -138,16 +138,22 @@ describe("Pro Trading Market Tools", () => {
         );
     });
 
-    it("should handle pro_get_candles", async () => {
-        const mockCandles = [[1630000000, 50000, 51000, 49000, 50500, 100]];
+    it("should handle pro_get_OHLCV", async () => {
+        const mockCandles = [[1630000000000, 50000, 51000, 49000, 50500, 100]];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockCandles);
 
-        const result = await handleProTool("pro_get_candles", { pair: "BTC-USD", timeframe: "1h" });
+        const result = await handleProTool("pro_get_OHLCV", { pair: "BTC-EUR", timeframe: "1h" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
             expect.stringContaining("/v1/trading/candle"),
-            expect.objectContaining({ symbol: "BTC-USD", timeframe: "1h" })
+            expect.objectContaining({
+                symbol: "BTC/EUR",
+                interval: expect.any(Number),
+                startTime: expect.any(Number),
+                endTime: expect.any(Number),
+                limit: 1000,
+            })
         );
 
         // Check for contextual structure

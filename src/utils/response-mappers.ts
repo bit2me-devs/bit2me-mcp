@@ -27,6 +27,7 @@ import type {
     MarketOrderBookResponse,
     PublicTradeResponse,
     CandleResponse,
+    ProTickerResponse,
 
     // Wallet
     WalletAddressResponse,
@@ -203,18 +204,31 @@ export function mapAssetsResponse(raw: unknown): MarketAssetResponse[] {
  * @returns Array of optimized market config responses
  */
 export function mapProMarketConfigResponse(raw: unknown): ProMarketConfigResponse[] {
-    if (!isValidObject(raw)) {
-        return [];
+    // Handle array response (most likely format)
+    if (Array.isArray(raw)) {
+        return raw.map((config: any) => ({
+            pair: config.pair || config.symbol || "UNKNOWN",
+            base_precision: config.basePrecision || 0,
+            quote_precision: config.quotePrecision || 0,
+            min_amount: config.minAmount || DEFAULT_AMOUNT,
+            max_amount: config.maxAmount || DEFAULT_AMOUNT,
+            status: (normalizeStatus(config.status) || "active") as "active" | "inactive" | "maintenance",
+        }));
     }
 
-    return Object.entries(raw).map(([pair, config]: [string, any]) => ({
-        pair,
-        base_precision: config.basePrecision || 0,
-        quote_precision: config.quotePrecision || 0,
-        min_amount: config.minAmount || DEFAULT_AMOUNT,
-        max_amount: config.maxAmount || DEFAULT_AMOUNT,
-        status: (normalizeStatus(config.status) || "active") as "active" | "inactive" | "maintenance",
-    }));
+    // Handle map response (fallback)
+    if (isValidObject(raw)) {
+        return Object.entries(raw).map(([pair, config]: [string, any]) => ({
+            pair,
+            base_precision: config.basePrecision || 0,
+            quote_precision: config.quotePrecision || 0,
+            min_amount: config.minAmount || DEFAULT_AMOUNT,
+            max_amount: config.maxAmount || DEFAULT_AMOUNT,
+            status: (normalizeStatus(config.status) || "active") as "active" | "inactive" | "maintenance",
+        }));
+    }
+
+    return [];
 }
 
 /**
@@ -235,11 +249,11 @@ export function mapOrderBookResponse(raw: unknown): MarketOrderBookResponse {
         pair: normalizePairResponse(raw.symbol || raw.pair || DEFAULT_STRING),
         bids: (raw.bids || []).map((bid: any) => ({
             price: smartRound(parseFloat(bid.price || bid[0] || DEFAULT_AMOUNT)).toString(),
-            amount: bid.amount || bid[1] || DEFAULT_AMOUNT,
+            amount: String(bid.amount || bid[1] || DEFAULT_AMOUNT),
         })),
         asks: (raw.asks || []).map((ask: any) => ({
             price: smartRound(parseFloat(ask.price || ask[0] || DEFAULT_AMOUNT)).toString(),
-            amount: ask.amount || ask[1] || DEFAULT_AMOUNT,
+            amount: String(ask.amount || ask[1] || DEFAULT_AMOUNT),
         })),
         date,
     };
@@ -247,20 +261,41 @@ export function mapOrderBookResponse(raw: unknown): MarketOrderBookResponse {
 
 /**
  * Maps raw public trades response to optimized schema
+ * API format: Array of arrays where each inner array is [side, price, amount, timestamp]
+ * Example: [["sell", 63606.3, 0.0008, 1715087548704], ["buy", 63601.2, 0.0013, 1715087523417]]
  */
 export function mapPublicTradesResponse(raw: unknown): PublicTradeResponse[] {
     if (!isValidArray(raw)) {
         return [];
     }
 
-    return raw.map((trade) => {
+    return raw.map((trade, index) => {
+        // Handle array format: [side, price, amount, timestamp]
+        if (Array.isArray(trade)) {
+            const side = (trade[0] || "buy").toLowerCase() as "buy" | "sell";
+            const price = trade[1] || 0;
+            const amount = trade[2] || 0;
+            const timestamp = trade[3] || Date.now();
+            const { date } = formatTimestamp(timestamp);
+
+            return {
+                id: `trade-${index}-${timestamp}`,
+                pair: DEFAULT_STRING, // Pair is not in the response, will be set by handler
+                price: smartRound(parseFloat(String(price))).toString(),
+                amount: smartRound(parseFloat(String(amount))).toString(),
+                side,
+                date,
+            };
+        }
+
+        // Handle object format (fallback for backward compatibility)
         const timestamp = trade.timestamp || trade.time || Date.now();
         const { date } = formatTimestamp(timestamp);
         return {
-            id: trade.id || trade.tradeId || DEFAULT_STRING,
+            id: trade.id || trade.tradeId || `trade-${index}`,
             pair: normalizePairResponse(trade.symbol || trade.pair || DEFAULT_STRING),
             price: smartRound(parseFloat(trade.price || DEFAULT_AMOUNT)).toString(),
-            amount: trade.amount || trade.quantity || DEFAULT_AMOUNT,
+            amount: smartRound(parseFloat(String(trade.amount || trade.quantity || DEFAULT_AMOUNT))).toString(),
             side: (trade.side || trade.takerSide || "buy").toLowerCase() as "buy" | "sell",
             date,
         };
@@ -284,7 +319,36 @@ export function mapCandlesResponse(raw: unknown): CandleResponse[] {
             high: smartRound(parseFloat(candle.high || candle[2] || DEFAULT_AMOUNT)).toString(),
             low: smartRound(parseFloat(candle.low || candle[3] || DEFAULT_AMOUNT)).toString(),
             close: smartRound(parseFloat(candle.close || candle[4] || DEFAULT_AMOUNT)).toString(),
-            volume: candle.volume || candle[5] || DEFAULT_AMOUNT,
+            volume: String(candle.volume || candle[5] || DEFAULT_AMOUNT),
+        };
+    });
+}
+
+/**
+ * Maps raw Pro ticker response to optimized schema
+ * @param raw - Raw API response from /v2/trading/tickers endpoint
+ * @returns Optimized ticker response array
+ */
+export function mapProTickerResponse(raw: unknown): ProTickerResponse[] {
+    if (!isValidArray(raw)) {
+        return [];
+    }
+
+    return raw.map((ticker: any) => {
+        const timestamp = ticker.timestamp || Date.now();
+        const { date } = formatTimestamp(timestamp);
+        return {
+            symbol: ticker.symbol || DEFAULT_STRING,
+            open: smartRound(parseFloat(ticker.open || DEFAULT_AMOUNT)).toString(),
+            close: smartRound(parseFloat(ticker.close || DEFAULT_AMOUNT)).toString(),
+            bid: smartRound(parseFloat(ticker.bid || DEFAULT_AMOUNT)).toString(),
+            ask: smartRound(parseFloat(ticker.ask || DEFAULT_AMOUNT)).toString(),
+            high: smartRound(parseFloat(ticker.high || DEFAULT_AMOUNT)).toString(),
+            low: smartRound(parseFloat(ticker.low || DEFAULT_AMOUNT)).toString(),
+            baseVolume: smartRound(parseFloat(ticker.baseVolume || DEFAULT_AMOUNT)).toString(),
+            percentage: smartRound(parseFloat(ticker.percentage || DEFAULT_AMOUNT)).toString(),
+            quoteVolume: smartRound(parseFloat(ticker.quoteVolume || DEFAULT_AMOUNT)).toString(),
+            date,
         };
     });
 }
@@ -365,7 +429,7 @@ export function mapWalletMovementsResponse(raw: unknown): WalletMovementResponse
     return raw.map((tx: any, index: number) => {
         return {
             id: tx.id || `tx_${index}`,
-            date: tx.date,
+            created_at: tx.date,
             type: tx.type?.toLowerCase(),
             subtype: tx.subtype,
             status: normalizeMovementStatus(tx.status),
@@ -408,7 +472,7 @@ export function mapWalletMovementDetailsResponse(raw: unknown): WalletMovementDe
 
     return {
         id: raw.id,
-        date: raw.date,
+        created_at: raw.date,
         type: normalizeMovementType(raw.type) as
             | "deposit"
             | "withdrawal"
@@ -885,10 +949,16 @@ export function mapProOrderResponse(raw: unknown): ProOrderResponse {
         side: (raw.side || "buy").toLowerCase() as "buy" | "sell",
         type: (raw.type || raw.orderType || "limit").toLowerCase() as "limit" | "market" | "stop-limit",
         status: normalizeOrderStatus(raw.status),
-        price: raw.price,
-        amount: raw.amount || "0",
-        filled: raw.filled || raw.filledAmount || "0",
-        remaining: raw.remaining || raw.remainingAmount || "0",
+        price: raw.price ? smartRound(parseFloat(String(raw.price))).toString() : undefined,
+        amount: raw.amount ? smartRound(parseFloat(String(raw.amount))).toString() : "0",
+        filled:
+            raw.filled || raw.filledAmount
+                ? smartRound(parseFloat(String(raw.filled || raw.filledAmount))).toString()
+                : "0",
+        remaining:
+            raw.remaining || raw.remainingAmount
+                ? smartRound(parseFloat(String(raw.remaining || raw.remainingAmount))).toString()
+                : "0",
         created_at,
     };
 }
@@ -966,24 +1036,48 @@ export function mapEarnPositionDetailsResponse(raw: unknown): EarnPositionDetail
 
 /**
  * Maps raw earn movements summary to optimized schema
+ * Handles different response structures: object, array with single object, or empty/null
  */
 export function mapEarnMovementsSummaryResponse(raw: unknown): EarnMovementsSummaryResponse {
-    if (!isValidObject(raw)) {
-        throw new ValidationError("Invalid earn movements summary response structure");
+    // Handle null or undefined
+    if (raw === null || raw === undefined) {
+        return {
+            type: "",
+            total_amount: "0",
+            total_count: 0,
+            symbol: "",
+        };
     }
 
+    // Handle array response - take first element if array
+    let data: any;
+    if (Array.isArray(raw)) {
+        data = raw.length > 0 ? raw[0] : {};
+    } else if (isValidObject(raw)) {
+        data = raw;
+    } else {
+        // If it's neither object nor array, return defaults
+        return {
+            type: "",
+            total_amount: "0",
+            total_count: 0,
+            symbol: "",
+        };
+    }
+
+    // Extract values with multiple fallback options
     return {
-        type: (raw.type || "").toLowerCase(),
-        total_amount: raw.totalAmount || raw.total || "0",
-        total_count: raw.totalCount || raw.count || 0,
-        symbol: (raw.currency || "").toUpperCase(),
+        type: (data.type || data.movementType || "").toLowerCase(),
+        total_amount: String(data.totalAmount || data.total_amount || data.total || "0"),
+        total_count: Number(data.totalCount || data.total_count || data.count || 0),
+        symbol: (data.currency || data.symbol || "").toUpperCase(),
     };
 }
 
 /**
  * Maps raw earn assets response to optimized schema
  */
-export function mapEarnAssetsResponse(raw: unknown): EarnAssetsResponse {
+export function mapEarnAssetsResponse(raw: unknown): { symbols: string[] } {
     // Check if it's the standard object with assets/currencies array
     if (isValidObject(raw) && (raw.assets || raw.currencies)) {
         const assets = raw.assets || raw.currencies || [];
@@ -1232,10 +1326,16 @@ export function mapProOpenOrdersResponse(raw: unknown): ProOpenOrdersResponse {
                 side: order.side || "buy",
                 type: order.type || order.orderType || "limit",
                 status: normalizeOrderStatus(order.status),
-                price: order.price,
-                amount: order.amount || "0",
-                filled: order.filled || order.filledAmount || "0",
-                remaining: order.remaining || order.remainingAmount || "0",
+                price: order.price ? smartRound(parseFloat(String(order.price))).toString() : undefined,
+                amount: order.amount ? smartRound(parseFloat(String(order.amount))).toString() : "0",
+                filled:
+                    order.filled || order.filledAmount
+                        ? smartRound(parseFloat(String(order.filled || order.filledAmount))).toString()
+                        : "0",
+                remaining:
+                    order.remaining || order.remainingAmount
+                        ? smartRound(parseFloat(String(order.remaining || order.remainingAmount))).toString()
+                        : "0",
                 created_at,
             };
         }),
@@ -1477,7 +1577,7 @@ export function mapLoanPaybackResponse(raw: unknown): LoanPaybackResponse {
 
 export function mapCurrencyRateResponse(
     raw: unknown,
-    quote_symbol: string = "USD",
+    quote_symbol: string = "EUR",
     base_symbol?: string
 ): CurrencyRateResponse[] {
     // API returns an array with an object containing { fiat: {...}, crypto: {...} }

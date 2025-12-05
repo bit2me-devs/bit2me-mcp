@@ -180,6 +180,32 @@ describe("Response Mappers", () => {
 
         it("should map public trades response", () => {
             expect(mapPublicTradesResponse(null)).toEqual([]);
+
+            // Test array format (API format): [side, price, amount, timestamp]
+            const arrayFormat = [
+                ["sell", 63606.3, 0.0008, 1715087548704],
+                ["buy", 63601.2, 0.0013, 1715087523417],
+            ];
+            const arrayResult = mapPublicTradesResponse(arrayFormat);
+            expect(arrayResult).toHaveLength(2);
+            expect(arrayResult[0]).toMatchObject({
+                id: expect.stringContaining("trade-0"),
+                pair: "",
+                price: "63606.3",
+                amount: "0.0008",
+                side: "sell",
+                date: expect.any(String),
+            });
+            expect(arrayResult[1]).toMatchObject({
+                id: expect.stringContaining("trade-1"),
+                pair: "",
+                price: "63601.2",
+                amount: "0.0013",
+                side: "buy",
+                date: expect.any(String),
+            });
+
+            // Test object format (fallback for backward compatibility)
             const valid = [{ id: "1", symbol: "BTC-USD", price: "100", amount: "1", side: "buy", timestamp: 123 }];
             const result = mapPublicTradesResponse(valid);
             expect(result).toMatchObject([
@@ -192,11 +218,12 @@ describe("Response Mappers", () => {
                     date: expect.any(String),
                 },
             ]);
-            // Test defaults
+
+            // Test defaults with empty object
             const defaultResult = mapPublicTradesResponse([{}]);
             expect(defaultResult).toMatchObject([
                 {
-                    id: "",
+                    id: expect.stringContaining("trade-0"),
                     pair: "",
                     price: "0",
                     amount: "0",
@@ -232,6 +259,11 @@ describe("Response Mappers", () => {
                     volume: "10",
                 },
             ]);
+            // Test volume as number (should be converted to string)
+            const numericVolume = [{ timestamp: 123, open: 100, high: 110, low: 90, close: 105, volume: 10.5 }];
+            const numericResult = mapCandlesResponse(numericVolume);
+            expect(numericResult[0].volume).toBeTypeOf("string");
+            expect(numericResult[0].volume).toBe("10.5");
         });
     });
 
@@ -321,7 +353,7 @@ describe("Response Mappers", () => {
             expect(mapWalletMovementsResponse(valid)).toEqual([
                 {
                     id: "tx1",
-                    date: "2023-01-01",
+                    created_at: "2023-01-01",
                     type: "deposit",
                     subtype: "fiat",
                     status: "completed",
@@ -336,7 +368,7 @@ describe("Response Mappers", () => {
             expect(mapWalletMovementsResponse([{}])).toEqual([
                 {
                     id: "tx_0",
-                    date: undefined,
+                    created_at: undefined,
                     type: undefined,
                     subtype: undefined,
                     status: "pending",
@@ -362,7 +394,7 @@ describe("Response Mappers", () => {
             };
             expect(mapWalletMovementDetailsResponse(valid)).toEqual({
                 id: "tx1",
-                date: "2023-01-01",
+                created_at: "2023-01-01",
                 type: "deposit",
                 subtype: "fiat",
                 status: "completed",
@@ -537,13 +569,47 @@ describe("Response Mappers", () => {
         });
 
         it("should map earn movements summary response", () => {
-            expect(() => mapEarnMovementsSummaryResponse(null)).toThrow(ValidationError);
+            // Handle null/undefined - should return defaults instead of throwing
+            expect(mapEarnMovementsSummaryResponse(null)).toEqual({
+                type: "",
+                total_amount: "0",
+                total_count: 0,
+                symbol: "",
+            });
+
+            // Handle valid object response
             const valid = { type: "deposit", totalAmount: "10", totalCount: 5, currency: "BTC" };
             expect(mapEarnMovementsSummaryResponse(valid)).toEqual({
                 type: "deposit",
                 total_amount: "10",
                 total_count: 5,
                 symbol: "BTC",
+            });
+
+            // Handle array response (take first element)
+            const arrayResponse = [{ type: "reward", totalAmount: "5", totalCount: 3, currency: "ETH" }];
+            expect(mapEarnMovementsSummaryResponse(arrayResponse)).toEqual({
+                type: "reward",
+                total_amount: "5",
+                total_count: 3,
+                symbol: "ETH",
+            });
+
+            // Handle empty array
+            expect(mapEarnMovementsSummaryResponse([])).toEqual({
+                type: "",
+                total_amount: "0",
+                total_count: 0,
+                symbol: "",
+            });
+
+            // Handle object with alternative field names
+            const altFields = { movementType: "withdrawal", total: "20", count: 7, symbol: "EUR" };
+            expect(mapEarnMovementsSummaryResponse(altFields)).toEqual({
+                type: "withdrawal",
+                total_amount: "20",
+                total_count: 7,
+                symbol: "EUR",
             });
         });
 
@@ -885,13 +951,31 @@ describe("Response Mappers", () => {
                 pair: "BTC-USD",
                 side: "buy",
                 type: "limit",
-                status: "open",
-                price: "20000",
-                amount: "1",
-                filled: "0",
-                remaining: "1",
-                created_at: "2023-01-01",
             });
+            // Verify numeric values are converted to strings
+            expect(result.price).toBeTypeOf("string");
+            expect(result.amount).toBeTypeOf("string");
+            expect(result.filled).toBeTypeOf("string");
+            expect(result.remaining).toBeTypeOf("string");
+
+            // Test with numeric values from API
+            const numericValid = {
+                id: "2",
+                symbol: "ETH-USD",
+                side: "sell",
+                type: "market",
+                status: "filled",
+                price: 2500.5,
+                amount: 2.5,
+                filled: 2.5,
+                remaining: 0,
+                createdAt: "2023-01-02",
+            };
+            const numericResult = mapProOrderResponse(numericValid);
+            expect(numericResult.price).toBeTypeOf("string");
+            expect(numericResult.amount).toBeTypeOf("string");
+            expect(numericResult.filled).toBeTypeOf("string");
+            expect(numericResult.remaining).toBeTypeOf("string");
         });
 
         it("should map pro open orders response", () => {

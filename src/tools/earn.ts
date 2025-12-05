@@ -295,32 +295,35 @@ export async function handleEarnTool(name: string, args: any) {
         }
 
         if (name === "earn_get_assets") {
-            const data = await bit2meRequest("GET", "/v2/earn/assets");
+            // Parallel requests to get assets and APY
+            const [assetsData, apyData] = await Promise.all([
+                bit2meRequest("GET", "/v2/earn/assets"),
+                bit2meRequest("GET", "/v2/earn/apy"),
+            ]);
 
             const requestContext = {};
-            const optimized = mapEarnAssetsResponse(data);
+            // Map Assets (just symbols)
+            const assets = mapEarnAssetsResponse(assetsData); // Returns { symbols: string[] }
+            // Map APY
+            const apys = mapEarnAPYResponse(apyData); // Returns Record<string, EarnAPYResponse>
+
+            // Combine assets with APY
+            const combinedAssets = assets.symbols.map((symbol) => {
+                const apyInfo = apys[symbol];
+                return {
+                    symbol,
+                    apy: apyInfo ? apyInfo.rates : undefined,
+                };
+            });
+
             const contextual = buildFilteredContextualResponse(
                 requestContext,
-                optimized,
+                { assets: combinedAssets },
                 {
-                    total_records: optimized.symbols.length,
+                    total_records: combinedAssets.length,
                 },
-                data
+                { assetsData, apyData }
             );
-            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-        }
-
-        if (name === "earn_get_apy") {
-            const params = args as EarnAPYArgs;
-            const data = await bit2meRequest("GET", "/v2/earn/apy");
-
-            const requestContext: any = {};
-            if (params.symbol) {
-                validateSymbol(params.symbol);
-                requestContext.symbol = normalizeSymbol(params.symbol);
-            }
-            const optimized = mapEarnAPYResponse(data);
-            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
@@ -385,6 +388,31 @@ export async function handleEarnTool(name: string, args: any) {
             );
             const optimized = mapEarnPositionRewardsSummaryResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "earn_get_apy") {
+            const params = args as EarnAPYArgs;
+            const queryParams: Record<string, any> = {};
+            if (params.symbol) {
+                queryParams.currency = normalizeSymbol(params.symbol);
+            }
+
+            const requestContext: any = {};
+            if (params.symbol) {
+                requestContext.symbol = normalizeSymbol(params.symbol);
+            }
+
+            const data = await bit2meRequest("GET", "/v2/earn/apy", queryParams);
+            const optimized = mapEarnAPYResponse(data);
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: Object.keys(optimized).length,
+                },
+                data
+            );
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 

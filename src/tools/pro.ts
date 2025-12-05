@@ -15,6 +15,7 @@ import {
     mapOrderBookResponse,
     mapPublicTradesResponse,
     mapCandlesResponse,
+    mapProTickerResponse,
 } from "../utils/response-mappers.js";
 import {
     buildSimpleContextualResponse,
@@ -34,19 +35,22 @@ import {
     ProMarketConfigArgs,
     ProOrderBookArgs,
     ProPublicTradesArgs,
-    ProCandlesArgs,
+    ProOHLCVArgs,
+    ProTickerArgs,
 } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
 import {
     normalizeSymbol,
     normalizePair,
+    normalizePairResponse,
     validatePaginationLimit,
     validatePaginationOffset,
     validateUUID,
     validatePair,
     validateAmount,
     validateISO8601,
+    convertProTimeframe,
 } from "../utils/format.js";
 import { MAX_PAGINATION_LIMIT } from "../constants.js";
 import { ValidationError } from "../utils/errors.js";
@@ -372,10 +376,15 @@ export async function handleProTool(name: string, args: any) {
             }
             validatePair(params.pair);
             const pair = normalizePair(params.pair);
+
+            // Convert pair format from BTC-EUR to BTC/EUR for API
+            const [base_symbol, quote_symbol] = pair.split("-");
+            const apiSymbol = `${base_symbol}/${quote_symbol}`;
+
             const requestContext = {
                 pair,
             };
-            const data = await bit2meRequest("GET", "/v2/trading/order-book", { symbol: pair });
+            const data = await bit2meRequest("GET", "/v2/trading/order-book", { symbol: apiSymbol });
             const optimized = mapOrderBookResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -388,12 +397,19 @@ export async function handleProTool(name: string, args: any) {
             }
             validatePair(params.pair);
             const pair = normalizePair(params.pair);
-            const limit = params.limit ? validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT) : undefined;
+            // API limit is 50 according to documentation
+            const limit = params.limit ? validatePaginationLimit(params.limit, 50) : undefined;
             const queryParams: any = { symbol: pair };
             if (limit) queryParams.limit = limit;
             if (params.sort) queryParams.sort = params.sort;
             const data = await bit2meRequest("GET", "/v1/trading/trade/last", queryParams);
             const optimized = mapPublicTradesResponse(data);
+
+            // Set pair for each trade (API doesn't include it in each trade array)
+            const tradesWithPair = optimized.map((trade) => ({
+                ...trade,
+                pair: normalizePairResponse(pair),
+            }));
 
             const requestContext: any = {
                 pair,
@@ -403,10 +419,10 @@ export async function handleProTool(name: string, args: any) {
 
             const contextual = buildPaginatedContextualResponse(
                 requestContext,
-                optimized,
+                tradesWithPair,
                 {
-                    total_records: optimized.length,
-                    limit: limit || 100, // Default max is usually 100 for this endpoint
+                    total_records: tradesWithPair.length,
+                    limit: limit || 50, // API default is 50
                     sort: params.sort || "DESC", // Default sort
                 },
                 data
@@ -414,8 +430,8 @@ export async function handleProTool(name: string, args: any) {
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "pro_get_candles") {
-            const params = args as ProCandlesArgs;
+        if (name === "pro_get_OHLCV") {
+            const params = args as ProOHLCVArgs;
             if (!params.pair) {
                 throw new ValidationError("pair is required", "pair");
             }
@@ -423,27 +439,90 @@ export async function handleProTool(name: string, args: any) {
                 throw new ValidationError("timeframe is required", "timeframe");
             }
             validatePair(params.pair);
+            // Convert pair format from BTC-EUR to BTC/EUR for API
             const pair = normalizePair(params.pair);
-            const limit = params.limit ? validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT) : undefined;
-            const queryParams: any = { symbol: pair, timeframe: params.timeframe };
-            if (limit) queryParams.limit = limit;
+            const [base_symbol, quote_symbol] = pair.split("-");
+            if (!base_symbol || !quote_symbol) {
+                throw new ValidationError(
+                    `Invalid pair format: ${pair}. Expected format: SYMBOL-QUOTE (e.g., BTC-USD, BTC-EUR)`,
+                    "pair",
+                    pair
+                );
+            }
+            const apiSymbol = `${base_symbol}/${quote_symbol}`;
+
+            // Convert trading notation (1h, 1d, etc.) to API format (60, 1440, etc.) - must be in minutes
+            const apiInterval = convertProTimeframe(params.timeframe);
+            // Validate interval is in minutes format (not 1D, etc.)
+            const intervalMinutes = parseInt(apiInterval);
+            if (isNaN(intervalMinutes)) {
+                throw new ValidationError(
+                    `Invalid timeframe: ${params.timeframe}. API requires interval in minutes.`,
+                    "timeframe",
+                    params.timeframe
+                );
+            }
+
+            const limit = params.limit ? validatePaginationLimit(params.limit, 1000, "pro_get_OHLCV") : 1000;
+
+            // Calculate startTime and endTime if not provided (default: last 24 hours)
+            const endTime = params.endTime || Date.now();
+            const startTime = params.startTime || endTime - 24 * 60 * 60 * 1000; // 24 hours ago
+
+            const queryParams: any = {
+                symbol: apiSymbol,
+                interval: intervalMinutes,
+                startTime,
+                endTime,
+                limit,
+            };
+
             const data = await bit2meRequest("GET", "/v1/trading/candle", queryParams);
             const optimized = mapCandlesResponse(data);
 
             const requestContext: any = {
                 pair,
                 timeframe: params.timeframe,
+                startTime,
+                endTime,
+                limit,
             };
-            if (limit) requestContext.limit = limit;
 
             const contextual = buildPaginatedContextualResponse(
                 requestContext,
                 optimized,
                 {
                     total_records: optimized.length,
-                    limit: limit || optimized.length,
+                    limit,
                     timeframe: params.timeframe,
                     pair: pair,
+                },
+                data
+            );
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "pro_get_ticker") {
+            const params = args as ProTickerArgs;
+            const queryParams: any = {};
+            if (params.pair) {
+                validatePair(params.pair);
+                queryParams.symbol = normalizePair(params.pair);
+            }
+
+            const data = await bit2meRequest("GET", "/v2/trading/tickers", queryParams);
+            const optimized = mapProTickerResponse(data);
+
+            const requestContext: any = {};
+            if (params.pair) {
+                requestContext.pair = normalizePair(params.pair);
+            }
+
+            const contextual = buildFilteredContextualResponse(
+                requestContext,
+                optimized,
+                {
+                    total_records: optimized.length,
                 },
                 data
             );

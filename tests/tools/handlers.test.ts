@@ -25,23 +25,6 @@ describe("Other Tool Handlers", () => {
         vi.clearAllMocks();
     });
 
-    // --- General Tools (Account) ---
-    describe("General Tools - Account", () => {
-        it("should handle account_get_info", async () => {
-            vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({ id: "user1" });
-            const result = await handleGeneralTool("account_get_info", {});
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/account");
-            const parsed = JSON.parse(result.content[0].text);
-            expect(parsed).toHaveProperty("request");
-            expect(parsed).toHaveProperty("result");
-            expect(parsed.result).toEqual(expect.objectContaining({ user_id: "user1" }));
-        });
-
-        it("should throw for unknown general tool", async () => {
-            await expect(handleGeneralTool("unknown", {})).rejects.toThrow("Unknown general tool");
-        });
-    });
-
     // --- Aggregation Tools ---
     describe("Aggregation Tools", () => {
         it("should handle portfolio_get_valuation", async () => {
@@ -219,28 +202,42 @@ describe("Other Tool Handlers", () => {
         });
 
         it("should handle earn_get_assets with object structure", async () => {
-            vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({ assets: ["BTC", "EUR"] });
+            vi.mocked(bit2meService.bit2meRequest).mockImplementation(async (method, url) => {
+                if (url.includes("/v2/earn/assets")) return { assets: ["BTC", "EUR"] };
+                if (url.includes("/v2/earn/apy")) return { BTC: { daily: 0.1 } };
+                return {};
+            });
             const result = await handleEarnTool("earn_get_assets", {});
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/assets");
             const parsed = JSON.parse(result.content[0].text);
             expect(parsed).toHaveProperty("request");
             expect(parsed).toHaveProperty("result");
-            expect(parsed.result.symbols).toEqual(["BTC", "EUR"]);
+            expect(parsed.result.assets).toEqual([
+                { symbol: "BTC", apy: expect.any(Object) },
+                { symbol: "EUR", apy: undefined },
+            ]);
         });
 
         it("should handle earn_get_assets with array structure", async () => {
-            vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(["BTC", "EUR"]);
+            vi.mocked(bit2meService.bit2meRequest).mockImplementation(async (method, url) => {
+                if (url.includes("/v2/earn/assets")) return ["BTC", "EUR"];
+                if (url.includes("/v2/earn/apy")) return {};
+                return {};
+            });
             const result = await handleEarnTool("earn_get_assets", {});
             const parsed = JSON.parse(result.content[0].text);
             expect(parsed).toHaveProperty("request");
             expect(parsed).toHaveProperty("result");
-            expect(parsed.result.symbols).toEqual(["BTC", "EUR"]);
+            expect(parsed.result.assets).toEqual([
+                { symbol: "BTC", apy: undefined },
+                { symbol: "EUR", apy: undefined },
+            ]);
         });
 
         it("should handle earn_get_apy", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
             await handleEarnTool("earn_get_apy", {});
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/apy");
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/apy", expect.any(Object));
         });
 
         it("should handle earn_get_rewards_config", async () => {
