@@ -16,24 +16,22 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 
 ## 🚀 Features
 
-- **Market Data**: Real-time prices, historical charts, order books, and asset listings.
+- **General**: Asset information, account details, and portfolio valuation.
 - **Wallet Management**: Query balances, transactions, and wallet (Pockets) details.
 - **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
 - **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
-- **Aggregation**: Total portfolio valuation unifying all products.
 - **Operations**: Execute trades, transfers, and withdrawals securely.
 
 ## 🛠️ Available Tools & API Endpoints
 
-The server provides **51 tools** organized into categories:
+The server provides **52 tools** organized into categories:
 
-- 4 Wallet Market Data Tools
+- 3 General Tools
+- 7 Broker (Simple Trading) Tools
 - 8 Wallet Tools
 - 13 Earn Tools
-- 9 Loan Tools
-- 14 Pro Trading Tools
-- 1 Account Tool
-- 1 Aggregation Tool
+- 8 Loan Tools
+- 14 Pro (Advanced Trading) Tools
 
 _Note: Operation tools (write actions) are included in their respective categories above._
 
@@ -41,13 +39,15 @@ _Note: Operation tools are included in the categories above._
 
 Below is a detailed list of tools and the Bit2Me API endpoints they use.
 
-### 💰 Market Data (Public)
+### ℹ️ General
 
-> **Note:** Asset information and details. For broker prices and trading, see Broker Tools. For Pro Trading market data, see Pro Trading Tools.
+> **Note:** General information tools including asset details, account information, and portfolio valuation.
 
-| Tool                        | Endpoint                                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| --------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `market_get_assets_details` | `GET /v2/currency/assets` or `/v2/currency/assets/:symbol` | Gets detailed information of assets (cryptocurrencies and fiat) supported by Bit2Me Wallet. If symbol is provided, returns details for that specific asset. If symbol is not provided, returns all available assets. Returns symbol, name, type, network (lowercase), trading status, loan availability, and supported pairs. Use this to discover available symbols or verify if a specific asset is tradeable or loanable before operations. |
+| Tool                      | Endpoint                                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get_assets_details`      | `GET /v2/currency/assets` or `/v2/currency/assets/:symbol` | Gets detailed information of assets (cryptocurrencies and fiat) supported by Bit2Me Wallet. If symbol is provided, returns details for that specific asset. If symbol is not provided, returns all available assets. Returns symbol, name, type, network (lowercase), trading status, loan availability, and supported pairs. Use this to discover available symbols or verify if a specific asset is tradeable or loanable before operations. |
+| `account_get_info`        | `GET /v1/account`                                          | View user account information including profile details, verification levels, account status, and user settings. Returns account metadata useful for understanding account capabilities and restrictions.                                                                                                                                                                                                                                      |
+| `portfolio_get_valuation` | Multiple endpoints                                         | Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat symbol (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations.                                                                                                                                                   |
 
 ### 💱 Broker (Simple Trading)
 

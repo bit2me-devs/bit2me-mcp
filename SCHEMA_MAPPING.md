@@ -2,26 +2,24 @@
 
 Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP Bit2Me, incluyendo descripciones detalladas de cada campo y sus posibles valores.
 
-## Tool Count (53 total)
+## Tool Count (52 total)
 
-- 1 Market Data Tools
+- 3 General Tools
 - 7 Broker (Simple Trading) Tools
 - 8 Wallet (Storage) Tools
 - 14 Pro (Advanced Trading) Tools
 - 13 Earn (Staking) Tools
 - 8 Loans Tools
-- 1 Account Tools
-- 1 Portfolio Tools
 
 _Nota: Las herramientas de operaciones (write actions) están incluidas en sus respectivas categorías._
 
 ---
 
-## Market Data Tools (1 tool)
+## General Tools (3 tools)
 
-> **Note:** Asset information and details. For broker prices and trading, see Broker Tools. For Pro Trading market data, see Pro Trading Tools.
+> **Note:** General information tools including asset details, account information, and portfolio valuation.
 
-### market_get_assets_details
+### get_assets_details
 
 #### Response Fields
 
@@ -55,6 +53,88 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
         "tradeable": true,
         "loanable": true,
         "pro_trading_pairs": ["BTC-EUR"]
+    }
+}
+```
+
+### account_get_info
+
+#### Response Fields
+
+- **`user_id`** (string) **(required)**: User identifier who owns the wallet
+- **`email`** (string) **(required)**: email
+- **`level`** (string) **(required)**: level
+- **`kyc_status`** (string) **(required)**: kyc status
+- **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
+    - Format: `date-time`
+- **`features`** (object) **(required)**: features
+
+#### Example Response
+
+```json
+{
+    "request": {},
+    "result": {
+        "user_id": "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
+        "email": "user@example.com",
+        "level": "verified",
+        "kyc_status": "approved",
+        "created_at": "2021-01-19T20:24:59.209Z",
+        "features": {
+            "trading": true,
+            "earn": true,
+            "loans": true
+        }
+    }
+}
+```
+
+### portfolio_get_valuation
+
+#### Response Fields
+
+- **`quote_symbol`** (string) **(required)**: Quote currency symbol in uppercase (e.g., EUR, USD)
+- **`total_value`** (string) **(required)**: total value
+- **`by_service`** (object) **(required)**: by service
+- **`details`** (array) **(required)**: details
+    - Array items: [object Object]
+
+#### Example Response
+
+```json
+{
+    "request": {
+        "quote_symbol": "EUR"
+    },
+    "result": {
+        "quote_symbol": "EUR",
+        "total_value": "771789.52",
+        "by_service": {
+            "wallet": "500000.00",
+            "pro": "150000.00",
+            "earn": "100000.00",
+            "loan_guarantees": "21789.52"
+        },
+        "details": [
+            {
+                "symbol": "BTC",
+                "balance": "8.657983471809322",
+                "price_unit": "75936.5",
+                "converted_balance": "657456.96"
+            },
+            {
+                "symbol": "B2M",
+                "balance": "3205806.09708881",
+                "price_unit": "0.0099566",
+                "converted_balance": "31918.93"
+            },
+            {
+                "symbol": "DOGE",
+                "balance": "232444.85337828",
+                "price_unit": "0.1290807",
+                "converted_balance": "30004.14"
+            }
+        ]
     }
 }
 ```
@@ -1976,96 +2056,6 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
         "remaining_amount": "40000.00",
         "status": "active",
         "message": "Payback successful"
-    }
-}
-```
-
----
-
-## Account Tools (1 tools)
-
-### account_get_info
-
-#### Response Fields
-
-- **`user_id`** (string) **(required)**: User identifier who owns the wallet
-- **`email`** (string) **(required)**: email
-- **`level`** (string) **(required)**: level
-- **`kyc_status`** (string) **(required)**: kyc status
-- **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-    - Format: `date-time`
-- **`features`** (object) **(required)**: features
-
-#### Example Response
-
-```json
-{
-    "request": {},
-    "result": {
-        "user_id": "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
-        "email": "user@example.com",
-        "level": "verified",
-        "kyc_status": "approved",
-        "created_at": "2021-01-19T20:24:59.209Z",
-        "features": {
-            "trading": true,
-            "earn": true,
-            "loans": true
-        }
-    }
-}
-```
-
----
-
-## Portfolio Tools (1 tools)
-
-### portfolio_get_valuation
-
-#### Response Fields
-
-- **`quote_symbol`** (string) **(required)**: Quote currency symbol in uppercase (e.g., EUR, USD)
-- **`total_value`** (string) **(required)**: total value
-- **`by_service`** (object) **(required)**: by service
-- **`details`** (array) **(required)**: details
-    - Array items: [object Object]
-
-#### Example Response
-
-```json
-{
-    "request": {
-        "quote_symbol": "EUR"
-    },
-    "result": {
-        "quote_symbol": "EUR",
-        "total_value": "771789.52",
-        "by_service": {
-            "wallet": "500000.00",
-            "pro": "150000.00",
-            "earn": "100000.00",
-            "loan_guarantees": "21789.52"
-        },
-        "details": [
-            {
-                "symbol": "BTC",
-                "balance": "8.657983471809322",
-                "price_unit": "75936.5",
-                "converted_balance": "657456.96"
-            },
-            {
-                "symbol": "B2M",
-                "balance": "3205806.09708881",
-                "price_unit": "0.0099566",
-                "converted_balance": "31918.93"
-            },
-            {
-                "symbol": "DOGE",
-                "balance": "232444.85337828",
-                "price_unit": "0.1290807",
-                "converted_balance": "30004.14"
-            }
-        ]
     }
 }
 ```

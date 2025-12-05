@@ -123,10 +123,25 @@ export async function handleBrokerTool(name: string, args: any) {
                 const pair = normalizePair(args.pair);
                 // Convert trading notation (1h, 1d, etc.) to API format (one-hour, one-day, etc.)
                 const apiTimeframe = convertBrokerTimeframe(args.timeframe);
-                const rawData = await bit2meRequest<any[]>("GET", "/v3/currency/chart", {
-                    ticker: pair,
-                    temporality: apiTimeframe,
-                });
+
+                // Convert pair format from BTC-EUR to BTC[EUR] for API
+                const [base_symbol, quote_symbol] = pair.split("-");
+                if (!base_symbol || !quote_symbol) {
+                    throw new ValidationError(
+                        `Invalid pair format: ${pair}. Expected format: SYMBOL-QUOTE (e.g., BTC-USD, BTC-EUR)`,
+                        "pair",
+                        pair
+                    );
+                }
+                const apiTicker = `${base_symbol}[${quote_symbol}]`;
+
+                // Build query params manually to avoid URLSearchParams encoding brackets
+                // The API expects ticker=BTC[EUR] not ticker=BTC%5BEUR%5D
+                // We need to manually construct the query string to preserve brackets
+                const queryString = `ticker=${encodeURIComponent(apiTicker).replace(/%5B/g, "[").replace(/%5D/g, "]")}&temporality=${encodeURIComponent(apiTimeframe)}`;
+
+                // Use bit2meRequest with manually constructed query string in endpoint
+                const rawData = await bit2meRequest<any[]>("GET", `/v3/currency/chart?${queryString}`, undefined);
 
                 // Process chart data to make it more readable
                 // API Format: [timestamp, usdPerUnit, eurUsdRate]
@@ -134,7 +149,6 @@ export async function handleBrokerTool(name: string, args: any) {
                 // eurUsdRate: EUR/USD conversion rate (e.g., 0.86 = 1 EUR = 0.86 USD)
 
                 const data = Array.isArray(rawData) ? rawData : [];
-                const [, quote_symbol] = pair.split("/");
                 const requestContext = {
                     pair,
                     timeframe: args.timeframe,

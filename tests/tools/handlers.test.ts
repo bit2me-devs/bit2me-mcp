@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { handleAccountTool } from "../../src/tools/account.js";
-import { handleAggregationTool } from "../../src/tools/aggregation.js";
+import { handleGeneralTool } from "../../src/tools/general.js";
 import { handleEarnTool } from "../../src/tools/earn.js";
 import { handleLoanTool } from "../../src/tools/loan.js";
 import { handleProTool } from "../../src/tools/pro.js";
@@ -26,11 +25,11 @@ describe("Other Tool Handlers", () => {
         vi.clearAllMocks();
     });
 
-    // --- Account Tools ---
-    describe("Account Tools", () => {
+    // --- General Tools (Account) ---
+    describe("General Tools - Account", () => {
         it("should handle account_get_info", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({ id: "user1" });
-            const result = await handleAccountTool("account_get_info", {});
+            const result = await handleGeneralTool("account_get_info", {});
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/account");
             const parsed = JSON.parse(result.content[0].text);
             expect(parsed).toHaveProperty("request");
@@ -38,8 +37,8 @@ describe("Other Tool Handlers", () => {
             expect(parsed.result).toEqual(expect.objectContaining({ user_id: "user1" }));
         });
 
-        it("should throw for unknown account tool", async () => {
-            await expect(handleAccountTool("unknown", {})).rejects.toThrow("Unknown account tool");
+        it("should throw for unknown general tool", async () => {
+            await expect(handleGeneralTool("unknown", {})).rejects.toThrow("Unknown general tool");
         });
     });
 
@@ -58,7 +57,7 @@ describe("Other Tool Handlers", () => {
             // Mock ticker for valuation
             vi.mocked(bit2meService.getTicker).mockResolvedValue({ last: "100" } as any);
 
-            const result = await handleAggregationTool("portfolio_get_valuation", { fiat: "EUR" });
+            const result = await handleGeneralTool("portfolio_get_valuation", { fiat_symbol: "EUR" });
 
             const parsed = JSON.parse(result.content[0].text);
             expect(parsed).toHaveProperty("request");
@@ -68,7 +67,7 @@ describe("Other Tool Handlers", () => {
         });
 
         it("should throw for unknown aggregation tool", async () => {
-            await expect(handleAggregationTool("unknown", {})).rejects.toThrow("Unknown aggregation tool");
+            await expect(handleGeneralTool("unknown_portfolio", {})).rejects.toThrow("Unknown general tool");
         });
     });
 

@@ -47,15 +47,14 @@ vi.mock("../src/utils/logger.js", () => ({
 }));
 
 // Mock all tool modules
-vi.mock("../src/tools/market.js", () => ({
-    marketTools: [{ name: "market_get_assets_details" }],
-    handleMarketTool: vi.fn(),
+vi.mock("../src/tools/general.js", () => ({
+    generalTools: [{ name: "get_assets_details" }, { name: "account_get_info" }, { name: "portfolio_get_valuation" }],
+    handleGeneralTool: vi.fn(),
 }));
 vi.mock("../src/tools/broker.js", () => ({
     brokerTools: [{ name: "broker_get_price" }, { name: "broker_get_info" }],
     handleBrokerTool: vi.fn(),
 }));
-vi.mock("../src/tools/aggregation.js", () => ({ aggregationTools: [], handleAggregationTool: vi.fn() }));
 vi.mock("../src/tools/wallet.js", () => ({ walletTools: [], handleWalletTool: vi.fn() }));
 vi.mock("../src/tools/earn.js", () => ({ earnTools: [], handleEarnTool: vi.fn() }));
 vi.mock("../src/tools/loan.js", () => ({ loanTools: [], handleLoanTool: vi.fn() }));
@@ -99,7 +98,9 @@ describe("Server Entry Point", () => {
         const handler = listToolsHandler || mockSetRequestHandler.mock.calls[0][1];
         const result = await handler();
         expect(result.tools).toBeDefined();
-        expect(result.tools).toContainEqual({ name: "market_get_assets_details" });
+        expect(result.tools).toContainEqual({ name: "get_assets_details" });
+        expect(result.tools).toContainEqual({ name: "account_get_info" });
+        expect(result.tools).toContainEqual({ name: "portfolio_get_valuation" });
         expect(result.tools).toContainEqual({ name: "broker_get_price" });
         expect(result.tools).toContainEqual({ name: "broker_get_info" });
     });
@@ -126,24 +127,22 @@ describe("Server Entry Point", () => {
         const callToolHandler = mockSetRequestHandler.mock.calls.find((call) => call[0] === CallToolRequestSchema)?.[1];
 
         // Mock all tool handlers
-        const { handleAggregationTool } = await import("../src/tools/aggregation.js");
         const { handleWalletTool } = await import("../src/tools/wallet.js");
         const { handleEarnTool } = await import("../src/tools/earn.js");
         const { handleLoanTool } = await import("../src/tools/loan.js");
         const { handleProTool } = await import("../src/tools/pro.js");
-        const { handleAccountTool } = await import("../src/tools/account.js");
 
         // Update mocks to have tools in the lists so find() works
-        vi.mocked(await import("../src/tools/aggregation.js")).aggregationTools = [{ name: "agg_tool" } as any];
+        vi.mocked(await import("../src/tools/general.js")).generalTools = [{ name: "general_tool" } as any];
         vi.mocked(await import("../src/tools/wallet.js")).walletTools = [{ name: "wallet_tool" } as any];
         vi.mocked(await import("../src/tools/earn.js")).earnTools = [{ name: "earn_tool" } as any];
         vi.mocked(await import("../src/tools/loan.js")).loanTools = [{ name: "loan_tool" } as any];
         vi.mocked(await import("../src/tools/pro.js")).proTools = [{ name: "pro_tool" } as any];
-        vi.mocked(await import("../src/tools/account.js")).accountTools = [{ name: "account_tool" } as any];
 
-        // Test Aggregation
-        await callToolHandler({ params: { name: "agg_tool", arguments: {} } });
-        expect(handleAggregationTool).toHaveBeenCalledWith("agg_tool", {});
+        // Test General
+        const { handleGeneralTool } = await import("../src/tools/general.js");
+        await callToolHandler({ params: { name: "general_tool", arguments: {} } });
+        expect(handleGeneralTool).toHaveBeenCalledWith("general_tool", {});
 
         // Test Wallet
         await callToolHandler({ params: { name: "wallet_tool", arguments: {} } });
@@ -160,10 +159,6 @@ describe("Server Entry Point", () => {
         // Test Pro
         await callToolHandler({ params: { name: "pro_tool", arguments: {} } });
         expect(handleProTool).toHaveBeenCalledWith("pro_tool", {});
-
-        // Test Account
-        await callToolHandler({ params: { name: "account_tool", arguments: {} } });
-        expect(handleAccountTool).toHaveBeenCalledWith("account_tool", {});
     });
 
     it("should handle tool execution requests", async () => {
@@ -176,8 +171,8 @@ describe("Server Entry Point", () => {
         if (!callToolHandler) return;
 
         // Mock tool handlers
-        const { handleMarketTool } = await import("../src/tools/market.js");
-        vi.mocked(handleMarketTool).mockResolvedValue({ content: [{ type: "text", text: "success" }] });
+        const { handleGeneralTool } = await import("../src/tools/general.js");
+        vi.mocked(handleGeneralTool).mockResolvedValue({ content: [{ type: "text", text: "success" }] });
 
         // Test successful tool call
         const { handleBrokerTool } = await import("../src/tools/broker.js");
@@ -219,8 +214,8 @@ describe("Server Entry Point", () => {
 
         if (!callToolHandler) return;
 
-        const { handleMarketTool } = await import("../src/tools/market.js");
-        vi.mocked(handleMarketTool).mockRejectedValue(new Error("Tool failed"));
+        const { handleGeneralTool } = await import("../src/tools/general.js");
+        vi.mocked(handleGeneralTool).mockRejectedValue(new Error("Tool failed"));
 
         const { handleBrokerTool } = await import("../src/tools/broker.js");
         vi.mocked(handleBrokerTool).mockRejectedValue(new Error("Tool failed"));

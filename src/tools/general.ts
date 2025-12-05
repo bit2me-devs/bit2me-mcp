@@ -1,27 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
-import { mapAssetsResponse } from "../utils/response-mappers.js";
+import { mapAssetsResponse, mapAccountInfoResponse } from "../utils/response-mappers.js";
 import { buildSimpleContextualResponse, buildFilteredContextualResponse } from "../utils/contextual-response.js";
 import { executeTool } from "../utils/tool-wrapper.js";
-import { cache, CacheCategory } from "../utils/cache.js";
-import { normalizeSymbol, validateSymbol } from "../utils/format.js";
-import { NotFoundError, ValidationError } from "../utils/errors.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
+import { normalizeSymbol, validateSymbol } from "../utils/format.js";
+import { cache, CacheCategory } from "../utils/cache.js";
 
-export const marketTools: Tool[] = getCategoryTools("market");
+export const generalTools: Tool[] = getCategoryTools("general");
 
 /**
- * Handles market-related tool requests
+ * Handles general tool requests (assets, account, portfolio)
  * @param name - Name of the tool to execute
  * @param args - Tool arguments
  * @returns Tool response with optimized data
  * @throws ValidationError if required parameters are missing or invalid
- * @throws NotFoundError if requested resource is not found
  */
-export async function handleMarketTool(name: string, args: any) {
+export async function handleGeneralTool(name: string, args: any) {
     return executeTool(name, args, async () => {
-        if (name === "market_get_assets_details") {
+        if (name === "get_assets_details") {
             const params: any = {};
             if (args.include_testnet !== undefined) params.includeTestnet = args.include_testnet;
             if (args.show_exchange !== undefined) params.showExchange = args.show_exchange;
@@ -44,7 +42,7 @@ export async function handleMarketTool(name: string, args: any) {
             }
 
             // If no symbol, get all assets
-            const cacheKey = `market_assets:${JSON.stringify(params)}`;
+            const cacheKey = `general_assets:${JSON.stringify(params)}`;
             const cachedData = cache.get(cacheKey);
 
             let data;
@@ -67,6 +65,20 @@ export async function handleMarketTool(name: string, args: any) {
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        throw new Error(`Unknown market tool: ${name}`);
+        if (name === "account_get_info") {
+            const requestContext = {};
+            const data = await bit2meRequest("GET", "/v1/account");
+            const optimized = mapAccountInfoResponse(data);
+            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
+            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+        }
+
+        if (name === "portfolio_get_valuation") {
+            // Import portfolio handler dynamically to avoid circular dependencies
+            const { handleAggregationTool } = await import("./aggregation.js");
+            return await handleAggregationTool("portfolio_get_valuation", args);
+        }
+
+        throw new Error(`Unknown general tool: ${name}`);
     });
 }
