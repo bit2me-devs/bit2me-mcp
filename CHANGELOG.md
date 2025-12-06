@@ -1,3 +1,9 @@
+## [3.1.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.0...v3.1.1) (2025-12-06)
+
+### Bug Fixes
+
+- **ci:** fix shell quoting in release workflow ([077fdb6](https://github.com/bit2me-devs/bit2me-mcp/commit/077fdb6769bc165872fbe1ff0114e0fc6a79283d))
+
 # [3.1.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.3...v3.1.0) (2025-12-06)
 
 ### Features
