@@ -139,8 +139,8 @@ All tool responses are **optimized for LLM consumption** with clean, consistent 
 
 ### 📖 Documentation Files
 
-- **[SCHEMA_MAPPING.md](./docs/SCHEMA_MAPPING.md)** - Complete response schemas with field descriptions, types, enums, and examples for all 46 tools (auto-generated from `data/tools.json`)
-- **[data/tools.json](./data/tools.json)** - Centralized metadata source for all tool definitions (name, description, inputSchema, responseSchema, examples)
+- **[TOOLS_DOCUMENTATION.md](./TOOLS_DOCUMENTATION.md)** - Auto-generated tool documentation with descriptions, Bit2Me endpoints and response schemas.
+- **[data/tools.json](./data/tools.json)** - Central metadata source for tool definitions (names, descriptions, input/output schemas, examples).
 
 ### Key Features
 
@@ -186,7 +186,7 @@ You get optimized responses like:
 ]
 ```
 
-See [SCHEMA_MAPPING.md](./docs/SCHEMA_MAPPING.md) for complete response schemas with field descriptions and examples for all 46 tools.
+See [TOOLS_DOCUMENTATION.md](./TOOLS_DOCUMENTATION.md) for the complete reference and [`data/tools.json`](./data/tools.json) for machine-readable schemas and examples.
 
 ## ⚙️ Installation and Configuration
 
@@ -997,8 +997,8 @@ describe("Example Tools", () => {
 
 ### 5. Documentation
 
-1.  **SCHEMA_MAPPING.md**: Add the JSON response example.
-2.  **README.md**: Add the tool to the list of available tools.
+1.  **TOOLS_DOCUMENTATION.md**: Auto-generated from `data/tools.json` — just update the metadata and run `npm run build:docs`.
+2.  **README.md**: Update category counts or summaries if they change.
 3.  **Landing Page**: Update `landing/index.html` if it lists features/tools.
 4.  **Product Documentation**: Update `docs/PRODUCT.md` (if applicable).
 5.  **Schema Coverage**: Update `docs/TYPESCRIPT_SCHEMA_COVERAGE.md` to map the new tool to its TypeScript interface.
@@ -1449,8 +1449,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exponential backoff with jitter
 - Comprehensive test suite (31 tests)
 - Documentation:
-    - Complete README with all 47 tools
-    - SCHEMA_MAPPING.md with JSON examples
+    - README summary with quick-start information
+    - TOOLS_DOCUMENTATION.md with descriptions, endpoints and response schemas
     - TypeScript schema coverage documentation
     - Product marketing documentation
 - Landing page with GitHub Pages deployment

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="scroll-smooth" translate="yes">
+<html lang="en" class="scroll-smooth">
     <head>
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-XZ80QXCGVB"></script>
@@ -924,6 +924,27 @@
                 opacity: 0.5;
             }
 
+            /* Translation prevention for technical terms */
+            /* Used to prevent browser auto-translation of code/technical content */
+            .notranslate,
+            code,
+            pre,
+            kbd,
+            samp,
+            var,
+            .font-mono,
+            [translate="no"] {
+                /* Prevent translation of technical content */
+            }
+
+            /* Add notranslate class behavior for Google Translate */
+            code,
+            pre,
+            kbd,
+            .font-mono {
+                translate: no;
+            }
+
             /* Screen reader only (accessibility) */
             .sr-only {
                 position: absolute;
@@ -1174,7 +1195,7 @@
                     alt="Bit2Me"
                     loading="lazy"
                 />
-                <span class="font-bold text-slate-900 dark:text-white ml-2">MCP</span>
+                <span class="font-bold text-slate-900 dark:text-white ml-2" translate="no">MCP</span>
             </div>
             <button
                 onclick="toggleTheme()"
@@ -1229,7 +1250,9 @@
                         loading="lazy"
                     />
                     <div class="border-l border-slate-200 dark:border-slate-700 pl-3 ml-1">
-                        <h1 class="font-bold text-slate-900 dark:text-white leading-tight text-sm">MCP Server</h1>
+                        <h1 class="font-bold text-slate-900 dark:text-white leading-tight text-sm" translate="no">
+                            MCP Server
+                        </h1>
                         <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">
                             Developer Hub
                         </p>
@@ -1276,7 +1299,7 @@
                 </div>
 
                 <!-- Filter Chips -->
-                <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar" id="filterChips">
+                <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar" id="filterChips" translate="no">
                     <button
                         onclick="setFilter('ALL')"
                         class="filter-chip active px-2.5 py-1 rounded-md text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition whitespace-nowrap ring-2 ring-transparent focus:outline-none"
@@ -1408,6 +1431,7 @@
                             <a
                                 href="#cat-general"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                translate="no"
                                 >ℹ️ General</a
                             >
                         </li>
@@ -1415,6 +1439,7 @@
                             <a
                                 href="#cat-broker"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                translate="no"
                                 >💱 Broker (Simple Trading)</a
                             >
                         </li>
@@ -1422,6 +1447,7 @@
                             <a
                                 href="#cat-wallet"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                translate="no"
                                 >👛 Wallet (Storage)</a
                             >
                         </li>
@@ -1429,6 +1455,7 @@
                             <a
                                 href="#cat-pro"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                translate="no"
                                 >📈 Pro (Advanced Trading)</a
                             >
                         </li>
@@ -1436,6 +1463,7 @@
                             <a
                                 href="#cat-earn"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                translate="no"
                                 >💰 Earn (Staking)</a
                             >
                         </li>
@@ -1443,6 +1471,7 @@
                             <a
                                 href="#cat-loan"
                                 class="sidebar-link block px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                                translate="no"
                                 >🏦 Loans</a
                             >
                         </li>
@@ -1689,8 +1718,10 @@
                     <h1
                         class="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight group flex items-center gap-3 mb-6"
                     >
-                        Bit2Me
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400"
+                        <span translate="no">Bit2Me</span>
+                        <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400"
+                            translate="no"
                             >MCP Server</span
                         >
                         <button
@@ -1711,8 +1742,9 @@
 
                     <p class="text-lg text-slate-600 dark:text-slate-400 mb-6 leading-relaxed max-w-3xl">
                         The ultimate bridge between your crypto finances and Artificial Intelligence. Connect
-                        <strong>Claude</strong> or <strong>Cursor</strong> to your Bit2Me account to check prices,
-                        manage your wallet, and trade with natural language.
+                        <strong translate="no">Claude</strong> or <strong translate="no">Cursor</strong> to your
+                        <span translate="no">Bit2Me</span> account to check prices, manage your wallet, and trade with
+                        natural language.
                     </p>
                     <p class="text-base text-slate-500 dark:text-slate-500 mb-10 leading-relaxed max-w-3xl">
                         Use AI to manage your cryptocurrency portfolio on Bit2Me - check Bitcoin prices, execute trades,
@@ -1799,8 +1831,10 @@
                                 <h3 class="text-xl font-bold text-slate-900 dark:text-white">Model Context Protocol</h3>
                             </div>
                             <p class="text-slate-700 dark:text-slate-300 text-sm mb-4 leading-relaxed">
-                                MCP (Model Context Protocol) is an <strong>open protocol</strong> developed by Anthropic
-                                that enables AI assistants like <strong>Claude</strong> and <strong>Cursor</strong> to
+                                <span translate="no">MCP</span> (<span translate="no">Model Context Protocol</span>) is
+                                an <strong>open protocol</strong> developed by
+                                <span translate="no">Anthropic</span> that enables AI assistants like
+                                <strong translate="no">Claude</strong> and <strong translate="no">Cursor</strong> to
                                 securely connect to external data sources and tools. Think of it as a universal adapter
                                 that lets AI access real-world information and perform actions on your behalf. This
                                 protocol standardizes how AI assistants interact with APIs, databases, and services,
@@ -1897,11 +1931,12 @@
                                 >
                                     🤖
                                 </div>
-                                <span>Claude / Cursor</span>
+                                <span translate="no">Claude / Cursor</span>
                             </div>
                             <div class="flex-1 h-0.5 bg-slate-300 dark:bg-slate-700 relative max-w-[100px]">
                                 <span
                                     class="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] bg-slate-100 dark:bg-slate-800 px-2 text-slate-400"
+                                    translate="no"
                                     >JSON-RPC</span
                                 >
                             </div>
@@ -1911,11 +1946,12 @@
                                 >
                                     B
                                 </div>
-                                <span class="text-blue-600 dark:text-blue-400">MCP Server</span>
+                                <span class="text-blue-600 dark:text-blue-400" translate="no">MCP Server</span>
                             </div>
                             <div class="flex-1 h-0.5 bg-slate-300 dark:bg-slate-700 relative max-w-[100px]">
                                 <span
                                     class="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] bg-slate-100 dark:bg-slate-800 px-2 text-slate-400"
+                                    translate="no"
                                     >REST API</span
                                 >
                             </div>
@@ -1925,7 +1961,7 @@
                                 >
                                     🌐
                                 </div>
-                                <span>Bit2Me API</span>
+                                <span translate="no">Bit2Me API</span>
                             </div>
                         </div>
 
@@ -1939,11 +1975,12 @@
                                 >
                                     🤖
                                 </div>
-                                <span>Claude / Cursor</span>
+                                <span translate="no">Claude / Cursor</span>
                             </div>
                             <div class="w-0.5 h-12 bg-slate-300 dark:bg-slate-700 relative">
                                 <span
                                     class="absolute -right-12 top-1/2 -translate-y-1/2 text-[10px] bg-slate-100 dark:bg-slate-800 px-2 text-slate-400 whitespace-nowrap"
+                                    translate="no"
                                     >JSON-RPC</span
                                 >
                             </div>
@@ -1953,11 +1990,12 @@
                                 >
                                     B
                                 </div>
-                                <span class="text-blue-600 dark:text-blue-400">MCP Server</span>
+                                <span class="text-blue-600 dark:text-blue-400" translate="no">MCP Server</span>
                             </div>
                             <div class="w-0.5 h-12 bg-slate-300 dark:bg-slate-700 relative">
                                 <span
                                     class="absolute -right-8 top-1/2 -translate-y-1/2 text-[10px] bg-slate-100 dark:bg-slate-800 px-2 text-slate-400 whitespace-nowrap"
+                                    translate="no"
                                     >REST API</span
                                 >
                             </div>
@@ -1967,7 +2005,7 @@
                                 >
                                     🌐
                                 </div>
-                                <span>Bit2Me API</span>
+                                <span translate="no">Bit2Me API</span>
                             </div>
                         </div>
                     </div>
@@ -1992,7 +2030,7 @@
                                 <h3
                                     class="text-xl font-bold text-amber-900 dark:text-amber-200 mb-3 flex items-center gap-2"
                                 >
-                                    Local MCP Server
+                                    <span translate="no">Local MCP Server</span>
                                     <span
                                         class="px-2 py-0.5 bg-amber-200 dark:bg-amber-800/50 text-amber-800 dark:text-amber-200 text-xs font-bold rounded uppercase"
                                         >Important</span
@@ -4805,8 +4843,8 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 let html = `
                                                     <div class="schema-field ${required ? "required" : ""} ${marginClass}" style="${indent > 0 ? `margin-left: ${indent * 16}px` : ""}">
                                                         <div class="schema-field-header">
-                                                            <span class="param-name">${fieldName}</span>
-                                                            <span class="param-type">${type}${nullable ? " | null" : ""}</span>
+                                                            <span class="param-name" translate="no">${fieldName}</span>
+                                                            <span class="param-type" translate="no">${type}${nullable ? " | null" : ""}</span>
                                                             ${required ? '<span class="param-required">Required</span>' : ""}
                                                         </div>
                                                         ${desc ? `<p class="param-desc mt-1">${desc}</p>` : ""}
@@ -4814,7 +4852,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                             enumValues
                                                                 ? `
                                                             <div class="param-enum">
-                                                                ${enumValues.map((v) => `<span class="param-enum-value">"${v}"</span>`).join("")}
+                                                                ${enumValues.map((v) => `<span class="param-enum-value" translate="no">"${v}"</span>`).join("")}
                                                             </div>
                                                         `
                                                                 : ""
@@ -4939,8 +4977,8 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                                 return `
                                                                 <div class="param-card ${isRequired ? "required" : ""}">
                                                                     <div class="param-header">
-                                                                        <span class="param-name">${key}</span>
-                                                                        <span class="param-type">${type}</span>
+                                                                        <span class="param-name" translate="no">${key}</span>
+                                                                        <span class="param-type" translate="no">${type}</span>
                                                                         ${isRequired ? '<span class="param-required">Required</span>' : ""}
                                                                 </div>
                                                                     ${desc ? `<p class="param-desc">${desc}</p>` : ""}
@@ -4948,7 +4986,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                                         enumValues
                                                                             ? `
                                                                         <div class="param-enum">
-                                                                            ${enumValues.map((v) => `<span class="param-enum-value">${v}</span>`).join("")}
+                                                                            ${enumValues.map((v) => `<span class="param-enum-value" translate="no">${v}</span>`).join("")}
                                                                         </div>
                                                                     `
                                                                             : ""
@@ -4995,11 +5033,11 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                     <details id="${toolId}" class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl transition hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg">
                                         <summary class="flex items-center justify-between p-4 cursor-pointer select-none">
                                             <div class="flex items-center gap-3 flex-wrap">
-                                                <span class="badge ${badgeClass}">${tool.type}</span>
-                                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 font-mono">${displayName}</span>
+                                                <span class="badge ${badgeClass}" translate="no">${tool.type}</span>
+                                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200 font-mono" translate="no">${displayName}</span>
                                             </div>
                                             <div class="flex items-center gap-2">
-                                                <span class="badge ${authBadgeClass}">${authBadgeText}</span>
+                                                <span class="badge ${authBadgeClass}" translate="no">${authBadgeText}</span>
                                                 <svg class="w-5 h-5 text-slate-400 transition group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                 </svg>
@@ -5536,8 +5574,8 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             return `
                                 <div class="p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer border-b border-slate-100 dark:border-slate-700/50 last:border-0 transition" onclick="scrollToTool('${tool.name}')">
                                     <div class="flex items-center gap-2">
-                                        <span class="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">${displayName}</span>
-                                        <span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded">${tool.type}</span>
+                                        <span class="font-mono text-xs font-bold text-blue-600 dark:text-blue-400" translate="no">${displayName}</span>
+                                        <span class="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded" translate="no">${tool.type}</span>
                                     </div>
                                     <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">${tool.desc}</div>
                                 </div>
