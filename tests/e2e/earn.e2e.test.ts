@@ -71,21 +71,21 @@ describeE2E("E2E: Earn/Staking Tools", () => {
             const positionsResult = await handleEarnTool("earn_get_positions", {});
             const positions = JSON.parse(positionsResult.content[0].text);
 
-            if (positions.length === 0) {
+            if (positions.result.length === 0) {
                 console.warn("⚠️ Skipping earn position details test - no earn positions found");
                 return;
             }
 
-            const positionId = positions[0].position_id || positions[0].id;
+            const positionId = positions.result[0].position_id || positions.result[0].id;
 
-            // Get position details
-            const result = await handleEarnTool("earn_get_position_details", { position_id: positionId });
+            // Get position details using position_id filter
+            const result = await handleEarnTool("earn_get_positions", { position_id: positionId });
             const details = JSON.parse(result.content[0].text);
 
-            expect(details).toHaveProperty("position_id", positionId);
-            expect(details).toHaveProperty("symbol");
-            expect(details).toHaveProperty("balance");
-            expect(details).toHaveProperty("created_at");
+            expect(details.result).toHaveLength(1);
+            expect(details.result[0]).toHaveProperty("position_id", positionId);
+            expect(details.result[0]).toHaveProperty("symbol");
+            expect(details.result[0]).toHaveProperty("balance");
         },
         E2E_TIMEOUT
     );

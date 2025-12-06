@@ -25,7 +25,6 @@ import {
 import {
     ProTradesArgs,
     ProOrderTradesArgs,
-    ProOrderDetailsArgs,
     ProOpenOrdersArgs,
     ProCreateOrderArgs,
     ProCancelOrderArgs,
@@ -35,7 +34,7 @@ import {
     ProMarketConfigArgs,
     ProOrderBookArgs,
     ProPublicTradesArgs,
-    ProOHLCVArgs,
+    ProCandlesArgs,
     ProTickerArgs,
 } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
@@ -161,25 +160,30 @@ export async function handleProTool(name: string, args: any) {
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "pro_get_order_details") {
-            const params = args as ProOrderDetailsArgs;
-            if (!params.order_id) {
-                throw new ValidationError("order_id is required", "order_id");
-            }
-            validateUUID(params.order_id, "order_id");
-            const requestContext = {
-                order_id: params.order_id,
-            };
-            const data = await bit2meRequest("GET", `/v1/trading/order/${encodeURIComponent(params.order_id)}`);
-            const optimized = mapProOrderResponse(data);
-            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
-            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-        }
-
         if (name === "pro_get_open_orders") {
             const params = args as ProOpenOrdersArgs;
-            const queryParams: any = { status: "open" };
             const requestContext: any = {};
+
+            // If order_id is provided, get details for that specific order
+            if (params.order_id) {
+                validateUUID(params.order_id, "order_id");
+                requestContext.order_id = params.order_id;
+                const data = await bit2meRequest("GET", `/v1/trading/order/${encodeURIComponent(params.order_id)}`);
+                const optimized = mapProOrderResponse(data);
+                // Return as array for consistency
+                const contextual = buildFilteredContextualResponse(
+                    requestContext,
+                    [optimized],
+                    {
+                        total_records: 1,
+                    },
+                    data
+                );
+                return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+            }
+
+            // Otherwise, get all open orders with optional pair filter
+            const queryParams: any = { status: "open" };
             if (params.pair) {
                 validatePair(params.pair);
                 const pair = normalizePair(params.pair);
@@ -430,8 +434,8 @@ export async function handleProTool(name: string, args: any) {
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "pro_get_OHLCV") {
-            const params = args as ProOHLCVArgs;
+        if (name === "pro_get_candles") {
+            const params = args as ProCandlesArgs;
             if (!params.pair) {
                 throw new ValidationError("pair is required", "pair");
             }
@@ -463,7 +467,7 @@ export async function handleProTool(name: string, args: any) {
                 );
             }
 
-            const limit = params.limit ? validatePaginationLimit(params.limit, 1000, "pro_get_OHLCV") : 1000;
+            const limit = params.limit ? validatePaginationLimit(params.limit, 1000, "pro_get_candles") : 1000;
 
             // Calculate startTime and endTime if not provided (default: last 24 hours)
             const endTime = params.endTime || Date.now();

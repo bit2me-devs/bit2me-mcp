@@ -48,6 +48,7 @@ import type {
     EarnPositionDetailsResponse,
     EarnMovementsSummaryResponse,
     EarnAssetsResponse,
+    EarnAssetWithAPY,
     EarnRewardsConfigResponse,
     EarnPositionRewardsConfigResponse,
     EarnPositionRewardsSummaryResponse,
@@ -319,7 +320,7 @@ export function mapCandlesResponse(raw: unknown): CandleResponse[] {
             high: smartRound(parseFloat(candle.high || candle[2] || DEFAULT_AMOUNT)).toString(),
             low: smartRound(parseFloat(candle.low || candle[3] || DEFAULT_AMOUNT)).toString(),
             close: smartRound(parseFloat(candle.close || candle[4] || DEFAULT_AMOUNT)).toString(),
-            volume: String(candle.volume || candle[5] || DEFAULT_AMOUNT),
+            volume: candle.volume || candle[5] || DEFAULT_AMOUNT,
         };
     });
 }
@@ -370,7 +371,9 @@ export function mapWalletPocketsResponse(raw: unknown): WalletPocketResponse[] {
         symbol: (p.currency || "").toUpperCase(),
         balance: p.balance,
         available: p.available,
+        blocked: p.blocked || p.blockedBalance || "0",
         name: p.name,
+        created_at: p.createdAt || p.created_at || "",
     }));
 }
 
@@ -569,10 +572,6 @@ export function mapProformaResponse(raw: unknown): ProformaResponse {
         expires_at,
     };
 }
-
-// ============================================================================
-// EARN MAPPERS
-// ============================================================================
 
 // ============================================================================
 // HELPERS
@@ -928,7 +927,7 @@ export function mapProBalanceResponse(raw: unknown): ProBalanceResponse[] {
         .map((b: any) => ({
             symbol: b.currency,
             balance: (b.balance || 0).toString(),
-            blocked_balance: (b.blockedBalance || 0).toString(),
+            blocked: (b.blockedBalance || 0).toString(),
             available: ((b.balance || 0) - (b.blockedBalance || 0)).toString(),
         }));
 }
@@ -1077,27 +1076,26 @@ export function mapEarnMovementsSummaryResponse(raw: unknown): EarnMovementsSumm
 /**
  * Maps raw earn assets response to optimized schema
  */
-export function mapEarnAssetsResponse(raw: unknown): { symbols: string[] } {
+export function mapEarnAssetsResponse(raw: unknown): { assets: EarnAssetWithAPY[] } {
     // Check if it's the standard object with assets/currencies array
+    let assets: any[] = [];
     if (isValidObject(raw) && (raw.assets || raw.currencies)) {
-        const assets = raw.assets || raw.currencies || [];
+        assets = (raw.assets || raw.currencies) as any[];
+    } else {
+        // Check if it's a direct array or wrapped array using helper
+        assets = extractArrayData(raw);
+    }
+
+    if (assets.length > 0) {
         return {
-            symbols: Array.isArray(assets) ? assets : [],
+            assets: assets.map((item: any) => ({
+                symbol: typeof item === "string" ? item : item.symbol || item.currency || JSON.stringify(item),
+                // apy will be populated by the handler
+            })),
         };
     }
 
-    // Check if it's a direct array or wrapped array using helper
-    const extracted = extractArrayData(raw);
-    if (extracted.length > 0) {
-        // Assuming extracted items are strings or objects with symbol
-        return {
-            symbols: extracted.map((item: any) =>
-                typeof item === "string" ? item : item.symbol || item.currency || JSON.stringify(item)
-            ),
-        };
-    }
-
-    return { symbols: [] };
+    return { assets: [] };
 }
 
 /**

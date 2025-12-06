@@ -67,22 +67,22 @@ describeE2E("E2E: Pro Trading Tools", () => {
             const ordersResult = await handleProTool("pro_get_open_orders", {});
             const ordersResponse = JSON.parse(ordersResult.content[0].text);
 
-            if (ordersResponse.orders.length === 0) {
+            if (ordersResponse.result.length === 0) {
                 console.warn("⚠️ Skipping pro order details test - no open orders found");
                 return;
             }
 
-            const orderId = ordersResponse.orders[0].id;
+            const orderId = ordersResponse.result[0].id;
 
-            // Get order details
-            const result = await handleProTool("pro_get_order_details", { order_id: orderId });
+            // Get order details using order_id filter
+            const result = await handleProTool("pro_get_open_orders", { order_id: orderId });
             const details = JSON.parse(result.content[0].text);
 
-            expect(details).toHaveProperty("id", orderId);
-            expect(details).toHaveProperty("pair");
-            expect(details).toHaveProperty("type");
-            expect(details).toHaveProperty("created_at");
-            expect(details).toHaveProperty("created_timestamp");
+            expect(details.result).toHaveLength(1);
+            expect(details.result[0]).toHaveProperty("id", orderId);
+            expect(details.result[0]).toHaveProperty("pair");
+            expect(details.result[0]).toHaveProperty("type");
+            expect(details.result[0]).toHaveProperty("created_at");
         },
         E2E_TIMEOUT
     );

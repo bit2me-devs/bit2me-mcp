@@ -91,13 +91,13 @@ describeE2E("E2E: Loan Tools", () => {
 
             const orderId = ordersResponse.result[0].id;
 
-            // Get order details
-            const result = await handleLoanTool("loan_get_order_details", { order_id: orderId });
+            // Get order details using order_id filter
+            const result = await handleLoanTool("loan_get_orders", { order_id: orderId });
             const details = JSON.parse(result.content[0].text);
 
-            expect(details).toHaveProperty("id", orderId);
-            expect(details).toHaveProperty("guarantee_symbol");
-            expect(details).toHaveProperty("loan_currency");
+            expect(details.result).toHaveLength(1);
+            expect(details.result[0]).toHaveProperty("id", orderId);
+            expect(details.result[0]).toHaveProperty("guarantee_symbol");
         },
         E2E_TIMEOUT
     );

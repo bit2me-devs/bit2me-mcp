@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleWalletTool } from "../../src/tools/wallet.js";
 import * as bit2meService from "../../src/services/bit2me.js";
-import { NotFoundError } from "../../src/utils/errors.js";
 
 const VALID_UUID = "123e4567-e89b-12d3-a456-426614174000";
 const VALID_UUID_2 = "123e4567-e89b-12d3-a456-426614174001";
@@ -32,24 +31,28 @@ describe("Wallet Tools Handler", () => {
         expect(parsed.result).toHaveLength(1);
     });
 
-    it("should handle wallet_get_pocket_details", async () => {
-        const mockPocket = { id: VALID_UUID, currency: "BTC" };
-        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue([mockPocket]);
+    it("should handle wallet_get_pockets with pocket_id filter", async () => {
+        const mockPockets = [
+            { id: VALID_UUID, currency: "BTC" },
+            { id: VALID_UUID_2, currency: "EUR" },
+        ];
+        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockPockets);
 
-        const result = await handleWalletTool("wallet_get_pocket_details", { pocket_id: VALID_UUID });
+        const result = await handleWalletTool("wallet_get_pockets", { pocket_id: VALID_UUID });
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", { id: VALID_UUID });
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", {});
         const parsed = JSON.parse(result.content[0].text);
         expect(parsed).toHaveProperty("request");
         expect(parsed).toHaveProperty("result");
-        expect(parsed.result).toEqual(expect.objectContaining({ id: VALID_UUID }));
+        expect(parsed.result).toHaveLength(1);
+        expect(parsed.result[0].id).toBe(VALID_UUID);
     });
 
-    it("should handle wallet_get_pocket_details not found", async () => {
+    it("should handle wallet_get_pockets with pocket_id not found", async () => {
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue([]);
-        await expect(handleWalletTool("wallet_get_pocket_details", { pocket_id: VALID_UUID })).rejects.toThrow(
-            NotFoundError
-        );
+        const result = await handleWalletTool("wallet_get_pockets", { pocket_id: VALID_UUID });
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.result).toHaveLength(0);
     });
 
     it("should handle wallet_get_pocket_addresses", async () => {
@@ -108,11 +111,11 @@ describe("Wallet Tools Handler", () => {
         });
     });
 
-    it("should handle wallet_get_movement_details", async () => {
+    it("should handle wallet_get_movements with movement_id filter", async () => {
         const mockTx = { id: VALID_UUID, status: "completed" };
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockTx);
 
-        await handleWalletTool("wallet_get_movement_details", { movement_id: VALID_UUID });
+        await handleWalletTool("wallet_get_movements", { movement_id: VALID_UUID });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", `/v1/wallet/transaction/${VALID_UUID}`);
     });

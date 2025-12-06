@@ -34,11 +34,8 @@ export interface MarketCurrencyRateArgs {
 // ============================================================================
 
 export interface WalletGetPocketsArgs {
+    pocket_id?: string;
     symbol?: string;
-}
-
-export interface WalletPocketDetailsArgs {
-    pocket_id: string;
 }
 
 export interface WalletPocketAddressesArgs {
@@ -57,13 +54,10 @@ export interface WalletCardsArgs {
 }
 
 export interface WalletMovementsArgs {
+    movement_id?: string;
     symbol?: string;
     limit?: number;
     offset?: number;
-}
-
-export interface WalletMovementDetailsArgs {
-    movement_id: string;
 }
 
 export interface WalletBuyCryptoArgs {
@@ -98,10 +92,6 @@ export interface WalletConfirmOperationArgs {
 // ============================================================================
 // EARN TOOLS ARGS
 // ============================================================================
-
-export interface EarnPositionDetailsArgs {
-    position_id: string;
-}
 
 /** Args for earn_get_movements - all movements across all positions */
 export interface EarnMovementsArgs {
@@ -149,10 +139,6 @@ export interface EarnPositionRewardsSummaryArgs {
     user_currency?: string;
 }
 
-export interface EarnAPYArgs {
-    symbol?: string;
-}
-
 // ============================================================================
 // LOAN TOOLS ARGS
 // ============================================================================
@@ -172,12 +158,9 @@ export interface LoanMovementsArgs {
 }
 
 export interface LoanOrdersArgs {
+    order_id?: string;
     limit?: number;
     offset?: number;
-}
-
-export interface LoanOrderDetailsArgs {
-    order_id: string;
 }
 
 export interface LoanCreateArgs {
@@ -218,11 +201,8 @@ export interface ProOrderTradesArgs {
     order_id: string;
 }
 
-export interface ProOrderDetailsArgs {
-    order_id: string;
-}
-
 export interface ProOpenOrdersArgs {
+    order_id?: string;
     pair?: string;
 }
 
@@ -272,6 +252,12 @@ export interface ProCandlesArgs {
     pair: string;
     timeframe: string;
     limit?: number;
+    startTime?: number;
+    endTime?: number;
+}
+
+export interface ProTickerArgs {
+    pair?: string;
 }
 
 // ============================================================================

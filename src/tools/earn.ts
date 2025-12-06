@@ -7,7 +7,6 @@ import {
     mapEarnPositionsResponse,
     mapEarnMovementsResponse,
     mapEarnPositionMovementsResponse,
-    mapEarnPositionDetailsResponse,
     mapEarnMovementsSummaryResponse,
     mapEarnAssetsResponse,
     mapEarnRewardsConfigResponse,
@@ -21,7 +20,6 @@ import {
     buildPaginatedContextualResponse,
 } from "../utils/contextual-response.js";
 import {
-    EarnPositionDetailsArgs,
     EarnMovementsArgs,
     EarnPositionMovementsArgs,
     EarnMovementsSummaryArgs,
@@ -29,7 +27,6 @@ import {
     EarnWithdrawArgs,
     EarnPositionRewardsConfigArgs,
     EarnPositionRewardsSummaryArgs,
-    EarnAPYArgs,
 } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import {
@@ -73,9 +70,23 @@ export async function handleEarnTool(name: string, args: any) {
         }
 
         if (name === "earn_get_positions") {
-            const requestContext = {};
+            const params = args as { position_id?: string };
+            const requestContext: any = {};
+
+            // If position_id is provided, filter to that specific position
+            if (params.position_id) {
+                validateUUID(params.position_id, "position_id");
+                requestContext.position_id = params.position_id;
+            }
+
             const data = await bit2meRequest("GET", "/v2/earn/wallets");
-            const optimized = mapEarnPositionsResponse(data);
+            let optimized = mapEarnPositionsResponse(data);
+
+            // Filter by position_id if provided
+            if (params.position_id) {
+                optimized = optimized.filter((p: any) => p.position_id === params.position_id);
+            }
+
             const contextual = buildFilteredContextualResponse(
                 requestContext,
                 optimized,
@@ -84,21 +95,6 @@ export async function handleEarnTool(name: string, args: any) {
                 },
                 data
             );
-            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-        }
-
-        if (name === "earn_get_position_details") {
-            const params = args as EarnPositionDetailsArgs;
-            if (!params.position_id) {
-                throw new ValidationError("position_id is required", "position_id");
-            }
-            validateUUID(params.position_id, "position_id");
-            const requestContext = {
-                position_id: params.position_id,
-            };
-            const data = await bit2meRequest("GET", `/v1/earn/wallets/${encodeURIComponent(params.position_id)}`);
-            const optimized = mapEarnPositionDetailsResponse(data);
-            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
@@ -303,15 +299,15 @@ export async function handleEarnTool(name: string, args: any) {
 
             const requestContext = {};
             // Map Assets (just symbols)
-            const assets = mapEarnAssetsResponse(assetsData); // Returns { symbols: string[] }
+            const mappedAssets = mapEarnAssetsResponse(assetsData); // Returns { assets: { symbol: string }[] }
             // Map APY
             const apys = mapEarnAPYResponse(apyData); // Returns Record<string, EarnAPYResponse>
 
             // Combine assets with APY
-            const combinedAssets = assets.symbols.map((symbol) => {
-                const apyInfo = apys[symbol];
+            const combinedAssets = mappedAssets.assets.map((item) => {
+                const apyInfo = apys[item.symbol];
                 return {
-                    symbol,
+                    symbol: item.symbol,
                     apy: apyInfo ? apyInfo.rates : undefined,
                 };
             });
@@ -388,31 +384,6 @@ export async function handleEarnTool(name: string, args: any) {
             );
             const optimized = mapEarnPositionRewardsSummaryResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
-            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-        }
-
-        if (name === "earn_get_apy") {
-            const params = args as EarnAPYArgs;
-            const queryParams: Record<string, any> = {};
-            if (params.symbol) {
-                queryParams.currency = normalizeSymbol(params.symbol);
-            }
-
-            const requestContext: any = {};
-            if (params.symbol) {
-                requestContext.symbol = normalizeSymbol(params.symbol);
-            }
-
-            const data = await bit2meRequest("GET", "/v2/earn/apy", queryParams);
-            const optimized = mapEarnAPYResponse(data);
-            const contextual = buildFilteredContextualResponse(
-                requestContext,
-                optimized,
-                {
-                    total_records: Object.keys(optimized).length,
-                },
-                data
-            );
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 

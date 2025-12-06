@@ -33,21 +33,22 @@ describeE2E("E2E: Wallet Tools", () => {
     );
 
     it(
-        "should get pocket details",
+        "should get pocket details with pocket_id filter",
         async () => {
             // First get a pocket ID
             const pocketsResult = await handleWalletTool("wallet_get_pockets", {});
             const pockets = JSON.parse(pocketsResult.content[0].text);
-            const pocketId = pockets[0].id;
+            const pocketId = pockets.result[0].id;
 
-            // Then get its details
-            const result = await handleWalletTool("wallet_get_pocket_details", { pocket_id: pocketId });
-            const details = JSON.parse(result.content[0].text);
+            // Then get its details using pocket_id filter
+            const result = await handleWalletTool("wallet_get_pockets", { pocket_id: pocketId });
+            const response = JSON.parse(result.content[0].text);
 
-            expect(details).toHaveProperty("id", pocketId);
-            expect(details).toHaveProperty("currency");
-            expect(details).toHaveProperty("balance");
-            expect(details).toHaveProperty("created_at");
+            expect(response.result).toHaveLength(1);
+            expect(response.result[0]).toHaveProperty("id", pocketId);
+            expect(response.result[0]).toHaveProperty("symbol");
+            expect(response.result[0]).toHaveProperty("balance");
+            expect(response.result[0]).toHaveProperty("created_at");
         },
         E2E_TIMEOUT
     );
@@ -143,27 +144,27 @@ describeE2E("E2E: Wallet Tools", () => {
     );
 
     it(
-        "should get movement details",
+        "should get movement details with movement_id filter",
         async () => {
             // First get movements
             const txResult = await handleWalletTool("wallet_get_movements", { limit: 5 });
             const response = JSON.parse(txResult.content[0].text);
 
-            if (response.movements.length === 0) {
+            if (response.result.length === 0) {
                 console.warn("⚠️ Skipping movement details test - no movements found");
                 return;
             }
 
-            const movementId = response.movements[0].id;
+            const movementId = response.result[0].id;
 
-            // Get movement details
-            const result = await handleWalletTool("wallet_get_movement_details", { movement_id: movementId });
+            // Get movement details using movement_id filter
+            const result = await handleWalletTool("wallet_get_movements", { movement_id: movementId });
             const details = JSON.parse(result.content[0].text);
 
-            expect(details).toHaveProperty("id", movementId);
-            expect(details).toHaveProperty("type");
-            expect(details).toHaveProperty("status");
-            expect(details).toHaveProperty("amount");
+            expect(details.result).toHaveLength(1);
+            expect(details.result[0]).toHaveProperty("id", movementId);
+            expect(details.result[0]).toHaveProperty("type");
+            expect(details.result[0]).toHaveProperty("status");
         },
         E2E_TIMEOUT
     );

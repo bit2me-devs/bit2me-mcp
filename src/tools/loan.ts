@@ -11,12 +11,15 @@ import {
     mapLoanIncreaseGuaranteeResponse,
     mapLoanPaybackResponse,
 } from "../utils/response-mappers.js";
-import { buildSimpleContextualResponse, buildPaginatedContextualResponse } from "../utils/contextual-response.js";
+import {
+    buildSimpleContextualResponse,
+    buildPaginatedContextualResponse,
+    buildFilteredContextualResponse,
+} from "../utils/contextual-response.js";
 import {
     LoanSimulationArgs,
     LoanMovementsArgs,
     LoanOrdersArgs,
-    LoanOrderDetailsArgs,
     LoanCreateArgs,
     LoanIncreaseGuaranteeArgs,
     LoanPaybackArgs,
@@ -129,6 +132,27 @@ export async function handleLoanTool(name: string, args: any) {
 
         if (name === "loan_get_orders") {
             const params = args as LoanOrdersArgs;
+            const requestContext: any = {};
+
+            // If order_id is provided, get details for that specific order (with extra fields)
+            if (params.order_id) {
+                validateUUID(params.order_id, "order_id");
+                requestContext.order_id = params.order_id;
+                const data = await bit2meRequest("GET", `/v1/loan/orders/${encodeURIComponent(params.order_id)}`);
+                const optimized = mapLoanOrderDetailsResponse(data);
+                // Return as array for consistency
+                const contextual = buildFilteredContextualResponse(
+                    requestContext,
+                    [optimized],
+                    {
+                        total_records: 1,
+                    },
+                    data
+                );
+                return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+            }
+
+            // Otherwise, get paginated list of orders
             const limit = validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT);
             const offset = validatePaginationOffset(params.offset);
 
@@ -137,10 +161,9 @@ export async function handleLoanTool(name: string, args: any) {
                 offset,
             };
 
-            const requestContext = {
-                limit,
-                offset,
-            };
+            requestContext.limit = limit;
+            requestContext.offset = offset;
+
             const data = await bit2meRequest("GET", "/v1/loan/orders", queryParams);
             const optimized = mapLoanOrdersResponse(data);
 
@@ -155,21 +178,6 @@ export async function handleLoanTool(name: string, args: any) {
                 },
                 data
             );
-            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-        }
-
-        if (name === "loan_get_order_details") {
-            const params = args as LoanOrderDetailsArgs;
-            if (!params.order_id) {
-                throw new ValidationError("order_id is required", "order_id");
-            }
-            validateUUID(params.order_id, "order_id");
-            const requestContext = {
-                order_id: params.order_id,
-            };
-            const data = await bit2meRequest("GET", `/v1/loan/orders/${encodeURIComponent(params.order_id)}`);
-            const optimized = mapLoanOrderDetailsResponse(data);
-            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 

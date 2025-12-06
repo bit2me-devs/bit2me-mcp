@@ -45,8 +45,13 @@ describe("Other Tool Handlers", () => {
             const parsed = JSON.parse(result.content[0].text);
             expect(parsed).toHaveProperty("request");
             expect(parsed).toHaveProperty("result");
-            expect(parsed.result).toHaveProperty("total_value");
+            expect(parsed.result).toHaveProperty("total_balance");
             expect(parsed.result).toHaveProperty("quote_symbol", "EUR");
+            expect(parsed.result).toHaveProperty("by_service");
+            expect(parsed.result.by_service).toHaveProperty("wallet_balance");
+            expect(parsed.result.by_service).toHaveProperty("pro_balance");
+            expect(parsed.result.by_service).toHaveProperty("earn_balance");
+            expect(parsed.result.by_service).toHaveProperty("loan_guarantees_balance");
         });
 
         it("should throw for unknown aggregation tool", async () => {
@@ -117,15 +122,19 @@ describe("Other Tool Handlers", () => {
             );
         });
 
-        it("should handle earn_get_position_details", async () => {
-            vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({
-                id: VALID_UUID,
-                currency: "BTC",
-                balance: "1",
-                status: "active",
-            });
-            await handleEarnTool("earn_get_position_details", { position_id: VALID_UUID });
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", `/v1/earn/wallets/${VALID_UUID}`);
+        it("should handle earn_get_positions with position_id filter", async () => {
+            const mockResponse = {
+                data: [
+                    { walletId: VALID_UUID, currency: "BTC", totalBalance: "1", status: "active" },
+                    { walletId: VALID_UUID_2, currency: "EUR", totalBalance: "100", status: "active" },
+                ],
+            };
+            vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockResponse);
+            const result = await handleEarnTool("earn_get_positions", { position_id: VALID_UUID });
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/wallets");
+            const parsed = JSON.parse(result.content[0].text);
+            expect(parsed.result).toHaveLength(1);
+            expect(parsed.result[0].position_id).toBe(VALID_UUID);
         });
 
         it("should handle earn_get_position_movements", async () => {
@@ -234,12 +243,6 @@ describe("Other Tool Handlers", () => {
             ]);
         });
 
-        it("should handle earn_get_apy", async () => {
-            vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleEarnTool("earn_get_apy", {});
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/apy", expect.any(Object));
-        });
-
         it("should handle earn_get_rewards_config", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue([{ currency: "B2M", walletId: VALID_UUID }]);
             const result = await handleEarnTool("earn_get_rewards_config", {});
@@ -312,10 +315,10 @@ describe("Other Tool Handlers", () => {
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/loan/ltv", expect.any(Object));
         });
 
-        it("should handle loan_get_order_details", async () => {
+        it("should handle loan_get_orders with order_id filter", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleLoanTool("loan_get_order_details", { order_id: VALID_UUID });
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(`GET`, `/v1/loan/orders/${VALID_UUID}`);
+            await handleLoanTool("loan_get_orders", { order_id: VALID_UUID });
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", `/v1/loan/orders/${VALID_UUID}`);
         });
 
         it("should handle loan_get_movements", async () => {
@@ -373,10 +376,10 @@ describe("Other Tool Handlers", () => {
             );
         });
 
-        it("should handle pro_get_order_details", async () => {
+        it("should handle pro_get_open_orders with order_id filter", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleProTool("pro_get_order_details", { order_id: VALID_UUID });
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(`GET`, `/v1/trading/order/${VALID_UUID}`);
+            await handleProTool("pro_get_open_orders", { order_id: VALID_UUID });
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", `/v1/trading/order/${VALID_UUID}`);
         });
 
         it("should handle pro_get_order_trades", async () => {

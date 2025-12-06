@@ -9,10 +9,9 @@ import {
     validateUUID,
     validateSymbol,
 } from "../utils/format.js";
-import { ValidationError, NotFoundError } from "../utils/errors.js";
+import { ValidationError } from "../utils/errors.js";
 import {
     mapWalletPocketsResponse,
-    mapWalletPocketDetailsResponse,
     mapWalletAddressesResponse,
     mapWalletMovementsResponse,
     mapWalletMovementDetailsResponse,
@@ -23,13 +22,7 @@ import {
     buildFilteredContextualResponse,
     buildPaginatedContextualResponse,
 } from "../utils/contextual-response.js";
-import {
-    WalletPocketDetailsArgs,
-    WalletPocketAddressesArgs,
-    WalletNetworksArgs,
-    WalletMovementsArgs,
-    WalletMovementDetailsArgs,
-} from "../utils/args.js";
+import { WalletPocketAddressesArgs, WalletNetworksArgs, WalletMovementsArgs } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
 
@@ -46,11 +39,24 @@ export const walletTools: Tool[] = getCategoryTools("wallet");
 export async function handleWalletTool(name: string, args: any) {
     return executeTool(name, args, async () => {
         if (name === "wallet_get_pockets") {
-            const params = args as { symbol?: string };
+            const params = args as { symbol?: string; pocket_id?: string };
+            const requestContext: any = {};
+
+            // If pocket_id is provided, filter to that specific pocket
+            if (params.pocket_id) {
+                validateUUID(params.pocket_id, "pocket_id");
+                requestContext.pocket_id = params.pocket_id;
+            }
+
             const data = await bit2meRequest("GET", "/v1/wallet/pocket", {});
             let optimized = mapWalletPocketsResponse(data);
 
-            const requestContext: any = {};
+            // Filter by pocket_id if provided
+            if (params.pocket_id) {
+                optimized = optimized.filter((p: any) => p.id === params.pocket_id);
+            }
+
+            // Filter by symbol if provided
             if (params.symbol) {
                 const symbol = normalizeSymbol(params.symbol);
                 requestContext.symbol = symbol;
@@ -65,27 +71,6 @@ export async function handleWalletTool(name: string, args: any) {
                 },
                 data
             );
-            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-        }
-
-        if (name === "wallet_get_pocket_details") {
-            const params = args as WalletPocketDetailsArgs;
-            if (!params.pocket_id) {
-                throw new ValidationError("pocket_id is required", "pocket_id");
-            }
-            validateUUID(params.pocket_id, "pocket_id");
-            const requestContext = {
-                pocket_id: params.pocket_id,
-            };
-            const data = await bit2meRequest("GET", "/v1/wallet/pocket", { id: params.pocket_id });
-            const pocket = Array.isArray(data) ? data[0] : data;
-
-            if (!pocket) {
-                throw new NotFoundError("/v1/wallet/pocket", `Pocket ${params.pocket_id}`);
-            }
-
-            const optimized = mapWalletPocketDetailsResponse(pocket);
-            const contextual = buildSimpleContextualResponse(requestContext, optimized, pocket);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
@@ -155,6 +140,30 @@ export async function handleWalletTool(name: string, args: any) {
 
         if (name === "wallet_get_movements") {
             const params = args as WalletMovementsArgs;
+            const requestContext: any = {};
+
+            // If movement_id is provided, get details for that specific movement
+            if (params.movement_id) {
+                validateUUID(params.movement_id, "movement_id");
+                requestContext.movement_id = params.movement_id;
+                const data = await bit2meRequest(
+                    "GET",
+                    `/v1/wallet/transaction/${encodeURIComponent(params.movement_id)}`
+                );
+                const optimized = mapWalletMovementDetailsResponse(data);
+                // Return as array for consistency
+                const contextual = buildFilteredContextualResponse(
+                    requestContext,
+                    [optimized],
+                    {
+                        total_records: 1,
+                    },
+                    data
+                );
+                return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
+            }
+
+            // Otherwise, get paginated list of movements
             const limit = validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT);
             const offset = validatePaginationOffset(params.offset);
 
@@ -175,10 +184,8 @@ export async function handleWalletTool(name: string, args: any) {
             const totalRecords =
                 rawData.total || rawData.metadata?.total || rawData.metadata?.total_records || optimized.length;
 
-            const requestContext: any = {
-                limit,
-                offset,
-            };
+            requestContext.limit = limit;
+            requestContext.offset = offset;
             if (params.symbol) {
                 requestContext.symbol = normalizeSymbol(params.symbol);
             }
@@ -194,21 +201,6 @@ export async function handleWalletTool(name: string, args: any) {
                 },
                 data
             );
-            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-        }
-
-        if (name === "wallet_get_movement_details") {
-            const params = args as WalletMovementDetailsArgs;
-            if (!params.movement_id) {
-                throw new ValidationError("movement_id is required", "movement_id");
-            }
-            validateUUID(params.movement_id, "movement_id");
-            const requestContext = {
-                movement_id: params.movement_id,
-            };
-            const data = await bit2meRequest("GET", `/v1/wallet/transaction/${encodeURIComponent(params.movement_id)}`);
-            const optimized = mapWalletMovementDetailsResponse(data);
-            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
