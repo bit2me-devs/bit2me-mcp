@@ -645,11 +645,22 @@ export interface EarnPositionRewardsSummaryResponse {
 export interface LoanMovementResponse {
     id: string;
     order_id: string;
-    type: "payment" | "interest" | "guarantee_change" | "liquidation" | "other";
-    amount: string;
-    symbol: string;
-    date: string;
+    type: string; // approve, repay, liquidate, interest, etc.
     status: "pending" | "completed" | "failed";
+    // Loan details
+    loan_amount: string;
+    loan_symbol: string;
+    loan_amount_fiat: string;
+    // Guarantee details
+    guarantee_amount: string;
+    guarantee_symbol: string;
+    guarantee_amount_fiat: string;
+    // LTV tracking
+    ltv: string;
+    previous_ltv: string;
+    // Dates
+    created_at: string;
+    updated_at: string;
 }
 
 export interface LoanOrderDetailsResponse {

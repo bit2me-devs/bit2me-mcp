@@ -836,28 +836,54 @@ describe("Response Mappers", () => {
             ]);
         });
 
-        it("should map loan movements response", () => {
+        it("should map loan movements response with full payload", () => {
             expect(mapLoanMovementsResponse(null)).toEqual([]);
-            const valid = [
+
+            // Test with real API structure
+            const valid = {
+                data: [
+                    {
+                        movementId: "1b3aa379-0262-48eb-970d-da6b89882c67",
+                        type: "approve",
+                        createdAt: "2025-07-27T16:24:00.118Z",
+                        updatedAt: "2025-07-27T16:24:00.118Z",
+                        orderId: "fb930f0c-8e90-403a-95e4-112394183cf2",
+                        payload: {
+                            loanAmount: {
+                                value: "50750.0",
+                                converted: "50749.949999",
+                                currency: "EURR",
+                            },
+                            guaranteeAmount: {
+                                value: "1.0",
+                                converted: "101499.899999",
+                                currency: "BTC",
+                            },
+                        },
+                        ltv: "0.5000",
+                        previousLtv: "0.5000",
+                        status: "completed",
+                    },
+                ],
+            };
+
+            const result = mapLoanMovementsResponse(valid);
+            expect(result).toEqual([
                 {
-                    id: "1",
-                    orderId: "o1",
-                    type: "repayment",
-                    amount: "100",
-                    currency: "EUR",
-                    date: "2023-01-01",
+                    id: "1b3aa379-0262-48eb-970d-da6b89882c67",
+                    order_id: "fb930f0c-8e90-403a-95e4-112394183cf2",
+                    type: "approve",
                     status: "completed",
-                },
-            ];
-            expect(mapLoanMovementsResponse(valid)).toEqual([
-                {
-                    id: "1",
-                    order_id: "o1",
-                    type: "payment", // "repayment" normalizes to "payment"
-                    amount: "100",
-                    symbol: "EUR",
-                    date: "2023-01-01",
-                    status: "completed",
+                    loan_amount: "50750.0",
+                    loan_symbol: "EURR",
+                    loan_amount_fiat: "50749.95",
+                    guarantee_amount: "1.0",
+                    guarantee_symbol: "BTC",
+                    guarantee_amount_fiat: "101499.9",
+                    ltv: "0.5000",
+                    previous_ltv: "0.5000",
+                    created_at: "2025-07-27T16:24:00.118Z",
+                    updated_at: "2025-07-27T16:24:00.118Z",
                 },
             ]);
         });

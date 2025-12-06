@@ -4178,7 +4178,7 @@ const toolsData = [
             {
                 "name": "loan_get_movements",
                 "type": "READ",
-                "desc": "Get loan movement history. Returns movements with type (payment, interest, guarantee_change, liquidation, other), amounts, dates, and status. Optional order_id filter to see movements for a specific loan. Use limit and offset for pagination. Response is a paginated list with metadata. Movement status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
+                "desc": "Get loan movement history with full details. Returns movements with type (approve, repay, liquidate, interest), loan/guarantee amounts with fiat values, and LTV tracking. Optional order_id filter. Use to track loan lifecycle events. [PRIVATE]",
                 "args": {
                     "order_id": {
                         "type": "string",
@@ -4193,35 +4193,42 @@ const toolsData = [
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Offset for pagination (default: 0)",
+                        "desc": "Number of records to skip for pagination (default: 0)",
                         "required": false,
                         "default": 0
                     }
                 },
                 "exampleArgs": {
-                    "order_id": "loan-order-uuid-1234",
+                    "order_id": "fb930f0c-8e90-403a-95e4-112394183cf2",
                     "limit": 10,
                     "offset": 0
                 },
                 "response": {
                     "request": {
-                        "order_id": "loan-order-uuid-1234",
+                        "order_id": "fb930f0c-8e90-403a-95e4-112394183cf2",
                         "limit": 10,
                         "offset": 0
                     },
                     "result": [
                         {
-                            "id": "mov123-...",
-                            "order_id": "loan-order-uuid-1234",
-                            "type": "payment",
-                            "amount": "100.00",
-                            "symbol": "EUR",
-                            "date": "2024-11-25T10:30:00.000Z",
-                            "status": "completed"
+                            "id": "1b3aa379-0262-48eb-970d-da6b89882c67",
+                            "order_id": "fb930f0c-8e90-403a-95e4-112394183cf2",
+                            "type": "approve",
+                            "status": "completed",
+                            "loan_amount": "50750.0",
+                            "loan_symbol": "EUR",
+                            "loan_amount_fiat": "50749.95",
+                            "guarantee_amount": "1.0",
+                            "guarantee_symbol": "BTC",
+                            "guarantee_amount_fiat": "101499.9",
+                            "ltv": "0.5000",
+                            "previous_ltv": "0.5000",
+                            "created_at": "2025-07-27T16:24:00.118Z",
+                            "updated_at": "2025-07-27T16:24:00.118Z"
                         }
                     ],
                     "metadata": {
-                        "total_records": 50,
+                        "total_records": 28,
                         "limit": 10,
                         "offset": 0,
                         "has_more": true
@@ -4234,56 +4241,85 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID)",
-                                "format": "uuid"
+                                "format": "uuid",
+                                "description": "Movement unique identifier"
                             },
                             "order_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the order",
-                                "format": "uuid"
+                                "format": "uuid",
+                                "description": "Loan order UUID this movement belongs to"
                             },
                             "type": {
                                 "type": "string",
-                                "description": "Loan movement type: payment (loan repayment), interest (accrued interest), guarantee_change (collateral adjustment), liquidation (forced sale), other",
-                                "enum": [
-                                    "payment",
-                                    "interest",
-                                    "guarantee_change",
-                                    "liquidation",
-                                    "other"
-                                ]
-                            },
-                            "amount": {
-                                "type": "string",
-                                "description": "Amount as string for precision"
-                            },
-                            "symbol": {
-                                "type": "string",
-                                "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
-                            },
-                            "date": {
-                                "type": "string",
-                                "description": "ISO 8601 date/time when this event occurred",
-                                "format": "date-time"
+                                "description": "Movement type: approve (loan approved), repay (payment made), liquidate (forced liquidation), interest (interest accrual)"
                             },
                             "status": {
                                 "type": "string",
-                                "description": "Movement status. ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled)",
                                 "enum": [
                                     "pending",
                                     "completed",
                                     "failed"
-                                ]
+                                ],
+                                "description": "Movement status"
+                            },
+                            "loan_amount": {
+                                "type": "string",
+                                "description": "Loan amount at time of movement"
+                            },
+                            "loan_symbol": {
+                                "type": "string",
+                                "description": "Loan currency symbol (e.g., EUR, USDC)"
+                            },
+                            "loan_amount_fiat": {
+                                "type": "string",
+                                "description": "Loan amount converted to EUR (rounded to 2 decimals)"
+                            },
+                            "guarantee_amount": {
+                                "type": "string",
+                                "description": "Guarantee/collateral amount at time of movement"
+                            },
+                            "guarantee_symbol": {
+                                "type": "string",
+                                "description": "Guarantee currency symbol (e.g., BTC, ETH)"
+                            },
+                            "guarantee_amount_fiat": {
+                                "type": "string",
+                                "description": "Guarantee amount converted to EUR (rounded to 2 decimals)"
+                            },
+                            "ltv": {
+                                "type": "string",
+                                "description": "Loan-to-Value ratio after this movement (0.5 = 50%)"
+                            },
+                            "previous_ltv": {
+                                "type": "string",
+                                "description": "Loan-to-Value ratio before this movement"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "When the movement was created"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "When the movement was last updated"
                             }
                         },
                         "required": [
                             "id",
                             "order_id",
                             "type",
-                            "amount",
-                            "symbol",
-                            "date",
-                            "status"
+                            "status",
+                            "loan_amount",
+                            "loan_symbol",
+                            "loan_amount_fiat",
+                            "guarantee_amount",
+                            "guarantee_symbol",
+                            "guarantee_amount_fiat",
+                            "ltv",
+                            "previous_ltv",
+                            "created_at",
+                            "updated_at"
                         ]
                     }
                 },

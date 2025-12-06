@@ -928,10 +928,10 @@ export function mapLoanOrdersResponse(raw: unknown): LoanOrderResponse[] {
 
 /**
  * Maps raw loan movements response to optimized schema
- * Handles both direct array and { data: [...] } wrapper formats
+ * Handles the actual API structure with payload containing loan/guarantee amounts
  */
 export function mapLoanMovementsResponse(raw: unknown): LoanMovementResponse[] {
-    // Handle { data: [...] } wrapper (common API format)
+    // Handle { data: [...] } wrapper (API format)
     let movements: any[] = [];
     if (isValidObject(raw) && Array.isArray((raw as any).data)) {
         movements = (raw as any).data;
@@ -942,20 +942,29 @@ export function mapLoanMovementsResponse(raw: unknown): LoanMovementResponse[] {
     }
 
     return movements.map((tx: any) => {
-        const date = tx.date || tx.createdAt || "";
+        const payload = tx.payload || {};
+        const loanAmount = payload.loanAmount || {};
+        const guaranteeAmount = payload.guaranteeAmount || {};
+
         return {
-            id: tx.id || tx.transactionId || tx.movementId || "",
-            order_id: tx.orderId || tx.order_id || "",
-            type: normalizeLoanMovementType(tx.type || tx.movementType) as
-                | "payment"
-                | "interest"
-                | "guarantee_change"
-                | "liquidation"
-                | "other",
-            amount: String(tx.amount || "0"),
-            symbol: (tx.currency || tx.symbol || "").toUpperCase(),
-            date,
+            id: tx.movementId || tx.id || "",
+            order_id: tx.orderId || "",
+            type: tx.type || "unknown", // approve, repay, liquidate, interest, etc.
             status: normalizeMovementStatus(tx.status),
+            // Loan details
+            loan_amount: String(loanAmount.value || "0"),
+            loan_symbol: (loanAmount.currency || "").toUpperCase(),
+            loan_amount_fiat: smartRound(parseFloat(loanAmount.converted || "0")).toString(),
+            // Guarantee details
+            guarantee_amount: String(guaranteeAmount.value || "0"),
+            guarantee_symbol: (guaranteeAmount.currency || "").toUpperCase(),
+            guarantee_amount_fiat: smartRound(parseFloat(guaranteeAmount.converted || "0")).toString(),
+            // LTV tracking
+            ltv: String(tx.ltv || "0"),
+            previous_ltv: String(tx.previousLtv || "0"),
+            // Dates
+            created_at: tx.createdAt || "",
+            updated_at: tx.updatedAt || "",
         };
     });
 }
