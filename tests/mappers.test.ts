@@ -707,7 +707,7 @@ describe("Response Mappers", () => {
                 reward_symbol: "B2M",
                 reward_amount: "3861562.41527785",
                 reward_converted_symbol: "EUR",
-                reward_converted_amount: "46361.57588988",
+                reward_converted_amount: "46361.58", // Fiat value rounded to 2 decimals
             });
         });
     });

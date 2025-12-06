@@ -711,7 +711,7 @@ export function mapEarnPositionsResponse(raw: unknown): EarnPositionResponse[] {
                 : undefined,
             converted_balance: position.convertedBalance
                 ? {
-                      value: position.convertedBalance.value || "0",
+                      value: smartRound(parseFloat(position.convertedBalance.value || "0")).toString(),
                       symbol: position.convertedBalance.currency || "",
                   }
                 : undefined,
@@ -837,7 +837,7 @@ function mapSingleEarnMovement(tx: any): EarnMovementResponse {
 
     if (tx.convertedAmount) {
         movement.converted_amount = {
-            value: tx.convertedAmount.value || "0",
+            value: smartRound(parseFloat(tx.convertedAmount.value || "0")).toString(),
             symbol: tx.convertedAmount.currency || "",
         };
     }
@@ -1025,7 +1025,7 @@ export function mapEarnPositionDetailsResponse(raw: unknown): EarnPositionDetail
             : undefined,
         converted_balance: position.convertedBalance
             ? {
-                  value: position.convertedBalance.value || "0",
+                  value: smartRound(parseFloat(position.convertedBalance.value || "0")).toString(),
                   symbol: position.convertedBalance.currency || "",
               }
             : undefined,
@@ -1188,7 +1188,7 @@ export function mapEarnPositionRewardsSummaryResponse(raw: unknown): EarnPositio
         reward_symbol: (firstReward.currency || "").toUpperCase(),
         reward_amount: firstReward.amount || "0",
         reward_converted_symbol: (totalConvertedReward.currency || "").toUpperCase(),
-        reward_converted_amount: totalConvertedReward.amount || "0",
+        reward_converted_amount: smartRound(parseFloat(totalConvertedReward.amount || "0")).toString(),
     };
 }
 
@@ -1261,13 +1261,13 @@ export function mapLoanSimulationResponse(raw: unknown): LoanSimulationResponse 
     return {
         guarantee_symbol: (raw.guaranteeCurrency || "").toUpperCase(),
         guarantee_amount: raw.guaranteeAmount || "0",
-        guarantee_amount_converted: raw.guaranteeAmountConverted || "0",
+        guarantee_amount_converted: smartRound(parseFloat(raw.guaranteeAmountConverted || "0")).toString(),
         loan_symbol: (raw.loanCurrency || "").toUpperCase(),
         loan_amount: raw.loanAmount || "0",
-        loan_amount_converted: raw.loanAmountConverted || "0",
+        loan_amount_converted: smartRound(parseFloat(raw.loanAmountConverted || "0")).toString(),
         user_symbol: (raw.userCurrency || "").toUpperCase(),
-        ltv: raw.ltv || "0",
-        apr: raw.apr || "0",
+        ltv: smartRound(parseFloat(raw.ltv || "0")).toString(),
+        apr: smartRound(parseFloat(raw.apr || "0")).toString(),
     };
 }
 
