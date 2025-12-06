@@ -4296,11 +4296,11 @@ const toolsData = [
             {
                 "name": "loan_get_orders",
                 "type": "READ",
-                "desc": "Get all loan orders (both active and closed) for the user. If order_id is provided, returns complete details including LTV, APR, and liquidation price for that specific order. Without order_id, returns basic loan information: id, status, guarantee and loan amounts, symbols, and creation date. Optional limit and offset for pagination. [PRIVATE]",
+                "desc": "Get all loan orders with full details including LTV, APR, interest, and fiat values. Use this to monitor loan health (LTV), track payments, and calculate costs. Optional order_id filter for specific loan. [PRIVATE]",
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Filter by specific order UUID. If provided, returns complete details including LTV, APR, and liquidation price.",
+                        "desc": "Filter by specific order UUID to get a single loan.",
                         "required": false
                     },
                     "limit": {
@@ -4311,7 +4311,7 @@ const toolsData = [
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Offset for pagination (default: 0)",
+                        "desc": "Number of records to skip for pagination (default: 0)",
                         "required": false,
                         "default": 0
                     }
@@ -4330,10 +4330,20 @@ const toolsData = [
                             "id": "fb930f0c-8e90-403a-95e4-112394183cf2",
                             "status": "active",
                             "guarantee_symbol": "BTC",
-                            "guarantee_amount": "1.000000000000000000",
+                            "guarantee_amount": "1.0",
+                            "guarantee_amount_fiat": "76854.8",
                             "loan_symbol": "EUR",
-                            "loan_amount": "52100.455127197287622924",
-                            "created_at": "2025-07-27T16:23:59.876Z"
+                            "loan_amount": "52220.14",
+                            "loan_original_amount": "50750.0",
+                            "loan_amount_fiat": "52214.92",
+                            "ltv": "0.6791",
+                            "apr": "0.17",
+                            "interest_amount": "1470.14",
+                            "remaining_amount": "52220.14",
+                            "payback_amount": "0",
+                            "created_at": "2025-07-27T16:23:59.876Z",
+                            "started_at": "2025-07-27T16:24:00.119Z",
+                            "expires_at": "2025-07-30T16:23:59.872Z"
                         }
                     ],
                     "metadata": {
@@ -4347,12 +4357,12 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID)",
+                                "description": "Unique loan order identifier (UUID)",
                                 "format": "uuid"
                             },
                             "status": {
                                 "type": "string",
-                                "description": "Loan status: active (loan is ongoing), completed (fully repaid), expired (loan term ended)",
+                                "description": "Loan status: active (ongoing), completed (fully repaid), expired (term ended)",
                                 "enum": [
                                     "active",
                                     "completed",
@@ -4361,24 +4371,66 @@ const toolsData = [
                             },
                             "guarantee_symbol": {
                                 "type": "string",
-                                "description": "Cryptocurrency symbol used as collateral (e.g., BTC, ETH)"
+                                "description": "Cryptocurrency symbol used as collateral (e.g., BTC)"
                             },
                             "guarantee_amount": {
                                 "type": "string",
-                                "description": "Amount of collateral deposited (as string for precision)"
+                                "description": "Amount of collateral deposited"
+                            },
+                            "guarantee_amount_fiat": {
+                                "type": "string",
+                                "description": "Collateral value in fiat (EUR). Rounded to 2 decimals."
                             },
                             "loan_symbol": {
                                 "type": "string",
-                                "description": "Currency symbol in which the loan is denominated (e.g., USDC, EUR)"
+                                "description": "Currency of the loan (e.g., EUR, USDC)"
                             },
                             "loan_amount": {
                                 "type": "string",
-                                "description": "Principal loan amount (as string for precision)"
+                                "description": "Current loan amount including accrued interest"
+                            },
+                            "loan_original_amount": {
+                                "type": "string",
+                                "description": "Original principal amount (before interest)"
+                            },
+                            "loan_amount_fiat": {
+                                "type": "string",
+                                "description": "Loan value in fiat (EUR). Rounded to 2 decimals."
+                            },
+                            "ltv": {
+                                "type": "string",
+                                "description": "Loan-to-Value ratio (0.67 = 67%). Higher = more risk of liquidation."
+                            },
+                            "apr": {
+                                "type": "string",
+                                "description": "Annual Percentage Rate (0.17 = 17% annual interest)"
+                            },
+                            "interest_amount": {
+                                "type": "string",
+                                "description": "Total accrued interest amount"
+                            },
+                            "remaining_amount": {
+                                "type": "string",
+                                "description": "Total amount remaining to repay (principal + interest)"
+                            },
+                            "payback_amount": {
+                                "type": "string",
+                                "description": "Amount already repaid"
                             },
                             "created_at": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time when the resource was created",
-                                "format": "date-time"
+                                "format": "date-time",
+                                "description": "When the loan order was created"
+                            },
+                            "started_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "When the loan became active"
+                            },
+                            "expires_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "When the loan term expires"
                             }
                         },
                         "required": [
@@ -4386,9 +4438,19 @@ const toolsData = [
                             "status",
                             "guarantee_symbol",
                             "guarantee_amount",
+                            "guarantee_amount_fiat",
                             "loan_symbol",
                             "loan_amount",
-                            "created_at"
+                            "loan_original_amount",
+                            "loan_amount_fiat",
+                            "ltv",
+                            "apr",
+                            "interest_amount",
+                            "remaining_amount",
+                            "payback_amount",
+                            "created_at",
+                            "started_at",
+                            "expires_at"
                         ]
                     }
                 },

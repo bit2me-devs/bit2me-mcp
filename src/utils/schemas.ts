@@ -326,11 +326,26 @@ export interface EarnMovementResponse {
 export interface LoanOrderResponse {
     id: string;
     status: "active" | "completed" | "expired";
+    // Guarantee (collateral)
     guarantee_symbol: string;
     guarantee_amount: string;
+    guarantee_amount_fiat: string;
+    // Loan
     loan_symbol: string;
     loan_amount: string;
+    loan_original_amount: string;
+    loan_amount_fiat: string;
+    // Interest & Risk
+    ltv: string;
+    apr: string;
+    interest_amount: string;
+    // Payback tracking
+    remaining_amount: string;
+    payback_amount: string;
+    // Dates
     created_at: string;
+    started_at: string;
+    expires_at: string;
 }
 
 /**

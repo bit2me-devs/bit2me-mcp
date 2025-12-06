@@ -887,6 +887,11 @@ function mapSingleEarnMovement(tx: any): EarnMovementResponse {
 
 /**
  * Maps raw loan orders response to optimized schema
+ * Extracts comprehensive loan data including:
+ * - LTV (Loan-to-Value) ratio for risk assessment
+ * - APR for interest calculations
+ * - Fiat-converted values for portfolio valuation
+ * - Payback tracking for loan progress
  */
 export function mapLoanOrdersResponse(raw: unknown): LoanOrderResponse[] {
     if (!isValidObject(raw) || !Array.isArray((raw as any).data)) {
@@ -894,15 +899,29 @@ export function mapLoanOrdersResponse(raw: unknown): LoanOrderResponse[] {
     }
 
     return (raw as any).data.map((loan: any) => {
-        const created_at = loan.createdAt || "";
         return {
-            id: loan.orderId,
+            id: loan.orderId || "",
             status: normalizeStatus(loan.status) as "active" | "completed" | "expired",
-            guarantee_symbol: loan.guaranteeCurrency,
-            guarantee_amount: loan.guaranteeAmount,
-            loan_symbol: loan.loanCurrency,
-            loan_amount: loan.loanAmount,
-            created_at,
+            // Guarantee (collateral)
+            guarantee_symbol: (loan.guaranteeCurrency || "").toUpperCase(),
+            guarantee_amount: String(loan.guaranteeAmount || "0"),
+            guarantee_amount_fiat: smartRound(parseFloat(loan.guaranteeAmountConverted || "0")).toString(),
+            // Loan
+            loan_symbol: (loan.loanCurrency || "").toUpperCase(),
+            loan_amount: String(loan.loanAmount || "0"),
+            loan_original_amount: String(loan.loanOriginalAmount || "0"),
+            loan_amount_fiat: smartRound(parseFloat(loan.loanAmountConverted || "0")).toString(),
+            // Interest & Risk
+            ltv: String(loan.ltv || "0"),
+            apr: String(loan.apr || "0"),
+            interest_amount: String(loan.interestAmount || "0"),
+            // Payback tracking
+            remaining_amount: String(loan.remainingAmount || "0"),
+            payback_amount: String(loan.paybackAmount || "0"),
+            // Dates
+            created_at: loan.createdAt || "",
+            started_at: loan.startedAt || "",
+            expires_at: loan.expiresAt || "",
         };
     });
 }

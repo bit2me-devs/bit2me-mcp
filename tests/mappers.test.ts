@@ -787,36 +787,51 @@ describe("Response Mappers", () => {
     });
 
     describe("Loan Mappers", () => {
-        it("should map loan orders response", () => {
+        it("should map loan orders response with full details", () => {
             expect(mapLoanOrdersResponse(null)).toEqual([]);
             const valid = {
                 data: [
                     {
-                        orderId: "1",
+                        orderId: "fb930f0c-8e90-403a-95e4-112394183cf2",
                         status: "active",
                         guaranteeCurrency: "BTC",
-                        guaranteeAmount: "1",
+                        guaranteeAmount: "1.0",
+                        guaranteeAmountConverted: "76854.8000",
                         loanCurrency: "EUR",
-                        loanAmount: "1000",
-                        remainingAmount: "1000",
-                        ltv: "50",
-                        apr: "5",
-                        liquidationPriceReference: "20000",
-                        createdAt: "2023-01-01",
-                        expiresAt: "2024-01-01",
+                        loanAmount: "52220.14",
+                        loanOriginalAmount: "50750.0",
+                        loanAmountConverted: "52214.918406",
+                        ltv: "0.6791",
+                        apr: "0.17",
+                        interestAmount: "1470.14",
+                        remainingAmount: "52220.14",
+                        paybackAmount: "0",
+                        createdAt: "2025-07-27T16:23:59.876Z",
+                        startedAt: "2025-07-27T16:24:00.119Z",
+                        expiresAt: "2025-07-30T16:23:59.872Z",
                     },
                 ],
             };
             const result = mapLoanOrdersResponse(valid);
-            expect(result).toMatchObject([
+            expect(result).toEqual([
                 {
-                    id: "1",
+                    id: "fb930f0c-8e90-403a-95e4-112394183cf2",
                     status: "active",
                     guarantee_symbol: "BTC",
-                    guarantee_amount: "1",
+                    guarantee_amount: "1.0",
+                    guarantee_amount_fiat: "76854.8",
                     loan_symbol: "EUR",
-                    loan_amount: "1000",
-                    created_at: "2023-01-01",
+                    loan_amount: "52220.14",
+                    loan_original_amount: "50750.0",
+                    loan_amount_fiat: "52214.92",
+                    ltv: "0.6791",
+                    apr: "0.17",
+                    interest_amount: "1470.14",
+                    remaining_amount: "52220.14",
+                    payback_amount: "0",
+                    created_at: "2025-07-27T16:23:59.876Z",
+                    started_at: "2025-07-27T16:24:00.119Z",
+                    expires_at: "2025-07-30T16:23:59.872Z",
                 },
             ]);
         });
