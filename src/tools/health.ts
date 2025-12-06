@@ -5,7 +5,6 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { performHealthCheck } from "../utils/health.js";
 import { executeTool } from "../utils/tool-wrapper.js";
-import { getCategoryTools } from "../utils/tool-metadata.js";
 
 export const healthTools: Tool[] = [
     {

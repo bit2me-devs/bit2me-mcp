@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { handleGeneralTool } from "../../src/tools/general.js";
 import { handleProTool } from "../../src/tools/pro.js";
 import * as bit2meService from "../../src/services/bit2me.js";
-import { NotFoundError } from "../../src/utils/errors.js";
 
 vi.mock("axios");
 vi.mock("../../src/services/bit2me.js");

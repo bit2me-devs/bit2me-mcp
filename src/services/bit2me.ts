@@ -39,7 +39,7 @@ export function generateSignature(nonce: number, endpoint: string, data: any, se
 
 import { rateLimiter } from "../utils/rate-limiter.js";
 import { endpointRateLimiter } from "../utils/rate-limiter-config.js";
-import { apiCircuitBreaker, CircuitState } from "../utils/circuit-breaker.js";
+import { apiCircuitBreaker } from "../utils/circuit-breaker.js";
 import { getCorrelationId } from "../utils/context.js";
 
 // ============================================================================

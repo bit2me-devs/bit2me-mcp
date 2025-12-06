@@ -107,10 +107,6 @@ export function wrapResponseWithRaw<T>(mappedResponse: T, rawResponse: unknown):
 // TYPE GUARDS
 // ============================================================================
 
-function isValidTickerResponse(data: unknown): data is Record<string, any> {
-    return typeof data === "object" && data !== null && "price" in data && "time" in data;
-}
-
 function isValidAssetRecord(data: unknown): data is Record<string, any> {
     return typeof data === "object" && data !== null;
 }

@@ -3,7 +3,7 @@
  */
 
 import { logger } from "./logger.js";
-import { getConfig, BIT2ME_GATEWAY_URL } from "../config.js";
+import { BIT2ME_GATEWAY_URL } from "../config.js";
 import { apiCircuitBreaker, CircuitState } from "./circuit-breaker.js";
 import { bit2meRequest } from "../services/bit2me.js";
 import { getCorrelationId } from "./context.js";
@@ -49,7 +49,7 @@ export async function performHealthCheck(): Promise<HealthStatus> {
     // "online" if both are online
     // "degraded" if only one is online
     // "offline" if both are offline
-    let globalStatus: ServiceStatus = "offline";
+    let globalStatus: ServiceStatus;
 
     if (platformCheck.status === "online" && integrationCheck.status === "online") {
         globalStatus = "online";

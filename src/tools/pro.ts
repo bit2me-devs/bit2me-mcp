@@ -51,7 +51,6 @@ import {
     validateISO8601,
     convertProTimeframe,
 } from "../utils/format.js";
-import { MAX_PAGINATION_LIMIT } from "../constants.js";
 import { ValidationError } from "../utils/errors.js";
 
 export const proTools: Tool[] = getCategoryTools("pro");

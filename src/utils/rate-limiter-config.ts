@@ -116,7 +116,7 @@ export class EndpointRateLimiterManager {
      */
     getStats() {
         const stats: Record<string, unknown> = {};
-        for (const [endpoint, limiter] of this.limiters.entries()) {
+        for (const [endpoint] of this.limiters.entries()) {
             stats[endpoint] = {
                 // RateLimiter doesn't expose stats yet, but we can add that if needed
                 configured: true,

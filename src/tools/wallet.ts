@@ -17,11 +17,7 @@ import {
     mapWalletMovementDetailsResponse,
     mapWalletNetworksResponse,
 } from "../utils/response-mappers.js";
-import {
-    buildSimpleContextualResponse,
-    buildFilteredContextualResponse,
-    buildPaginatedContextualResponse,
-} from "../utils/contextual-response.js";
+import { buildFilteredContextualResponse, buildPaginatedContextualResponse } from "../utils/contextual-response.js";
 import { WalletPocketAddressesArgs, WalletNetworksArgs, WalletMovementsArgs } from "../utils/args.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
