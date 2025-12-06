@@ -28,11 +28,11 @@
 
 ### Features
 
-- actualizar herramientas, landing page y mejoras en código ([643516f](https://github.com/bit2me-devs/bit2me-mcp/commit/643516f61ab6c136a0d4348ec3f830cff89b0993))
-- agregar nuevas funcionalidades (health, circuit-breaker, rate-limiter) ([71cbbe5](https://github.com/bit2me-devs/bit2me-mcp/commit/71cbbe5df84a8c75809dea731c6f57a1cfd6ab8c))
+- update tools, landing page and code improvements ([643516f](https://github.com/bit2me-devs/bit2me-mcp/commit/643516f61ab6c136a0d4348ec3f830cff89b0993))
+- add new features (health, circuit-breaker, rate-limiter) ([71cbbe5](https://github.com/bit2me-devs/bit2me-mcp/commit/71cbbe5df84a8c75809dea731c6f57a1cfd6ab8c))
 - **earn:** enrich earn_get_assets with full asset details ([9394e99](https://github.com/bit2me-devs/bit2me-mcp/commit/9394e993008f8c76295264655741b83f63eb206f))
-- **landing:** mejorar ejemplos interactivos ([29e573a](https://github.com/bit2me-devs/bit2me-mcp/commit/29e573aaf0a2f89eab074c348fe34dd3d328f6d0))
-- **landing:** mejorar UI del sidebar y dark mode ([c3514b1](https://github.com/bit2me-devs/bit2me-mcp/commit/c3514b168f7d47e2e77ba73ca4316584e7b41a49))
+- **landing:** improve interactive examples ([29e573a](https://github.com/bit2me-devs/bit2me-mcp/commit/29e573aaf0a2f89eab074c348fe34dd3d328f6d0))
+- **landing:** improve sidebar UI and dark mode ([c3514b1](https://github.com/bit2me-devs/bit2me-mcp/commit/c3514b168f7d47e2e77ba73ca4316584e7b41a49))
 - **loan:** completely rewrite loan_get_movements mapper ([a57541a](https://github.com/bit2me-devs/bit2me-mcp/commit/a57541aea341310214707c2b503845a8d8d7d93c))
 - **loan:** enrich loan_get_orders with full loan details ([bfdbe1e](https://github.com/bit2me-devs/bit2me-mcp/commit/bfdbe1ebbbbdc538759cbe34f5c35ebcf623711f))
 - **pro:** enrich pro_get_market_config with full trading parameters ([49a003a](https://github.com/bit2me-devs/bit2me-mcp/commit/49a003a4294a26f47349249874adf8bf0cc6fcf0))
@@ -222,7 +222,7 @@
 
 ### Bug Fixes
 
-- resolver alertas de CodeQL security scanning ([dc432e7](https://github.com/bit2me-devs/bit2me-mcp/commit/dc432e769c7373e3981b6b541b734717bf7d1b31))
+- resolve CodeQL security scanning alerts ([dc432e7](https://github.com/bit2me-devs/bit2me-mcp/commit/dc432e769c7373e3981b6b541b734717bf7d1b31))
 
 # [1.4.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.3.1...v1.4.0) (2025-11-27)
 
