@@ -15,7 +15,6 @@ import {
     normalizeMovementStatus,
     normalizeNetwork,
     normalizeMovementType,
-    normalizeLoanMovementType,
     normalizePairResponse,
 } from "./format.js";
 import { DEFAULT_AMOUNT, DEFAULT_STRING, DEFAULT_ARRAY } from "../constants.js";
