@@ -3,15 +3,19 @@
 
 echo "🔨 Running pre-push checks..."
 
-# 1. Verify TypeScript compilation
-echo "📦 Checking TypeScript build..."
+# 1. Verify TypeScript types (without emitting)
+echo "🔍 Checking TypeScript types..."
+npm run typecheck || exit 1
+
+# 2. Verify TypeScript compilation
+echo "📦 Building project..."
 npm run build || exit 1
 
-# 2. Run full test suite
+# 3. Run full test suite
 echo "🧪 Running full test suite..."
 npm test || exit 1
 
-# 3. Security audit (production dependencies only)
+# 4. Security audit (production dependencies only)
 echo "🔒 Running security audit..."
 npm audit --audit-level=high --omit=dev || exit 1
 

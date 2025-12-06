@@ -4,11 +4,23 @@
         "module": "Node16",
         "moduleResolution": "Node16",
         "outDir": "./build",
+        
+        // Strict mode (enabled incrementally)
         "strict": true,
+        "noImplicitOverride": true,
+        // "noUncheckedIndexedAccess": true,      // TODO: Enable and fix array access
+        // "exactOptionalPropertyTypes": true,    // TODO: Enable and fix optional props
+        // "noPropertyAccessFromIndexSignature": true, // Too strict for current codebase
+        
+        // Module resolution
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        
+        // Output & debugging
+        "sourceMap": true
+        // declaration/declarationMap in tsconfig.build.json only
     },
     "include": ["src/**/*", "tests/**/*", "docs/example.ts"],
     "exclude": ["node_modules"],

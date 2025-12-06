@@ -34,7 +34,7 @@ describe("Fuzzing: Response Mappers", () => {
     it("mapTickerResponse should handle any JSON object", () => {
         fc.assert(
             fc.property(fc.object(), (data) => {
-                return safeMap(mapTickerResponse, data);
+                return safeMap((d: unknown) => mapTickerResponse(d, "BTC", "EUR"), data);
             }),
             { numRuns: 100 }
         );
@@ -73,7 +73,7 @@ describe("Fuzzing: Response Mappers", () => {
             fc.property(
                 fc.oneof(fc.string(), fc.integer(), fc.boolean(), fc.constant(null), fc.constant(undefined)),
                 (data) => {
-                    safeMap(mapTickerResponse, data);
+                    safeMap((d: unknown) => mapTickerResponse(d, "BTC", "EUR"), data);
                     safeMap(mapAssetsResponse, data);
                     safeMap(mapOrderBookResponse, data);
                     return true;

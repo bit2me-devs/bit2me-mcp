@@ -50,8 +50,8 @@ describeE2E("E2E: Loan Tools", () => {
                 expect(response.result[0]).toHaveProperty("guarantee_symbol");
                 expect(response.result[0]).toHaveProperty("loan_symbol");
                 expect(response.result[0]).toHaveProperty("created_at");
-                expect(loans[0]).toHaveProperty("expires_at");
-                expect(loans[0]).toHaveProperty("expires_timestamp");
+                expect(response.result[0]).toHaveProperty("expires_at");
+                expect(response.result[0]).toHaveProperty("expires_timestamp");
             }
         },
         E2E_TIMEOUT

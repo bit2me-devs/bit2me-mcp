@@ -171,6 +171,7 @@ export function validateISO8601(date: string): void {
     if (!date || typeof date !== "string") {
         throw new ValidationError("Date is required and must be a string", "date", date);
     }
+    // eslint-disable-next-line security/detect-unsafe-regex -- Safe: no backtracking, fixed quantifiers
     const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
     if (!iso8601Regex.test(date)) {
         throw new ValidationError(

@@ -4,6 +4,9 @@
     "description": "Bit2Me MCP Server",
     "type": "module",
     "main": "build/index.js",
+    "engines": {
+        "node": ">=18.0.0"
+    },
     "bin": {
         "bit2me-mcp-server": "./build/index.js"
     },
@@ -24,6 +27,7 @@
         "test:e2e:watch": "RUN_E2E=true vitest tests/e2e",
         "test:fuzz": "vitest run tests/fuzz.test.ts",
         "test:coverage": "vitest run --coverage",
+        "typecheck": "tsc --noEmit",
         "lint": "eslint src/**/*.ts tests/**/*.ts --fix",
         "lint:fix": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
         "eslint": "eslint",
@@ -32,6 +36,8 @@
         "prettier": "prettier --write .",
         "audit": "npm audit --audit-level=high",
         "secret-scan": "bash -c 'if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose --redact; else echo \"⚠️ Gitleaks not found, skipping secret scan. Install it for better security.\"; fi' --",
+        "clean": "rm -rf build coverage",
+        "validate": "npm run typecheck && npm run lint && npm test",
         "prepare": "husky"
     },
     "keywords": [
@@ -63,6 +69,7 @@
         "@typescript-eslint/parser": "^8.48.1",
         "@vitest/coverage-v8": "^4.0.15",
         "eslint": "^9.39.1",
+        "eslint-plugin-security": "^3.0.1",
         "fast-check": "^4.3.0",
         "globals": "^16.5.0",
         "html-minifier-terser": "^7.2.0",
