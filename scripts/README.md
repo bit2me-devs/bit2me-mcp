@@ -1,40 +1,40 @@
-# Scripts de Generación de Documentación
+# Documentation Generation Scripts
 
-Esta carpeta contiene scripts para generar documentación y artefactos del proyecto.
+This folder contains scripts for generating documentation and project artifacts.
 
-## Scripts Disponibles
+## Available Scripts
 
 ### `generate-tools-docs.js`
 
-**Comando:** `npm run build:docs`
+**Command:** `npm run build:docs`
 
-**Propósito:** Genera documentación de tools desde la metadata centralizada.
+**Purpose:** Regenerates derived assets from the centralized tools metadata.
 
-**Genera:**
+**Generates:**
 
-- `landing/tools-data.js` - Datos de tools para la landing page (incluye responseSchema)
-- `docs/SCHEMA_MAPPING.md` - Documentación de schemas de respuesta con descripciones de campos
+- `landing/tools-data.js` — Tools catalogue for the landing page (includes schemas and examples).
+- `TOOLS_DOCUMENTATION.md` (repository root) — Auto-generated tool documentation with descriptions, endpoints and response schemas.
 
-**Fuente:**
+**Source:**
 
-- `data/tools.json` - Archivo central de metadata
+- `data/tools.json` - Central metadata file
 
-**Uso:** Ejecutar después de modificar `data/tools.json` para regenerar la documentación.
+**Usage:** Run after modifying `data/tools.json` to regenerate the landing catalogue.
 
 ---
 
 ### `generate-llms.js`
 
-**Comando:** `npm run build:llms`
+**Command:** `npm run build:llms`
 
-**Propósito:** Genera archivos de documentación para LLMs desde markdown.
+**Purpose:** Generates documentation files for LLMs from markdown.
 
-**Genera:**
+**Generates:**
 
-- `landing/llms-full.txt` - Documentación completa
-- `landing/llms.txt` - Versión ligera
+- `landing/llms-full.txt` - Complete documentation
+- `landing/llms.txt` - Lightweight version
 
-**Fuentes:**
+**Sources:**
 
 - `README.md`
 - `agents.md`
@@ -44,52 +44,52 @@ Esta carpeta contiene scripts para generar documentación y artefactos del proye
 
 ### `minify-html.js`
 
-**Comando:** No está en package.json (ejecutar manualmente si se necesita)
+**Command:** Not in package.json (run manually if needed)
 
-**Propósito:** Minifica el HTML de la landing page para producción.
+**Purpose:** Minifies the landing page HTML for production.
 
-**Uso:**
+**Usage:**
 
 ```bash
 NODE_ENV=production node scripts/minify-html.js
 ```
 
-**Nota:** Actualmente no se usa en el flujo de build, pero puede ser útil para optimización.
+**Note:** Currently not used in the build flow, but can be useful for optimization.
 
 ---
 
-## Flujo de Trabajo Recomendado
+## Recommended Workflow
 
-1. **Modificar metadata de tools:**
+1. **Modify tools metadata:**
 
     ```bash
-    # Editar data/tools.json
+    # Edit data/tools.json
     ```
 
-2. **Regenerar documentación:**
+2. **Regenerate documentation:**
 
     ```bash
     npm run build:docs
     ```
 
-3. **Regenerar documentación LLM (si cambias README/agents/CHANGELOG):**
+3. **Regenerate LLM documentation (if you change README/agents/CHANGELOG):**
 
     ```bash
     npm run build:llms
     ```
 
-4. **Build del proyecto:**
+4. **Build the project:**
     ```bash
     npm run build
     ```
 
-## Arquitectura Centralizada
+## Centralized Architecture
 
-Toda la metadata de las tools está centralizada en `data/tools.json`, incluyendo:
+All tools metadata is centralized in `data/tools.json`, including:
 
-- Definiciones de tools (nombre, descripción, tipo)
-- Esquemas de entrada (`inputSchema`)
-- Esquemas de respuesta (`responseSchema`) con descripciones detalladas
-- Ejemplos de uso y respuestas
+- Tool definitions (name, description, type)
+- Input schemas (`inputSchema`)
+- Response schemas (`responseSchema`) with detailed descriptions
+- Usage examples and responses
 
-Los scripts de generación transforman esta fuente única en los diferentes artefactos de documentación.
+The generation scripts transform this single source into the different documentation artifacts.

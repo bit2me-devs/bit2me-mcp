@@ -3,7 +3,7 @@
  * Script to generate documentation artifacts from centralized tools metadata
  * Generates:
  * - landing/tools-data.js (for landing page)
- * - docs/SCHEMA_MAPPING.md (response schemas documentation)
+ * - TOOLS_DOCUMENTATION.md (response schemas with descriptions and endpoints)
  */
 
 import { readFileSync, writeFileSync } from 'fs';
@@ -13,6 +13,73 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..');
+
+/**
+ * Endpoint mappings for each tool
+ * Maps tool names to their Bit2Me API endpoints
+ */
+const ENDPOINT_MAPPINGS = {
+    // General
+    general_get_assets_config: 'GET /v2/currency/assets\nGET /v2/currency/assets/:symbol',
+    portfolio_get_valuation: 'Aggregates Wallet, Pro, Earn & Loan services',
+
+    // Broker
+    broker_get_asset_price: 'GET /v1/currency/rate',
+    broker_get_asset_data: 'GET /v3/currency/ticker/:symbol',
+    broker_get_asset_chart: 'GET /v3/currency/chart',
+    broker_quote_buy: 'POST /v1/wallet/transaction/proforma',
+    broker_quote_sell: 'POST /v1/wallet/transaction/proforma',
+    broker_quote_swap: 'POST /v1/wallet/transaction/proforma',
+    broker_confirm_quote: 'POST /v1/wallet/transaction',
+
+    // Wallet
+    wallet_get_cards: 'GET /v1/teller/card',
+    wallet_get_pockets: 'GET /v1/wallet/pocket',
+    wallet_get_pocket_addresses: 'GET /v2/wallet/pocket/:pocket_id/:network/address',
+    wallet_get_networks: 'GET /v1/wallet/currency/:symbol/network',
+    wallet_get_movements: 'GET /v1/wallet/transaction\nGET /v1/wallet/transaction/:movement_id',
+
+    // Pro Trading
+    pro_get_balance: 'GET /v1/trading/wallet/balance',
+    pro_get_open_orders: 'GET /v1/trading/order',
+    pro_get_trades: 'GET /v1/trading/trade',
+    pro_get_order_trades: 'GET /v1/trading/order/:id/trades',
+    pro_get_market_config: 'GET /v1/trading/market-config',
+    pro_get_order_book: 'GET /v2/trading/order-book',
+    pro_get_public_trades: 'GET /v1/trading/trade/last',
+    pro_get_candles: 'GET /v1/trading/candle',
+    pro_get_ticker: 'GET /v2/trading/tickers',
+    pro_create_order: 'POST /v1/trading/order',
+    pro_cancel_order: 'DELETE /v1/trading/order/:id',
+    pro_cancel_all_orders: 'DELETE /v1/trading/order',
+    pro_deposit: 'POST /v1/trading/wallet/deposit',
+    pro_withdraw: 'POST /v1/trading/wallet/withdraw',
+
+    // Earn
+    earn_get_summary: 'GET /v1/earn/summary',
+    earn_get_positions: 'GET /v2/earn/wallets',
+    earn_get_position_movements: 'GET /v1/earn/wallets/:id/movements',
+    earn_get_movements: 'GET /v2/earn/movements',
+    earn_get_movements_summary: 'GET /v1/earn/movements/:type/summary',
+    earn_get_rewards_config: 'GET /v1/earn/wallets/rewards/config',
+    earn_get_position_rewards_config: 'GET /v1/earn/wallets/:id/rewards/config',
+    earn_get_position_rewards_summary: 'GET /v1/earn/wallets/:id/rewards/summary',
+    earn_get_assets: 'GET /v2/earn/assets',
+    earn_deposit: 'POST /v1/earn/wallets/:id/movements',
+    earn_withdraw: 'POST /v1/earn/wallets/:id/movements',
+
+    // Loans
+    loan_get_simulation: 'GET /v1/loan/ltv',
+    loan_get_config: 'GET /v1/loan/currency/configuration',
+    loan_get_movements: 'GET /v1/loan/movements',
+    loan_get_orders: 'GET /v1/loan/orders',
+    loan_create: 'POST /v1/loan',
+    loan_increase_guarantee: 'POST /v1/loan/orders/:id/guarantee/increase',
+    loan_payback: 'POST /v1/loan/orders/:id/payback',
+
+    // Health
+    server_health_check: 'Internal health aggregation'
+};
 
 /**
  * Convert inputSchema to simplified args format for landing
@@ -79,129 +146,127 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Generate response schema documentation
+ * Format a schema property for markdown documentation
  */
-function generateResponseSchemaDocs(responseSchema, indent = 0) {
-    if (!responseSchema) {
-        return '';
+function formatSchemaProperty(key, prop, required, indent = '') {
+    let typeStr = prop.type || 'any';
+    if (prop.format) typeStr += ` (${prop.format})`;
+    
+    const requiredStr = required ? ' **(required)**' : '';
+    const description = prop.description || '';
+    
+    let line = `${indent}- **\`${key}\`** (${typeStr})${requiredStr}: ${description}`;
+    
+    // Add enum values if present
+    if (prop.enum && prop.enum.length > 0) {
+        line += `\n${indent}    - Possible values: ${prop.enum.map(v => `\`"${v}"\``).join(', ')}`;
     }
-
-    let content = '';
-    const prefix = '  '.repeat(indent);
-
-    if (responseSchema.type === 'object' && responseSchema.properties) {
-        for (const [fieldName, fieldSchema] of Object.entries(responseSchema.properties)) {
-            const isRequired = responseSchema.required?.includes(fieldName);
-            const requiredMark = isRequired ? ' **(required)**' : '';
-            
-            content += `${prefix}- **\`${fieldName}\`** (${fieldSchema.type || 'unknown'})${requiredMark}`;
-            
-            if (fieldSchema.description) {
-                content += `: ${fieldSchema.description}`;
+    
+    // Add nullable info
+    if (prop.nullable) {
+        line += `\n${indent}    - Can be \`null\``;
+    }
+    
+    // Handle array items
+    if (prop.type === 'array' && prop.items) {
+        if (prop.items.type === 'object' && prop.items.properties) {
+            line += `\n${indent}    - Array items:`;
+            const itemRequired = prop.items.required || [];
+            for (const [itemKey, itemProp] of Object.entries(prop.items.properties)) {
+                line += '\n' + formatSchemaProperty(itemKey, itemProp, itemRequired.includes(itemKey), indent + '        ');
             }
-            
-            if (fieldSchema.enum) {
-                content += `\n${prefix}  - Possible values: ${fieldSchema.enum.map(v => `\`"${v}"\``).join(', ')}`;
-            }
-            
-            if (fieldSchema.nullable) {
-                content += `\n${prefix}  - Can be \`null\``;
-            }
-            
-            if (fieldSchema.format) {
-                content += `\n${prefix}  - Format: \`${fieldSchema.format}\``;
-            }
-            
-            if (fieldSchema.example !== undefined) {
-                content += `\n${prefix}  - Example: \`${JSON.stringify(fieldSchema.example)}\``;
-            }
-            
-            // Handle nested objects
-            if (fieldSchema.type === 'object' && fieldSchema.properties) {
-                content += '\n' + generateResponseSchemaDocs(fieldSchema, indent + 1);
-            }
-            
-            // Handle arrays
-            if (fieldSchema.type === 'array' && fieldSchema.items) {
-                content += `\n${prefix}  - Array items:`;
-                if (fieldSchema.items.type === 'object' && fieldSchema.items.properties) {
-                    content += '\n' + generateResponseSchemaDocs(fieldSchema.items, indent + 2);
-                } else {
-                    content += ` ${fieldSchema.items.type || 'unknown'}`;
-                    if (fieldSchema.items.enum) {
-                        content += ` (values: ${fieldSchema.items.enum.map(v => `\`"${v}"\``).join(', ')})`;
-                    }
-                }
-            }
-            
-            content += `\n`;
-        }
-    } else if (responseSchema.type === 'array' && responseSchema.items) {
-        content += `${prefix}- Array of ${responseSchema.items.type || 'objects'}\n`;
-        if (responseSchema.items.type === 'object' && responseSchema.items.properties) {
-            content += generateResponseSchemaDocs(responseSchema.items, indent + 1);
+        } else {
+            line += `\n${indent}    - Array items: ${prop.items.type || 'any'}`;
         }
     }
-
-    return content;
+    
+    // Handle nested objects
+    if (prop.type === 'object' && prop.properties) {
+        const nestedRequired = prop.required || [];
+        for (const [nestedKey, nestedProp] of Object.entries(prop.properties)) {
+            line += '\n' + formatSchemaProperty(nestedKey, nestedProp, nestedRequired.includes(nestedKey), indent + '    ');
+        }
+    }
+    
+    return line;
 }
 
 /**
- * Generate SCHEMA_MAPPING.md
+ * Generate response schema documentation for a tool
  */
-function generateSchemaMapping(metadata) {
-    let content = `# Tool Response Schemas
-
-Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP Bit2Me, incluyendo descripciones detalladas de cada campo y sus posibles valores.
-
-## Tool Count (${metadata.categories.reduce((sum, cat) => sum + cat.tools.length, 0)} total)
-
-`;
-
-    // Count tools per category
-    for (const cat of metadata.categories) {
-        content += `- ${cat.tools.length} ${cat.name} Tools\n`;
-    }
-
-    content += `\n_Nota: Las herramientas de operaciones (write actions) están incluidas en sus respectivas categorías._\n\n---\n\n`;
-
-    // Generate sections for each category
-    for (const cat of metadata.categories) {
-        const categoryTitle = cat.name;
-        content += `## ${categoryTitle} Tools (${cat.tools.length} tools)\n\n`;
+function generateToolResponseDocs(tool) {
+    let doc = '';
+    
+    // Add description
+    doc += `> ${tool.description}\n\n`;
+    
+    // Add response fields if schema exists
+    if (tool.responseSchema && tool.responseSchema.properties) {
+        doc += '#### Response Fields\n\n';
+        const required = tool.responseSchema.required || [];
         
-        if (cat.description) {
-            content += `> **Note:** ${cat.description}\n\n`;
+        for (const [key, prop] of Object.entries(tool.responseSchema.properties)) {
+            doc += formatSchemaProperty(key, prop, required.includes(key)) + '\n';
         }
-
-        for (const tool of cat.tools) {
-            const authBadge = tool.attributes?.requires_auth ? '🔒 **PRIVATE**' : '🌐 **PUBLIC**';
-            content += `### ${tool.name} ${authBadge}\n\n`;
-            
-            // Add response schema documentation if available
-            if (tool.responseSchema) {
-                content += `#### Response Fields\n\n`;
-                const schemaDocs = generateResponseSchemaDocs(tool.responseSchema);
-                if (schemaDocs) {
-                    content += schemaDocs + '\n';
-                } else {
-                    content += `_Schema definition available but no properties documented._\n\n`;
-                }
-            }
-            
-            // Add example response
-            if (tool.exampleResponse) {
-                content += `#### Example Response\n\n`;
-                content += `\`\`\`json\n${JSON.stringify(tool.exampleResponse, null, 4)}\n\`\`\`\n\n`;
-            } else {
-                content += `_No example response available._\n\n`;
-            }
-        }
-
-        content += `---\n\n`;
+        doc += '\n';
     }
+    
+    // Add example response if exists
+    if (tool.exampleResponse) {
+        doc += '#### Example Response\n\n';
+        doc += '```json\n';
+        doc += JSON.stringify(tool.exampleResponse, null, 4);
+        doc += '\n```\n\n';
+    }
+    
+    // Add endpoint reference at the end
+    const endpoint = ENDPOINT_MAPPINGS[tool.name] || 'N/A';
+    doc += `**Bit2Me API:** \`${endpoint.replace(/\n/g, '` | `')}\`\n`;
+    
+    return doc;
+}
 
-    return content;
+/**
+ * Generate TOOLS_DOCUMENTATION.md with response schemas
+ */
+function generateToolsDocumentation(metadata) {
+    let doc = '# Tool Response Schemas\n\n';
+    doc += 'This document shows the exact JSON structure returned by each Bit2Me MCP tool, including detailed descriptions of each field and their possible values.\n\n';
+    
+    // Count tools
+    const counts = metadata.categories.map(cat => `- ${cat.tools.length} ${cat.name} Tools`);
+    const total = metadata.categories.reduce((sum, cat) => sum + cat.tools.length, 0);
+    
+    doc += `## Tool Count (${total} total)\n\n`;
+    doc += counts.join('\n') + '\n\n';
+    doc += '_Note: Write operation tools are included in their respective categories._\n\n';
+    doc += '---\n\n';
+    
+    // Generate docs for each category
+    for (const category of metadata.categories) {
+        doc += `## ${category.name} (${category.tools.length} tools)\n\n`;
+        
+        if (category.description) {
+            doc += `> **Note:** ${category.description}\n\n`;
+        }
+        
+        for (const tool of category.tools) {
+            doc += `### ${tool.name}\n\n`;
+            doc += generateToolResponseDocs(tool);
+            doc += '\n';
+        }
+        
+        doc += '---\n\n';
+    }
+    
+    // Add footer
+    doc += '## Additional Resources\n\n';
+    doc += '- **Source of truth**: [`data/tools.json`](./data/tools.json) contains all tool definitions, input schemas, response schemas and examples.\n';
+    doc += '- **Landing page**: The [landing site](./landing/index.html) is auto-generated from the same source.\n';
+    doc += '- **Regenerate docs**: Run `npm run build:docs` after modifying `data/tools.json`.\n\n';
+    doc += `---\n\n_Auto-generated on ${new Date().toISOString().split('T')[0]}._\n`;
+    
+    return doc;
 }
 
 /**
@@ -229,11 +294,11 @@ function main() {
     writeFileSync(landingPath, landingData);
     console.log(`✅ Generated ${landingPath}`);
 
-    // Generate SCHEMA_MAPPING.md
-    const schemaMapping = generateSchemaMapping(metadata);
-    const schemaPath = join(rootDir, 'docs', 'SCHEMA_MAPPING.md');
-    writeFileSync(schemaPath, schemaMapping);
-    console.log(`✅ Generated ${schemaPath}`);
+    // Generate TOOLS_DOCUMENTATION.md
+    const toolsDocs = generateToolsDocumentation(metadata);
+    const toolsDocsPath = join(rootDir, 'TOOLS_DOCUMENTATION.md');
+    writeFileSync(toolsDocsPath, toolsDocs);
+    console.log(`✅ Generated ${toolsDocsPath}`);
 
     const totalTools = metadata.categories.reduce((sum, cat) => sum + cat.tools.length, 0);
     console.log(`\n✅ Documentation generation complete!`);
@@ -247,4 +312,3 @@ try {
     console.error(error);
     process.exit(1);
 }
-
