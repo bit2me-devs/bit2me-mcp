@@ -1,3 +1,9 @@
+## [3.0.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.0...v3.0.1) (2025-12-06)
+
+### Bug Fixes
+
+- resolve CodeQL warnings for unused variables and imports ([b1b2d20](https://github.com/bit2me-devs/bit2me-mcp/commit/b1b2d2046dc9d055adf0a3edaed6af6946ad64f2))
+
 # [3.0.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v2.0.0...v3.0.0) (2025-12-06)
 
 - feat!: release v3.0 with major API restructuring ([0d32844](https://github.com/bit2me-devs/bit2me-mcp/commit/0d32844e8beb7ac1f33fe78425cb6fdc06d3366b))
