@@ -1,3 +1,9 @@
+## [3.0.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.2...v3.0.3) (2025-12-06)
+
+### Bug Fixes
+
+- **docs:** add missing table header in Pro Trading Operations section ([91cec60](https://github.com/bit2me-devs/bit2me-mcp/commit/91cec606d87a274c2ef4c164ca6ce82feab5b2dc))
+
 ## [3.0.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.1...v3.0.2) (2025-12-06)
 
 ### Bug Fixes
