@@ -59,3 +59,16 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: npx semantic-release
+
+            - name: Regenerate documentation with new version
+              run: |
+                  npm run build:docs
+                  if git diff --quiet; then
+                    echo "No documentation changes detected"
+                  else
+                    git config --local user.email "github-actions[bot]@users.noreply.github.com"
+                    git config --local user.name "github-actions[bot]"
+                    git add landing/tools-data.js docs/SCHEMA_MAPPING.md
+                    git commit -m "docs: regenerate documentation with version $(node -p 'require(\"./package.json\").version') [skip ci]"
+                    git push
+                  fi
