@@ -54,7 +54,9 @@ _Note: Write operation tools are included in their respective categories._
         "enabled": true,
         "tradeable": true,
         "loanable": true,
-        "pro_trading_pairs": ["BTC-EUR"]
+        "pro_trading_pairs": [
+            "BTC-EUR"
+        ]
     }
 }
 ```
@@ -1500,7 +1502,10 @@ _Note: Write operation tools are included in their respective categories._
                         "months": 3
                     }
                 ],
-                "reward_currencies": ["BTC", "B2M"],
+                "reward_currencies": [
+                    "BTC",
+                    "B2M"
+                ],
                 "apy": {
                     "daily_yield_ratio": "0.0001",
                     "weekly_yield_ratio": "0.0007",
