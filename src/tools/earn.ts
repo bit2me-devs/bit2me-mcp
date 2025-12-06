@@ -298,16 +298,16 @@ export async function handleEarnTool(name: string, args: any) {
             ]);
 
             const requestContext = {};
-            // Map Assets (just symbols)
-            const mappedAssets = mapEarnAssetsResponse(assetsData); // Returns { assets: { symbol: string }[] }
+            // Map Assets with full details
+            const mappedAssets = mapEarnAssetsResponse(assetsData);
             // Map APY
-            const apys = mapEarnAPYResponse(apyData); // Returns Record<string, EarnAPYResponse>
+            const apys = mapEarnAPYResponse(apyData);
 
-            // Combine assets with APY
+            // Combine assets with APY, preserving all asset fields
             const combinedAssets = mappedAssets.assets.map((item) => {
                 const apyInfo = apys[item.symbol];
                 return {
-                    symbol: item.symbol,
+                    ...item,
                     apy: apyInfo ? apyInfo.rates : undefined,
                 };
             });

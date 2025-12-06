@@ -3487,7 +3487,7 @@
                 },
                 {
                     "name": "earn_get_assets",
-                    "description": "Get list of assets (cryptocurrencies) supported in Earn/Staking along with their APY rates. Returns list of symbols and their yield rates (daily, weekly, monthly). Use this to discover which assets can be staked and compare returns. [PUBLIC]",
+                    "description": "Get list of assets (cryptocurrencies) supported in Earn/Staking with full details. Returns symbols, APY rates, availability status, lock period options, and reward currencies. Use this to discover stakeable assets, verify availability before deposit/withdrawal, and compare returns. [PUBLIC]",
                     "type": "READ",
                     "attributes": {
                         "requires_auth": false,
@@ -3504,24 +3504,26 @@
                             "assets": [
                                 {
                                     "symbol": "BTC",
+                                    "name": "Bitcoin",
+                                    "disabled": false,
+                                    "deposit_disabled": false,
+                                    "withdrawal_disabled": false,
+                                    "is_new": false,
+                                    "lock_periods": [
+                                        { "id": "flexible", "months": 0 },
+                                        { "id": "3m", "months": 3 }
+                                    ],
+                                    "reward_currencies": ["BTC", "B2M"],
                                     "apy": {
                                         "daily_yield_ratio": "0.0001",
                                         "weekly_yield_ratio": "0.0007",
                                         "monthly_yield_ratio": "0.0030"
                                     }
-                                },
-                                {
-                                    "symbol": "ETH",
-                                    "apy": {
-                                        "daily_yield_ratio": "0.00015",
-                                        "weekly_yield_ratio": "0.0010",
-                                        "monthly_yield_ratio": "0.0045"
-                                    }
                                 }
                             ]
                         },
                         "metadata": {
-                            "total_records": 2
+                            "total_records": 1
                         }
                     },
                     "responseSchema": {
@@ -3529,13 +3531,61 @@
                         "properties": {
                             "assets": {
                                 "type": "array",
-                                "description": "List of cryptocurrencies available for staking with their APY rates",
+                                "description": "List of cryptocurrencies available for staking with full details",
                                 "items": {
                                     "type": "object",
                                     "properties": {
                                         "symbol": {
                                             "type": "string",
                                             "description": "Cryptocurrency symbol in uppercase (e.g., BTC, ETH)"
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "description": "Full name of the cryptocurrency (e.g., Bitcoin, Ethereum)"
+                                        },
+                                        "disabled": {
+                                            "type": "boolean",
+                                            "description": "Whether the asset is globally disabled for staking"
+                                        },
+                                        "deposit_disabled": {
+                                            "type": "boolean",
+                                            "description": "Whether deposits are currently disabled. Check before attempting earn_deposit."
+                                        },
+                                        "withdrawal_disabled": {
+                                            "type": "boolean",
+                                            "description": "Whether withdrawals are currently disabled. Check before attempting earn_withdraw."
+                                        },
+                                        "is_new": {
+                                            "type": "boolean",
+                                            "description": "Whether this is a newly added asset"
+                                        },
+                                        "lock_periods": {
+                                            "type": "array",
+                                            "description": "Available lock period options. months=0 means flexible (no lock).",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "description": "Lock period identifier"
+                                                    },
+                                                    "months": {
+                                                        "type": "number",
+                                                        "description": "Lock duration in months (0 = flexible/no lock)"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "reward_currencies": {
+                                            "type": "array",
+                                            "description": "Currencies in which rewards can be received (e.g., same token or B2M)",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "level_extra_yield_percentage": {
+                                            "type": "number",
+                                            "description": "Extra yield percentage based on user level"
                                         },
                                         "apy": {
                                             "type": "object",
@@ -3556,7 +3606,13 @@
                                             }
                                         }
                                     },
-                                    "required": ["symbol"]
+                                    "required": [
+                                        "symbol",
+                                        "disabled",
+                                        "deposit_disabled",
+                                        "withdrawal_disabled",
+                                        "is_new"
+                                    ]
                                 }
                             }
                         }

@@ -632,9 +632,43 @@ describe("Response Mappers", () => {
 
         it("should map earn assets response", () => {
             expect(mapEarnAssetsResponse(null)).toEqual({ assets: [] });
-            const valid = { assets: ["BTC", "ETH"] };
-            expect(mapEarnAssetsResponse(valid)).toEqual({
-                assets: [{ symbol: "BTC" }, { symbol: "ETH" }],
+
+            // Test simple string array
+            const simpleValid = { assets: ["BTC", "ETH"] };
+            const simpleResult = mapEarnAssetsResponse(simpleValid);
+            expect(simpleResult.assets[0]).toMatchObject({
+                symbol: "BTC",
+                disabled: false,
+                deposit_disabled: false,
+                withdrawal_disabled: false,
+                is_new: false,
+            });
+
+            // Test full object structure
+            const fullValid = {
+                assets: [
+                    {
+                        currency: "BTC",
+                        name: "Bitcoin",
+                        disabled: false,
+                        depositDisabled: false,
+                        withdrawalDisabled: true,
+                        isNew: false,
+                        lockPeriodsAllowed: [{ id: "flex", months: 0 }],
+                        currenciesRewardAllowed: ["BTC", "B2M"],
+                    },
+                ],
+            };
+            const fullResult = mapEarnAssetsResponse(fullValid);
+            expect(fullResult.assets[0]).toMatchObject({
+                symbol: "BTC",
+                name: "Bitcoin",
+                disabled: false,
+                deposit_disabled: false,
+                withdrawal_disabled: true,
+                is_new: false,
+                lock_periods: [{ id: "flex", months: 0 }],
+                reward_currencies: ["BTC", "B2M"],
             });
         });
 

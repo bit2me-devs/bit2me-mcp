@@ -1080,6 +1080,11 @@ export function mapEarnMovementsSummaryResponse(raw: unknown): EarnMovementsSumm
 
 /**
  * Maps raw earn assets response to optimized schema
+ * Extracts all useful fields for MCP use cases:
+ * - Availability checks (disabled, depositDisabled, withdrawalDisabled)
+ * - Lock period options (lockPeriodsAllowed)
+ * - Reward currencies (currenciesRewardAllowed)
+ * - User level bonuses (levelExtraYieldPercentage)
  */
 export function mapEarnAssetsResponse(raw: unknown): { assets: EarnAssetWithAPY[] } {
     // Check if it's the standard object with assets/currencies array
@@ -1093,10 +1098,46 @@ export function mapEarnAssetsResponse(raw: unknown): { assets: EarnAssetWithAPY[
 
     if (assets.length > 0) {
         return {
-            assets: assets.map((item: any) => ({
-                symbol: typeof item === "string" ? item : item.symbol || item.currency || JSON.stringify(item),
-                // apy will be populated by the handler
-            })),
+            assets: assets.map((item: any) => {
+                // Handle simple string format
+                if (typeof item === "string") {
+                    return {
+                        symbol: item,
+                        disabled: false,
+                        deposit_disabled: false,
+                        withdrawal_disabled: false,
+                        is_new: false,
+                    };
+                }
+
+                // Map lock periods if available
+                const lockPeriods = item.lockPeriodsAllowed
+                    ? item.lockPeriodsAllowed.map((lp: any) => ({
+                          id: lp.id || lp.lockPeriodId || "",
+                          months: lp.months || 0,
+                      }))
+                    : undefined;
+
+                // Map reward currencies if available
+                const rewardCurrencies = item.currenciesRewardAllowed
+                    ? item.currenciesRewardAllowed.map((c: any) =>
+                          typeof c === "string" ? c : c.currency || c.symbol || ""
+                      )
+                    : undefined;
+
+                return {
+                    symbol: (item.symbol || item.currency || "").toUpperCase(),
+                    name: item.name || undefined,
+                    disabled: item.disabled ?? false,
+                    deposit_disabled: item.depositDisabled ?? false,
+                    withdrawal_disabled: item.withdrawalDisabled ?? false,
+                    is_new: item.isNew ?? false,
+                    lock_periods: lockPeriods,
+                    reward_currencies: rewardCurrencies,
+                    level_extra_yield_percentage: item.levelExtraYieldPercentage || undefined,
+                    // apy will be populated by the handler
+                };
+            }),
         };
     }
 

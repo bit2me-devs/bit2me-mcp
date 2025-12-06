@@ -212,7 +212,13 @@ describe("Other Tool Handlers", () => {
 
         it("should handle earn_get_assets with object structure", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockImplementation(async (method, url) => {
-                if (url.includes("/v2/earn/assets")) return { assets: ["BTC", "EUR"] };
+                if (url.includes("/v2/earn/assets"))
+                    return {
+                        assets: [
+                            { currency: "BTC", name: "Bitcoin", disabled: false, depositDisabled: false },
+                            { currency: "EUR", disabled: true },
+                        ],
+                    };
                 if (url.includes("/v2/earn/apy")) return { BTC: { daily: 0.1 } };
                 return {};
             });
@@ -221,10 +227,16 @@ describe("Other Tool Handlers", () => {
             const parsed = JSON.parse(result.content[0].text);
             expect(parsed).toHaveProperty("request");
             expect(parsed).toHaveProperty("result");
-            expect(parsed.result.assets).toEqual([
-                { symbol: "BTC", apy: expect.any(Object) },
-                { symbol: "EUR", apy: undefined },
-            ]);
+            expect(parsed.result.assets[0]).toMatchObject({
+                symbol: "BTC",
+                name: "Bitcoin",
+                disabled: false,
+                deposit_disabled: false,
+            });
+            expect(parsed.result.assets[1]).toMatchObject({
+                symbol: "EUR",
+                disabled: true,
+            });
         });
 
         it("should handle earn_get_assets with array structure", async () => {
@@ -237,10 +249,14 @@ describe("Other Tool Handlers", () => {
             const parsed = JSON.parse(result.content[0].text);
             expect(parsed).toHaveProperty("request");
             expect(parsed).toHaveProperty("result");
-            expect(parsed.result.assets).toEqual([
-                { symbol: "BTC", apy: undefined },
-                { symbol: "EUR", apy: undefined },
-            ]);
+            // Simple string array gets default values
+            expect(parsed.result.assets[0]).toMatchObject({
+                symbol: "BTC",
+                disabled: false,
+                deposit_disabled: false,
+                withdrawal_disabled: false,
+                is_new: false,
+            });
         });
 
         it("should handle earn_get_rewards_config", async () => {

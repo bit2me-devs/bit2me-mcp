@@ -38,10 +38,14 @@ describeE2E("E2E: Earn/Staking Tools", () => {
             const response = JSON.parse(result.content[0].text);
 
             expect(response).toHaveProperty("result");
-            expect(response.result).toHaveProperty("symbols");
-            expect(Array.isArray(response.result.symbols)).toBe(true);
-            if (response.result.symbols.length > 0) {
-                expect(typeof response.result.symbols[0]).toBe("string");
+            expect(response.result).toHaveProperty("assets");
+            expect(Array.isArray(response.result.assets)).toBe(true);
+            if (response.result.assets.length > 0) {
+                const asset = response.result.assets[0];
+                expect(asset).toHaveProperty("symbol");
+                expect(asset).toHaveProperty("disabled");
+                expect(asset).toHaveProperty("deposit_disabled");
+                expect(asset).toHaveProperty("withdrawal_disabled");
             }
         },
         E2E_TIMEOUT

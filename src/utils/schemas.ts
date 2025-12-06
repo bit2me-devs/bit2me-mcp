@@ -551,8 +551,21 @@ export interface EarnMovementsSummaryResponse {
     symbol: string;
 }
 
+export interface EarnLockPeriod {
+    id: string;
+    months: number;
+}
+
 export interface EarnAssetWithAPY {
     symbol: string;
+    name?: string;
+    disabled: boolean;
+    deposit_disabled: boolean;
+    withdrawal_disabled: boolean;
+    is_new: boolean;
+    lock_periods?: EarnLockPeriod[];
+    reward_currencies?: string[];
+    level_extra_yield_percentage?: number;
     apy?: {
         daily_yield_ratio: string;
         weekly_yield_ratio: string;
