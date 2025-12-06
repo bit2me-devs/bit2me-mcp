@@ -2,9 +2,9 @@
 
 This document shows the exact JSON structure returned by each Bit2Me MCP tool, including detailed descriptions of each field and their possible values.
 
-## Tool Count (46 total)
+## Tool Count (47 total)
 
-- 2 General Tools
+- 3 General Tools
 - 8 Broker (Simple Trading) Tools
 - 4 Wallet (Storage) Tools
 - 14 Pro (Advanced Trading) Tools
@@ -15,7 +15,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ---
 
-## General (2 tools)
+## General (3 tools)
 
 > **Note:** General information tools including asset details, account information, and portfolio valuation.
 
@@ -110,6 +110,54 @@ _Note: Write operation tools are included in their respective categories._
 ```
 
 **Bit2Me API:** `Aggregates Wallet, Pro, Earn & Loan services`
+
+### general_health
+
+> Check the system health. Returns global status (online/degraded/offline), Bit2Me server reachability, and MCP server status.
+
+#### Response Fields
+
+- **`status`** (string) **(required)**: Global system status based on component health
+    - Possible values: `"online"`, `"degraded"`, `"offline"`
+- **`timestamp`** (string (date-time)) **(required)**: ISO 8601 timestamp of when the health check was performed
+- **`version`** (string) **(required)**: MCP server version
+- **`uptime_seconds`** (number) **(required)**: Server uptime in seconds since startup
+- **`components`** (object) **(required)**: Individual component health status
+    - **`bit2me_server`** (object): Bit2Me API server health (public liveness check)
+        - **`status`** (string): Component status
+            - Possible values: `"online"`, `"offline"`
+        - **`response_time_ms`** (number): Response time in milliseconds
+    - **`mcp_server`** (object): MCP integration health (authenticated API + Circuit Breaker)
+        - **`status`** (string): Component status
+            - Possible values: `"online"`, `"offline"`
+        - **`response_time_ms`** (number): Response time in milliseconds (when available)
+        - **`details`** (string): Additional details or error message (when status is offline)
+
+#### Example Response
+
+```json
+{
+    "request": {},
+    "result": {
+        "status": "online",
+        "timestamp": "2024-11-25T10:30:00.000Z",
+        "version": "1.0.0",
+        "uptime_seconds": 3600,
+        "components": {
+            "bit2me_server": {
+                "status": "online",
+                "response_time_ms": 45
+            },
+            "mcp_server": {
+                "status": "online",
+                "response_time_ms": 120
+            }
+        }
+    }
+}
+```
+
+**Bit2Me API:** `N/A`
 
 ---
 

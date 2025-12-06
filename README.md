@@ -24,9 +24,9 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 
 ## 🛠️ Available Tools & API Endpoints
 
-The server currently exposes **46 tools** grouped as follows:
+The server currently exposes **47 tools** grouped as follows:
 
-- 2 General tools
+- 3 General tools
 - 7 Broker (Simple Trading) tools
 - 5 Wallet tools
 - 14 Pro Trading tools

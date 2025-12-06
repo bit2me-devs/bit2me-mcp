@@ -223,6 +223,116 @@ const toolsData = [
                     "scope": "read",
                     "complexity": "medium"
                 }
+            },
+            {
+                "name": "general_health",
+                "type": "READ",
+                "desc": "Check the system health. Returns global status (online/degraded/offline), Bit2Me server reachability, and MCP server status.",
+                "args": {},
+                "exampleArgs": {},
+                "response": {
+                    "request": {},
+                    "result": {
+                        "status": "online",
+                        "timestamp": "2024-11-25T10:30:00.000Z",
+                        "version": "1.0.0",
+                        "uptime_seconds": 3600,
+                        "components": {
+                            "bit2me_server": {
+                                "status": "online",
+                                "response_time_ms": 45
+                            },
+                            "mcp_server": {
+                                "status": "online",
+                                "response_time_ms": 120
+                            }
+                        }
+                    }
+                },
+                "responseSchema": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "string",
+                            "description": "Global system status based on component health",
+                            "enum": [
+                                "online",
+                                "degraded",
+                                "offline"
+                            ]
+                        },
+                        "timestamp": {
+                            "type": "string",
+                            "description": "ISO 8601 timestamp of when the health check was performed",
+                            "format": "date-time"
+                        },
+                        "version": {
+                            "type": "string",
+                            "description": "MCP server version"
+                        },
+                        "uptime_seconds": {
+                            "type": "number",
+                            "description": "Server uptime in seconds since startup"
+                        },
+                        "components": {
+                            "type": "object",
+                            "description": "Individual component health status",
+                            "properties": {
+                                "bit2me_server": {
+                                    "type": "object",
+                                    "description": "Bit2Me API server health (public liveness check)",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "Component status",
+                                            "enum": [
+                                                "online",
+                                                "offline"
+                                            ]
+                                        },
+                                        "response_time_ms": {
+                                            "type": "number",
+                                            "description": "Response time in milliseconds"
+                                        }
+                                    }
+                                },
+                                "mcp_server": {
+                                    "type": "object",
+                                    "description": "MCP integration health (authenticated API + Circuit Breaker)",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "description": "Component status",
+                                            "enum": [
+                                                "online",
+                                                "offline"
+                                            ]
+                                        },
+                                        "response_time_ms": {
+                                            "type": "number",
+                                            "description": "Response time in milliseconds (when available)"
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "description": "Additional details or error message (when status is offline)"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": [
+                        "status",
+                        "timestamp",
+                        "version",
+                        "uptime_seconds",
+                        "components"
+                    ]
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
+                }
             }
         ]
     },
