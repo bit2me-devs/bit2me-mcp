@@ -3954,7 +3954,7 @@
                 },
                 {
                     "name": "loan_get_movements",
-                    "description": "Get loan movement history with full details. Returns movements with type (approve, repay, liquidate, interest), loan/guarantee amounts with fiat values, and LTV tracking. Optional order_id filter. Use to track loan lifecycle events. [PRIVATE]",
+                    "description": "Get loan movement history with full details. Returns movements with type (approve, repay, liquidate, interest), nested loan/guarantee objects with fiat values, and LTV tracking. Optional order_id filter. Use to track loan lifecycle events. [PRIVATE]",
                     "type": "READ",
                     "attributes": {
                         "requires_auth": true,
@@ -3998,16 +3998,19 @@
                                 "order_id": "fb930f0c-8e90-403a-95e4-112394183cf2",
                                 "type": "approve",
                                 "status": "completed",
-                                "loan_amount": "50750.0",
-                                "loan_symbol": "EUR",
-                                "loan_amount_fiat": "50749.95",
-                                "guarantee_amount": "1.0",
-                                "guarantee_symbol": "BTC",
-                                "guarantee_amount_fiat": "101499.9",
-                                "ltv": "0.5000",
-                                "previous_ltv": "0.5000",
-                                "created_at": "2025-07-27T16:24:00.118Z",
-                                "updated_at": "2025-07-27T16:24:00.118Z"
+                                "loan": {
+                                    "amount": "50750.00",
+                                    "symbol": "EURR",
+                                    "amount_fiat": "50749.95"
+                                },
+                                "guarantee": {
+                                    "amount": "1.00000000",
+                                    "symbol": "BTC",
+                                    "amount_fiat": "101499.90"
+                                },
+                                "ltv": "0.50",
+                                "previous_ltv": "0.50",
+                                "created_at": "2025-07-27T16:24:00.118Z"
                             }
                         ],
                         "metadata": {
@@ -4034,40 +4037,55 @@
                                 },
                                 "type": {
                                     "type": "string",
-                                    "description": "Movement type: approve (loan approved), repay (payment made), liquidate (forced liquidation), interest (interest accrual)"
+                                    "enum": ["approve", "repay", "liquidate", "interest"],
+                                    "description": "Movement type: approve (loan created/approved), repay (partial or full payment), liquidate (forced collateral liquidation), interest (interest charge)"
                                 },
                                 "status": {
                                     "type": "string",
                                     "enum": ["pending", "completed", "failed"],
-                                    "description": "Movement status"
+                                    "description": "Movement status: pending (processing), completed (finished successfully), failed (operation failed)"
                                 },
-                                "loan_amount": {
-                                    "type": "string",
-                                    "description": "Loan amount at time of movement"
+                                "loan": {
+                                    "type": "object",
+                                    "description": "Loan details at time of movement",
+                                    "properties": {
+                                        "amount": {
+                                            "type": "string",
+                                            "description": "Loan amount (as string for precision)"
+                                        },
+                                        "symbol": {
+                                            "type": "string",
+                                            "description": "Loan currency symbol (e.g., EUR, EURR, USDC)"
+                                        },
+                                        "amount_fiat": {
+                                            "type": "string",
+                                            "description": "Loan value in EUR (2 decimals)"
+                                        }
+                                    },
+                                    "required": ["amount", "symbol", "amount_fiat"]
                                 },
-                                "loan_symbol": {
-                                    "type": "string",
-                                    "description": "Loan currency symbol (e.g., EUR, USDC)"
-                                },
-                                "loan_amount_fiat": {
-                                    "type": "string",
-                                    "description": "Loan amount converted to EUR (rounded to 2 decimals)"
-                                },
-                                "guarantee_amount": {
-                                    "type": "string",
-                                    "description": "Guarantee/collateral amount at time of movement"
-                                },
-                                "guarantee_symbol": {
-                                    "type": "string",
-                                    "description": "Guarantee currency symbol (e.g., BTC, ETH)"
-                                },
-                                "guarantee_amount_fiat": {
-                                    "type": "string",
-                                    "description": "Guarantee amount converted to EUR (rounded to 2 decimals)"
+                                "guarantee": {
+                                    "type": "object",
+                                    "description": "Collateral details at time of movement",
+                                    "properties": {
+                                        "amount": {
+                                            "type": "string",
+                                            "description": "Collateral amount (full precision for crypto)"
+                                        },
+                                        "symbol": {
+                                            "type": "string",
+                                            "description": "Collateral asset symbol (e.g., BTC, ETH)"
+                                        },
+                                        "amount_fiat": {
+                                            "type": "string",
+                                            "description": "Collateral value in EUR (2 decimals)"
+                                        }
+                                    },
+                                    "required": ["amount", "symbol", "amount_fiat"]
                                 },
                                 "ltv": {
                                     "type": "string",
-                                    "description": "Loan-to-Value ratio after this movement (0.5 = 50%)"
+                                    "description": "Loan-to-Value ratio after this movement (e.g., '0.50' = 50%). Lower is safer."
                                 },
                                 "previous_ltv": {
                                     "type": "string",
@@ -4076,12 +4094,7 @@
                                 "created_at": {
                                     "type": "string",
                                     "format": "date-time",
-                                    "description": "When the movement was created"
-                                },
-                                "updated_at": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "description": "When the movement was last updated"
+                                    "description": "ISO 8601 timestamp when movement was created"
                                 }
                             },
                             "required": [
@@ -4089,16 +4102,11 @@
                                 "order_id",
                                 "type",
                                 "status",
-                                "loan_amount",
-                                "loan_symbol",
-                                "loan_amount_fiat",
-                                "guarantee_amount",
-                                "guarantee_symbol",
-                                "guarantee_amount_fiat",
+                                "loan",
+                                "guarantee",
                                 "ltv",
                                 "previous_ltv",
-                                "created_at",
-                                "updated_at"
+                                "created_at"
                             ]
                         }
                     }
