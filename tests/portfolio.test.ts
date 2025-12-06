@@ -38,7 +38,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
 
     it("should aggregate wallet + pro + earn and convert to EUR", async () => {
         const { bit2meRequest, getMarketPrice } = await import("../src/services/bit2me.js");
-        const { handleAggregationTool } = await import("../src/tools/aggregation.js");
+        const { handleGeneralTool } = await import("../src/tools/general.js");
 
         // Mock API responses
         vi.mocked(bit2meRequest).mockImplementation(async (method: string, endpoint: string) => {
@@ -66,7 +66,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             return 0;
         });
 
-        const result = await handleAggregationTool("portfolio_get_valuation", { quote_symbol: "EUR" });
+        const result = await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR" });
         const data = JSON.parse(result.content[0].text);
 
         // Verify contextual structure
@@ -102,7 +102,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
 
     it("should handle API failures gracefully", async () => {
         const { bit2meRequest, getMarketPrice } = await import("../src/services/bit2me.js");
-        const { handleAggregationTool } = await import("../src/tools/aggregation.js");
+        const { handleGeneralTool } = await import("../src/tools/general.js");
 
         // Mock some APIs failing
         vi.mocked(bit2meRequest).mockImplementation(async (method: string, endpoint: string) => {
@@ -121,7 +121,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         });
 
         // Should not throw, but continue with available data
-        const result = await handleAggregationTool("portfolio_get_valuation", { quote_symbol: "EUR" });
+        const result = await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR" });
         const data = JSON.parse(result.content[0].text);
 
         // Should still have wallet data
@@ -136,7 +136,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
 
     it("should filter out dust (very small amounts)", async () => {
         const { bit2meRequest, getMarketPrice } = await import("../src/services/bit2me.js");
-        const { handleAggregationTool } = await import("../src/tools/aggregation.js");
+        const { handleGeneralTool } = await import("../src/tools/general.js");
 
         // Mock wallet with dust amounts
         vi.mocked(bit2meRequest).mockImplementation(async (method: string, endpoint: string) => {
@@ -155,7 +155,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             return 0;
         });
 
-        const result = await handleAggregationTool("portfolio_get_valuation", { quote_symbol: "EUR" });
+        const result = await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR" });
         const data = JSON.parse(result.content[0].text);
 
         // DUST should be filtered out (value < 0.01)
@@ -169,7 +169,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
 
     it("should sort assets by value (descending)", async () => {
         const { bit2meRequest, getMarketPrice } = await import("../src/services/bit2me.js");
-        const { handleAggregationTool } = await import("../src/tools/aggregation.js");
+        const { handleGeneralTool } = await import("../src/tools/general.js");
 
         vi.mocked(bit2meRequest).mockImplementation(async (method: string, endpoint: string) => {
             if (endpoint === "/v1/wallet/pocket") {
@@ -189,7 +189,7 @@ describe("Meta-Tool: Portfolio Valuation", () => {
             return 0;
         });
 
-        const result = await handleAggregationTool("portfolio_get_valuation", { quote_symbol: "EUR" });
+        const result = await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR" });
         const data = JSON.parse(result.content[0].text);
 
         // Should be sorted: EUR (10000) > BTC (5000) > ETH (3000)

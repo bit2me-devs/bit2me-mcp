@@ -1,12 +1,12 @@
 import { it, expect } from "vitest";
 import { describeE2E, E2E_TIMEOUT } from "./setup.js";
-import { handleAggregationTool } from "../../src/tools/aggregation.js";
+import { handleGeneralTool } from "../../src/tools/general.js";
 
 describeE2E("E2E: Portfolio Tools", () => {
     it(
         "should get portfolio valuation",
         async () => {
-            const result = await handleAggregationTool("portfolio_get_valuation", {
+            const result = await handleGeneralTool("portfolio_get_valuation", {
                 fiat: "EUR",
             });
             const valuation = JSON.parse(result.content[0].text);
@@ -28,7 +28,7 @@ describeE2E("E2E: Portfolio Tools", () => {
     it(
         "should support different fiat currencies",
         async () => {
-            const result = await handleAggregationTool("portfolio_get_valuation", {
+            const result = await handleGeneralTool("portfolio_get_valuation", {
                 fiat: "USD",
             });
             const valuation = JSON.parse(result.content[0].text);

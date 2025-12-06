@@ -26,7 +26,6 @@ import { walletTools, handleWalletTool } from "./tools/wallet.js";
 import { earnTools, handleEarnTool } from "./tools/earn.js";
 import { loanTools, handleLoanTool } from "./tools/loan.js";
 import { proTools, handleProTool } from "./tools/pro.js";
-import { healthTools, handleHealthTool } from "./tools/health.js";
 import { prompts, handleGetPrompt } from "./prompts/index.js";
 
 // --- STARTUP VALIDATION ---
@@ -62,15 +61,7 @@ const server = new Server(
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
-        tools: [
-            ...generalTools,
-            ...brokerTools,
-            ...walletTools,
-            ...earnTools,
-            ...loanTools,
-            ...proTools,
-            ...healthTools,
-        ],
+        tools: [...generalTools, ...brokerTools, ...walletTools, ...earnTools, ...loanTools, ...proTools],
     };
 });
 
@@ -107,9 +98,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         if (proTools.find((t) => t.name === name)) {
             return await handleProTool(name, args);
-        }
-        if (healthTools.find((t) => t.name === name)) {
-            return await handleHealthTool(name, args);
         }
 
         throw new Error(`Unknown tool: ${name}`);
