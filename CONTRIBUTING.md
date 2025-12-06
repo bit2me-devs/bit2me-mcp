@@ -168,14 +168,14 @@ This project uses a centralized metadata system for all tool definitions. The so
 
 1. **Edit `data/tools.json`**: Add or modify the tool definition in the appropriate category.
 2. **Update TypeScript handlers**: Modify the corresponding handler function in `src/tools/*.ts` if needed.
-3. **Regenerate documentation**: Run `npm run build:docs` to regenerate:
-    - `landing/tools-data.js` (for the landing page)
-    - `docs/SCHEMA_MAPPING.md` (response schemas documentation)
+3. **Regenerate derived assets**: Run `npm run build:docs` to regenerate:
+    - `landing/tools-data.js` (used by the landing page)
+    - `TOOLS_DOCUMENTATION.md` (tool documentation with descriptions, endpoints and response schemas)
 4. **Update backend**: The backend automatically uses the metadata from `data/tools.json` via `src/utils/tool-metadata.ts`.
 
 ### Important Notes
 
-- **Never edit generated files manually**: `landing/tools-data.js` and `docs/SCHEMA_MAPPING.md` are auto-generated. Always edit `data/tools.json` and run `npm run build:docs`.
+- **Never edit generated files manually**: `landing/tools-data.js` is auto-generated. Always edit `data/tools.json` and run `npm run build:docs`.
 - **Keep examples up to date**: When modifying tool responses, update the `exampleResponse` in `data/tools.json`.
 - **Test your changes**: After modifying metadata, run `npm run build:docs` and verify the generated files are correct.
 

@@ -388,8 +388,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exponential backoff with jitter
 - Comprehensive test suite (31 tests)
 - Documentation:
-    - Complete README with all 47 tools
-    - SCHEMA_MAPPING.md with JSON examples
+    - README quick-start guide
+    - TOOLS_DOCUMENTATION.md with descriptions, endpoints and response schemas
     - TypeScript schema coverage documentation
     - Product marketing documentation
 - Landing page with GitHub Pages deployment

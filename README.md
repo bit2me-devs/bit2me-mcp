@@ -24,168 +24,23 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 
 ## 🛠️ Available Tools & API Endpoints
 
-The server provides **46 tools** organized into categories:
+The server currently exposes **46 tools** grouped as follows:
 
-- 2 General Tools
-- 8 Broker (Simple Trading) Tools
-- 4 Wallet Tools
-- 11 Earn Tools
-- 7 Loan Tools
-- 14 Pro (Advanced Trading) Tools
+- 2 General tools
+- 7 Broker (Simple Trading) tools
+- 5 Wallet tools
+- 14 Pro Trading tools
+- 11 Earn (Staking) tools
+- 7 Loan tools
 
-_Note: Operation tools (write actions) are included in their respective categories above._
+Full descriptions, response schemas, Bit2Me REST endpoints and usage notes live in [`TOOLS_DOCUMENTATION.md`](./TOOLS_DOCUMENTATION.md).
 
-Below is a detailed list of tools and the Bit2Me API endpoints they use.
+## 📋 Documentation & Schemas
 
-### ℹ️ General
+All tool responses are normalised for LLM consumption (consistent naming, flattened payloads, concise metadata). Use the following references when developing new tooling:
 
-> **Note:** General information tools including asset details, account information, and portfolio valuation.
-
-| Tool                        | Endpoint                                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| --------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `general_get_assets_config` | `GET /v2/currency/assets` or `/v2/currency/assets/:symbol` | Gets detailed information of assets (cryptocurrencies and fiat) supported by Bit2Me Wallet. If symbol is provided, returns details for that specific asset. If symbol is not provided, returns all available assets. Returns symbol, name, type, network (lowercase), trading status, loan availability, and supported pairs. Use this to discover available symbols or verify if a specific asset is tradeable or loanable before operations. |
-| `portfolio_get_valuation`   | Multiple endpoints                                         | Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat symbol (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations.                                                                                                                                                   |
-
-### 💱 Broker (Simple Trading)
-
-> **Note:** Tools for simple trading operations and broker prices. Includes market data (prices, charts) and trading actions (buy, sell, swap) for the Wallet/Broker service. These prices include spread and are different from Pro Trading prices.
-
-| Tool                     | Endpoint                          | Description                                                                                                                                                                                                                                                                                                      |
-| ------------------------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `broker_get_asset_price` | `GET /v1/currency/rate`           | Get Wallet exchange rates for cryptocurrencies in a specific quote symbol and date. Returns the price of one unit of the base symbol in the requested quote symbol (default: EUR) as used by the Wallet/Broker service. Optional base_symbol filter and date for historical rates. Response is a list of prices. |
-| `broker_get_asset_data`  | `GET /v3/currency/ticker/:symbol` | Gets comprehensive market ticker data for a cryptocurrency from the Wallet/Broker service (not Pro Trading). These prices include spread and differ from Pro Trading prices. Requires base_symbol (e.g., BTC) and optional quote_symbol (default: EUR).                                                          |
-| `broker_get_asset_chart` | `GET /v3/currency/chart`          | Gets Wallet price history (candles/chart) with date and price in the quote symbol. These prices reflect the Wallet/Broker service, not Pro Trading. Requires pair (e.g., BTC-USD) and timeframe (1h, 1d, 1w, 1M, 1y). Returns data points with ISO 8601 date/time and price in the quote symbol from the pair.   |
-
-### 💼 Wallet (Storage)
-
-| Tool                          | Endpoint                      | Description                                                                                                                                                                                                                                                                                                                       |
-| ----------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `wallet_get_pockets`          | `GET /v1/wallet/pocket`       | Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. Optional `pocket_id` filter to get details of a specific pocket. Optional `symbol` filter. Returns balance, available, blocked funds, name, and creation date.                         |
-| `wallet_get_movements`        | `GET /v2/wallet/transaction`  | History of past Wallet operations (deposits, withdrawals, swaps, purchases). Optional `movement_id` filter to get details of a specific movement. Optional `symbol` filter. Use limit and offset for pagination (default limit: 10). Returns movement list with type, amount, symbol, status, and date.                           |
-| `wallet_get_pocket_addresses` | `GET /v2/wallet/pocket/...`   | Lists deposit addresses for a wallet (Pocket) on a specific network. Requires pocket_id and network. Use wallet_get_networks first to see available networks for a symbol. Each network may have different addresses. Returns address, network, and creation date. Use this address to receive deposits on the specified network. |
-| `wallet_get_networks`         | `GET /v1/wallet/currency/...` | Lists available networks for a specific cryptocurrency. Requires symbol (e.g., BTC, ETH). Use this before wallet_get_pocket_addresses to see which networks support deposits for a symbol (e.g., bitcoin, ethereum, binanceSmartChain). Returns network ID, name, native symbol, fee symbol, and whether it requires a tag/memo.  |
-
-### 💰 Earn (Staking) Tools
-
-| Tool                                | Endpoint                                   | Description                                                                                                                                                                                                                                                                                                                                          |
-| ----------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `earn_get_summary`                  | `GET /v1/earn/summary`                     | View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn positions, breakdown by symbol, and overall performance. Use this to see your total staking rewards.                                                                                                                                               |
-| `earn_get_positions`                | `GET /v2/earn/wallets`                     | List active Earn positions/strategies. Optional `position_id` filter to get a specific position. Returns position_id, symbol, balance, strategy, lock_period, converted_balance, and timestamps. Note: Positions represent money that is locked or generating yield (invested money), different from Pockets which represent liquid available funds. |
-| `earn_get_position_movements`       | `GET /v1/earn/wallets/:id/movements`       | Get movement history of a specific Earn position. Requires position_id. Returns deposits, withdrawals, and reward payments with amounts, dates, and status. Optional limit and offset for pagination. Use earn_get_positions first to get the position ID. Response is a paginated list with metadata.                                               |
-| `earn_get_movements`                | `GET /v2/earn/movements`                   | Get movement history across all Earn positions. Returns deposits, withdrawals, rewards, and other movements with amounts, dates, rates, source, and issuer information. Supports filtering by symbol, position_id, type, date range, and pagination. All parameters are optional. Response is a paginated list with metadata.                        |
-| `earn_get_movements_summary`        | `GET /v1/earn/movements/:type/summary`     | Get summary statistics of Earn movements filtered by type (deposit, withdrawal, reward, discount-funds, discount-rewards). Returns total count, total amounts, and aggregated data for the specified movement type across all Earn positions.                                                                                                        |
-| `earn_get_assets`                   | `GET /v2/earn/assets`                      | Get list of assets (cryptocurrencies) supported in Earn/Staking with APY rates. Returns list of cryptocurrency symbols with their staking options and APY. Use this to discover which assets can be staked before creating Earn operations.                                                                                                          |
-| `earn_get_rewards_config`           | `GET /v1/earn/wallets/rewards/config`      | Get global rewards configuration for Earn/Staking. Returns reward calculation rules, distribution schedules, and general staking parameters. Use this to understand how rewards are calculated.                                                                                                                                                      |
-| `earn_get_position_rewards_config`  | `GET /v1/earn/wallets/:id/rewards/config`  | Get rewards configuration for a specific Earn position. Returns reward calculation rules, APY details, and position-specific staking parameters. Use earn_get_positions first to get the position ID.                                                                                                                                                |
-| `earn_get_position_rewards_summary` | `GET /v1/earn/wallets/:id/rewards/summary` | Get rewards summary for a specific Earn position. Returns total rewards earned, pending rewards, reward history, and performance metrics. Use earn_get_positions first to get the position ID.                                                                                                                                                       |
-
-### 🏦 Loan Tools
-
-| Tool                  | Endpoint                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| --------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `loan_get_simulation` | `GET /v1/loan/ltv`                    | Simulate a loan scenario to calculate LTV (Loan To Value) ratio and APR. Requires guarantee_symbol, loan_symbol, and user_symbol. LTV represents the loan amount as a ratio of the guarantee value (1.0 = 100%). Lower LTV means lower risk. Provide either guarantee_amount or loan_amount (the other will be calculated). Returns guarantee and loan amounts (original and converted), LTV ratio, APR, and user currency. Use this before loan_create to plan your loan. |
-| `loan_get_config`     | `GET /v1/loan/currency/configuration` | Get symbol configuration for loans including supported guarantee symbols, loan symbols, LTV limits, interest rates, and requirements. Returns symbol for each asset. Use this before creating a loan to understand available options and limits.                                                                                                                                                                                                                           |
-| `loan_get_movements`  | `GET /v1/loan/movements`              | Get loan movement history including payments, interest accruals, and guarantee changes. Optional order_id filter to see movements for a specific loan. Use limit and offset for pagination. Response is a paginated list with metadata.                                                                                                                                                                                                                                    |
-| `loan_get_orders`     | `GET /v1/loan/orders`                 | Get all loan orders (both active and closed) for the user. Optional `order_id` filter to get complete details of a specific order including LTV, APR, liquidation price, remaining amount, and expiration date. Without order_id, returns basic loan information. Optional limit and offset for pagination.                                                                                                                                                                |
-
-### 📈 Pro Trading Tools
-
-| Tool                    | Endpoint                           | Description                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ----------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pro_get_balance`       | `GET /v1/trading/wallet/balance`   | Gets balances from PRO Trading account. This is separate from Simple Wallet - funds must be transferred using pro_deposit/pro_withdraw. Returns available and blocked balances per symbol for trading.                                                                                                                                                                                                                            |
-| `pro_get_open_orders`   | `GET /v1/trading/order`            | View open trading orders in PRO. Optional `order_id` filter to get details of a specific order. Optional `pair` filter to see orders for a specific market. Returns all active orders with full details including pair, side, type, amount, price, status, filled amount, and creation date.                                                                                                                                      |
-| `pro_get_trades`        | `GET /v1/trading/trade`            | Gets the user's trade history in Pro Trading. Returns executed trades with price, amount, side (buy/sell), fees, timestamp, and date. Optional filters: trading pair, side, order type, date range, limit (max 50), offset, and sort order (ASC/DESC). Use this to review past trading activity. Response is a paginated list with metadata.                                                                                      |
-| `pro_get_order_trades`  | `GET /v1/trading/order/:id/trades` | Gets all individual trades (executions) associated with a specific order. Requires order_id. Returns detailed execution data including price, amount, fees, timestamp, and date for each fill. Useful for analyzing how a large order was executed across multiple trades.                                                                                                                                                        |
-| `pro_get_market_config` | `GET /v1/trading/market-config`    | Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional pair filter for a specific market. Use this before placing orders to ensure amounts meet requirements. Response is a list of configurations.                                                                                                                                                                |
-| `pro_get_order_book`    | `GET /v2/trading/order-book`       | Gets the order book (market depth) for a market showing current buy and sell orders. Requires trading pair (e.g., BTC-USD). Returns bids (buy orders) and asks (sell orders) with prices and amounts. Useful for analyzing market liquidity and determining optimal order prices. Response is a single object.                                                                                                                    |
-| `pro_get_public_trades` | `GET /v1/trading/trade/last`       | Gets the latest public trades (executed orders) for a market. Requires trading pair (e.g., BTC-USD). Returns recent transactions with price, amount, side (buy/sell), and date. Optional limit (max 100) and sort order (ASC/DESC). Useful for seeing recent market activity. Response is a list of trades with metadata.                                                                                                         |
-| `pro_get_candles`       | `GET /v1/trading/candle`           | Gets OHLCV (Open, High, Low, Close, Volume) candles for Pro (Advanced Trading). Requires trading pair (e.g., BTC-EUR) and timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M). Optional limit (default: 1000, max: 1000), startTime and endTime (Unix epoch milliseconds). If startTime/endTime not provided, defaults to last 24 hours. Essential for technical analysis and charting. Response is a list of candles with metadata. |
-| `pro_get_ticker`        | `GET /v2/trading/tickers`          | Get ticker information (OHLCV, current best bid and ask, percentage versus price 24 hours ago) for all markets or by requested market symbol. The data refers to the last 24 hours from the date indicated by the timestamp. Optional pair filter for a specific market. Returns ticker data with open, close, bid, ask, high, low, volumes, and percentage change.                                                               |
-
-### 📊 Aggregation Tools
-
-| Tool                      | Endpoint   | Description                                                                                                                                                                                                                                                                                                                                    |
-| ------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `portfolio_get_valuation` | `GET /...` | Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat symbol (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations. Filters out dust amounts below minimum threshold. |
-
-### ⚡ Broker Operations (Write Actions)
-
-| Tool                   | Endpoint                               | Description                                                                                                                                                                                                |
-| ---------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `broker_quote_buy`     | `POST /v1/wallet/transaction/proforma` | **Step 1**: Buy cryptocurrency using fiat balance from a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote.          |
-| `broker_quote_sell`    | `POST /v1/wallet/transaction/proforma` | **Step 1**: Sell cryptocurrency to receive fiat balance in a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote.      |
-| `broker_quote_swap`    | `POST /v1/wallet/transaction/proforma` | **Step 1**: Swap/exchange one cryptocurrency for another between pockets. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote. |
-| `broker_confirm_quote` | `POST /v1/wallet/transaction`          | **Step 2**: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action.                                                              |
-
-### ⚡ Pro Trading Operations (Write Actions)
-
-| Tool                      | Endpoint                                      | Description                                                                                                                                                                                                                                                                                                                                        |
-| ------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pro_create_order`        | `POST /v1/trading/order`                      | Create Limit/Market/Stop order in PRO Trading. Requires pair, side, type, and amount. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Returns order with creation date and timestamp. Use pro_get_open_orders to check order status. |
-| `pro_cancel_order`        | `DELETE /v1/trading/order/:id`                | Cancel a specific PRO order by ID. Requires order_id. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled.                                                                                                                                                  |
-| `pro_cancel_all_orders`   | `DELETE /v1/trading/order`                    | Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders.                                                                                                                                                   |
-| `pro_deposit`             | `POST /v1/trading/wallet/deposit`             | Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit.                                                                                                                                         |
-| `pro_withdraw`            | `POST /v1/trading/wallet/withdraw`            | Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal.                                                                                                                                        |
-| `earn_deposit`            | `POST /v1/earn/wallets/:id/movements`         | Deposit funds from Simple Wallet pocket to Earn (Staking). Requires pocket_id, symbol (cryptocurrency), and amount. Funds will start earning rewards based on the asset's APY. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Returns operation details with status.                       |
-| `earn_withdraw`           | `POST /v1/earn/wallets/:id/movements`         | Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Requires pocket_id, symbol (cryptocurrency), and amount. Funds will stop earning rewards after withdrawal. Use earn_get_positions to check your Earn balance. Returns operation details with status.                                                                              |
-| `loan_create`             | `POST /v1/loan`                               | Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Requires guarantee_symbol, loan_symbol, and amount_type. Specify amount_type: 'fixed_collateral' or 'fixed_loan'. Returns loan order details with status.                               |
-| `loan_increase_guarantee` | `POST /v1/loan/orders/:id/guarantee/increase` | Increase the guarantee (collateral) amount for an existing loan. Requires order_id and guarantee_amount. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID.                                                                                                                |
-| `loan_payback`            | `POST /v1/loan/orders/:id/payback`            | Pay back (return) part or all of a loan. Requires order_id and payback_amount. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders first to get the order ID.                                                                                                                       |
-
-## 📋 Response Schemas
-
-All tool responses are **optimized for LLM consumption** with clean, consistent structures. We provide comprehensive documentation of response formats:
-
-### 📖 Documentation Files
-
-- **[SCHEMA_MAPPING.md](./docs/SCHEMA_MAPPING.md)** - Complete response schemas with field descriptions, types, enums, and examples for all 46 tools (auto-generated from `data/tools.json`)
-- **[data/tools.json](./data/tools.json)** - Centralized metadata source for all tool definitions (name, description, inputSchema, responseSchema, examples)
-
-### Key Features
-
-- ✅ **Consistent naming**: All fields use `snake_case` for better LLM readability
-- ✅ **Flattened structures**: Removed unnecessary nesting from API responses
-- ✅ **Filtered data**: Zero balances and irrelevant fields are removed
-- ✅ **Type-safe**: Full TypeScript interfaces in `src/utils/schemas.ts`
-- ✅ **Well-documented**: Every tool has a concrete JSON example and complete response schema with field descriptions
-- ✅ **Schema definitions**: All tools include `responseSchema` with detailed field descriptions, types, enums, and required/optional indicators
-- ✅ **Temporal parity**: All date fields include both ISO 8601 string (`*_at`) and Unix timestamp (`*_timestamp`)
-- ✅ **Normalized values**: Types, sides, currencies, and pairs are normalized for consistency
-- ✅ **Union types**: Status and type fields use controlled vocabularies (e.g., `"active" | "completed" | "failed"`)
-- ✅ **Enhanced metadata**: Paginated responses include `total_records`, `limit`, `offset`, and `has_more` flags
-- ✅ **Service breakdown**: Portfolio valuation includes `by_service` breakdown (wallet, pro, earn, loan_guarantees)
-
-### Example
-
-Instead of raw API responses like:
-
-```json
-{
-    "data": [
-        {
-            "orderId": "...",
-            "guaranteeSymbol": "BTC",
-            "loanSymbol": "EUR",
-            "createdAt": "2024-01-01T00:00:00.000Z"
-        }
-    ]
-}
-```
-
-You get optimized responses like:
-
-```json
-[
-    {
-        "id": "...",
-        "guarantee_symbol": "BTC",
-        "loan_symbol": "EUR",
-        "created_at": "2024-01-01T00:00:00.000Z"
-    }
-]
-```
-
-See [SCHEMA_MAPPING.md](./docs/SCHEMA_MAPPING.md) for complete response schemas with field descriptions and examples for all 46 tools.
+- **[`TOOLS_DOCUMENTATION.md`](./TOOLS_DOCUMENTATION.md)** – Auto-generated catalogue with descriptions, Bit2Me endpoints and response schemas for each tool.
+- **[`data/tools.json`](./data/tools.json)** – Source metadata powering the landing page (includes request/response schemas and examples for each tool).
 
 ## ⚙️ Installation and Configuration
 
@@ -230,11 +85,14 @@ See [SCHEMA_MAPPING.md](./docs/SCHEMA_MAPPING.md) for complete response schemas 
     BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
 
     # Optional Configuration
+    BIT2ME_GATEWAY_URL=https://gateway.bit2me.com  # API Gateway URL (default: https://gateway.bit2me.com)
     BIT2ME_REQUEST_TIMEOUT=30000     # Request timeout in ms (default: 30000)
     BIT2ME_MAX_RETRIES=3             # Max retries for rate limits (default: 3)
     BIT2ME_RETRY_BASE_DELAY=1000     # Base delay for backoff in ms (default: 1000)
     BIT2ME_LOG_LEVEL=info            # Log level: debug, info, warn, error (default: info)
     ```
+
+    > **💡 QA/Staging:** Use `BIT2ME_GATEWAY_URL` to point to different environments (e.g., `https://qa-gateway.bit2me.com` for QA testing).
 
 4. **Build the project:**
     ```bash
@@ -269,6 +127,26 @@ To use this server with the Claude Desktop application, add the following config
 ```
 
 > **Note:** Replace `/absolute/path/to/...` with the actual full path to your project.
+
+#### Using a Custom Gateway (QA/Staging)
+
+For testing against different environments, add the `BIT2ME_GATEWAY_URL` variable:
+
+```json
+{
+    "mcpServers": {
+        "bit2me": {
+            "command": "node",
+            "args": ["/absolute/path/to/bit2me-mcp/build/index.js"],
+            "env": {
+                "BIT2ME_API_KEY": "YOUR_BIT2ME_ACCOUNT_API_KEY",
+                "BIT2ME_API_SECRET": "YOUR_BIT2ME_ACCOUNT_API_SECRET",
+                "BIT2ME_GATEWAY_URL": "https://qa-gateway.bit2me.com"
+            }
+        }
+    }
+}
+```
 
 ## 🛡️ Security
 

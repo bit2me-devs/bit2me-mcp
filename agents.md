@@ -506,8 +506,8 @@ describe("Example Tools", () => {
 
 ### 5. Documentation
 
-1.  **SCHEMA_MAPPING.md**: Add the JSON response example.
-2.  **README.md**: Add the tool to the list of available tools.
+1.  **TOOLS_DOCUMENTATION.md**: Auto-generated from `data/tools.json` — just update the metadata and run `npm run build:docs`.
+2.  **README.md**: Update category counts or summaries if they change.
 3.  **Landing Page**: Update `landing/index.html` if it lists features/tools.
 4.  **Product Documentation**: Update `docs/PRODUCT.md` (if applicable).
 5.  **Schema Coverage**: Update `docs/TYPESCRIPT_SCHEMA_COVERAGE.md` to map the new tool to its TypeScript interface.
