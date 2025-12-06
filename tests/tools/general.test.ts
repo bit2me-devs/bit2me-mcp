@@ -131,10 +131,11 @@ describe("Pro Trading Market Tools", () => {
 
         await handleProTool("pro_get_public_trades", { pair: "BTC-USD" });
 
+        // API expects symbol in BTC/USD format (with slash)
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
             expect.stringContaining("/v1/trading/trade/last"),
-            expect.objectContaining({ symbol: "BTC-USD" })
+            expect.objectContaining({ symbol: "BTC/USD" })
         );
     });
 

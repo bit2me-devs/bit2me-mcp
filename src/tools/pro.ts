@@ -403,7 +403,12 @@ export async function handleProTool(name: string, args: any) {
             const pair = normalizePair(params.pair);
             // API limit is 50 according to documentation
             const limit = params.limit ? validatePaginationLimit(params.limit, 50) : undefined;
-            const queryParams: any = { symbol: pair };
+
+            // Convert pair format from BTC-EUR to BTC/EUR for API
+            const [base_symbol, quote_symbol] = pair.split("-");
+            const apiSymbol = `${base_symbol}/${quote_symbol}`;
+
+            const queryParams: any = { symbol: apiSymbol };
             if (limit) queryParams.limit = limit;
             if (params.sort) queryParams.sort = params.sort;
             const data = await bit2meRequest("GET", "/v1/trading/trade/last", queryParams);
