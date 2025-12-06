@@ -1,3 +1,71 @@
+# [3.0.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v2.0.0...v3.0.0) (2025-12-06)
+
+- feat!: release v3.0 with major API restructuring ([0d32844](https://github.com/bit2me-devs/bit2me-mcp/commit/0d32844e8beb7ac1f33fe78425cb6fdc06d3366b))
+
+### Bug Fixes
+
+- **broker:** round fiat values to 2 decimals in broker_get_asset_data ([e254397](https://github.com/bit2me-devs/bit2me-mcp/commit/e25439753f25ab06d4660e454c6ccbf6bc6d877d))
+- **loan:** handle data wrapper in loan_get_movements response ([8a2a601](https://github.com/bit2me-devs/bit2me-mcp/commit/8a2a601bae737499ff925bc836fd9a3482b7a2f5))
+- **mappers:** round all fiat-converted values to 2 decimals ([5850e41](https://github.com/bit2me-devs/bit2me-mcp/commit/5850e41314b994dc846a09e0fa99a143d50092c4))
+- **pro:** correct symbol format for pro_get_public_trades API call ([c9da828](https://github.com/bit2me-devs/bit2me-mcp/commit/c9da8280d0d2f5229aad82d9a93f3e5e352ef6e0))
+- **pro:** update order book symbol format and response mapping ([04fa6b6](https://github.com/bit2me-devs/bit2me-mcp/commit/04fa6b6e86682a661e7e0d0954e7db24a5c7d119))
+
+### Code Refactoring
+
+- **tools:** consolidate list and detail tools into unified tools with ID filters ([7c4b772](https://github.com/bit2me-devs/bit2me-mcp/commit/7c4b772ae4869685a7b0eba720c253e9fe56ade0))
+
+### Features
+
+- actualizar herramientas, landing page y mejoras en código ([643516f](https://github.com/bit2me-devs/bit2me-mcp/commit/643516f61ab6c136a0d4348ec3f830cff89b0993))
+- agregar nuevas funcionalidades (health, circuit-breaker, rate-limiter) ([71cbbe5](https://github.com/bit2me-devs/bit2me-mcp/commit/71cbbe5df84a8c75809dea731c6f57a1cfd6ab8c))
+- **earn:** enrich earn_get_assets with full asset details ([9394e99](https://github.com/bit2me-devs/bit2me-mcp/commit/9394e993008f8c76295264655741b83f63eb206f))
+- **landing:** mejorar ejemplos interactivos ([29e573a](https://github.com/bit2me-devs/bit2me-mcp/commit/29e573aaf0a2f89eab074c348fe34dd3d328f6d0))
+- **landing:** mejorar UI del sidebar y dark mode ([c3514b1](https://github.com/bit2me-devs/bit2me-mcp/commit/c3514b168f7d47e2e77ba73ca4316584e7b41a49))
+- **loan:** completely rewrite loan_get_movements mapper ([a57541a](https://github.com/bit2me-devs/bit2me-mcp/commit/a57541aea341310214707c2b503845a8d8d7d93c))
+- **loan:** enrich loan_get_orders with full loan details ([bfdbe1e](https://github.com/bit2me-devs/bit2me-mcp/commit/bfdbe1ebbbbdc538759cbe34f5c35ebcf623711f))
+- **pro:** enrich pro_get_market_config with full trading parameters ([49a003a](https://github.com/bit2me-devs/bit2me-mcp/commit/49a003a4294a26f47349249874adf8bf0cc6fcf0))
+- **schema:** comprehensive improvements to tools.json schema ([535edc6](https://github.com/bit2me-devs/bit2me-mcp/commit/535edc6f4d1f7016100155ffff726da16a342a07))
+
+### BREAKING CHANGES
+
+- This release contains multiple breaking changes:
+
+## Tool Renaming
+
+- All market*\* tools renamed to broker*\* tools for consistency
+- broker_get_asset_data replaces market_get_asset_data
+- broker_get_chart replaces market_get_chart
+- broker_get_info replaces market_get_info
+- broker_get_price replaces market_get_price
+
+## Removed Modules
+
+- account.ts module removed (consolidated into wallet)
+- market.ts module removed (replaced by broker.ts)
+
+## Tool Consolidation
+
+- List and detail tools unified with optional ID filters
+- wallet_get_cards now supports optional card_id filter
+- earn_get_assets returns comprehensive asset information
+- pro_get_market_config includes full trading parameters
+
+## Response Format Changes
+
+- All fiat values now rounded to 2 decimals
+- loan_get_movements completely rewritten with correct field mapping
+- loan_get_orders enriched with LTV, APR, and interest details
+- earn_get_positions includes lock_period and converted_balance
+
+## New Features
+
+- Circuit breaker pattern for API resilience
+- Health check endpoint (server_health_check)
+- Rate limiter configuration
+- Enhanced metrics collection
+
+* **tools:** Detail tools removed, use list tools with ID filter instead.
+
 ## [Unreleased]
 
 ### Breaking Changes
