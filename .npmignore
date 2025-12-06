@@ -3,7 +3,7 @@ landing/
 docs/
 .github/
 CHANGELOG.md
-SCHEMA_MAPPING.md
+TOOLS_DOCUMENTATION.md
 
 # Ignorar fuentes (solo subimos la compilación en build/)
 src/

@@ -68,7 +68,7 @@ jobs:
                   else
                     git config --local user.email "github-actions[bot]@users.noreply.github.com"
                     git config --local user.name "github-actions[bot]"
-                    git add landing/tools-data.js docs/SCHEMA_MAPPING.md
+                    git add landing/tools-data.js
                     git commit -m "docs: regenerate documentation with version $(node -p 'require(\"./package.json\").version') [skip ci]"
                     git push
                   fi
