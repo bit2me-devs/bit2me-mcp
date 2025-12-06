@@ -1,3 +1,9 @@
+# [3.1.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.3...v3.1.0) (2025-12-06)
+
+### Features
+
+- **config:** add configurable BIT2ME_GATEWAY_URL for QA/staging ([30a0408](https://github.com/bit2me-devs/bit2me-mcp/commit/30a0408542bd1bcd8ac28c7ab69e09c9d824ba3f))
+
 ## [3.0.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.2...v3.0.3) (2025-12-06)
 
 ### Bug Fixes
