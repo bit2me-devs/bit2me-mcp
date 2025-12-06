@@ -69,6 +69,7 @@ jobs:
                     git config --local user.email "github-actions[bot]@users.noreply.github.com"
                     git config --local user.name "github-actions[bot]"
                     git add landing/tools-data.js
-                    git commit -m "docs: regenerate documentation with version $(node -p 'require(\"./package.json\").version') [skip ci]"
+                    VERSION=$(node -p "require('./package.json').version")
+                    git commit -m "docs: regenerate documentation with version ${VERSION} [skip ci]"
                     git push
                   fi
