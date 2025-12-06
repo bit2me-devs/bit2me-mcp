@@ -1,3 +1,9 @@
+## [3.1.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.1...v3.1.2) (2025-12-06)
+
+### Bug Fixes
+
+- **ci:** add TOOLS_DOCUMENTATION.md to release doc regeneration ([895d70e](https://github.com/bit2me-devs/bit2me-mcp/commit/895d70ef1650fdd79bf2968118f93bab1c14e3ba))
+
 ## [3.1.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.0...v3.1.1) (2025-12-06)
 
 ### Bug Fixes
