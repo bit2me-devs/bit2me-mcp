@@ -6,7 +6,7 @@ describeE2E("E2E: Broker Tools", () => {
     it(
         "should get price info for BTC",
         async () => {
-            const result = await handleBrokerTool("broker_get_info", {
+            const result = await handleBrokerTool("broker_get_asset_data", {
                 base_symbol: "BTC",
                 quote_symbol: "EUR",
             });
@@ -23,7 +23,7 @@ describeE2E("E2E: Broker Tools", () => {
     it(
         "should get price chart data",
         async () => {
-            const result = await handleBrokerTool("broker_get_chart", {
+            const result = await handleBrokerTool("broker_get_asset_chart", {
                 pair: "BTC-USD",
                 timeframe: "1d",
             });
@@ -42,7 +42,7 @@ describeE2E("E2E: Broker Tools", () => {
     it(
         "should get price rates",
         async () => {
-            const result = await handleBrokerTool("broker_get_price", {
+            const result = await handleBrokerTool("broker_get_asset_price", {
                 quote_symbol: "EUR",
                 base_symbol: "BTC",
             });

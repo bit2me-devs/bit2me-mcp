@@ -19,7 +19,7 @@ describe("General Tools Handler", () => {
         vi.clearAllMocks();
     });
 
-    it("should handle get_assets_details without symbol (all assets)", async () => {
+    it("should handle general_get_assets_config without symbol (all assets)", async () => {
         const mockAssets = {
             BTC: {
                 name: "Bitcoin",
@@ -44,7 +44,7 @@ describe("General Tools Handler", () => {
         };
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockAssets);
 
-        const result = await handleGeneralTool("get_assets_details", { include_testnet: true });
+        const result = await handleGeneralTool("general_get_assets_config", { include_testnet: true });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
@@ -59,7 +59,7 @@ describe("General Tools Handler", () => {
         expect(parsed.result[1].network).toBe("ethereum");
     });
 
-    it("should handle get_assets_details with symbol (single asset)", async () => {
+    it("should handle general_get_assets_config with symbol (single asset)", async () => {
         const mockAsset = {
             name: "Bitcoin",
             precision: 8,
@@ -72,7 +72,7 @@ describe("General Tools Handler", () => {
         };
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockAsset);
 
-        const result = await handleGeneralTool("get_assets_details", { symbol: "BTC" });
+        const result = await handleGeneralTool("general_get_assets_config", { symbol: "BTC" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
@@ -138,11 +138,11 @@ describe("Pro Trading Market Tools", () => {
         );
     });
 
-    it("should handle pro_get_OHLCV", async () => {
+    it("should handle pro_get_candles", async () => {
         const mockCandles = [[1630000000000, 50000, 51000, 49000, 50500, 100]];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockCandles);
 
-        const result = await handleProTool("pro_get_OHLCV", { pair: "BTC-EUR", timeframe: "1h" });
+        const result = await handleProTool("pro_get_candles", { pair: "BTC-EUR", timeframe: "1h" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",

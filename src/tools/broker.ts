@@ -51,11 +51,12 @@ export const brokerTools: Tool[] = getCategoryTools("broker");
  */
 export async function handleBrokerTool(name: string, args: any) {
     return executeTool(name, args, async () => {
-        if (name === "broker_get_price") {
+        if (name === "broker_get_asset_price") {
             const params: any = {};
             if (args.date) params.time = args.date;
 
-            const quote_symbol = normalizeSymbol(args.quote_symbol || "USD");
+            // Default to EUR as per documentation
+            const quote_symbol = normalizeSymbol(args.quote_symbol || "EUR");
             const base_symbol = args.base_symbol ? normalizeSymbol(args.base_symbol) : undefined;
             const requestContext: any = {
                 quote_symbol,
@@ -79,12 +80,13 @@ export async function handleBrokerTool(name: string, args: any) {
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 
-        if (name === "broker_get_info") {
+        if (name === "broker_get_asset_data") {
             const typedArgs = args as MarketTickerArgs;
             if (!typedArgs.base_symbol) {
                 throw new ValidationError("base_symbol is required", "base_symbol");
             }
             validateSymbol(args.base_symbol);
+            // Default to EUR as requested
             const quote_symbol = normalizeSymbol(args.quote_symbol || "EUR");
             if (args.quote_symbol) {
                 validateFiat(args.quote_symbol);
@@ -111,7 +113,7 @@ export async function handleBrokerTool(name: string, args: any) {
             }
         }
 
-        if (name === "broker_get_chart") {
+        if (name === "broker_get_asset_chart") {
             if (!args.pair) {
                 throw new ValidationError("pair is required", "pair");
             }
@@ -201,7 +203,7 @@ export async function handleBrokerTool(name: string, args: any) {
             } catch (error: any) {
                 // If processing fails, return error with more context
                 const errorMsg = error.response?.data || error.message;
-                throw new Error(`Error in broker_get_chart: ${JSON.stringify(errorMsg)}`);
+                throw new Error(`Error in broker_get_asset_chart: ${JSON.stringify(errorMsg)}`);
             }
         }
 

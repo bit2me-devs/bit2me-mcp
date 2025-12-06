@@ -21,7 +21,7 @@ describe("Broker Tools Handler", () => {
         vi.clearAllMocks();
     });
 
-    it("should handle broker_get_price", async () => {
+    it("should handle broker_get_asset_price", async () => {
         const mockRates = [
             {
                 fiat: { USD: 1, EUR: 0.9 },
@@ -30,7 +30,7 @@ describe("Broker Tools Handler", () => {
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockRates);
 
-        const result = await handleBrokerTool("broker_get_price", { quote_symbol: "EUR", base_symbol: "BTC" });
+        const result = await handleBrokerTool("broker_get_asset_price", { quote_symbol: "EUR", base_symbol: "BTC" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/currency/rate", expect.any(Object));
         const parsed = JSON.parse(result.content[0].text);
@@ -38,7 +38,7 @@ describe("Broker Tools Handler", () => {
         expect(parsed).toHaveProperty("result");
     });
 
-    it("should handle broker_get_info", async () => {
+    it("should handle broker_get_asset_data", async () => {
         const mockTicker = {
             price: "50000",
             time: "1234567890",
@@ -50,7 +50,7 @@ describe("Broker Tools Handler", () => {
 
         vi.mocked(bit2meService.getTicker).mockResolvedValue(mockTicker as any);
 
-        const result = await handleBrokerTool("broker_get_info", { base_symbol: "BTC", quote_symbol: "EUR" });
+        const result = await handleBrokerTool("broker_get_asset_data", { base_symbol: "BTC", quote_symbol: "EUR" });
 
         expect(bit2meService.getTicker).toHaveBeenCalledWith("BTC", "EUR");
         const parsed = JSON.parse(result.content[0].text);
@@ -64,15 +64,15 @@ describe("Broker Tools Handler", () => {
         );
     });
 
-    it("should handle broker_get_info not found", async () => {
+    it("should handle broker_get_asset_data not found", async () => {
         vi.mocked(bit2meService.getTicker).mockRejectedValue(new NotFoundError("/v1/ticker", "Ticker not found"));
 
-        await expect(handleBrokerTool("broker_get_info", { base_symbol: "UNKNOWN" })).rejects.toThrow(
+        await expect(handleBrokerTool("broker_get_asset_data", { base_symbol: "UNKNOWN" })).rejects.toThrow(
             "Ticker not found"
         );
     });
 
-    it("should handle broker_get_chart", async () => {
+    it("should handle broker_get_asset_chart", async () => {
         const mockData = [
             [1630000000000, 0.00002, 0.85], // timestamp, usdPerUnit, eurUsdRate
             [1630003600000, 0.000021, 0.85],
@@ -80,7 +80,7 @@ describe("Broker Tools Handler", () => {
 
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleBrokerTool("broker_get_chart", { pair: "BTC-USD", timeframe: "1h" });
+        const result = await handleBrokerTool("broker_get_asset_chart", { pair: "BTC-USD", timeframe: "1h" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
@@ -95,19 +95,19 @@ describe("Broker Tools Handler", () => {
         expect(parsed.result[0].date).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
     });
 
-    it("should handle broker_get_chart with small values (precision check)", async () => {
+    it("should handle broker_get_asset_chart with small values (precision check)", async () => {
         const mockData = [[1630000000000, 4445.82759, 1]];
 
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleBrokerTool("broker_get_chart", { pair: "VRA/EUR", timeframe: "1d" });
+        const result = await handleBrokerTool("broker_get_asset_chart", { pair: "VRA/EUR", timeframe: "1d" });
 
         const parsed = JSON.parse(result.content[0].text);
         expect(parsed).toHaveProperty("result");
         expect(parseFloat(parsed.result[0].price)).not.toBe(0);
     });
 
-    it("should handle broker_get_chart with smart rounding", async () => {
+    it("should handle broker_get_asset_chart with smart rounding", async () => {
         const mockData = [
             [1630000000000, 0.00002, 1],
             [1630000000000, 2, 1],
@@ -116,7 +116,7 @@ describe("Broker Tools Handler", () => {
 
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleBrokerTool("broker_get_chart", { pair: "MIXED/EUR", timeframe: "1d" });
+        const result = await handleBrokerTool("broker_get_asset_chart", { pair: "MIXED/EUR", timeframe: "1d" });
         const parsed = JSON.parse(result.content[0].text);
 
         expect(parsed).toHaveProperty("result");
@@ -201,9 +201,9 @@ describe("Broker Tools Handler", () => {
     });
 
     it("should throw error for invalid timeframe", async () => {
-        await expect(handleBrokerTool("broker_get_chart", { pair: "BTC-USD", timeframe: "invalid" })).rejects.toThrow(
-            "Invalid timeframe"
-        );
+        await expect(
+            handleBrokerTool("broker_get_asset_chart", { pair: "BTC-USD", timeframe: "invalid" })
+        ).rejects.toThrow("Invalid timeframe");
     });
 
     it("should throw error for unknown tool", async () => {

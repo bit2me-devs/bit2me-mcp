@@ -16,16 +16,16 @@ describe("Market Tools - Currency Rate", () => {
         vi.clearAllMocks();
     });
 
-    it("should fetch currency rates in USD (default)", async () => {
+    it("should fetch currency rates in EUR (default)", async () => {
         const mockData = [
             {
                 fiat: { USD: 1, EUR: 0.9 },
-                crypto: { BTC: 0.00001, ETH: 0.0005 }, // 1 USD = 0.00001 BTC -> 1 BTC = 100,000 USD
+                crypto: { BTC: 0.00001 }, // 1 USD = 0.00001 BTC -> Price BTC in EUR = 0.9 / 0.00001 = 90,000 EUR
             },
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleBrokerTool("broker_get_price", {});
+        const result = await handleBrokerTool("broker_get_asset_price", {});
         const content = JSON.parse(result.content[0].text);
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
@@ -39,8 +39,7 @@ describe("Market Tools - Currency Rate", () => {
             expect.arrayContaining([
                 expect.objectContaining({
                     base_symbol: "BTC",
-                    price: "100000",
-                    quote_symbol: "USD",
+                    quote_symbol: "EUR",
                 }),
             ])
         );
@@ -55,7 +54,7 @@ describe("Market Tools - Currency Rate", () => {
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleBrokerTool("broker_get_price", { quote_symbol: "EUR" });
+        const result = await handleBrokerTool("broker_get_asset_price", { quote_symbol: "EUR" });
         const content = JSON.parse(result.content[0].text);
 
         // Price BTC in EUR = Rate(EUR) / Rate(BTC) = 0.9 / 0.00001 = 90,000
@@ -81,7 +80,7 @@ describe("Market Tools - Currency Rate", () => {
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        const result = await handleBrokerTool("broker_get_price", { base_symbol: "BTC" });
+        const result = await handleBrokerTool("broker_get_asset_price", { base_symbol: "BTC" });
         const content = JSON.parse(result.content[0].text);
 
         expect(content).toHaveProperty("request");
@@ -99,7 +98,7 @@ describe("Market Tools - Currency Rate", () => {
         ];
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockData);
 
-        await handleBrokerTool("broker_get_price", { date: "2023-01-01" });
+        await handleBrokerTool("broker_get_asset_price", { date: "2023-01-01" });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
