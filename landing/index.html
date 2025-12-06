@@ -297,6 +297,170 @@
                 border: 1px solid #e9d5ff;
             }
 
+            .badge-public {
+                background: #d1fae5;
+                color: #065f46;
+                border: 1px solid #a7f3d0;
+            }
+
+            .badge-private {
+                background: #fee2e2;
+                color: #991b1b;
+                border: 1px solid #fecaca;
+            }
+
+            .dark .badge-public {
+                background: #064e3b;
+                color: #6ee7b7;
+                border: 1px solid #10b981;
+            }
+
+            .dark .badge-private {
+                background: #7f1d1d;
+                color: #fca5a5;
+                border: 1px solid #ef4444;
+            }
+
+            /* === VISIBILITY FILTER COMPONENT === */
+            .visibility-filter-container {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .visibility-filter {
+                position: relative;
+                display: flex;
+                background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+                border-radius: 12px;
+                padding: 4px;
+                gap: 2px;
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+            }
+
+            .dark .visibility-filter {
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+            }
+
+            .visibility-slider {
+                position: absolute;
+                top: 4px;
+                left: 4px;
+                width: calc(33.333% - 3px);
+                height: calc(100% - 8px);
+                background: white;
+                border-radius: 8px;
+                box-shadow:
+                    0 2px 8px rgba(0, 0, 0, 0.1),
+                    0 1px 2px rgba(0, 0, 0, 0.06);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 0;
+            }
+
+            .dark .visibility-slider {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            }
+
+            .visibility-option {
+                position: relative;
+                z-index: 1;
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                padding: 8px 4px;
+                font-size: 11px;
+                font-weight: 600;
+                color: #64748b;
+                background: transparent;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+                min-width: 0; /* Allows flex item to shrink below content size */
+                overflow: hidden;
+            }
+
+            .visibility-option span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .dark .visibility-option {
+                color: #94a3b8;
+            }
+
+            .visibility-option:hover:not(.active) {
+                color: #475569;
+            }
+
+            .dark .visibility-option:hover:not(.active) {
+                color: #cbd5e1;
+            }
+
+            .visibility-option.active {
+                color: #0f172a;
+            }
+
+            .dark .visibility-option.active {
+                color: white;
+            }
+
+            .visibility-option svg {
+                flex-shrink: 0;
+                opacity: 0.7;
+                transition: opacity 0.2s ease;
+            }
+
+            .visibility-option.active svg {
+                opacity: 1;
+            }
+
+            .visibility-option[data-filter="PUBLIC"].active ~ .visibility-slider,
+            .visibility-filter:has(.visibility-option[data-filter="PUBLIC"].active) .visibility-slider {
+                left: calc(33.333% + 2px);
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            }
+
+            .visibility-option[data-filter="PRIVATE"].active ~ .visibility-slider,
+            .visibility-filter:has(.visibility-option[data-filter="PRIVATE"].active) .visibility-slider {
+                left: calc(66.666% + 1px);
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            }
+
+            .dark .visibility-filter:has(.visibility-option[data-filter="PUBLIC"].active) .visibility-slider {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+            }
+
+            .dark .visibility-filter:has(.visibility-option[data-filter="PRIVATE"].active) .visibility-slider {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            }
+
+            .visibility-counter {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                color: #94a3b8;
+                font-weight: 500;
+            }
+
+            .visibility-counter span {
+                font-weight: 700;
+                color: #0075ff;
+                margin-right: 3px;
+            }
+
+            .dark .visibility-counter span {
+                color: #60a5fa;
+            }
+
             /* Smooth fade for tabs */
             .tab-content {
                 animation: tabFadeIn 0.25s ease-out;
@@ -1138,6 +1302,66 @@
                         META
                     </button>
                 </div>
+
+                <!-- Auth Filter - Visibility Toggle -->
+                <div class="px-4 pt-3 pb-4">
+                    <div class="visibility-filter-container">
+                        <div class="visibility-filter" id="visibilityFilter">
+                            <div class="visibility-slider" id="visibilitySlider"></div>
+                            <button
+                                onclick="setAuthFilter('ALL')"
+                                class="visibility-option active"
+                                data-filter="ALL"
+                                title="Show all tools"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                                    />
+                                </svg>
+                                <span>All</span>
+                            </button>
+                            <button
+                                onclick="setAuthFilter('PUBLIC')"
+                                class="visibility-option"
+                                data-filter="PUBLIC"
+                                title="Public tools - No authentication required"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                                <span>Public</span>
+                            </button>
+                            <button
+                                onclick="setAuthFilter('PRIVATE')"
+                                class="visibility-option"
+                                data-filter="PRIVATE"
+                                title="Private tools - Authentication required"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                    />
+                                </svg>
+                                <span>Private</span>
+                            </button>
+                        </div>
+                        <div class="visibility-counter" id="visibilityCounter">
+                            <span id="filteredCount">52</span> tools
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <nav class="flex-1 overflow-y-auto py-2 px-3 space-y-8" id="sidebar-nav">
@@ -1254,14 +1478,58 @@
             </nav>
 
             <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                <!-- Share Section -->
+                <!-- Follow / Support Section -->
                 <div class="mb-4">
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Share</div>
-                    <div class="flex flex-wrap gap-1.5">
+                    <div
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2"
+                    >
+                        <span>Support the project</span>
+                        <div class="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <a
+                            href="https://github.com/bit2me-devs/bit2me-mcp"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-slate-900 dark:bg-black text-white text-xs font-bold rounded-md hover:bg-slate-800 dark:hover:bg-slate-900 transition group shadow-sm border border-slate-700 dark:border-slate-800"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                                />
+                            </svg>
+                            <span>Star</span>
+                        </a>
+                        <a
+                            href="https://www.npmjs.com/package/@bit2me/mcp-server"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-[#CB3837] text-white text-xs font-bold rounded-md hover:bg-[#b52d2d] transition group shadow-sm"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"
+                                />
+                            </svg>
+                            <span>npm</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Share Section Styled -->
+                <div class="mt-4">
+                    <div
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2"
+                    >
+                        <span>Share</span>
+                        <div class="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
+                    </div>
+
+                    <div class="flex items-center gap-3 pl-1" id="shareButtonsContainer">
+                        <!-- Twitter -->
                         <button
                             onclick="shareToSocial('twitter')"
-                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition"
-                            aria-label="Share on Twitter/X"
+                            class="text-slate-400 hover:text-[#1DA1F2] transition"
                             title="Twitter/X"
                         >
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1270,10 +1538,10 @@
                                 />
                             </svg>
                         </button>
+                        <!-- LinkedIn -->
                         <button
                             onclick="shareToSocial('linkedin')"
-                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                            aria-label="Share on LinkedIn"
+                            class="text-slate-400 hover:text-[#0A66C2] transition"
                             title="LinkedIn"
                         >
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1282,10 +1550,10 @@
                                 />
                             </svg>
                         </button>
+                        <!-- Facebook -->
                         <button
                             onclick="shareToSocial('facebook')"
-                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                            aria-label="Share on Facebook"
+                            class="text-slate-400 hover:text-[#1877F2] transition"
                             title="Facebook"
                         >
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1294,10 +1562,10 @@
                                 />
                             </svg>
                         </button>
+                        <!-- Reddit -->
                         <button
                             onclick="shareToSocial('reddit')"
-                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition"
-                            aria-label="Share on Reddit"
+                            class="text-slate-400 hover:text-[#FF4500] transition"
                             title="Reddit"
                         >
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1306,10 +1574,10 @@
                                 />
                             </svg>
                         </button>
+                        <!-- WhatsApp -->
                         <button
                             onclick="shareToSocial('whatsapp')"
-                            class="p-1.5 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-400 transition"
-                            aria-label="Share on WhatsApp"
+                            class="text-slate-400 hover:text-[#25D366] transition"
                             title="WhatsApp"
                         >
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1318,10 +1586,10 @@
                                 />
                             </svg>
                         </button>
+                        <!-- Email -->
                         <button
                             onclick="shareToSocial('email')"
-                            class="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                            aria-label="Share via Email"
+                            class="text-slate-400 hover:text-blue-500 transition"
                             title="Email"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1334,38 +1602,6 @@
                             </svg>
                         </button>
                     </div>
-                </div>
-
-                <!-- GitHub & npm Links -->
-                <div class="flex items-center justify-center gap-3">
-                    <a
-                        href="https://github.com/bit2me-devs/bit2me-mcp"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 dark:bg-slate-700 text-white hover:bg-slate-700 dark:hover:bg-slate-600 transition text-xs font-medium"
-                        title="View on GitHub"
-                    >
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                            />
-                        </svg>
-                        <span>GitHub</span>
-                    </a>
-                    <a
-                        href="https://www.npmjs.com/package/@bit2me/mcp-server"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-600 dark:bg-red-700 text-white hover:bg-red-500 dark:hover:bg-red-600 transition text-xs font-medium"
-                        title="View on npm"
-                    >
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z"
-                            />
-                        </svg>
-                        <span>npm</span>
-                    </a>
                 </div>
             </div>
         </aside>
@@ -2311,7 +2547,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                     <div
                                         class="bg-slate-100 dark:bg-slate-900 rounded p-2 text-xs font-mono text-slate-600 dark:text-slate-400"
                                     >
-                                        broker_get_price_info
+                                        broker_get_asset_data
                                     </div>
                                 </div>
                                 <div>
@@ -2784,7 +3020,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 class="inline-block bg-purple-500/20 border border-purple-500/30 rounded-2xl rounded-tl-md px-4 py-2.5"
                                             >
                                                 <code class="text-xs text-purple-300 font-mono"
-                                                    >broker_get_chart({ pair: "BTC-EUR", timeframe: "one-week" })</code
+                                                    >broker_get_asset_chart({ pair: "BTC-EUR", timeframe: "1w" })</code
                                                 >
                                             </div>
                                         </div>
@@ -3797,11 +4033,11 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                     <li>
                                         Use
                                         <code class="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded"
-                                            >broker_get_info</code
+                                            >broker_get_asset_data</code
                                         >
                                         or
                                         <code class="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded"
-                                            >market_get_assets_details</code
+                                            >general_get_assets_config</code
                                         >
                                         to check available pairs
                                     </li>
@@ -4491,6 +4727,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
 
             // Filter state
             let currentFilterType = "ALL";
+            let currentFilterAuth = "ALL";
             let currentFilterText = "";
 
             // Render tools function
@@ -4501,12 +4738,17 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 toolsData.forEach((cat) => {
                     const filteredTools = cat.tools.filter((tool) => {
                         const matchesType = currentFilterType === "ALL" || tool.type === currentFilterType;
+                        const requiresAuth = tool.attributes?.requires_auth ?? false;
+                        const matchesAuth =
+                            currentFilterAuth === "ALL" ||
+                            (currentFilterAuth === "PUBLIC" && !requiresAuth) ||
+                            (currentFilterAuth === "PRIVATE" && requiresAuth);
                         const matchesText =
                             !textFilter ||
                             tool.name.toLowerCase().includes(textFilter.toLowerCase()) ||
                             (tool.displayName && tool.displayName.toLowerCase().includes(textFilter.toLowerCase())) ||
                             tool.desc.toLowerCase().includes(textFilter.toLowerCase());
-                        return matchesType && matchesText;
+                        return matchesType && matchesAuth && matchesText;
                     });
 
                     if (filteredTools.length === 0) return;
@@ -4746,6 +4988,9 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                             `;
                                         };
 
+                                        const requiresAuth = tool.attributes?.requires_auth ?? false;
+                                        const authBadgeClass = requiresAuth ? "badge-private" : "badge-public";
+                                        const authBadgeText = requiresAuth ? "🔒 PRIVATE" : "🌐 PUBLIC";
                                         return `
                                     <details id="${toolId}" class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl transition hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg">
                                         <summary class="flex items-center justify-between p-4 cursor-pointer select-none">
@@ -4753,9 +4998,12 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 <span class="badge ${badgeClass}">${tool.type}</span>
                                                 <span class="text-sm font-bold text-slate-800 dark:text-slate-200 font-mono">${displayName}</span>
                                             </div>
-                                            <svg class="w-5 h-5 text-slate-400 transition group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
+                                            <div class="flex items-center gap-2">
+                                                <span class="badge ${authBadgeClass}">${authBadgeText}</span>
+                                                <svg class="w-5 h-5 text-slate-400 transition group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </div>
                                         </summary>
                                         <div class="border-t border-slate-100 dark:border-slate-800 bg-gradient-to-b from-slate-50/80 to-white dark:from-slate-950/80 dark:to-slate-900">
                                             <!-- Description -->
@@ -4916,6 +5164,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 });
 
                 renderTools(currentFilterText);
+                updateFilteredCount();
 
                 // Close mobile menu if open
                 const sidebar = document.getElementById("sidebar");
@@ -4932,6 +5181,89 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                     referenceSection.scrollIntoView({ behavior: "smooth", block: "start" });
                 }
             };
+
+            window.setAuthFilter = function (auth) {
+                currentFilterAuth = auth;
+
+                // Update visibility filter UI with slider animation
+                const slider = document.getElementById("visibilitySlider");
+                const options = document.querySelectorAll(".visibility-option");
+
+                options.forEach((btn) => {
+                    const btnAuth = btn.dataset.filter;
+                    if (btnAuth === auth) {
+                        btn.classList.add("active");
+                    } else {
+                        btn.classList.remove("active");
+                    }
+                });
+
+                // Move slider based on selection
+                if (slider) {
+                    if (auth === "ALL") {
+                        slider.style.left = "4px";
+                        slider.style.background = "white";
+                    } else if (auth === "PUBLIC") {
+                        slider.style.left = "calc(33.333% + 2px)";
+                        slider.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                    } else if (auth === "PRIVATE") {
+                        slider.style.left = "calc(66.666% + 1px)";
+                        slider.style.background = "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)";
+                    }
+
+                    // Dark mode adjustments
+                    if (document.documentElement.classList.contains("dark")) {
+                        if (auth === "ALL") {
+                            slider.style.background = "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)";
+                        }
+                    }
+                }
+
+                renderTools(currentFilterText);
+                updateFilteredCount();
+
+                // Close mobile menu if open
+                const sidebar = document.getElementById("sidebar");
+                const overlay = document.getElementById("mobileOverlay");
+                if (sidebar && overlay) {
+                    sidebar.classList.remove("translate-x-0");
+                    sidebar.classList.add("-translate-x-full");
+                    overlay.classList.add("hidden", "opacity-0");
+                }
+
+                // Scroll to tools section
+                const referenceSection = document.getElementById("reference");
+                if (referenceSection) {
+                    referenceSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            };
+
+            // Update filtered tools count
+            function updateFilteredCount() {
+                let count = 0;
+                toolsData.forEach((cat) => {
+                    cat.tools.forEach((tool) => {
+                        const matchesType = currentFilterType === "ALL" || tool.type === currentFilterType;
+                        const requiresAuth = tool.attributes?.requires_auth ?? false;
+                        const matchesAuth =
+                            currentFilterAuth === "ALL" ||
+                            (currentFilterAuth === "PUBLIC" && !requiresAuth) ||
+                            (currentFilterAuth === "PRIVATE" && requiresAuth);
+                        const matchesText =
+                            !currentFilterText ||
+                            tool.name.toLowerCase().includes(currentFilterText.toLowerCase()) ||
+                            tool.desc.toLowerCase().includes(currentFilterText.toLowerCase());
+                        if (matchesType && matchesAuth && matchesText) {
+                            count++;
+                        }
+                    });
+                });
+
+                const counterEl = document.getElementById("filteredCount");
+                if (counterEl) {
+                    counterEl.textContent = count;
+                }
+            }
 
             // Tab Logic
             window.openTab = function (evt, tabName) {
@@ -5010,6 +5342,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
             updateToolsCount();
             updateVersion();
             renderTools(currentFilterText);
+            updateFilteredCount();
 
             // Get main content element (used by multiple features)
             const mainContent = document.querySelector("main");
