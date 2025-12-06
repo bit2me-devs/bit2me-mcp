@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2025-12-06T02:37:28.537Z
+> Generated on 2025-12-06T04:05:12.398Z
 
 
 ==================================================
@@ -120,16 +120,18 @@ Below is a detailed list of tools and the Bit2Me API endpoints they use.
 
 ### ⚡ Pro Trading Operations (Write Actions)
 
-| `pro_create_order` | `POST /v1/trading/order` | Create Limit/Market/Stop order in PRO Trading. Requires pair, side, type, and amount. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Returns order with creation date and timestamp. Use pro_get_open_orders to check order status. |
-| `pro_cancel_order` | `DELETE /v1/trading/order/:id` | Cancel a specific PRO order by ID. Requires order_id. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled. |
-| `pro_cancel_all_orders` | `DELETE /v1/trading/order` | Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders. |
-| `pro_deposit` | `POST /v1/trading/wallet/deposit` | Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit. |
-| `pro_withdraw` | `POST /v1/trading/wallet/withdraw` | Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal. |
-| `earn_deposit` | `POST /v1/earn/wallets/:id/movements` | Deposit funds from Simple Wallet pocket to Earn (Staking). Requires pocket_id, symbol (cryptocurrency), and amount. Funds will start earning rewards based on the asset's APY. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Returns operation details with status. |
-| `earn_withdraw` | `POST /v1/earn/wallets/:id/movements` | Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Requires pocket_id, symbol (cryptocurrency), and amount. Funds will stop earning rewards after withdrawal. Use earn_get_positions to check your Earn balance. Returns operation details with status. |
-| `loan_create` | `POST /v1/loan` | Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Requires guarantee_symbol, loan_symbol, and amount_type. Specify amount_type: 'fixed_collateral' (guarantee amount is fixed, loan amount is calculated) or 'fixed_loan' (loan amount is fixed, guarantee amount is calculated). This avoids mathematical errors where the model tries to guess the exact LTV manually. Returns loan order details with status. |
-| `loan_increase_guarantee` | `POST /v1/loan/orders/:id/guarantee/increase` | Increase the guarantee (collateral) amount for an existing loan. Requires order_id and guarantee_amount. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID. |
-| `loan_payback` | `POST /v1/loan/orders/:id/payback` | Pay back (return) part or all of a loan. Requires order_id and payback_amount. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders first to get the order ID, or loan_get_orders with order_id to check current loan amount. |
+| Tool                      | Endpoint                                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pro_create_order`        | `POST /v1/trading/order`                      | Create Limit/Market/Stop order in PRO Trading. Requires pair, side, type, and amount. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Returns order with creation date and timestamp. Use pro_get_open_orders to check order status.                                                                                  |
+| `pro_cancel_order`        | `DELETE /v1/trading/order/:id`                | Cancel a specific PRO order by ID. Requires order_id. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled.                                                                                                                                                                                                                                   |
+| `pro_cancel_all_orders`   | `DELETE /v1/trading/order`                    | Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders.                                                                                                                                                                                                                                    |
+| `pro_deposit`             | `POST /v1/trading/wallet/deposit`             | Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit.                                                                                                                                                                                                                          |
+| `pro_withdraw`            | `POST /v1/trading/wallet/withdraw`            | Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal.                                                                                                                                                                                                                         |
+| `earn_deposit`            | `POST /v1/earn/wallets/:id/movements`         | Deposit funds from Simple Wallet pocket to Earn (Staking). Requires pocket_id, symbol (cryptocurrency), and amount. Funds will start earning rewards based on the asset's APY. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Returns operation details with status.                                                                                                        |
+| `earn_withdraw`           | `POST /v1/earn/wallets/:id/movements`         | Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Requires pocket_id, symbol (cryptocurrency), and amount. Funds will stop earning rewards after withdrawal. Use earn_get_positions to check your Earn balance. Returns operation details with status.                                                                                                                                                               |
+| `loan_create`             | `POST /v1/loan`                               | Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Requires guarantee_symbol, loan_symbol, and amount_type. Specify amount_type: 'fixed_collateral' or 'fixed_loan'. Returns loan order details with status.                                                                                                                |
+| `loan_increase_guarantee` | `POST /v1/loan/orders/:id/guarantee/increase` | Increase the guarantee (collateral) amount for an existing loan. Requires order_id and guarantee_amount. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID.                                                                                                                                                                                                 |
+| `loan_payback`            | `POST /v1/loan/orders/:id/payback`            | Pay back (return) part or all of a loan. Requires order_id and payback_amount. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders first to get the order ID.                                                                                                                                                                                                         |
 
 ## 📋 Response Schemas
 
@@ -1063,6 +1065,86 @@ git commit -m "chore: update deps"     # No release
 FILE: CHANGELOG.md (Changelog)
 ==================================================
 
+## [3.0.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.1...v3.0.2) (2025-12-06)
+
+### Bug Fixes
+
+- remove unused imports (CodeQL alert [#84](https://github.com/bit2me-devs/bit2me-mcp/issues/84)) ([274a34b](https://github.com/bit2me-devs/bit2me-mcp/commit/274a34b9c36102a581494ed30ae42d50432361b4))
+
+## [3.0.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.0...v3.0.1) (2025-12-06)
+
+### Bug Fixes
+
+- resolve CodeQL warnings for unused variables and imports ([b1b2d20](https://github.com/bit2me-devs/bit2me-mcp/commit/b1b2d2046dc9d055adf0a3edaed6af6946ad64f2))
+
+# [3.0.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v2.0.0...v3.0.0) (2025-12-06)
+
+- feat!: release v3.0 with major API restructuring ([0d32844](https://github.com/bit2me-devs/bit2me-mcp/commit/0d32844e8beb7ac1f33fe78425cb6fdc06d3366b))
+
+### Bug Fixes
+
+- **broker:** round fiat values to 2 decimals in broker_get_asset_data ([e254397](https://github.com/bit2me-devs/bit2me-mcp/commit/e25439753f25ab06d4660e454c6ccbf6bc6d877d))
+- **loan:** handle data wrapper in loan_get_movements response ([8a2a601](https://github.com/bit2me-devs/bit2me-mcp/commit/8a2a601bae737499ff925bc836fd9a3482b7a2f5))
+- **mappers:** round all fiat-converted values to 2 decimals ([5850e41](https://github.com/bit2me-devs/bit2me-mcp/commit/5850e41314b994dc846a09e0fa99a143d50092c4))
+- **pro:** correct symbol format for pro_get_public_trades API call ([c9da828](https://github.com/bit2me-devs/bit2me-mcp/commit/c9da8280d0d2f5229aad82d9a93f3e5e352ef6e0))
+- **pro:** update order book symbol format and response mapping ([04fa6b6](https://github.com/bit2me-devs/bit2me-mcp/commit/04fa6b6e86682a661e7e0d0954e7db24a5c7d119))
+
+### Code Refactoring
+
+- **tools:** consolidate list and detail tools into unified tools with ID filters ([7c4b772](https://github.com/bit2me-devs/bit2me-mcp/commit/7c4b772ae4869685a7b0eba720c253e9fe56ade0))
+
+### Features
+
+- update tools, landing page and code improvements ([643516f](https://github.com/bit2me-devs/bit2me-mcp/commit/643516f61ab6c136a0d4348ec3f830cff89b0993))
+- add new features (health, circuit-breaker, rate-limiter) ([71cbbe5](https://github.com/bit2me-devs/bit2me-mcp/commit/71cbbe5df84a8c75809dea731c6f57a1cfd6ab8c))
+- **earn:** enrich earn_get_assets with full asset details ([9394e99](https://github.com/bit2me-devs/bit2me-mcp/commit/9394e993008f8c76295264655741b83f63eb206f))
+- **landing:** improve interactive examples ([29e573a](https://github.com/bit2me-devs/bit2me-mcp/commit/29e573aaf0a2f89eab074c348fe34dd3d328f6d0))
+- **landing:** improve sidebar UI and dark mode ([c3514b1](https://github.com/bit2me-devs/bit2me-mcp/commit/c3514b168f7d47e2e77ba73ca4316584e7b41a49))
+- **loan:** completely rewrite loan_get_movements mapper ([a57541a](https://github.com/bit2me-devs/bit2me-mcp/commit/a57541aea341310214707c2b503845a8d8d7d93c))
+- **loan:** enrich loan_get_orders with full loan details ([bfdbe1e](https://github.com/bit2me-devs/bit2me-mcp/commit/bfdbe1ebbbbdc538759cbe34f5c35ebcf623711f))
+- **pro:** enrich pro_get_market_config with full trading parameters ([49a003a](https://github.com/bit2me-devs/bit2me-mcp/commit/49a003a4294a26f47349249874adf8bf0cc6fcf0))
+- **schema:** comprehensive improvements to tools.json schema ([535edc6](https://github.com/bit2me-devs/bit2me-mcp/commit/535edc6f4d1f7016100155ffff726da16a342a07))
+
+### BREAKING CHANGES
+
+- This release contains multiple breaking changes:
+
+## Tool Renaming
+
+- All market*\* tools renamed to broker*\* tools for consistency
+- broker_get_asset_data replaces market_get_asset_data
+- broker_get_chart replaces market_get_chart
+- broker_get_info replaces market_get_info
+- broker_get_price replaces market_get_price
+
+## Removed Modules
+
+- account.ts module removed (consolidated into wallet)
+- market.ts module removed (replaced by broker.ts)
+
+## Tool Consolidation
+
+- List and detail tools unified with optional ID filters
+- wallet_get_cards now supports optional card_id filter
+- earn_get_assets returns comprehensive asset information
+- pro_get_market_config includes full trading parameters
+
+## Response Format Changes
+
+- All fiat values now rounded to 2 decimals
+- loan_get_movements completely rewritten with correct field mapping
+- loan_get_orders enriched with LTV, APR, and interest details
+- earn_get_positions includes lock_period and converted_balance
+
+## New Features
+
+- Circuit breaker pattern for API resilience
+- Health check endpoint (server_health_check)
+- Rate limiter configuration
+- Enhanced metrics collection
+
+* **tools:** Detail tools removed, use list tools with ID filter instead.
+
 ## [Unreleased]
 
 ### Breaking Changes
@@ -1207,7 +1289,7 @@ FILE: CHANGELOG.md (Changelog)
 
 ### Bug Fixes
 
-- resolver alertas de CodeQL security scanning ([dc432e7](https://github.com/bit2me-devs/bit2me-mcp/commit/dc432e769c7373e3981b6b541b734717bf7d1b31))
+- resolve CodeQL security scanning alerts ([dc432e7](https://github.com/bit2me-devs/bit2me-mcp/commit/dc432e769c7373e3981b6b541b734717bf7d1b31))
 
 # [1.4.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v1.3.1...v1.4.0) (2025-11-27)
 
