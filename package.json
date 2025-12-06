@@ -32,7 +32,7 @@
         "prettier": "prettier --write .",
         "audit": "npm audit --audit-level=high",
         "secret-scan": "bash -c 'if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose --redact; else echo \"⚠️ Gitleaks not found, skipping secret scan. Install it for better security.\"; fi' --",
-        "prepare": "husky install"
+        "prepare": "husky"
     },
     "keywords": [
         "mcp",
