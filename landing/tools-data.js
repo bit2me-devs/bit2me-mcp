@@ -9,9 +9,9 @@ const toolsData = [
         "description": "General information tools including asset details, account information, and portfolio valuation.",
         "tools": [
             {
-                "name": "get_assets_details",
+                "name": "general_get_assets_config",
                 "type": "READ",
-                "desc": "Gets detailed information of assets (cryptocurrencies and fiat) supported by Bit2Me Wallet. If symbol is provided, returns details for that specific asset. If symbol is not provided, returns all available assets. Returns symbol, name, type, network (lowercase), trading status, loan availability, and pro_trading_pairs (complete trading pairs in BASE-QUOTE format, e.g., BTC-EUR). Use this to discover available symbols or verify if a specific asset is tradeable or loanable before operations.",
+                "desc": "Gets asset configuration for Bit2Me. Optional symbol filter. Returns symbol, name, type (crypto/fiat), network, trading status, loan availability, and pro_trading_pairs. Use to discover symbols or verify if an asset is tradeable/loanable. [PUBLIC]",
                 "args": {
                     "symbol": {
                         "type": "string",
@@ -20,13 +20,15 @@ const toolsData = [
                     },
                     "include_testnet": {
                         "type": "boolean",
-                        "desc": "Include testnet assets",
-                        "required": false
+                        "desc": "Include testnet/sandbox assets in response",
+                        "required": false,
+                        "default": false
                     },
                     "show_exchange": {
                         "type": "boolean",
-                        "desc": "Include exchange property",
-                        "required": false
+                        "desc": "Include exchange-specific properties in response",
+                        "required": false,
+                        "default": false
                     }
                 },
                 "exampleArgs": {
@@ -66,7 +68,7 @@ const toolsData = [
                         },
                         "type": {
                             "type": "string",
-                            "description": "Order type: \"limit\" executes at specified price or better, \"market\" executes immediately at best available price, \"stop-limit\" triggers when stop price is reached",
+                            "description": "Asset type: \"crypto\" for cryptocurrencies, \"fiat\" for traditional currencies",
                             "enum": [
                                 "crypto",
                                 "fiat"
@@ -107,72 +109,16 @@ const toolsData = [
                         "loanable",
                         "pro_trading_pairs"
                     ]
-                }
-            },
-            {
-                "name": "account_get_info",
-                "type": "READ",
-                "desc": "View user account information including profile details, verification levels, account status, and user settings. Returns account metadata useful for understanding account capabilities and restrictions.",
-                "args": {},
-                "exampleArgs": {},
-                "response": {
-                    "request": {},
-                    "result": {
-                        "user_id": "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
-                        "email": "user@example.com",
-                        "level": "verified",
-                        "kyc_status": "approved",
-                        "created_at": "2021-01-19T20:24:59.209Z",
-                        "features": {
-                            "trading": true,
-                            "earn": true,
-                            "loans": true
-                        }
-                    }
                 },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "user_id": {
-                            "type": "string",
-                            "description": "User identifier who owns the wallet"
-                        },
-                        "email": {
-                            "type": "string",
-                            "description": "email"
-                        },
-                        "level": {
-                            "type": "string",
-                            "description": "level"
-                        },
-                        "kyc_status": {
-                            "type": "string",
-                            "description": "kyc status"
-                        },
-                        "created_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource was created",
-                            "format": "date-time"
-                        },
-                        "features": {
-                            "type": "object",
-                            "description": "features"
-                        }
-                    },
-                    "required": [
-                        "user_id",
-                        "email",
-                        "level",
-                        "kyc_status",
-                        "created_at",
-                        "features"
-                    ]
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
                 "name": "portfolio_get_valuation",
                 "type": "READ",
-                "desc": "Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat symbol (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations. Filters out dust amounts below minimum threshold.",
+                "desc": "Calculates the total portfolio value by aggregating all assets across Wallet, Pro Trading, Earn/Staking, and Loans. Converts all holdings to the specified fiat symbol (default: EUR) using current market prices. Returns total value, breakdown by asset, and individual asset valuations. Filters out dust amounts below minimum threshold. [PRIVATE]",
                 "args": {
                     "fiat_symbol": {
                         "type": "string",
@@ -188,20 +134,20 @@ const toolsData = [
                         "fiat_symbol": "EUR"
                     },
                     "result": {
-                        "total_value": "12500.50",
-                        "fiat_symbol": "EUR",
-                        "breakdown": {
-                            "wallet": "5000.00",
-                            "pro": "3000.00",
-                            "earn": "4000.00",
-                            "loans": "500.50"
+                        "quote_symbol": "EUR",
+                        "total_balance": "12500.50",
+                        "by_service": {
+                            "wallet_balance": "5000.00",
+                            "pro_balance": "3000.00",
+                            "earn_balance": "4000.00",
+                            "loan_guarantees_balance": "500.50"
                         },
-                        "assets": [
+                        "details": [
                             {
                                 "symbol": "BTC",
-                                "amount": "0.5",
-                                "value": "45000.00",
-                                "source": "wallet"
+                                "balance": "0.5",
+                                "price_unit": "90000.00",
+                                "converted_balance": "45000.00"
                             }
                         ]
                     }
@@ -209,32 +155,73 @@ const toolsData = [
                 "responseSchema": {
                     "type": "object",
                     "properties": {
-                        "total_value": {
+                        "quote_symbol": {
                             "type": "string",
-                            "description": "Total portfolio value in fiat currency"
+                            "description": "Quote currency symbol in uppercase (e.g., EUR, USD)"
                         },
-                        "fiat_symbol": {
+                        "total_balance": {
                             "type": "string",
-                            "description": "Fiat currency used for valuation"
+                            "description": "Total portfolio balance in fiat currency"
                         },
-                        "breakdown": {
+                        "by_service": {
                             "type": "object",
-                            "description": "Breakdown by service (wallet, pro, earn, loans)"
+                            "description": "Breakdown by service with balance suffix",
+                            "properties": {
+                                "wallet_balance": {
+                                    "type": "string",
+                                    "description": "Total balance in Wallet"
+                                },
+                                "pro_balance": {
+                                    "type": "string",
+                                    "description": "Total balance in Pro Trading"
+                                },
+                                "earn_balance": {
+                                    "type": "string",
+                                    "description": "Total balance in Earn/Staking"
+                                },
+                                "loan_guarantees_balance": {
+                                    "type": "string",
+                                    "description": "Total balance in loan guarantees"
+                                }
+                            }
                         },
-                        "assets": {
+                        "details": {
                             "type": "array",
-                            "description": "Individual asset valuations",
+                            "description": "Individual asset valuations with breakdown per cryptocurrency",
                             "items": {
-                                "type": "object"
+                                "type": "object",
+                                "properties": {
+                                    "symbol": {
+                                        "type": "string",
+                                        "description": "Cryptocurrency symbol in uppercase (e.g., BTC, ETH)"
+                                    },
+                                    "balance": {
+                                        "type": "string",
+                                        "description": "Total amount of this asset across all services (as string for precision)"
+                                    },
+                                    "price_unit": {
+                                        "type": "string",
+                                        "description": "Current price of one unit in the quote currency (as string for precision)"
+                                    },
+                                    "converted_balance": {
+                                        "type": "string",
+                                        "description": "Total value of this asset in the quote currency (balance × price_unit)"
+                                    }
+                                }
                             }
                         }
                     },
                     "required": [
-                        "total_value",
-                        "fiat_symbol",
-                        "breakdown",
-                        "assets"
+                        "quote_symbol",
+                        "total_balance",
+                        "by_service",
+                        "details"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "medium"
                 }
             }
         ]
@@ -246,9 +233,9 @@ const toolsData = [
         "description": "Tools for simple trading operations and broker prices. Includes market data (prices, charts) and trading actions (buy, sell, swap) for the Wallet/Broker service. These prices include spread and are different from Pro Trading prices.",
         "tools": [
             {
-                "name": "broker_get_price",
+                "name": "broker_get_asset_price",
                 "type": "READ",
-                "desc": "Get Wallet exchange rates for cryptocurrencies in a specific quote symbol and date. Returns the price of one unit of the base symbol in the requested quote symbol (default: USD) as used by the Wallet/Broker service. Optional base_symbol filter and date for historical rates. Response is a list of prices.",
+                "desc": "Get Wallet exchange rates for cryptocurrencies in a specific quote symbol and date. Returns the price of one unit of the base symbol in the requested quote symbol (default: EUR) as used by the Wallet/Broker service. Optional base_symbol filter and date for historical rates. Response is a list of prices. [PUBLIC]",
                 "args": {
                     "quote_symbol": {
                         "type": "string",
@@ -317,12 +304,16 @@ const toolsData = [
                             "price"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
-                "name": "broker_get_info",
+                "name": "broker_get_asset_data",
                 "type": "READ",
-                "desc": "Gets current Wallet price, 24h volume, market highs and lows for a cryptocurrency. These prices are used by the Wallet/Broker service (not Pro Trading). Specify base_symbol (e.g., BTC) and optional quote_symbol (default: EUR). Returns price, volume, market cap, and supply information. Response is a single object.",
+                "desc": "Gets comprehensive market ticker data for a cryptocurrency from the Wallet/Broker service (not Pro Trading). These prices include spread and differ from Pro Trading prices. Requires base_symbol (e.g., BTC) and optional quote_symbol (default: EUR). [PUBLIC]",
                 "args": {
                     "base_symbol": {
                         "type": "string",
@@ -332,7 +323,8 @@ const toolsData = [
                     "quote_symbol": {
                         "type": "string",
                         "desc": "Quote symbol for prices (default: EUR)",
-                        "required": false
+                        "required": false,
+                        "default": "EUR"
                     }
                 },
                 "exampleArgs": {
@@ -402,21 +394,25 @@ const toolsData = [
                         "market_cap",
                         "volume_24h"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
-                "name": "broker_get_chart",
+                "name": "broker_get_asset_chart",
                 "type": "READ",
-                "desc": "Gets Wallet price history (candles/chart) with date and price in the quote symbol. These prices reflect the Wallet/Broker service, not Pro Trading. Requires pair (e.g., BTC-USD) and timeframe. Returns data points with ISO 8601 date/time and price in the quote symbol from the pair.",
+                "desc": "Gets Wallet price history (candles/chart) with date and price in the quote symbol. These prices reflect the Wallet/Broker service, not Pro Trading. Requires pair (e.g., BTC-USD) and timeframe. Returns data points with ISO 8601 date/time and price in the quote symbol from the pair. [PUBLIC]",
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Pair (e.g., BTC-USD)",
+                        "desc": "Trading pair in BASE-QUOTE format (e.g., BTC-USD, ETH-EUR)",
                         "required": true
                     },
                     "timeframe": {
                         "type": "string",
-                        "desc": "Candle duration",
+                        "desc": "Chart timeframe: 1h (1 hour), 1d (1 day), 1w (1 week), 1M (1 month), 1y (1 year). Returns data points for the selected period.",
                         "required": true,
                         "enum": [
                             "1h",
@@ -466,12 +462,16 @@ const toolsData = [
                             "price"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
                 "name": "broker_quote_buy",
                 "type": "WRITE",
-                "desc": "STEP 1: Buy cryptocurrency using fiat balance from a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote.",
+                "desc": "STEP 1: Buy cryptocurrency using fiat balance from a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote. [PRIVATE]",
                 "args": {
                     "origin_pocket_id": {
                         "type": "string",
@@ -516,35 +516,35 @@ const toolsData = [
                     "properties": {
                         "proforma_id": {
                             "type": "string",
-                            "description": "Proforma UUID"
+                            "description": "Unique identifier for the quote. Use this with broker_confirm_quote to execute the operation"
                         },
                         "origin_amount": {
                             "type": "string",
-                            "description": "origin amount"
+                            "description": "Amount being spent from the source pocket (in origin currency, as string for precision)"
                         },
                         "origin_symbol": {
                             "type": "string",
-                            "description": "origin symbol"
+                            "description": "Currency symbol of the source pocket (e.g., EUR for buy, BTC for sell)"
                         },
                         "destination_amount": {
                             "type": "string",
-                            "description": "destination amount"
+                            "description": "Amount to be received in the destination pocket (in destination currency, as string for precision)"
                         },
                         "destination_symbol": {
                             "type": "string",
-                            "description": "destination symbol"
+                            "description": "Currency symbol of the destination pocket (e.g., BTC for buy, EUR for sell)"
                         },
                         "rate": {
                             "type": "string",
-                            "description": "Exchange rate as string for precision"
+                            "description": "Exchange rate applied to this quote (as string for precision)"
                         },
                         "fee": {
                             "type": "string",
-                            "description": "Fee amount as string for precision"
+                            "description": "Transaction fee amount in origin currency (as string for precision)"
                         },
                         "expires_at": {
                             "type": "string",
-                            "description": "ISO 8601 date/time when the resource expires",
+                            "description": "ISO 8601 date/time when this quote expires. Must confirm before this time",
                             "format": "date-time"
                         }
                     },
@@ -558,12 +558,17 @@ const toolsData = [
                         "fee",
                         "expires_at"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
                 }
             },
             {
                 "name": "broker_quote_sell",
                 "type": "WRITE",
-                "desc": "STEP 1: Sell cryptocurrency to receive fiat balance in a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote.",
+                "desc": "STEP 1: Sell cryptocurrency to receive fiat balance in a pocket. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote. [PRIVATE]",
                 "args": {
                     "origin_pocket_id": {
                         "type": "string",
@@ -608,35 +613,35 @@ const toolsData = [
                     "properties": {
                         "proforma_id": {
                             "type": "string",
-                            "description": "Proforma UUID"
+                            "description": "Unique identifier for the quote. Use this with broker_confirm_quote to execute the operation"
                         },
                         "origin_amount": {
                             "type": "string",
-                            "description": "origin amount"
+                            "description": "Amount of cryptocurrency being sold (as string for precision)"
                         },
                         "origin_symbol": {
                             "type": "string",
-                            "description": "origin symbol"
+                            "description": "Symbol of the cryptocurrency being sold (e.g., BTC)"
                         },
                         "destination_amount": {
                             "type": "string",
-                            "description": "destination amount"
+                            "description": "Amount of fiat currency to be received (as string for precision)"
                         },
                         "destination_symbol": {
                             "type": "string",
-                            "description": "destination symbol"
+                            "description": "Symbol of the fiat currency to receive (e.g., EUR)"
                         },
                         "rate": {
                             "type": "string",
-                            "description": "Exchange rate as string for precision"
+                            "description": "Exchange rate applied to this quote (as string for precision)"
                         },
                         "fee": {
                             "type": "string",
-                            "description": "Fee amount as string for precision"
+                            "description": "Transaction fee amount (as string for precision)"
                         },
                         "expires_at": {
                             "type": "string",
-                            "description": "ISO 8601 date/time when the resource expires",
+                            "description": "ISO 8601 date/time when this quote expires. Must confirm before this time",
                             "format": "date-time"
                         }
                     },
@@ -650,12 +655,17 @@ const toolsData = [
                         "fee",
                         "expires_at"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
                 }
             },
             {
                 "name": "broker_quote_swap",
                 "type": "WRITE",
-                "desc": "STEP 1: Swap/exchange one cryptocurrency for another between pockets. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote.",
+                "desc": "STEP 1: Swap/exchange one cryptocurrency for another between pockets. Creates a proforma quote. Use wallet_get_pockets to find pocket IDs. REQUIRES subsequent confirmation with broker_confirm_quote. [PRIVATE]",
                 "args": {
                     "origin_pocket_id": {
                         "type": "string",
@@ -700,35 +710,35 @@ const toolsData = [
                     "properties": {
                         "proforma_id": {
                             "type": "string",
-                            "description": "Proforma UUID"
+                            "description": "Unique identifier for the quote. Use this with broker_confirm_quote to execute the operation"
                         },
                         "origin_amount": {
                             "type": "string",
-                            "description": "origin amount"
+                            "description": "Amount of cryptocurrency being swapped from (as string for precision)"
                         },
                         "origin_symbol": {
                             "type": "string",
-                            "description": "origin symbol"
+                            "description": "Symbol of the cryptocurrency being swapped from (e.g., BTC)"
                         },
                         "destination_amount": {
                             "type": "string",
-                            "description": "destination amount"
+                            "description": "Amount of cryptocurrency to be received (as string for precision)"
                         },
                         "destination_symbol": {
                             "type": "string",
-                            "description": "destination symbol"
+                            "description": "Symbol of the cryptocurrency to receive (e.g., ETH)"
                         },
                         "rate": {
                             "type": "string",
-                            "description": "Exchange rate as string for precision"
+                            "description": "Exchange rate between the two cryptocurrencies (as string for precision)"
                         },
                         "fee": {
                             "type": "string",
-                            "description": "Fee amount as string for precision"
+                            "description": "Transaction fee amount in origin currency (as string for precision)"
                         },
                         "expires_at": {
                             "type": "string",
-                            "description": "ISO 8601 date/time when the resource expires",
+                            "description": "ISO 8601 date/time when this quote expires. Must confirm before this time",
                             "format": "date-time"
                         }
                     },
@@ -742,17 +752,22 @@ const toolsData = [
                         "fee",
                         "expires_at"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
                 }
             },
             {
                 "name": "broker_confirm_quote",
                 "type": "WRITE",
-                "desc": "STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action.",
+                "desc": "STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action. [PRIVATE]",
                 "args": {
                     "proforma_id": {
                         "type": "string",
-                        "desc": "Proforma UUID",
-                        "required": false
+                        "desc": "Proforma UUID returned by broker_quote_* operations",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -779,11 +794,11 @@ const toolsData = [
                     "properties": {
                         "movement_id": {
                             "type": "string",
-                            "description": "Movement UUID"
+                            "description": "Unique identifier for the executed movement. Use this to track the transaction"
                         },
                         "type": {
                             "type": "string",
-                            "description": "Movement type",
+                            "description": "Type of movement executed: deposit (incoming funds), withdrawal (outgoing funds), swap (crypto exchange), purchase (buy crypto with fiat), transfer (internal move), fee (charged fee)",
                             "enum": [
                                 "deposit",
                                 "withdrawal",
@@ -805,27 +820,27 @@ const toolsData = [
                         },
                         "origin_amount": {
                             "type": "string",
-                            "description": "origin amount"
+                            "description": "Amount spent from the source pocket (as string for precision)"
                         },
                         "origin_symbol": {
                             "type": "string",
-                            "description": "origin symbol"
+                            "description": "Currency symbol that was spent (e.g., EUR, BTC)"
                         },
                         "destination_amount": {
                             "type": "string",
-                            "description": "destination amount"
+                            "description": "Amount received in the destination pocket (as string for precision)"
                         },
                         "destination_symbol": {
                             "type": "string",
-                            "description": "destination symbol"
+                            "description": "Currency symbol that was received (e.g., BTC, EUR)"
                         },
                         "fee": {
                             "type": "string",
-                            "description": "Fee amount as string for precision"
+                            "description": "Transaction fee charged (as string for precision)"
                         },
                         "created_at": {
                             "type": "string",
-                            "description": "ISO 8601 date/time when the movement was created",
+                            "description": "ISO 8601 date/time when the movement was executed",
                             "format": "date-time"
                         }
                     },
@@ -840,12 +855,17 @@ const toolsData = [
                         "fee",
                         "created_at"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
                 }
             },
             {
                 "name": "wallet_get_cards",
                 "type": "READ",
-                "desc": "List credit/debit cards registered in Bit2Me. Returns card details including card ID, brand, last 4 digits, expiration date, and alias. Optional card_id filter to retrieve a specific card. Use limit and offset for pagination.",
+                "desc": "List credit/debit cards registered in Bit2Me. Returns card details including card ID, brand, last 4 digits, expiration date, and alias. Optional card_id filter to retrieve a specific card. Use limit and offset for pagination. [PRIVATE]",
                 "args": {
                     "card_id": {
                         "type": "string",
@@ -855,12 +875,14 @@ const toolsData = [
                     "limit": {
                         "type": "number",
                         "desc": "Maximum number of cards to return (default: 10, max: 150)",
-                        "required": false
+                        "required": false,
+                        "default": 10
                     },
                     "offset": {
                         "type": "number",
                         "desc": "Number of cards to skip for pagination (default: 0)",
-                        "required": false
+                        "required": false,
+                        "default": 0
                     }
                 },
                 "exampleArgs": {
@@ -947,6 +969,11 @@ const toolsData = [
                             "created_at"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             }
         ]
@@ -960,8 +987,13 @@ const toolsData = [
             {
                 "name": "wallet_get_pockets",
                 "type": "READ",
-                "desc": "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. IMPORTANT: Users often have MULTIPLE pockets for the same symbol (e.g. multiple EUR pockets). ALWAYS check ALL pockets for a specific symbol to find the one with a positive balance.",
+                "desc": "Gets balances, UUIDs, and available funds from Simple Wallet (Broker). Does not include Pro/Earn balance. Returns all pockets of the user. If pocket_id is provided, returns only that specific pocket. IMPORTANT: Users often have MULTIPLE pockets for the same symbol (e.g. multiple EUR pockets). ALWAYS check ALL pockets for a specific symbol to find the one with a positive balance. [PRIVATE]",
                 "args": {
+                    "pocket_id": {
+                        "type": "string",
+                        "desc": "Filter by specific pocket UUID. If provided, returns only that pocket.",
+                        "required": false
+                    },
                     "symbol": {
                         "type": "string",
                         "desc": "Filter by cryptocurrency or fiat symbol (e.g., BTC, EUR)",
@@ -977,13 +1009,18 @@ const toolsData = [
                             "symbol": "EUR",
                             "balance": "1250.50",
                             "available": "1200.00",
-                            "name": "EUR Wallet"
+                            "blocked": "50.50",
+                            "name": "EUR Wallet",
+                            "created_at": "2021-01-19T20:24:59.209Z"
                         },
                         {
                             "id": "def456-abc123-...",
                             "symbol": "BTC",
                             "balance": "0.5",
-                            "available": "0.5"
+                            "available": "0.5",
+                            "blocked": "0",
+                            "name": "BTC Wallet",
+                            "created_at": "2021-01-19T20:24:59.209Z"
                         }
                     ],
                     "metadata": {
@@ -997,7 +1034,8 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "symbol": {
                                 "type": "string",
@@ -1011,9 +1049,18 @@ const toolsData = [
                                 "type": "string",
                                 "description": "Available balance as string for precision"
                             },
+                            "blocked": {
+                                "type": "string",
+                                "description": "Blocked balance as string for precision"
+                            },
                             "name": {
                                 "type": "string",
                                 "description": "Human-readable pocket name or currency name"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "description": "ISO 8601 date/time when the pocket was created",
+                                "format": "date-time"
                             }
                         },
                         "required": [
@@ -1021,97 +1068,32 @@ const toolsData = [
                             "symbol",
                             "balance",
                             "available",
-                            "name"
+                            "blocked",
+                            "name",
+                            "created_at"
                         ]
                     }
-                }
-            },
-            {
-                "name": "wallet_get_pocket_details",
-                "type": "READ",
-                "desc": "Gets detailed information of a specific wallet (Pocket) by its ID. Returns balance, available funds, blocked funds, symbol, name, and creation date. Use wallet_get_pockets first to get the pocket ID.",
-                "args": {
-                    "pocket_id": {
-                        "type": "string",
-                        "desc": "Pocket UUID",
-                        "required": false
-                    }
                 },
-                "exampleArgs": {
-                    "pocket_id": "pocket-uuid-1234-5678"
-                },
-                "response": {
-                    "request": {
-                        "pocket_id": "pocket-uuid-1234-5678"
-                    },
-                    "result": {
-                        "id": "abc123-def456-...",
-                        "symbol": "EUR",
-                        "balance": "1250.50",
-                        "available": "1200.00",
-                        "blocked": "50.50",
-                        "name": "EUR Wallet",
-                        "created_at": "2021-01-19T20:24:59.209Z"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "string",
-                            "description": "Unique identifier"
-                        },
-                        "symbol": {
-                            "type": "string",
-                            "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
-                        },
-                        "balance": {
-                            "type": "string",
-                            "description": "Current balance as string for precision"
-                        },
-                        "available": {
-                            "type": "string",
-                            "description": "Available balance as string for precision"
-                        },
-                        "blocked": {
-                            "type": "string",
-                            "description": "Blocked balance as string for precision"
-                        },
-                        "name": {
-                            "type": "string",
-                            "description": "Human-readable pocket name or currency name"
-                        },
-                        "created_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource was created",
-                            "format": "date-time"
-                        }
-                    },
-                    "required": [
-                        "id",
-                        "symbol",
-                        "balance",
-                        "available",
-                        "blocked",
-                        "name",
-                        "created_at"
-                    ]
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "wallet_get_pocket_addresses",
                 "type": "READ",
-                "desc": "Lists deposit addresses for a wallet (Pocket) on a specific network. Use wallet_get_networks first to see available networks for a currency. Each network may have different addresses. Returns address, network, and creation date. Use this address to receive deposits on the specified network.",
+                "desc": "Lists deposit addresses for a wallet (Pocket) on a specific network. Use wallet_get_networks first to see available networks for a currency. Each network may have different addresses. Returns address, network, and creation date. Use this address to receive deposits on the specified network. [PRIVATE]",
                 "args": {
                     "pocket_id": {
                         "type": "string",
-                        "desc": "Pocket UUID",
-                        "required": false
+                        "desc": "Pocket UUID from wallet_get_pockets",
+                        "required": true
                     },
                     "network": {
                         "type": "string",
                         "desc": "Address network (e.g., bitcoin, ethereum, bsc)",
-                        "required": false
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -1144,7 +1126,8 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "address": {
                                 "type": "string",
@@ -1160,7 +1143,7 @@ const toolsData = [
                             },
                             "tag": {
                                 "type": "string",
-                                "description": "tag"
+                                "description": "Memo/tag required by some networks (e.g., XRP, XLM)"
                             },
                             "created_at": {
                                 "type": "string",
@@ -1176,17 +1159,22 @@ const toolsData = [
                             "created_at"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "wallet_get_networks",
                 "type": "READ",
-                "desc": "Lists available networks for a specific currency. Use this before wallet_get_pocket_addresses to see which networks support deposits for a currency (e.g., bitcoin, ethereum, binanceSmartChain). Returns network ID, name, native currency, fee currency, and whether it requires a tag/memo.",
+                "desc": "Lists available networks for a specific currency. Use this before wallet_get_pocket_addresses to see which networks support deposits for a currency (e.g., bitcoin, ethereum, binanceSmartChain). Returns network ID, name, native currency, fee currency, and whether it requires a tag/memo. [PRIVATE]",
                 "args": {
                     "symbol": {
                         "type": "string",
                         "desc": "Cryptocurrency symbol (e.g., BTC, ETH)",
-                        "required": false
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -1216,7 +1204,8 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "name": {
                                 "type": "string",
@@ -1224,11 +1213,11 @@ const toolsData = [
                             },
                             "native_currency_code": {
                                 "type": "string",
-                                "description": "native currency code"
+                                "description": "Symbol of the native currency for this network (e.g., ETH for Ethereum)"
                             },
                             "fee_currency_code": {
                                 "type": "string",
-                                "description": "fee currency code"
+                                "description": "Symbol of the currency used to pay network fees"
                             },
                             "has_tag": {
                                 "type": "boolean",
@@ -1243,13 +1232,23 @@ const toolsData = [
                             "has_tag"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "wallet_get_movements",
                 "type": "READ",
-                "desc": "History of past Wallet operations. Optional symbol filter. Use limit and offset for pagination (default limit: 10). Returns movement list with type (deposit, withdrawal, swap, purchase, transfer, fee, other), amount, symbol, status, and date. Response is a paginated list with metadata. Movement status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
+                "desc": "History of Wallet operations. Optional movement_id for specific details, symbol filter, limit/offset for pagination. Returns type, amount, symbol, status, date. Status ENUM: pending, completed, failed. [PRIVATE]",
                 "args": {
+                    "movement_id": {
+                        "type": "string",
+                        "desc": "Filter by specific movement UUID. If provided, returns only that movement with full details.",
+                        "required": false
+                    },
                     "symbol": {
                         "type": "string",
                         "desc": "Filter by cryptocurrency or fiat symbol (e.g., BTC, EUR)",
@@ -1257,13 +1256,15 @@ const toolsData = [
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Amount to show (default: 10)",
-                        "required": false
+                        "desc": "Number of records to return (default: 10)",
+                        "required": false,
+                        "default": 10
                     },
                     "offset": {
                         "type": "number",
                         "desc": "Offset for pagination (default: 0)",
-                        "required": false
+                        "required": false,
+                        "default": 0
                     }
                 },
                 "exampleArgs": {
@@ -1317,16 +1318,17 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "date": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time",
+                                "description": "ISO 8601 date/time when this event occurred",
                                 "format": "date-time"
                             },
                             "type": {
                                 "type": "string",
-                                "description": "Type of the resource or operation",
+                                "description": "Movement type: deposit (incoming funds), withdrawal (outgoing funds), swap (crypto exchange), purchase (buy with fiat), transfer (internal move), fee (charged fee), other",
                                 "enum": [
                                     "deposit",
                                     "withdrawal",
@@ -1339,7 +1341,7 @@ const toolsData = [
                             },
                             "subtype": {
                                 "type": "string",
-                                "description": "subtype"
+                                "description": "Specific subtype of the movement for more detail"
                             },
                             "status": {
                                 "type": "string",
@@ -1360,11 +1362,11 @@ const toolsData = [
                             },
                             "origin": {
                                 "type": "object",
-                                "description": "origin"
+                                "description": "Source of the operation (pocket ID or address)"
                             },
                             "destination": {
                                 "type": "object",
-                                "description": "destination"
+                                "description": "Destination of the operation (pocket ID or address)"
                             },
                             "fee": {
                                 "type": "object",
@@ -1384,118 +1386,11 @@ const toolsData = [
                             "fee"
                         ]
                     }
-                }
-            },
-            {
-                "name": "wallet_get_movement_details",
-                "type": "READ",
-                "desc": "Gets detailed information of a specific movement by its ID. Returns complete movement data including type (deposit, withdrawal, swap, purchase, transfer, fee, other), amount, currency, status, fees, timestamps, and related pocket IDs. Use wallet_get_movements first to get movement IDs. Movement status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
-                "args": {
-                    "movement_id": {
-                        "type": "string",
-                        "desc": "Movement UUID",
-                        "required": false
-                    }
                 },
-                "exampleArgs": {
-                    "movement_id": "tx-uuid-1234-5678"
-                },
-                "response": {
-                    "request": {
-                        "movement_id": "tx-uuid-1234-5678"
-                    },
-                    "result": {
-                        "id": "tx123-...",
-                        "date": "2024-11-25T10:30:00.000Z",
-                        "type": "deposit",
-                        "subtype": "bank_transfer",
-                        "status": "completed",
-                        "amount": "1000.00",
-                        "symbol": "EUR",
-                        "origin": {
-                            "amount": "1000.00",
-                            "symbol": "EUR",
-                            "class": "bank"
-                        },
-                        "destination": {
-                            "amount": "1000.00",
-                            "symbol": "EUR",
-                            "class": "pocket"
-                        },
-                        "fee": {
-                            "amount": "0.00",
-                            "symbol": "EUR",
-                            "class": "fee"
-                        }
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "string",
-                            "description": "Unique identifier"
-                        },
-                        "date": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time",
-                            "format": "date-time"
-                        },
-                        "type": {
-                            "type": "string",
-                            "description": "Type of the resource or operation",
-                            "enum": [
-                                "limit",
-                                "market",
-                                "stop-limit"
-                            ]
-                        },
-                        "subtype": {
-                            "type": "string",
-                            "description": "subtype"
-                        },
-                        "status": {
-                            "type": "string",
-                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
-                            "enum": [
-                                "open",
-                                "filled",
-                                "cancelled"
-                            ]
-                        },
-                        "amount": {
-                            "type": "string",
-                            "description": "Amount as string for precision"
-                        },
-                        "symbol": {
-                            "type": "string",
-                            "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
-                        },
-                        "origin": {
-                            "type": "object",
-                            "description": "origin"
-                        },
-                        "destination": {
-                            "type": "object",
-                            "description": "destination"
-                        },
-                        "fee": {
-                            "type": "object",
-                            "description": "Fee amount as string for precision"
-                        }
-                    },
-                    "required": [
-                        "id",
-                        "date",
-                        "type",
-                        "subtype",
-                        "status",
-                        "amount",
-                        "symbol",
-                        "origin",
-                        "destination",
-                        "fee"
-                    ]
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             }
         ]
@@ -1504,12 +1399,12 @@ const toolsData = [
         "category": "Pro (Advanced Trading)",
         "id": "cat-pro",
         "icon": "📈",
-        "description": "",
+        "description": "Advanced trading tools for Pro Trading. Includes order management, market data (order book, candles, tickers), and fund transfers between Wallet and Pro Trading. Pro Trading offers lower fees and more control than Broker.",
         "tools": [
             {
                 "name": "pro_get_balance",
                 "type": "READ",
-                "desc": "Gets balances from PRO Trading account. This is separate from Simple Wallet - funds must be transferred using pro_deposit/pro_withdraw. Returns available and blocked balances per symbol for trading.",
+                "desc": "Gets balances from PRO Trading account. This is separate from Simple Wallet - funds must be transferred using pro_deposit/pro_withdraw. Returns available and blocked balances per symbol for trading. [PRIVATE]",
                 "args": {},
                 "exampleArgs": {},
                 "response": {
@@ -1518,13 +1413,13 @@ const toolsData = [
                         {
                             "symbol": "BTC",
                             "balance": "0.00689471",
-                            "blocked_balance": "0.00011102",
+                            "blocked": "0.00011102",
                             "available": "0.00689471"
                         },
                         {
                             "symbol": "EUR",
                             "balance": "27812.0234142",
-                            "blocked_balance": "0",
+                            "blocked": "0",
                             "available": "27812.0234142"
                         }
                     ],
@@ -1545,9 +1440,9 @@ const toolsData = [
                                 "type": "string",
                                 "description": "Current balance as string for precision"
                             },
-                            "blocked_balance": {
+                            "blocked": {
                                 "type": "string",
-                                "description": "blocked balance"
+                                "description": "Amount blocked/reserved for pending operations (as string)"
                             },
                             "available": {
                                 "type": "string",
@@ -1557,17 +1452,27 @@ const toolsData = [
                         "required": [
                             "symbol",
                             "balance",
-                            "blocked_balance",
+                            "blocked",
                             "available"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_get_open_orders",
                 "type": "READ",
-                "desc": "View open trading orders in PRO. Returns all active orders (pending, partially filled). Optional pair filter to see orders for a specific market. Use this to monitor order status after pro_create_order. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired).",
+                "desc": "View open trading orders in PRO. Returns all active orders (pending, partially filled). If order_id is provided, returns details for that specific order. Optional pair filter to see orders for a specific market. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE]",
                 "args": {
+                    "order_id": {
+                        "type": "string",
+                        "desc": "Filter by specific order UUID. If provided, returns only that order with full details.",
+                        "required": false
+                    },
                     "pair": {
                         "type": "string",
                         "desc": "Filter by trading pair (e.g., BTC-USD)",
@@ -1605,7 +1510,8 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "pair": {
                                 "type": "string",
@@ -1621,7 +1527,7 @@ const toolsData = [
                             },
                             "type": {
                                 "type": "string",
-                                "description": "Type of the resource or operation",
+                                "description": "Order type: limit (executes at specified price), market (executes immediately at best price), stop-limit (triggers at stop price)",
                                 "enum": [
                                     "limit",
                                     "market",
@@ -1630,7 +1536,7 @@ const toolsData = [
                             },
                             "amount": {
                                 "type": "string",
-                                "description": "Amount as string for precision"
+                                "description": "Order amount in base currency (as string for precision)"
                             },
                             "price": {
                                 "type": "string",
@@ -1667,12 +1573,17 @@ const toolsData = [
                             "created_at"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_get_trades",
                 "type": "READ",
-                "desc": "Gets the user's trade history in Pro Trading. Returns executed trades with price, amount, side (buy/sell), fees, and date. Optional filters: trading pair, side, order type, date range, limit (max 50), offset, and sort order. Use this to review past trading activity. Response is a paginated list with metadata.",
+                "desc": "Gets the user's trade history in Pro Trading. Returns executed trades with price, amount, side (buy/sell), fees, and date. Optional filters: trading pair, side, order type, date range, limit (max 50), offset, and sort order. Use this to review past trading activity. Response is a paginated list with metadata. [PRIVATE]",
                 "args": {
                     "pair": {
                         "type": "string",
@@ -1681,8 +1592,12 @@ const toolsData = [
                     },
                     "side": {
                         "type": "string",
-                        "desc": "Filter by order direction (buy, sell)",
-                        "required": false
+                        "desc": "Filter by order direction: buy (purchase) or sell (dispose)",
+                        "required": false,
+                        "enum": [
+                            "buy",
+                            "sell"
+                        ]
                     },
                     "order_type": {
                         "type": "string",
@@ -1692,7 +1607,8 @@ const toolsData = [
                     "limit": {
                         "type": "number",
                         "desc": "Maximum number of trades to fetch (max 50, default 50)",
-                        "required": false
+                        "required": false,
+                        "default": 50
                     },
                     "offset": {
                         "type": "number",
@@ -1758,11 +1674,13 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "order_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the order"
+                                "description": "Unique identifier (UUID) for the order",
+                                "format": "uuid"
                             },
                             "pair": {
                                 "type": "string",
@@ -1786,7 +1704,7 @@ const toolsData = [
                             },
                             "order_type": {
                                 "type": "string",
-                                "description": "order type"
+                                "description": "Type of order: limit, market, or stop-limit"
                             },
                             "fee": {
                                 "type": "string",
@@ -1794,7 +1712,7 @@ const toolsData = [
                             },
                             "fee_symbol": {
                                 "type": "string",
-                                "description": "fee symbol"
+                                "description": "Currency symbol in which the fee was charged"
                             },
                             "cost": {
                                 "type": "string",
@@ -1806,7 +1724,7 @@ const toolsData = [
                             },
                             "date": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time",
+                                "description": "ISO 8601 date/time when this event occurred",
                                 "format": "date-time"
                             }
                         },
@@ -1825,17 +1743,22 @@ const toolsData = [
                             "date"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_get_order_trades",
                 "type": "READ",
-                "desc": "Gets all individual trades (executions) associated with a specific order. Returns detailed execution data including price, amount, fees, and date for each fill. Useful for analyzing how a large order was executed across multiple trades.",
+                "desc": "Gets all individual trades (executions) associated with a specific order. Returns detailed execution data including price, amount, fees, and date for each fill. Useful for analyzing how a large order was executed across multiple trades. [PRIVATE]",
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Order ID",
-                        "required": false
+                        "desc": "Order UUID to filter or retrieve specific order details",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -1867,11 +1790,13 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "order_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the order"
+                                "description": "Unique identifier (UUID) for the order",
+                                "format": "uuid"
                             },
                             "pair": {
                                 "type": "string",
@@ -1891,7 +1816,7 @@ const toolsData = [
                             },
                             "date": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time",
+                                "description": "ISO 8601 date/time when this event occurred",
                                 "format": "date-time"
                             }
                         },
@@ -1905,139 +1830,55 @@ const toolsData = [
                             "date"
                         ]
                     }
-                }
-            },
-            {
-                "name": "pro_get_order_details",
-                "type": "READ",
-                "desc": "Gets detailed information of a specific Pro order. Returns order type, trading pair, side, amount, price, status, filled amount, creation time, and execution details. Use pro_get_open_orders or pro_get_trades first to get the order ID. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired).",
-                "args": {
-                    "order_id": {
-                        "type": "string",
-                        "desc": "Order ID",
-                        "required": false
-                    }
                 },
-                "exampleArgs": {
-                    "order_id": "order-uuid-1234-5678"
-                },
-                "response": {
-                    "request": {
-                        "order_id": "order-uuid-1234-5678"
-                    },
-                    "result": {
-                        "id": "order123",
-                        "pair": "BTC-USD",
-                        "side": "buy",
-                        "type": "limit",
-                        "amount": "0.1",
-                        "price": "75000.00",
-                        "status": "filled",
-                        "filled_amount": "0.1",
-                        "created_at": "2024-11-25T10:00:00.000Z"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "string",
-                            "description": "Unique identifier"
-                        },
-                        "pair": {
-                            "type": "string",
-                            "description": "Trading pair in BASE-QUOTE format (e.g., BTC-USD)"
-                        },
-                        "side": {
-                            "type": "string",
-                            "description": "Order direction: \"buy\" to purchase base currency, \"sell\" to dispose base currency",
-                            "enum": [
-                                "buy",
-                                "sell"
-                            ]
-                        },
-                        "type": {
-                            "type": "string",
-                            "description": "Type of the resource or operation",
-                            "enum": [
-                                "limit",
-                                "market",
-                                "stop-limit"
-                            ]
-                        },
-                        "amount": {
-                            "type": "string",
-                            "description": "Amount as string for precision"
-                        },
-                        "price": {
-                            "type": "string",
-                            "description": "Order price in quote currency (as string for precision). For limit orders, this is the target price"
-                        },
-                        "status": {
-                            "type": "string",
-                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
-                            "enum": [
-                                "open",
-                                "filled",
-                                "cancelled"
-                            ]
-                        },
-                        "filled_amount": {
-                            "type": "string",
-                            "description": "Amount of the order that has been executed (as string for precision)"
-                        },
-                        "created_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource was created",
-                            "format": "date-time"
-                        }
-                    },
-                    "required": [
-                        "id",
-                        "pair",
-                        "side",
-                        "type",
-                        "amount",
-                        "price",
-                        "status",
-                        "filled_amount",
-                        "created_at"
-                    ]
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_create_order",
                 "type": "WRITE",
-                "desc": "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired).",
+                "desc": "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE]",
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Trading pair (e.g., BTC-USD)",
-                        "required": false
+                        "desc": "Trading pair in BASE-QUOTE format (e.g., BTC-USD, ETH-EUR)",
+                        "required": true
                     },
                     "side": {
                         "type": "string",
-                        "desc": "Order direction (buy, sell)",
-                        "required": false
+                        "desc": "Order direction: buy (purchase base currency) or sell (dispose base currency)",
+                        "required": true,
+                        "enum": [
+                            "buy",
+                            "sell"
+                        ]
                     },
                     "type": {
                         "type": "string",
-                        "desc": "Order type (limit, market, stop-limit)",
-                        "required": false
+                        "desc": "Order type: limit (at specified price), market (immediate at best price), stop-limit (triggers at stop price)",
+                        "required": true,
+                        "enum": [
+                            "limit",
+                            "market",
+                            "stop-limit"
+                        ]
                     },
                     "amount": {
-                        "type": "number",
-                        "desc": "Order amount",
-                        "required": false
+                        "type": "string",
+                        "desc": "Order amount in base currency (as string for decimal precision)",
+                        "required": true
                     },
                     "price": {
-                        "type": "number",
-                        "desc": "Required for Limit/Stop orders",
+                        "type": "string",
+                        "desc": "Limit price in quote currency (required for limit/stop-limit orders)",
                         "required": false
                     },
                     "stop_price": {
-                        "type": "number",
-                        "desc": "Required for Stop-Limit orders",
+                        "type": "string",
+                        "desc": "Trigger price for stop-limit orders (order activates when market reaches this price)",
                         "required": false
                     }
                 },
@@ -2045,16 +1886,16 @@ const toolsData = [
                     "pair": "BTC-USD",
                     "side": "buy",
                     "type": "limit",
-                    "amount": 0.1,
-                    "price": 60000
+                    "amount": "0.1",
+                    "price": "60000"
                 },
                 "response": {
                     "request": {
                         "pair": "BTC-USD",
                         "side": "buy",
                         "type": "limit",
-                        "amount": 0.1,
-                        "price": 60000
+                        "amount": "0.1",
+                        "price": "60000"
                     },
                     "result": {
                         "id": "order123",
@@ -2072,7 +1913,8 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID)",
+                            "format": "uuid"
                         },
                         "pair": {
                             "type": "string",
@@ -2088,7 +1930,7 @@ const toolsData = [
                         },
                         "type": {
                             "type": "string",
-                            "description": "Type of the resource or operation",
+                            "description": "Order type: limit (executes at specified price), market (executes immediately at best price), stop-limit (triggers at stop price)",
                             "enum": [
                                 "limit",
                                 "market",
@@ -2128,17 +1970,22 @@ const toolsData = [
                         "status",
                         "created_at"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
                 }
             },
             {
                 "name": "pro_cancel_order",
                 "type": "WRITE",
-                "desc": "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired).",
+                "desc": "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE]",
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Order ID",
-                        "required": false
+                        "desc": "Order UUID to filter or retrieve specific order details",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -2159,7 +2006,8 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID)",
+                            "format": "uuid"
                         },
                         "status": {
                             "type": "string",
@@ -2172,7 +2020,7 @@ const toolsData = [
                         },
                         "message": {
                             "type": "string",
-                            "description": "message"
+                            "description": "Human-readable status or confirmation message"
                         }
                     },
                     "required": [
@@ -2180,12 +2028,17 @@ const toolsData = [
                         "status",
                         "message"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_cancel_all_orders",
                 "type": "WRITE",
-                "desc": "Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders.",
+                "desc": "Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders. [PRIVATE]",
                 "args": {
                     "pair": {
                         "type": "string",
@@ -2210,33 +2063,38 @@ const toolsData = [
                     "properties": {
                         "cancelled": {
                             "type": "number",
-                            "description": "cancelled"
+                            "description": "Number of orders cancelled by this operation"
                         },
                         "message": {
                             "type": "string",
-                            "description": "message"
+                            "description": "Human-readable status or confirmation message"
                         }
                     },
                     "required": [
                         "cancelled",
                         "message"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_deposit",
                 "type": "WRITE",
-                "desc": "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
+                "desc": "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
                 "args": {
                     "symbol": {
                         "type": "string",
                         "desc": "Symbol - can be cryptocurrency or fiat (e.g., BTC, EUR)",
-                        "required": false
+                        "required": true
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to transfer",
-                        "required": false
+                        "desc": "Amount to transfer (as string for decimal precision)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -2261,7 +2119,8 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID)",
+                            "format": "uuid"
                         },
                         "symbol": {
                             "type": "string",
@@ -2282,7 +2141,7 @@ const toolsData = [
                         },
                         "message": {
                             "type": "string",
-                            "description": "message"
+                            "description": "Human-readable status or confirmation message"
                         }
                     },
                     "required": [
@@ -2292,22 +2151,27 @@ const toolsData = [
                         "status",
                         "message"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_withdraw",
                 "type": "WRITE",
-                "desc": "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
+                "desc": "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
                 "args": {
                     "symbol": {
                         "type": "string",
                         "desc": "Symbol - can be cryptocurrency or fiat (e.g., BTC, EUR)",
-                        "required": false
+                        "required": true
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to transfer",
-                        "required": false
+                        "desc": "Amount to transfer (as string for decimal precision)",
+                        "required": true
                     },
                     "to_pocket_id": {
                         "type": "string",
@@ -2339,7 +2203,8 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID)",
+                            "format": "uuid"
                         },
                         "symbol": {
                             "type": "string",
@@ -2360,7 +2225,7 @@ const toolsData = [
                         },
                         "message": {
                             "type": "string",
-                            "description": "message"
+                            "description": "Human-readable status or confirmation message"
                         }
                     },
                     "required": [
@@ -2370,12 +2235,17 @@ const toolsData = [
                         "status",
                         "message"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_get_market_config",
                 "type": "READ",
-                "desc": "Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional pair filter for a specific market. Use this before placing orders to ensure amounts meet requirements. Response is a list of configurations.",
+                "desc": "Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional pair filter for a specific market. Use this before placing orders to ensure amounts meet requirements. Response is a list of configurations. [PUBLIC]",
                 "args": {
                     "pair": {
                         "type": "string",
@@ -2415,11 +2285,11 @@ const toolsData = [
                             },
                             "base_precision": {
                                 "type": "number",
-                                "description": "base precision"
+                                "description": "Number of decimal places allowed for base currency amounts"
                             },
                             "quote_precision": {
                                 "type": "number",
-                                "description": "quote precision"
+                                "description": "Number of decimal places allowed for quote currency amounts"
                             },
                             "min_amount": {
                                 "type": "string",
@@ -2431,7 +2301,7 @@ const toolsData = [
                             },
                             "status": {
                                 "type": "string",
-                                "description": "Current order status",
+                                "description": "Market/position status: open (active), filled (completed), cancelled (terminated), inactive (paused)",
                                 "enum": [
                                     "open",
                                     "filled",
@@ -2449,17 +2319,21 @@ const toolsData = [
                             "status"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_get_order_book",
                 "type": "READ",
-                "desc": "Gets the order book (market depth) for a market showing current buy and sell orders. Requires trading pair (e.g., BTC-USD). Returns bids (buy orders) and asks (sell orders) with prices and amounts. Useful for analyzing market liquidity and determining optimal order prices. Response is a single object.",
+                "desc": "Gets the order book (market depth) for a market showing current buy and sell orders. Requires trading pair (e.g., BTC-USD). Returns bids (buy orders) and asks (sell orders) with prices and amounts. Useful for analyzing market liquidity and determining optimal order prices. Response is a single object. [PUBLIC]",
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Trading pair (e.g., BTC-USD)",
-                        "required": false
+                        "desc": "Trading pair in BASE-QUOTE format (e.g., BTC-USD, ETH-EUR)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -2541,7 +2415,7 @@ const toolsData = [
                         },
                         "date": {
                             "type": "string",
-                            "description": "ISO 8601 date/time",
+                            "description": "ISO 8601 date/time when this event occurred",
                             "format": "date-time"
                         }
                     },
@@ -2551,26 +2425,31 @@ const toolsData = [
                         "asks",
                         "date"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_get_public_trades",
                 "type": "READ",
-                "desc": "Gets the latest public trades (executed orders) for a market. Requires trading pair (e.g., BTC-USD). Returns recent transactions with price, amount, side (buy/sell), and date. Optional limit (max 100) and sort order (ASC/DESC). Useful for seeing recent market activity. Response is a list of trades with metadata.",
+                "desc": "Gets the latest public trades (executed orders) for a market. Requires trading pair (e.g., BTC-USD). Returns recent transactions with price, amount, side (buy/sell), and date. Optional limit (max 50, default: 50) and sort order (ASC/DESC). Useful for seeing recent market activity. Response is a list of trades with metadata. [PUBLIC]",
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Trading pair (e.g., BTC-USD)",
+                        "desc": "Trading pair in BASE-QUOTE format (e.g., BTC-USD, ETH-EUR)",
                         "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Result limit (max 100)",
-                        "required": false
+                        "desc": "Result limit (max 50, default: 50)",
+                        "required": false,
+                        "default": 50
                     },
                     "sort": {
                         "type": "string",
-                        "desc": "Sort order (ASC/DESC)",
+                        "desc": "Sort order: ASC (oldest first) or DESC (newest first)",
                         "required": false
                     }
                 },
@@ -2606,7 +2485,8 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "pair": {
                                 "type": "string",
@@ -2630,7 +2510,7 @@ const toolsData = [
                             },
                             "date": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time",
+                                "description": "ISO 8601 date/time when this event occurred",
                                 "format": "date-time"
                             }
                         },
@@ -2643,22 +2523,26 @@ const toolsData = [
                             "date"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
                 "name": "pro_get_candles",
                 "type": "READ",
-                "desc": "Gets OHLCV (Open, High, Low, Close, Volume) candles for Pro (Advanced Trading). Requires trading pair (e.g., BTC-USD) and timeframe. Returns price data in specified timeframe with timestamp and date. Optional limit to control number of candles. Essential for technical analysis and charting. Response is a list of candles with metadata.",
+                "desc": "Gets OHLCV (Open, High, Low, Close, Volume) candles for Pro (Advanced Trading). Requires trading pair (e.g., BTC-EUR) and timeframe. Returns price data in specified timeframe with timestamp and date. Optional limit (default: 1000, max: 1000), startTime and endTime (Unix epoch milliseconds). If startTime/endTime not provided, defaults to last 24 hours. Essential for technical analysis and charting. Response is a list of candles with metadata. [PUBLIC]",
                 "args": {
                     "pair": {
                         "type": "string",
-                        "desc": "Trading pair (e.g., BTC-USD)",
-                        "required": false
+                        "desc": "Trading pair in BASE-QUOTE format (e.g., BTC-EUR, ETH-USD)",
+                        "required": true
                     },
                     "timeframe": {
                         "type": "string",
-                        "desc": "Candle duration",
-                        "required": false,
+                        "desc": "Candle interval: 1m (1 min), 5m (5 min), 15m (15 min), 30m (30 min), 1h (1 hour), 4h (4 hours), 1d (1 day), 1w (1 week), 1M (1 month)",
+                        "required": true,
                         "enum": [
                             "1m",
                             "5m",
@@ -2673,20 +2557,33 @@ const toolsData = [
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Candle limit",
+                        "desc": "Maximum number of candles to return (default: 1000, max: 1000)",
+                        "required": false,
+                        "default": 1000
+                    },
+                    "startTime": {
+                        "type": "number",
+                        "desc": "Start time in Unix epoch milliseconds (default: 24 hours before endTime)",
+                        "required": false
+                    },
+                    "endTime": {
+                        "type": "number",
+                        "desc": "End time in Unix epoch milliseconds (default: current time)",
                         "required": false
                     }
                 },
                 "exampleArgs": {
-                    "pair": "BTC-USD",
+                    "pair": "BTC-EUR",
                     "timeframe": "1h",
-                    "limit": 5
+                    "limit": 100
                 },
                 "response": {
                     "request": {
-                        "pair": "BTC-USD",
+                        "pair": "BTC-EUR",
                         "timeframe": "1h",
-                        "limit": 5
+                        "limit": 100,
+                        "startTime": 1715081606087,
+                        "endTime": 1715168006087
                     },
                     "result": [
                         {
@@ -2712,7 +2609,7 @@ const toolsData = [
                         "properties": {
                             "date": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time",
+                                "description": "ISO 8601 date/time when this event occurred",
                                 "format": "date-time"
                             },
                             "open": {
@@ -2733,7 +2630,7 @@ const toolsData = [
                             },
                             "volume": {
                                 "type": "string",
-                                "description": "Total trading volume during the time period in base currency"
+                                "description": "Total volume traded during the time period"
                             }
                         },
                         "required": [
@@ -2745,6 +2642,118 @@ const toolsData = [
                             "volume"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
+                }
+            },
+            {
+                "name": "pro_get_ticker",
+                "type": "READ",
+                "desc": "Get ticker information (OHLCV, current best bid and ask, percentage versus price 24 hours ago) for all markets or by requested market symbol. The data refers to the last 24 hours from the date indicated. Optional pair filter for a specific market. Returns ticker data with open, close, bid, ask, high, low, volumes, and percentage change. [PUBLIC]",
+                "args": {
+                    "pair": {
+                        "type": "string",
+                        "desc": "Filter by trading pair (e.g., BTC-EUR). If not provided, returns all markets.",
+                        "required": false
+                    }
+                },
+                "exampleArgs": {
+                    "pair": "BTC-EUR"
+                },
+                "response": {
+                    "request": {
+                        "pair": "BTC-EUR"
+                    },
+                    "result": [
+                        {
+                            "symbol": "BTC/EUR",
+                            "open": "59692.2",
+                            "close": "59459.3",
+                            "bid": "59459.3",
+                            "ask": "59459.4",
+                            "high": "59807.8",
+                            "low": "58259",
+                            "baseVolume": "506.2471485105999",
+                            "percentage": "-0.39",
+                            "quoteVolume": "30160053.557880376",
+                            "date": "2024-05-07T10:00:06.087Z"
+                        }
+                    ],
+                    "metadata": {
+                        "total_records": 1
+                    }
+                },
+                "responseSchema": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "symbol": {
+                                "type": "string",
+                                "description": "Market symbol in BASE/QUOTE format (e.g., BTC/EUR)"
+                            },
+                            "open": {
+                                "type": "string",
+                                "description": "Opening price (price 24 hours ago)"
+                            },
+                            "close": {
+                                "type": "string",
+                                "description": "Closing price (last trade price)"
+                            },
+                            "bid": {
+                                "type": "string",
+                                "description": "Highest price a buyer will pay for order"
+                            },
+                            "ask": {
+                                "type": "string",
+                                "description": "Lowest price a seller will take for order"
+                            },
+                            "high": {
+                                "type": "string",
+                                "description": "Highest price in the last 24 hours"
+                            },
+                            "low": {
+                                "type": "string",
+                                "description": "Lowest price in the last 24 hours"
+                            },
+                            "baseVolume": {
+                                "type": "string",
+                                "description": "Volume traded in terms of the base currency"
+                            },
+                            "percentage": {
+                                "type": "string",
+                                "description": "Percentage of current price versus opening price"
+                            },
+                            "quoteVolume": {
+                                "type": "string",
+                                "description": "Volume traded in terms of the quote currency"
+                            },
+                            "date": {
+                                "type": "string",
+                                "description": "ISO 8601 date/time when this event occurred",
+                                "format": "date-time"
+                            }
+                        },
+                        "required": [
+                            "symbol",
+                            "open",
+                            "close",
+                            "bid",
+                            "ask",
+                            "high",
+                            "low",
+                            "baseVolume",
+                            "percentage",
+                            "quoteVolume",
+                            "date"
+                        ]
+                    }
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             }
         ]
@@ -2753,12 +2762,12 @@ const toolsData = [
         "category": "Earn (Staking)",
         "id": "cat-earn",
         "icon": "💰",
-        "description": "",
+        "description": "Staking and yield generation tools. Deposit crypto to earn rewards, view positions, track movements, and manage reward configurations. Positions represent locked funds generating yield, different from Wallet pockets.",
         "tools": [
             {
                 "name": "earn_get_summary",
                 "type": "READ",
-                "desc": "View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn positions, breakdown by symbol, and overall performance. Use this to see your total staking rewards.",
+                "desc": "View summary of accumulated rewards in Staking/Earn. Returns total rewards earned across all Earn positions, breakdown by symbol, and overall performance. Use this to see your total staking rewards. [PRIVATE]",
                 "args": {},
                 "exampleArgs": {},
                 "response": {
@@ -2785,11 +2794,11 @@ const toolsData = [
                             },
                             "total_balance": {
                                 "type": "string",
-                                "description": "total balance"
+                                "description": "Total balance across all positions (as string for precision)"
                             },
                             "total_rewards": {
                                 "type": "string",
-                                "description": "total rewards"
+                                "description": "Total rewards earned (as string for precision)"
                             }
                         },
                         "required": [
@@ -2798,13 +2807,24 @@ const toolsData = [
                             "total_rewards"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "earn_get_positions",
                 "type": "READ",
-                "desc": "List active Earn positions/strategies. Returns an array of position objects containing: position_id (unique identifier), symbol (cryptocurrency symbol in uppercase), balance (current staking balance), strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_apy to get APY rates for each symbol. Note: Positions represent money that is locked or generating yield (invested money), different from Pockets which represent liquid available funds.",
-                "args": {},
+                "desc": "List active Earn positions/strategies. Optional position_id filter for specific position. Returns position_id, symbol, balance, strategy (fixed/flexible), lock_period, converted_balance, and timestamps. Use earn_get_assets for APY rates. Note: Positions are locked/yielding funds, different from Pockets (liquid funds). [PRIVATE]",
+                "args": {
+                    "position_id": {
+                        "type": "string",
+                        "desc": "Filter by specific position UUID. If provided, returns only that position.",
+                        "required": false
+                    }
+                },
                 "exampleArgs": {},
                 "response": {
                     "request": {},
@@ -2857,11 +2877,11 @@ const toolsData = [
                                 "properties": {
                                     "lock_period_id": {
                                         "type": "string",
-                                        "description": "Lock period identifier"
+                                        "description": "Unique identifier for this lock period configuration"
                                     },
                                     "months": {
                                         "type": "number",
-                                        "description": "Number of months locked"
+                                        "description": "Duration of the lock period in months"
                                     }
                                 }
                             },
@@ -2871,7 +2891,7 @@ const toolsData = [
                                 "properties": {
                                     "value": {
                                         "type": "string",
-                                        "description": "Converted balance value"
+                                        "description": "Balance converted to fiat currency (as string for precision)"
                                     },
                                     "symbol": {
                                         "type": "string",
@@ -2897,127 +2917,31 @@ const toolsData = [
                             "strategy"
                         ]
                     }
-                }
-            },
-            {
-                "name": "earn_get_position_details",
-                "type": "READ",
-                "desc": "Get detailed information of a specific Earn position. Returns position_id, symbol, balance, strategy (automatically determined: 'fixed' if lock_period exists, 'flexible' otherwise), optional lock_period object (with lock_period_id and months for fixed-term staking), optional converted_balance object (with value and symbol in fiat currency), created_at and updated_at timestamps. Use earn_get_positions first to get the position ID. Use earn_get_apy to get APY rates.",
-                "args": {
-                    "position_id": {
-                        "type": "string",
-                        "desc": "Earn position UUID",
-                        "required": false
-                    }
                 },
-                "exampleArgs": {
-                    "position_id": "earn-position-uuid-1234"
-                },
-                "response": {
-                    "request": {
-                        "position_id": "earn-position-uuid-1234"
-                    },
-                    "result": {
-                        "position_id": "ce2bb790-f538-4d04-8acd-f3473044e703",
-                        "symbol": "B2M",
-                        "balance": "25865004.93005867",
-                        "strategy": "fixed",
-                        "lock_period": {
-                            "lock_period_id": "bfbc04b5-b7f8-4060-8ec0-bb2c924851b5",
-                            "months": 12
-                        },
-                        "converted_balance": {
-                            "value": "269293.50",
-                            "symbol": "EUR"
-                        },
-                        "created_at": "2024-06-24T11:59:28.905Z",
-                        "updated_at": "2025-12-04T11:05:54.389Z"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "position_id": {
-                            "type": "string",
-                            "description": "Earn position unique identifier"
-                        },
-                        "symbol": {
-                            "type": "string",
-                            "description": "Asset symbol in uppercase (e.g., BTC, ETH, B2M)"
-                        },
-                        "balance": {
-                            "type": "string",
-                            "description": "Current balance as string for precision"
-                        },
-                        "strategy": {
-                            "type": "string",
-                            "description": "Staking strategy (e.g., flexible, fixed)"
-                        },
-                        "lock_period": {
-                            "type": "object",
-                            "description": "Lock period information (if applicable)",
-                            "properties": {
-                                "lock_period_id": {
-                                    "type": "string",
-                                    "description": "Lock period identifier"
-                                },
-                                "months": {
-                                    "type": "number",
-                                    "description": "Number of months locked"
-                                }
-                            }
-                        },
-                        "converted_balance": {
-                            "type": "object",
-                            "description": "Balance converted to fiat currency",
-                            "properties": {
-                                "value": {
-                                    "type": "string",
-                                    "description": "Converted balance value"
-                                },
-                                "symbol": {
-                                    "type": "string",
-                                    "description": "Fiat currency symbol (e.g., EUR, USD)"
-                                }
-                            }
-                        },
-                        "created_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the position was created",
-                            "format": "date-time"
-                        },
-                        "updated_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the position was last updated",
-                            "format": "date-time"
-                        }
-                    },
-                    "required": [
-                        "position_id",
-                        "symbol",
-                        "balance",
-                        "strategy"
-                    ]
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "earn_get_position_movements",
                 "type": "READ",
-                "desc": "Get movement history of a specific Earn position. Returns movements with type (deposit, withdrawal, reward, fee), amounts, dates, and status. Optional limit and offset for pagination. Use earn_get_positions first to get the position ID. Response is a paginated list with metadata.",
+                "desc": "Get movement history of a specific Earn position. Returns movements with type (deposit, withdrawal, reward, fee), amounts, dates, and status. Optional limit and offset for pagination. Use earn_get_positions first to get the position ID. Response is a paginated list with metadata. [PRIVATE]",
                 "args": {
                     "position_id": {
                         "type": "string",
-                        "desc": "Earn position UUID",
-                        "required": false
+                        "desc": "Earn position UUID from earn_get_positions",
+                        "required": true
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Result limit",
+                        "desc": "Maximum number of records to return",
                         "required": false
                     },
                     "offset": {
                         "type": "number",
-                        "desc": "Offset",
+                        "desc": "Number of records to skip for pagination",
                         "required": false
                     }
                 },
@@ -3057,11 +2981,12 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "type": {
                                 "type": "string",
-                                "description": "Type of the resource or operation",
+                                "description": "Earn movement type: deposit (funds added to staking), withdrawal (funds removed), reward (yield earned), fee (charged fee)",
                                 "enum": [
                                     "deposit",
                                     "withdrawal",
@@ -3084,11 +3009,12 @@ const toolsData = [
                             },
                             "position_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the Earn position"
+                                "description": "Unique identifier (UUID) for the Earn position",
+                                "format": "uuid"
                             },
                             "status": {
                                 "type": "string",
-                                "description": "Current order status",
+                                "description": "Market/position status: open (active), filled (completed), cancelled (terminated), inactive (paused)",
                                 "enum": [
                                     "open",
                                     "filled",
@@ -3107,12 +3033,17 @@ const toolsData = [
                             "status"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "earn_get_movements",
                 "type": "READ",
-                "desc": "Get movement history across all Earn positions. Returns movements with type (deposit, reward, withdrawal, discount-funds, discount-rewards, fee), amounts, dates, rates, source, and issuer information. Supports filtering by symbol, position_id, type (deposit, reward, withdrawal, discount-funds, discount-rewards), date range, and pagination. All parameters are optional. Response is a paginated list with metadata.",
+                "desc": "Get movement history across all Earn positions. Returns movements with type (deposit, reward, withdrawal, discount-funds, discount-rewards, fee), amounts, dates, rates, source, and issuer information. Supports filtering by symbol, position_id, type (deposit, reward, withdrawal, discount-funds, discount-rewards), date range, and pagination. All parameters are optional. Response is a paginated list with metadata. [PRIVATE]",
                 "args": {
                     "user_symbol": {
                         "type": "string",
@@ -3126,7 +3057,7 @@ const toolsData = [
                     },
                     "related_symbol": {
                         "type": "string",
-                        "desc": "Filter by related symbol",
+                        "desc": "Filter by related asset symbol (e.g., BTC, ETH)",
                         "required": false
                     },
                     "position_id": {
@@ -3141,7 +3072,7 @@ const toolsData = [
                     },
                     "end_date": {
                         "type": "string",
-                        "desc": "End date-time (ISO 8601)",
+                        "desc": "End date filter (ISO 8601 format, e.g., 2024-12-31T23:59:59Z)",
                         "required": false
                     },
                     "type": {
@@ -3152,16 +3083,18 @@ const toolsData = [
                     "limit": {
                         "type": "number",
                         "desc": "Maximum results (default: 20, max: 100)",
-                        "required": false
+                        "required": false,
+                        "default": 20
                     },
                     "offset": {
                         "type": "number",
                         "desc": "Pagination offset (default: 0)",
-                        "required": false
+                        "required": false,
+                        "default": 0
                     },
                     "sort_by": {
                         "type": "string",
-                        "desc": "Sort field (createdAt)",
+                        "desc": "Field to sort results by (default: createdAt)",
                         "required": false
                     }
                 },
@@ -3222,11 +3155,12 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "type": {
                                 "type": "string",
-                                "description": "Type of the resource or operation",
+                                "description": "Earn movement type: deposit (funds added), reward (yield earned), withdrawal (funds removed), discount-funds, discount-rewards, fee (charged fee)",
                                 "enum": [
                                     "deposit",
                                     "reward",
@@ -3243,7 +3177,8 @@ const toolsData = [
                             },
                             "position_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the Earn position"
+                                "description": "Unique identifier (UUID) for the Earn position",
+                                "format": "uuid"
                             },
                             "amount": {
                                 "type": "object",
@@ -3255,15 +3190,15 @@ const toolsData = [
                             },
                             "converted_amount": {
                                 "type": "object",
-                                "description": "converted amount"
+                                "description": "Amount converted to fiat currency (as string for precision)"
                             },
                             "source": {
                                 "type": "object",
-                                "description": "source"
+                                "description": "Source or origin of the operation"
                             },
                             "issuer": {
                                 "type": "object",
-                                "description": "issuer"
+                                "description": "Entity that issued or initiated the operation"
                             }
                         },
                         "required": [
@@ -3278,17 +3213,22 @@ const toolsData = [
                             "issuer"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "earn_get_movements_summary",
                 "type": "READ",
-                "desc": "Get summary statistics of Earn movements filtered by type. Valid type values: deposit, reward, withdrawal, discount-funds, discount-rewards. Returns total count, total amounts, and aggregated data for the specified movement type across all Earn positions.",
+                "desc": "Get summary statistics of Earn movements filtered by type. Valid type values: deposit, reward, withdrawal, discount-funds, discount-rewards. Returns total count, total amounts, and aggregated data for the specified movement type across all Earn positions. [PRIVATE]",
                 "args": {
                     "type": {
                         "type": "string",
                         "desc": "Movement type. Valid values: deposit, reward, withdrawal, discount-funds, discount-rewards",
-                        "required": false
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -3310,20 +3250,22 @@ const toolsData = [
                     "properties": {
                         "type": {
                             "type": "string",
-                            "description": "Type of the resource or operation",
+                            "description": "Movement type for this summary: deposit (funds added), reward (earned yield), withdrawal (funds removed), discount-funds, discount-rewards",
                             "enum": [
-                                "limit",
-                                "market",
-                                "stop-limit"
+                                "deposit",
+                                "reward",
+                                "withdrawal",
+                                "discount-funds",
+                                "discount-rewards"
                             ]
                         },
                         "total_amount": {
                             "type": "string",
-                            "description": "total amount"
+                            "description": "Sum of all amounts in this summary (as string for precision)"
                         },
                         "total_count": {
                             "type": "number",
-                            "description": "total count"
+                            "description": "Total number of items in this summary"
                         },
                         "symbol": {
                             "type": "string",
@@ -3336,89 +3278,17 @@ const toolsData = [
                         "total_count",
                         "symbol"
                     ]
-                }
-            },
-            {
-                "name": "earn_get_assets",
-                "type": "READ",
-                "desc": "Get list of assets (cryptocurrencies) supported in Earn/Staking. Returns list of cryptocurrency symbols with their staking options. Use this to discover which assets can be staked before creating Earn deposits.",
-                "args": {},
-                "exampleArgs": {},
-                "response": {
-                    "request": {},
-                    "result": {
-                        "symbols": [
-                            "BTC",
-                            "ETH",
-                            "USDC",
-                            "USDT",
-                            "ADA",
-                            "DOT"
-                        ]
-                    }
                 },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "symbols": {
-                            "type": "array",
-                            "description": "symbols",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "required": [
-                        "symbols"
-                    ]
-                }
-            },
-            {
-                "name": "earn_get_apy",
-                "type": "READ",
-                "desc": "Get current APY (Annual Percentage Yield) rates for all Earn/Staking options. Returns yield rates per asset. Use this to compare returns before choosing where to stake your assets. IMPORTANT: All yield values are ratios where 1.0 equals 100% (e.g., 0.05 = 5% yield).",
-                "args": {
-                    "symbol": {
-                        "type": "string",
-                        "desc": "Filter by specific currency symbol (e.g., BTC). If omitted, returns all.",
-                        "required": false
-                    }
-                },
-                "exampleArgs": {
-                    "symbol": "BTC"
-                },
-                "response": {
-                    "request": {
-                        "symbol": "BTC"
-                    },
-                    "result": {
-                        "BTC": {
-                            "symbol": "BTC",
-                            "rates": {
-                                "daily_yield_ratio": "0.0001",
-                                "weekly_yield_ratio": "0.000099999917563314",
-                                "monthly_yield_ratio": "0.000099999597052597"
-                            }
-                        }
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "BTC": {
-                            "type": "object",
-                            "description": "BTC"
-                        }
-                    },
-                    "required": [
-                        "BTC"
-                    ]
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "earn_get_rewards_config",
                 "type": "READ",
-                "desc": "Get global rewards configuration for Earn/Staking. Returns position rewards configuration including position_id, user_id, symbol, lock_period_id, reward_symbol, and timestamps. Use this to understand reward configuration for all positions.",
+                "desc": "Get global rewards configuration for Earn/Staking. Returns position rewards configuration including position_id, user_id, symbol, lock_period_id, reward_symbol, and timestamps. Use this to understand reward configuration for all positions. [PRIVATE]",
                 "args": {},
                 "exampleArgs": {},
                 "response": {
@@ -3454,7 +3324,8 @@ const toolsData = [
                         "properties": {
                             "position_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the Earn position"
+                                "description": "Unique identifier (UUID) for the Earn position",
+                                "format": "uuid"
                             },
                             "user_id": {
                                 "type": "string",
@@ -3493,16 +3364,21 @@ const toolsData = [
                             "updated_at"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "earn_get_position_rewards_config",
                 "type": "READ",
-                "desc": "Get rewards configuration for a specific Earn position. Returns reward calculation rules, APY details, and position-specific staking parameters. Use earn_get_positions first to get the position ID.",
+                "desc": "Get rewards configuration for a specific Earn position. Returns reward calculation rules, APY details, and position-specific staking parameters. Use earn_get_positions first to get the position ID. [PRIVATE]",
                 "args": {
                     "position_id": {
                         "type": "string",
-                        "desc": "Earn position UUID",
+                        "desc": "Earn position UUID from earn_get_positions",
                         "required": true
                     }
                 },
@@ -3528,7 +3404,8 @@ const toolsData = [
                     "properties": {
                         "position_id": {
                             "type": "string",
-                            "description": "Unique identifier (UUID) for the Earn position"
+                            "description": "Unique identifier (UUID) for the Earn position",
+                            "format": "uuid"
                         },
                         "user_id": {
                             "type": "string",
@@ -3566,22 +3443,28 @@ const toolsData = [
                         "created_at",
                         "updated_at"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "earn_get_position_rewards_summary",
                 "type": "READ",
-                "desc": "Get rewards summary for a specific Earn position. Returns reward symbol, reward amount, and converted reward amount in fiat currency. Use earn_get_positions first to get the position ID. Optional user_currency parameter to specify the fiat currency for conversion (default: EUR).",
+                "desc": "Get rewards summary for a specific Earn position. Returns reward symbol, reward amount, and converted reward amount in fiat currency. Use earn_get_positions first to get the position ID. Optional user_currency parameter to specify the fiat currency for conversion (default: EUR). [PRIVATE]",
                 "args": {
                     "position_id": {
                         "type": "string",
-                        "desc": "Earn position UUID",
+                        "desc": "Earn position UUID from earn_get_positions",
                         "required": true
                     },
                     "user_currency": {
                         "type": "string",
                         "desc": "Fiat currency for conversion (e.g., EUR, USD). Optional, defaults to EUR.",
-                        "required": false
+                        "required": false,
+                        "default": "EUR"
                     }
                 },
                 "exampleArgs": {
@@ -3613,11 +3496,11 @@ const toolsData = [
                         },
                         "reward_converted_symbol": {
                             "type": "string",
-                            "description": "reward converted symbol"
+                            "description": "Fiat currency symbol for the converted reward amount"
                         },
                         "reward_converted_amount": {
                             "type": "string",
-                            "description": "reward converted amount"
+                            "description": "Reward amount converted to fiat currency (as string for precision)"
                         }
                     },
                     "required": [
@@ -3626,27 +3509,32 @@ const toolsData = [
                         "reward_converted_symbol",
                         "reward_converted_amount"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "earn_deposit",
                 "type": "WRITE",
-                "desc": "Deposit funds from Simple Wallet pocket to Earn (Staking). Funds will start earning rewards based on the asset's APY. Returns operation details with type: deposit. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
+                "desc": "Deposit funds from Simple Wallet pocket to Earn (Staking). Funds will start earning rewards based on the asset's APY. Returns operation details with type: deposit. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
                 "args": {
                     "pocket_id": {
                         "type": "string",
                         "desc": "Source pocket UUID from Simple Wallet",
-                        "required": false
+                        "required": true
                     },
                     "symbol": {
                         "type": "string",
                         "desc": "Cryptocurrency symbol (e.g., BTC, ETH)",
-                        "required": false
+                        "required": true
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to deposit",
-                        "required": false
+                        "desc": "Amount to deposit into Earn (as string for decimal precision)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -3674,24 +3562,23 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID) for this deposit operation",
+                            "format": "uuid"
                         },
                         "type": {
                             "type": "string",
-                            "description": "Type of the resource or operation",
+                            "description": "Operation type: always 'deposit' for this endpoint",
                             "enum": [
-                                "limit",
-                                "market",
-                                "stop-limit"
+                                "deposit"
                             ]
                         },
                         "symbol": {
                             "type": "string",
-                            "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
+                            "description": "Cryptocurrency symbol deposited (e.g., BTC, ETH)"
                         },
                         "amount": {
                             "type": "string",
-                            "description": "Amount as string for precision"
+                            "description": "Amount deposited (as string for precision)"
                         },
                         "status": {
                             "type": "string",
@@ -3704,7 +3591,7 @@ const toolsData = [
                         },
                         "message": {
                             "type": "string",
-                            "description": "message"
+                            "description": "Human-readable status or confirmation message"
                         }
                     },
                     "required": [
@@ -3715,27 +3602,32 @@ const toolsData = [
                         "status",
                         "message"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
                 }
             },
             {
                 "name": "earn_withdraw",
                 "type": "WRITE",
-                "desc": "Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Funds will stop earning rewards after withdrawal. Returns operation details with type: withdrawal. Use earn_get_positions to check your Earn balance. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
+                "desc": "Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Funds will stop earning rewards after withdrawal. Returns operation details with type: withdrawal. Use earn_get_positions to check your Earn balance. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
                 "args": {
                     "pocket_id": {
                         "type": "string",
                         "desc": "Destination pocket UUID in Simple Wallet",
-                        "required": false
+                        "required": true
                     },
                     "symbol": {
                         "type": "string",
                         "desc": "Cryptocurrency symbol (e.g., BTC, ETH)",
-                        "required": false
+                        "required": true
                     },
                     "amount": {
                         "type": "string",
-                        "desc": "Amount to withdraw",
-                        "required": false
+                        "desc": "Amount to withdraw from Earn (as string for decimal precision)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -3763,24 +3655,23 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID) for this withdrawal operation",
+                            "format": "uuid"
                         },
                         "type": {
                             "type": "string",
-                            "description": "Type of the resource or operation",
+                            "description": "Operation type: always 'withdrawal' for this endpoint",
                             "enum": [
-                                "limit",
-                                "market",
-                                "stop-limit"
+                                "withdrawal"
                             ]
                         },
                         "symbol": {
                             "type": "string",
-                            "description": "Asset symbol in uppercase (e.g., BTC, ETH, EUR)"
+                            "description": "Cryptocurrency symbol withdrawn (e.g., BTC, ETH)"
                         },
                         "amount": {
                             "type": "string",
-                            "description": "Amount as string for precision"
+                            "description": "Amount withdrawn (as string for precision)"
                         },
                         "status": {
                             "type": "string",
@@ -3793,7 +3684,7 @@ const toolsData = [
                         },
                         "message": {
                             "type": "string",
-                            "description": "message"
+                            "description": "Human-readable status or confirmation message"
                         }
                     },
                     "required": [
@@ -3804,6 +3695,87 @@ const toolsData = [
                         "status",
                         "message"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
+                }
+            },
+            {
+                "name": "earn_get_assets",
+                "type": "READ",
+                "desc": "Get list of assets (cryptocurrencies) supported in Earn/Staking along with their APY rates. Returns list of symbols and their yield rates (daily, weekly, monthly). Use this to discover which assets can be staked and compare returns. [PUBLIC]",
+                "args": {},
+                "exampleArgs": {},
+                "response": {
+                    "request": {},
+                    "result": {
+                        "assets": [
+                            {
+                                "symbol": "BTC",
+                                "apy": {
+                                    "daily_yield_ratio": "0.0001",
+                                    "weekly_yield_ratio": "0.0007",
+                                    "monthly_yield_ratio": "0.0030"
+                                }
+                            },
+                            {
+                                "symbol": "ETH",
+                                "apy": {
+                                    "daily_yield_ratio": "0.00015",
+                                    "weekly_yield_ratio": "0.0010",
+                                    "monthly_yield_ratio": "0.0045"
+                                }
+                            }
+                        ]
+                    },
+                    "metadata": {
+                        "total_records": 2
+                    }
+                },
+                "responseSchema": {
+                    "type": "object",
+                    "properties": {
+                        "assets": {
+                            "type": "array",
+                            "description": "List of cryptocurrencies available for staking with their APY rates",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "symbol": {
+                                        "type": "string",
+                                        "description": "Cryptocurrency symbol in uppercase (e.g., BTC, ETH)"
+                                    },
+                                    "apy": {
+                                        "type": "object",
+                                        "description": "Annual Percentage Yield rates",
+                                        "properties": {
+                                            "daily_yield_ratio": {
+                                                "type": "string",
+                                                "description": "Daily yield as decimal (1.0 = 100%)"
+                                            },
+                                            "weekly_yield_ratio": {
+                                                "type": "string",
+                                                "description": "Weekly yield as decimal (1.0 = 100%)"
+                                            },
+                                            "monthly_yield_ratio": {
+                                                "type": "string",
+                                                "description": "Monthly yield as decimal (1.0 = 100%)"
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "symbol"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             }
         ]
@@ -3812,12 +3784,12 @@ const toolsData = [
         "category": "Loans",
         "id": "cat-loan",
         "icon": "🏦",
-        "description": "",
+        "description": "Crypto-backed loan tools. Use cryptocurrency as collateral to borrow funds. Manage loans, simulate LTV scenarios, track movements, and adjust guarantees. Lower LTV means lower risk.",
         "tools": [
             {
                 "name": "loan_get_simulation",
                 "type": "READ",
-                "desc": "Simulate a loan scenario to calculate LTV (Loan To Value) ratio and APR. LTV represents the loan amount as a ratio of the guarantee value (1.0 = 100%). Lower LTV means lower risk. Provide either guarantee_amount or loan_amount (the other will be calculated). Requires guarantee_symbol (crypto), loan_symbol (any currency like USDC, EURC), and user_symbol (fiat like EUR). Returns guarantee and loan amounts (original and converted), LTV ratio, APR, and user currency. Use this before loan_create to plan your loan.",
+                "desc": "Simulate loan LTV and APR. Provide guarantee_amount OR loan_amount (other is calculated). Requires guarantee_symbol (crypto), loan_symbol, user_symbol (fiat). Returns amounts, LTV ratio (1.0=100%, lower=safer), and APR. Use before loan_create. [PUBLIC]",
                 "args": {
                     "guarantee_symbol": {
                         "type": "string",
@@ -3895,11 +3867,11 @@ const toolsData = [
                         },
                         "loan_amount_converted": {
                             "type": "string",
-                            "description": "loan amount converted"
+                            "description": "Loan amount converted to user currency (as string for precision)"
                         },
                         "user_symbol": {
                             "type": "string",
-                            "description": "user symbol"
+                            "description": "User's preferred fiat currency symbol for conversions"
                         },
                         "ltv": {
                             "type": "string",
@@ -3921,12 +3893,16 @@ const toolsData = [
                         "ltv",
                         "apr"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
                 "name": "loan_get_config",
                 "type": "READ",
-                "desc": "Get currency configuration for loans. Returns two separate arrays: guarantee_currencies (cryptocurrencies that can be used as collateral with LTV limits) and loan_currencies (currencies available for borrowing with APR, liquidity, and min/max amounts). Use guarantee currencies as collateral to receive loan currencies. Use this before creating a loan to understand available options and limits.",
+                "desc": "Get currency configuration for loans. Returns two separate arrays: guarantee_currencies (cryptocurrencies that can be used as collateral with LTV limits) and loan_currencies (currencies available for borrowing with APR, liquidity, and min/max amounts). Use guarantee currencies as collateral to receive loan currencies. Use this before creating a loan to understand available options and limits. [PUBLIC]",
                 "args": {},
                 "exampleArgs": {},
                 "response": {
@@ -3981,7 +3957,7 @@ const toolsData = [
                     "properties": {
                         "guarantee_currencies": {
                             "type": "array",
-                            "description": "guarantee currencies",
+                            "description": "List of cryptocurrencies that can be used as loan collateral",
                             "items": {
                                 "type": {
                                     "type": "object",
@@ -4026,7 +4002,7 @@ const toolsData = [
                         },
                         "loan_currencies": {
                             "type": "array",
-                            "description": "loan currencies",
+                            "description": "List of currencies available for borrowing",
                             "items": {
                                 "type": {
                                     "type": "object",
@@ -4089,27 +4065,33 @@ const toolsData = [
                         "guarantee_currencies",
                         "loan_currencies"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
                 }
             },
             {
                 "name": "loan_get_movements",
                 "type": "READ",
-                "desc": "Get loan movement history. Returns movements with type (payment, interest, guarantee_change, liquidation, other), amounts, dates, and status. Optional order_id filter to see movements for a specific loan. Use limit and offset for pagination. Response is a paginated list with metadata. Movement status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled).",
+                "desc": "Get loan movement history. Returns movements with type (payment, interest, guarantee_change, liquidation, other), amounts, dates, and status. Optional order_id filter to see movements for a specific loan. Use limit and offset for pagination. Response is a paginated list with metadata. Movement status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Filter by order ID",
+                        "desc": "Filter by loan order UUID",
                         "required": false
                     },
                     "limit": {
                         "type": "number",
-                        "desc": "Amount to show (default: 10)",
-                        "required": false
+                        "desc": "Number of records to return (default: 10)",
+                        "required": false,
+                        "default": 10
                     },
                     "offset": {
                         "type": "number",
                         "desc": "Offset for pagination (default: 0)",
-                        "required": false
+                        "required": false,
+                        "default": 0
                     }
                 },
                 "exampleArgs": {
@@ -4148,15 +4130,17 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "order_id": {
                                 "type": "string",
-                                "description": "Unique identifier (UUID) for the order"
+                                "description": "Unique identifier (UUID) for the order",
+                                "format": "uuid"
                             },
                             "type": {
                                 "type": "string",
-                                "description": "Type of the resource or operation",
+                                "description": "Loan movement type: payment (loan repayment), interest (accrued interest), guarantee_change (collateral adjustment), liquidation (forced sale), other",
                                 "enum": [
                                     "payment",
                                     "interest",
@@ -4175,7 +4159,7 @@ const toolsData = [
                             },
                             "date": {
                                 "type": "string",
-                                "description": "ISO 8601 date/time",
+                                "description": "ISO 8601 date/time when this event occurred",
                                 "format": "date-time"
                             },
                             "status": {
@@ -4198,22 +4182,34 @@ const toolsData = [
                             "status"
                         ]
                     }
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "loan_get_orders",
                 "type": "READ",
-                "desc": "Get all loan orders (both active and closed) for the user. Returns basic loan information: id, status, guarantee and loan amounts, symbols, and creation date. Use loan_get_order_details for complete information including LTV, APR, and liquidation price. Optional limit and offset for pagination.",
+                "desc": "Get all loan orders (both active and closed) for the user. If order_id is provided, returns complete details including LTV, APR, and liquidation price for that specific order. Without order_id, returns basic loan information: id, status, guarantee and loan amounts, symbols, and creation date. Optional limit and offset for pagination. [PRIVATE]",
                 "args": {
+                    "order_id": {
+                        "type": "string",
+                        "desc": "Filter by specific order UUID. If provided, returns complete details including LTV, APR, and liquidation price.",
+                        "required": false
+                    },
                     "limit": {
                         "type": "number",
-                        "desc": "Amount to show (default: 10)",
-                        "required": false
+                        "desc": "Number of records to return (default: 10)",
+                        "required": false,
+                        "default": 10
                     },
                     "offset": {
                         "type": "number",
                         "desc": "Offset for pagination (default: 0)",
-                        "required": false
+                        "required": false,
+                        "default": 0
                     }
                 },
                 "exampleArgs": {
@@ -4247,11 +4243,12 @@ const toolsData = [
                         "properties": {
                             "id": {
                                 "type": "string",
-                                "description": "Unique identifier"
+                                "description": "Unique identifier (UUID)",
+                                "format": "uuid"
                             },
                             "status": {
                                 "type": "string",
-                                "description": "Current order status",
+                                "description": "Loan status: active (loan is ongoing), completed (fully repaid), expired (loan term ended)",
                                 "enum": [
                                     "active",
                                     "completed",
@@ -4290,120 +4287,17 @@ const toolsData = [
                             "created_at"
                         ]
                     }
-                }
-            },
-            {
-                "name": "loan_get_order_details",
-                "type": "READ",
-                "desc": "Get detailed information of a specific loan order. Returns complete loan details including guarantee amount, loan amount, remaining amount, LTV, APR, liquidation price, status, creation date, expiration date, and APR details. Use loan_get_orders first to get the order ID.",
-                "args": {
-                    "order_id": {
-                        "type": "string",
-                        "desc": "Order ID",
-                        "required": false
-                    }
                 },
-                "exampleArgs": {
-                    "order_id": "order-uuid-1234-5678"
-                },
-                "response": {
-                    "request": {
-                        "order_id": "order-uuid-1234-5678"
-                    },
-                    "result": {
-                        "id": "fb930f0c-8e90-403a-95e4-112394183cf2",
-                        "status": "active",
-                        "guarantee_symbol": "BTC",
-                        "guarantee_amount": "1.000000000000000000",
-                        "loan_symbol": "EUR",
-                        "loan_amount": "52100.455127197287622924",
-                        "remaining_amount": "52100.455127197287622924",
-                        "ltv": "0.6863",
-                        "apr": "0.1700",
-                        "liquidation_price": "61258.249847058816304395",
-                        "created_at": "2025-07-27T16:23:59.876Z",
-                        "expires_at": "2025-07-30T16:23:59.872Z"
-                    }
-                },
-                "responseSchema": {
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "string",
-                            "description": "Unique identifier"
-                        },
-                        "status": {
-                            "type": "string",
-                            "description": "Order status. ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired)",
-                            "enum": [
-                                "open",
-                                "filled",
-                                "cancelled"
-                            ]
-                        },
-                        "guarantee_symbol": {
-                            "type": "string",
-                            "description": "Cryptocurrency symbol used as collateral (e.g., BTC, ETH)"
-                        },
-                        "guarantee_amount": {
-                            "type": "string",
-                            "description": "Amount of collateral deposited (as string for precision)"
-                        },
-                        "loan_symbol": {
-                            "type": "string",
-                            "description": "Currency symbol in which the loan is denominated (e.g., USDC, EUR)"
-                        },
-                        "loan_amount": {
-                            "type": "string",
-                            "description": "Principal loan amount (as string for precision)"
-                        },
-                        "remaining_amount": {
-                            "type": "string",
-                            "description": "Outstanding loan balance including interest"
-                        },
-                        "ltv": {
-                            "type": "string",
-                            "description": "Loan-to-Value ratio as string (1.0 = 100%)"
-                        },
-                        "apr": {
-                            "type": "string",
-                            "description": "Annual Percentage Rate as string"
-                        },
-                        "liquidation_price": {
-                            "type": "string",
-                            "description": "liquidation price"
-                        },
-                        "created_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource was created",
-                            "format": "date-time"
-                        },
-                        "expires_at": {
-                            "type": "string",
-                            "description": "ISO 8601 date/time when the resource expires",
-                            "format": "date-time"
-                        }
-                    },
-                    "required": [
-                        "id",
-                        "status",
-                        "guarantee_symbol",
-                        "guarantee_amount",
-                        "loan_symbol",
-                        "loan_amount",
-                        "remaining_amount",
-                        "ltv",
-                        "apr",
-                        "liquidation_price",
-                        "created_at",
-                        "expires_at"
-                    ]
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "read",
+                    "complexity": "low"
                 }
             },
             {
                 "name": "loan_create",
                 "type": "WRITE",
-                "desc": "Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Specify amount_type to determine calculation mode: 'fixed_collateral' (guarantee amount is fixed, loan amount is calculated) or 'fixed_loan' (loan amount is fixed, guarantee amount is calculated). This avoids mathematical errors where the model tries to guess the exact LTV manually. Returns loan order details with status.",
+                "desc": "Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Specify amount_type to determine calculation mode: 'fixed_collateral' (guarantee amount is fixed, loan amount is calculated) or 'fixed_loan' (loan amount is fixed, guarantee amount is calculated). This avoids mathematical errors where the model tries to guess the exact LTV manually. Returns loan order details with status. [PRIVATE]",
                 "args": {
                     "guarantee_symbol": {
                         "type": "string",
@@ -4437,7 +4331,8 @@ const toolsData = [
                     "user_symbol": {
                         "type": "string",
                         "desc": "User's fiat currency symbol for conversion (e.g., EUR, USD). Optional, defaults to EUR. Used internally for calculations.",
-                        "required": false
+                        "required": false,
+                        "default": "EUR"
                     }
                 },
                 "exampleArgs": {
@@ -4470,7 +4365,8 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID)",
+                            "format": "uuid"
                         },
                         "status": {
                             "type": "string",
@@ -4522,22 +4418,27 @@ const toolsData = [
                         "apr",
                         "created_at"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "high"
                 }
             },
             {
                 "name": "loan_increase_guarantee",
                 "type": "WRITE",
-                "desc": "Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID.",
+                "desc": "Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID. [PRIVATE]",
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Loan order ID",
-                        "required": false
+                        "desc": "Loan order UUID from loan_get_orders",
+                        "required": true
                     },
                     "guarantee_amount": {
                         "type": "string",
-                        "desc": "Additional guarantee amount",
-                        "required": false
+                        "desc": "Additional collateral amount to add (as string for decimal precision)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -4562,7 +4463,8 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID)",
+                            "format": "uuid"
                         },
                         "guarantee_amount": {
                             "type": "string",
@@ -4570,7 +4472,7 @@ const toolsData = [
                         },
                         "new_ltv": {
                             "type": "string",
-                            "description": "new ltv"
+                            "description": "New Loan-to-Value ratio after the operation (lower is safer)"
                         },
                         "updated_at": {
                             "type": "string",
@@ -4579,7 +4481,7 @@ const toolsData = [
                         },
                         "message": {
                             "type": "string",
-                            "description": "message"
+                            "description": "Human-readable status or confirmation message"
                         }
                     },
                     "required": [
@@ -4589,22 +4491,27 @@ const toolsData = [
                         "updated_at",
                         "message"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
                 }
             },
             {
                 "name": "loan_payback",
                 "type": "WRITE",
-                "desc": "Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders first to get the order ID, or loan_get_order_details to check current loan amount.",
+                "desc": "Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders to get the order ID, or loan_get_orders with order_id filter to check current loan amount and details. [PRIVATE]",
                 "args": {
                     "order_id": {
                         "type": "string",
-                        "desc": "Loan order ID",
-                        "required": false
+                        "desc": "Loan order UUID from loan_get_orders",
+                        "required": true
                     },
                     "payback_amount": {
                         "type": "string",
-                        "desc": "Amount to pay back",
-                        "required": false
+                        "desc": "Amount to repay (as string for decimal precision)",
+                        "required": true
                     }
                 },
                 "exampleArgs": {
@@ -4628,7 +4535,8 @@ const toolsData = [
                     "properties": {
                         "id": {
                             "type": "string",
-                            "description": "Unique identifier"
+                            "description": "Unique identifier (UUID)",
+                            "format": "uuid"
                         },
                         "remaining_amount": {
                             "type": "string",
@@ -4645,7 +4553,7 @@ const toolsData = [
                         },
                         "message": {
                             "type": "string",
-                            "description": "message"
+                            "description": "Human-readable status or confirmation message"
                         }
                     },
                     "required": [
@@ -4654,6 +4562,11 @@ const toolsData = [
                         "status",
                         "message"
                     ]
+                },
+                "attributes": {
+                    "requires_auth": true,
+                    "scope": "write",
+                    "complexity": "medium"
                 }
             }
         ]

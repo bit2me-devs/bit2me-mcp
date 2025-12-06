@@ -2,9 +2,9 @@
 
 Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP Bit2Me, incluyendo descripciones detalladas de cada campo y sus posibles valores.
 
-## Tool Count (52 total)
+## Tool Count (51 total)
 
-- 3 General Tools
+- 2 General Tools
 - 7 Broker (Simple Trading) Tools
 - 8 Wallet (Storage) Tools
 - 14 Pro (Advanced Trading) Tools
@@ -15,11 +15,11 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 ---
 
-## General Tools (3 tools)
+## General Tools (2 tools)
 
 > **Note:** General information tools including asset details, account information, and portfolio valuation.
 
-### get_assets_details
+### general_get_assets_config
 
 #### Response Fields
 
@@ -53,38 +53,6 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
         "tradeable": true,
         "loanable": true,
         "pro_trading_pairs": ["BTC-EUR"]
-    }
-}
-```
-
-### account_get_info
-
-#### Response Fields
-
-- **`user_id`** (string) **(required)**: User identifier who owns the wallet
-- **`email`** (string) **(required)**: email
-- **`level`** (string) **(required)**: level
-- **`kyc_status`** (string) **(required)**: kyc status
-- **`created_at`** (string) **(required)**: ISO 8601 date/time when the resource was created
-    - Format: `date-time`
-- **`features`** (object) **(required)**: features
-
-#### Example Response
-
-```json
-{
-    "request": {},
-    "result": {
-        "user_id": "ff8c6ea1-5783-4a86-beca-3b44e40e7d0b",
-        "email": "user@example.com",
-        "level": "verified",
-        "kyc_status": "approved",
-        "created_at": "2021-01-19T20:24:59.209Z",
-        "features": {
-            "trading": true,
-            "earn": true,
-            "loans": true
-        }
     }
 }
 ```
@@ -145,7 +113,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 
 > **Note:** Tools for simple trading operations and broker prices. Includes market data (prices, charts) and trading actions (buy, sell, swap) for the Wallet/Broker service. These prices include spread and are different from Pro Trading prices.
 
-### broker_get_price
+### broker_get_assets_price
 
 #### Response Fields
 
@@ -178,7 +146,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 }
 ```
 
-### broker_get_info
+### broker_get_asset_data
 
 #### Response Fields
 
@@ -215,7 +183,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 }
 ```
 
-### broker_get_chart
+### broker_get_asset_chart
 
 #### Response Fields
 
@@ -743,7 +711,7 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
 - Array of object
     - **`symbol`** (string) **(required)**: Asset symbol in uppercase (e.g., BTC, ETH, EUR)
     - **`balance`** (string) **(required)**: Current balance as string for precision
-    - **`blocked_balance`** (string) **(required)**: blocked balance
+    - **`blocked`** (string) **(required)**: blocked balance
     - **`available`** (string) **(required)**: Available balance as string for precision
 
 #### Example Response
@@ -755,13 +723,13 @@ _Nota: Las herramientas de operaciones (write actions) están incluidas en sus r
         {
             "symbol": "BTC",
             "balance": "0.00689471",
-            "blocked_balance": "0.00011102",
+            "blocked": "0.00011102",
             "available": "0.00689471"
         },
         {
             "symbol": "EUR",
             "balance": "27812.0234142",
-            "blocked_balance": "0",
+            "blocked": "0",
             "available": "27812.0234142"
         }
     ],

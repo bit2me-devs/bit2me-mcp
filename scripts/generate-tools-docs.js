@@ -54,7 +54,8 @@ function generateLandingToolsData(metadata, version) {
                 args: convertInputSchemaToArgs(tool.inputSchema),
                 exampleArgs: tool.exampleArgs,
                 response: tool.exampleResponse,
-                responseSchema: tool.responseSchema // Include response schema for field descriptions
+                responseSchema: tool.responseSchema, // Include response schema for field descriptions
+                attributes: tool.attributes || { requires_auth: false } // Include attributes for auth visibility
             };
             
             return toolData;
@@ -174,7 +175,8 @@ Este documento muestra la estructura JSON exacta que devuelve cada tool del MCP 
         }
 
         for (const tool of cat.tools) {
-            content += `### ${tool.name}\n\n`;
+            const authBadge = tool.attributes?.requires_auth ? '🔒 **PRIVATE**' : '🌐 **PUBLIC**';
+            content += `### ${tool.name} ${authBadge}\n\n`;
             
             // Add response schema documentation if available
             if (tool.responseSchema) {
