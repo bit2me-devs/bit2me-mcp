@@ -642,25 +642,28 @@ export interface EarnPositionRewardsSummaryResponse {
 // ADDITIONAL LOAN TOOL RESPONSES
 // ============================================================================
 
+/**
+ * Nested amount object for loan movements
+ */
+export interface LoanMovementAmount {
+    amount: string;
+    symbol: string;
+    amount_fiat: string;
+}
+
 export interface LoanMovementResponse {
     id: string;
     order_id: string;
-    type: string; // approve, repay, liquidate, interest, etc.
+    type: "approve" | "repay" | "liquidate" | "interest";
     status: "pending" | "completed" | "failed";
-    // Loan details
-    loan_amount: string;
-    loan_symbol: string;
-    loan_amount_fiat: string;
-    // Guarantee details
-    guarantee_amount: string;
-    guarantee_symbol: string;
-    guarantee_amount_fiat: string;
-    // LTV tracking
+    // Nested objects for cleaner structure
+    loan: LoanMovementAmount;
+    guarantee: LoanMovementAmount;
+    // LTV tracking (as decimal, e.g., "0.50" = 50%)
     ltv: string;
     previous_ltv: string;
-    // Dates
+    // Date
     created_at: string;
-    updated_at: string;
 }
 
 export interface LoanOrderDetailsResponse {

@@ -922,6 +922,22 @@ export function mapLoanOrdersResponse(raw: unknown): LoanOrderResponse[] {
 }
 
 /**
+ * Formats a value to exactly 2 decimal places for fiat amounts
+ */
+function formatFiat(value: string | number | undefined): string {
+    const num = parseFloat(String(value || "0"));
+    return isNaN(num) ? "0.00" : num.toFixed(2);
+}
+
+/**
+ * Formats LTV to 2 decimal places (e.g., "0.50" for 50%)
+ */
+function formatLtv(value: string | number | undefined): string {
+    const num = parseFloat(String(value || "0"));
+    return isNaN(num) ? "0.00" : num.toFixed(2);
+}
+
+/**
  * Maps raw loan movements response to optimized schema
  * Handles the actual API structure with payload containing loan/guarantee amounts
  */
@@ -944,22 +960,25 @@ export function mapLoanMovementsResponse(raw: unknown): LoanMovementResponse[] {
         return {
             id: tx.movementId || tx.id || "",
             order_id: tx.orderId || "",
-            type: tx.type || "unknown", // approve, repay, liquidate, interest, etc.
+            type: (tx.type || "approve") as "approve" | "repay" | "liquidate" | "interest",
             status: normalizeMovementStatus(tx.status),
-            // Loan details
-            loan_amount: String(loanAmount.value || "0"),
-            loan_symbol: (loanAmount.currency || "").toUpperCase(),
-            loan_amount_fiat: smartRound(parseFloat(loanAmount.converted || "0")).toString(),
-            // Guarantee details
-            guarantee_amount: String(guaranteeAmount.value || "0"),
-            guarantee_symbol: (guaranteeAmount.currency || "").toUpperCase(),
-            guarantee_amount_fiat: smartRound(parseFloat(guaranteeAmount.converted || "0")).toString(),
-            // LTV tracking
-            ltv: String(tx.ltv || "0"),
-            previous_ltv: String(tx.previousLtv || "0"),
-            // Dates
+            // Nested loan object
+            loan: {
+                amount: String(loanAmount.value || "0"),
+                symbol: (loanAmount.currency || "").toUpperCase(),
+                amount_fiat: formatFiat(loanAmount.converted),
+            },
+            // Nested guarantee object
+            guarantee: {
+                amount: String(guaranteeAmount.value || "0"),
+                symbol: (guaranteeAmount.currency || "").toUpperCase(),
+                amount_fiat: formatFiat(guaranteeAmount.converted),
+            },
+            // LTV tracking - Check both payload (real API) and tx level (legacy)
+            ltv: formatLtv(payload.ltv || tx.ltv),
+            previous_ltv: formatLtv(payload.previousLtv || tx.previousLtv),
+            // Date
             created_at: tx.createdAt || "",
-            updated_at: tx.updatedAt || "",
         };
     });
 }

@@ -839,7 +839,7 @@ describe("Response Mappers", () => {
         it("should map loan movements response with full payload", () => {
             expect(mapLoanMovementsResponse(null)).toEqual([]);
 
-            // Test with real API structure
+            // Test with real API structure (LTV in payload as per actual API response)
             const valid = {
                 data: [
                     {
@@ -859,9 +859,9 @@ describe("Response Mappers", () => {
                                 converted: "101499.899999",
                                 currency: "BTC",
                             },
+                            ltv: "0.5000",
+                            previousLtv: "0.5000",
                         },
-                        ltv: "0.5000",
-                        previousLtv: "0.5000",
                         status: "completed",
                     },
                 ],
@@ -874,16 +874,19 @@ describe("Response Mappers", () => {
                     order_id: "fb930f0c-8e90-403a-95e4-112394183cf2",
                     type: "approve",
                     status: "completed",
-                    loan_amount: "50750.0",
-                    loan_symbol: "EURR",
-                    loan_amount_fiat: "50749.95",
-                    guarantee_amount: "1.0",
-                    guarantee_symbol: "BTC",
-                    guarantee_amount_fiat: "101499.9",
-                    ltv: "0.5000",
-                    previous_ltv: "0.5000",
+                    loan: {
+                        amount: "50750.0",
+                        symbol: "EURR",
+                        amount_fiat: "50749.95",
+                    },
+                    guarantee: {
+                        amount: "1.0",
+                        symbol: "BTC",
+                        amount_fiat: "101499.90",
+                    },
+                    ltv: "0.50",
+                    previous_ltv: "0.50",
                     created_at: "2025-07-27T16:24:00.118Z",
-                    updated_at: "2025-07-27T16:24:00.118Z",
                 },
             ]);
         });
