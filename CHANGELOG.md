@@ -1,3 +1,9 @@
+## [3.0.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.1...v3.0.2) (2025-12-06)
+
+### Bug Fixes
+
+- remove unused imports (CodeQL alert [#84](https://github.com/bit2me-devs/bit2me-mcp/issues/84)) ([274a34b](https://github.com/bit2me-devs/bit2me-mcp/commit/274a34b9c36102a581494ed30ae42d50432361b4))
+
 ## [3.0.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.0...v3.0.1) (2025-12-06)
 
 ### Bug Fixes
