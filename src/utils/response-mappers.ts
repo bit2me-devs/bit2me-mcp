@@ -146,13 +146,18 @@ export function mapTickerResponse(raw: unknown, base_symbol: string, quote_symbo
     const { date } = formatTimestamp(timeValue);
     const priceValue = typeof validated.price === "string" ? parseFloat(validated.price) : validated.price;
 
+    const marketCapValue =
+        typeof validated.marketCap === "string" ? parseFloat(validated.marketCap) : validated.marketCap;
+    const volumeValue =
+        typeof validated.totalVolume === "string" ? parseFloat(validated.totalVolume) : validated.totalVolume;
+
     return {
         base_symbol,
         quote_symbol,
         date,
         price: smartRound(priceValue).toString(),
-        market_cap: validated.marketCap?.toString() || "0",
-        volume_24h: validated.totalVolume?.toString() || "0",
+        market_cap: marketCapValue ? smartRound(marketCapValue).toString() : "0",
+        volume_24h: volumeValue ? smartRound(volumeValue).toString() : "0",
         max_supply: validated.maxSupply?.toString(),
         total_supply: validated.totalSupply?.toString(),
     };

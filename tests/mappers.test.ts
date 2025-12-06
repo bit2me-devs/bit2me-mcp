@@ -43,11 +43,11 @@ describe("Response Mappers", () => {
         it("should map ticker response with correct field transformations", () => {
             const valid = {
                 time: 123,
-                price: "100",
-                marketCap: "1M",
-                totalVolume: "10k",
-                maxSupply: "21M",
-                totalSupply: "19M",
+                price: "100.5678",
+                marketCap: "1500000000.867",
+                totalVolume: "43000000.902",
+                maxSupply: "21000000",
+                totalSupply: "19000000",
             };
             const result = mapTickerResponse(valid, "BTC", "EUR");
 
@@ -56,14 +56,14 @@ describe("Response Mappers", () => {
                 base_symbol: "BTC",
                 quote_symbol: "EUR",
                 date: expect.any(String),
-                price: "100",
+                price: "100.57", // smartRound to 2 decimals
                 market_cap: expect.any(String),
                 volume_24h: expect.any(String),
             });
 
-            // Verify specific transformations
-            expect(result.market_cap).toBe("1M");
-            expect(result.volume_24h).toBe("10k");
+            // Verify fiat values are rounded to 2 decimals
+            expect(result.market_cap).toBe("1500000000.87");
+            expect(result.volume_24h).toBe("43000000.9");
             expect(result.date).toBe(new Date(123).toISOString());
         });
 
