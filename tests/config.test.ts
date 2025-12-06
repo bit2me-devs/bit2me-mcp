@@ -10,6 +10,7 @@ const mockEnv = (env: Record<string, string>) => {
 const clearEnv = () => {
     delete process.env.BIT2ME_API_KEY;
     delete process.env.BIT2ME_API_SECRET;
+    delete process.env.BIT2ME_GATEWAY_URL;
     delete process.env.BIT2ME_REQUEST_TIMEOUT;
     delete process.env.BIT2ME_LOG_LEVEL;
     delete process.env.BIT2ME_MAX_RETRIES;
@@ -147,10 +148,10 @@ describe("Config - Validation and Defaults", () => {
 
         expect(config1).toBe(config2); // Same reference
 
-        // Should only log "Credentials validated successfully" once
+        // Should only log "Configuration validated successfully" once
         const validationLogs = vi
             .mocked(logger.debug)
-            .mock.calls.filter((call: any) => call[0] === "Credentials validated successfully");
+            .mock.calls.filter((call: any) => call[0] === "Configuration validated successfully");
         expect(validationLogs.length).toBe(1);
     });
 
@@ -196,5 +197,61 @@ describe("Config - Validation and Defaults", () => {
         expect(config.BIT2ME_API_KEY).toBe("test-key");
         expect(config.REQUEST_TIMEOUT).toBe(30000);
         expect(config.LOG_LEVEL).toBe("info");
+    });
+
+    it("should use default gateway URL when not specified", async () => {
+        mockEnv({
+            BIT2ME_API_KEY: "test-key",
+            BIT2ME_API_SECRET: "test-secret",
+        });
+
+        const { getConfig, getGatewayUrl } = await import("../src/config.js");
+        const config = getConfig();
+
+        expect(config.GATEWAY_URL).toBe("https://gateway.bit2me.com");
+        expect(getGatewayUrl()).toBe("https://gateway.bit2me.com");
+    });
+
+    it("should use custom gateway URL when specified", async () => {
+        mockEnv({
+            BIT2ME_API_KEY: "test-key",
+            BIT2ME_API_SECRET: "test-secret",
+            BIT2ME_GATEWAY_URL: "https://qa-gateway.bit2me.com",
+        });
+
+        const { getConfig, getGatewayUrl } = await import("../src/config.js");
+        const config = getConfig();
+
+        expect(config.GATEWAY_URL).toBe("https://qa-gateway.bit2me.com");
+        expect(getGatewayUrl()).toBe("https://qa-gateway.bit2me.com");
+    });
+
+    it("should remove trailing slash from gateway URL", async () => {
+        mockEnv({
+            BIT2ME_API_KEY: "test-key",
+            BIT2ME_API_SECRET: "test-secret",
+            BIT2ME_GATEWAY_URL: "https://qa-gateway.bit2me.com/",
+        });
+
+        const { getConfig } = await import("../src/config.js");
+        const config = getConfig();
+
+        expect(config.GATEWAY_URL).toBe("https://qa-gateway.bit2me.com");
+    });
+
+    it("should log info when using custom gateway", async () => {
+        mockEnv({
+            BIT2ME_API_KEY: "test-key",
+            BIT2ME_API_SECRET: "test-secret",
+            BIT2ME_GATEWAY_URL: "https://staging.bit2me.com",
+        });
+
+        vi.resetModules();
+        const { logger } = await import("../src/utils/logger.js");
+        const { getConfig } = await import("../src/config.js");
+
+        getConfig();
+
+        expect(logger.info).toHaveBeenCalledWith("Using custom gateway: https://staging.bit2me.com");
     });
 });

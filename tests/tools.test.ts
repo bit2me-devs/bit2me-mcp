@@ -32,8 +32,10 @@ vi.mock("../src/config.js", () => ({
         MAX_RETRIES: 3,
         RETRY_BASE_DELAY: 1000,
         LOG_LEVEL: "info",
+        GATEWAY_URL: "https://gateway.bit2me.com",
     })),
     BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
+    getGatewayUrl: () => "https://gateway.bit2me.com",
 }));
 
 describe("Tools - Asset Management", () => {

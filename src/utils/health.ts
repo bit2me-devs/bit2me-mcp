@@ -3,7 +3,7 @@
  */
 
 import { logger } from "./logger.js";
-import { BIT2ME_GATEWAY_URL } from "../config.js";
+import { getGatewayUrl } from "../config.js";
 import { apiCircuitBreaker, CircuitState } from "./circuit-breaker.js";
 import { bit2meRequest } from "../services/bit2me.js";
 import { getCorrelationId } from "./context.js";
@@ -93,7 +93,7 @@ export async function performHealthCheck(): Promise<HealthStatus> {
 async function checkBit2MePlatform(): Promise<{ status: "online" | "offline"; responseTime: number }> {
     const startTime = Date.now();
     try {
-        const response = await axios.get(`${BIT2ME_GATEWAY_URL}/alive`, {
+        const response = await axios.get(`${getGatewayUrl()}/alive`, {
             timeout: 5000,
             validateStatus: () => true,
         });

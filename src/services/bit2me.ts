@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import crypto from "crypto";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
-import { config, BIT2ME_GATEWAY_URL, getConfig } from "../config.js";
+import { config, getGatewayUrl, getConfig } from "../config.js";
 import { logger } from "../utils/logger.js";
 import {
     Bit2MeAPIError,
@@ -12,7 +12,8 @@ import {
 } from "../utils/errors.js";
 import { MAX_BACKOFF_DELAY, BACKOFF_JITTER_MS } from "../constants.js";
 
-const BIT2ME_BASE_URL = BIT2ME_GATEWAY_URL;
+// Gateway URL is resolved lazily to support runtime configuration
+const getBaseUrl = () => getGatewayUrl();
 
 // ============================================================================
 // AUTHENTICATION
@@ -134,10 +135,10 @@ export async function bit2meRequest<T = any>(
 
         // We tell Axios to use the full URL we just built.
         // We do NOT use requestConfig.params to avoid Axios re-encoding differently than us.
-        requestConfig.url = `${BIT2ME_BASE_URL}${urlToSign}`;
+        requestConfig.url = `${getBaseUrl()}${urlToSign}`;
     } else if ((method === "POST" || method === "DELETE") && params) {
         // POST/DELETE CASE: Params go in the body
-        requestConfig.url = `${BIT2ME_BASE_URL}${endpoint}`;
+        requestConfig.url = `${getBaseUrl()}${endpoint}`;
 
         // Stringify to ensure consistency in signature and sending
         const jsonBody = JSON.stringify(params);
@@ -148,7 +149,7 @@ export async function bit2meRequest<T = any>(
         // Ensure that if you pass 'params' (object), generateSignature stringifies it exactly as here.
     } else {
         // CASE WITHOUT PARAMETERS
-        requestConfig.url = `${BIT2ME_BASE_URL}${endpoint}`;
+        requestConfig.url = `${getBaseUrl()}${endpoint}`;
     }
 
     // 3. GENERATE SIGNATURE

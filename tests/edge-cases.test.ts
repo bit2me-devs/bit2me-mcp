@@ -14,6 +14,7 @@ vi.mock("../src/config.js", () => {
         MAX_RETRIES: 3,
         RETRY_BASE_DELAY: 1000,
         INCLUDE_RAW_RESPONSE: false,
+        GATEWAY_URL: "https://gateway.bit2me.com",
     };
     return {
         config: new Proxy(
@@ -23,6 +24,7 @@ vi.mock("../src/config.js", () => {
             }
         ),
         BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
+        getGatewayUrl: () => "https://gateway.bit2me.com",
         getConfig: () => mockConfig,
     };
 });

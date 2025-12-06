@@ -2,9 +2,12 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { logger } from "./utils/logger.js";
 
+const DEFAULT_GATEWAY_URL = "https://gateway.bit2me.com";
+
 const envSchema = z.object({
     BIT2ME_API_KEY: z.string().min(1, "BIT2ME_API_KEY is required"),
     BIT2ME_API_SECRET: z.string().min(1, "BIT2ME_API_SECRET is required"),
+    BIT2ME_GATEWAY_URL: z.string().url().optional().default(DEFAULT_GATEWAY_URL),
     BIT2ME_REQUEST_TIMEOUT: z.string().optional().default("30000"),
     BIT2ME_LOG_LEVEL: z.string().optional().default("info"),
     BIT2ME_MAX_RETRIES: z.string().optional().default("3"),
@@ -13,6 +16,7 @@ const envSchema = z.object({
 });
 
 export type Config = z.infer<typeof envSchema> & {
+    GATEWAY_URL: string;
     REQUEST_TIMEOUT: number;
     LOG_LEVEL: string;
     MAX_RETRIES: number;
@@ -48,8 +52,11 @@ export function getConfig(): Config {
         const parsed = envSchema.parse(process.env);
 
         // Parse numeric values with defaults
+        const gatewayUrl = (parsed.BIT2ME_GATEWAY_URL || DEFAULT_GATEWAY_URL).replace(/\/$/, ""); // Remove trailing slash
+
         cachedConfig = {
             ...parsed,
+            GATEWAY_URL: gatewayUrl,
             REQUEST_TIMEOUT: parseInt(parsed.BIT2ME_REQUEST_TIMEOUT || "30000", 10),
             LOG_LEVEL: parsed.BIT2ME_LOG_LEVEL || "info",
             MAX_RETRIES: parseInt(parsed.BIT2ME_MAX_RETRIES || "3", 10),
@@ -57,7 +64,14 @@ export function getConfig(): Config {
             INCLUDE_RAW_RESPONSE: parsed.BIT2ME_INCLUDE_RAW_RESPONSE === "true",
         };
 
-        logger.debug("Credentials validated successfully", {
+        // Log gateway URL only if custom (for QA/staging awareness)
+        const isCustomGateway = gatewayUrl !== DEFAULT_GATEWAY_URL;
+        if (isCustomGateway) {
+            logger.info(`Using custom gateway: ${gatewayUrl}`);
+        }
+
+        logger.debug("Configuration validated successfully", {
+            gateway: gatewayUrl,
             timeout: cachedConfig.REQUEST_TIMEOUT,
             maxRetries: cachedConfig.MAX_RETRIES,
             logLevel: cachedConfig.LOG_LEVEL,
@@ -82,4 +96,17 @@ export const config = new Proxy({} as Config, {
     },
 });
 
-export const BIT2ME_GATEWAY_URL = "https://gateway.bit2me.com";
+/**
+ * Get the Bit2Me Gateway URL (configurable via BIT2ME_GATEWAY_URL env var)
+ * Default: https://gateway.bit2me.com
+ *
+ * @example
+ * // In .env or environment:
+ * BIT2ME_GATEWAY_URL=https://qa-gateway.bit2me.com
+ */
+export function getGatewayUrl(): string {
+    return getConfig().GATEWAY_URL;
+}
+
+// Backward compatibility - lazy evaluation via getter
+export const BIT2ME_GATEWAY_URL = DEFAULT_GATEWAY_URL;
