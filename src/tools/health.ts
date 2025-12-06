@@ -11,7 +11,7 @@ export const healthTools: Tool[] = [
     {
         name: "server_health_check",
         description:
-            "Check the health status of the MCP server. Returns server status, API connectivity, circuit breaker state, cache statistics, and metrics summary. Useful for monitoring and debugging.",
+            "Check the system health. Returns global status (online/degraded/offline), Bit2Me server reachability, and MCP server status.",
         inputSchema: {
             type: "object",
             properties: {},

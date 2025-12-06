@@ -259,20 +259,37 @@ describe("Response Mappers", () => {
                     volume: "10",
                 },
             ]);
-            // Test volume as number (should be converted to string)
+            // Test volume as number (passed through as-is)
             const numericVolume = [{ timestamp: 123, open: 100, high: 110, low: 90, close: 105, volume: 10.5 }];
             const numericResult = mapCandlesResponse(numericVolume);
-            expect(numericResult[0].volume).toBeTypeOf("string");
-            expect(numericResult[0].volume).toBe("10.5");
+            expect(numericResult[0].volume).toBe(10.5);
         });
     });
 
     describe("Wallet Mappers", () => {
         it("should validate wallet pockets response", () => {
             expect(() => mapWalletPocketsResponse({})).toThrow(ValidationError);
-            const valid = [{ id: "1", currency: "EUR", balance: "100", available: "100", name: "Main" }];
+            const valid = [
+                {
+                    id: "1",
+                    currency: "EUR",
+                    balance: "100",
+                    available: "100",
+                    blocked: "0",
+                    name: "Main",
+                    createdAt: "2021-01-19T20:24:59.209Z",
+                },
+            ];
             expect(mapWalletPocketsResponse(valid)).toEqual([
-                { id: "1", symbol: "EUR", balance: "100", available: "100", name: "Main" },
+                {
+                    id: "1",
+                    symbol: "EUR",
+                    balance: "100",
+                    available: "100",
+                    blocked: "0",
+                    name: "Main",
+                    created_at: "2021-01-19T20:24:59.209Z",
+                },
             ]);
         });
 
@@ -614,9 +631,11 @@ describe("Response Mappers", () => {
         });
 
         it("should map earn assets response", () => {
-            expect(mapEarnAssetsResponse(null)).toEqual({ symbols: [] });
+            expect(mapEarnAssetsResponse(null)).toEqual({ assets: [] });
             const valid = { assets: ["BTC", "ETH"] };
-            expect(mapEarnAssetsResponse(valid)).toEqual({ symbols: ["BTC", "ETH"] });
+            expect(mapEarnAssetsResponse(valid)).toEqual({
+                assets: [{ symbol: "BTC" }, { symbol: "ETH" }],
+            });
         });
 
         it("should map earn rewards config response", () => {
@@ -921,14 +940,14 @@ describe("Response Mappers", () => {
                 { currency: "EUR", balance: 100, blockedBalance: 10 },
                 { currency: "BTC", balance: 0, blockedBalance: 0 },
             ];
-            expect(mapProBalanceResponse(valid)).toEqual([
-                {
-                    symbol: "EUR",
-                    balance: "100",
-                    blocked_balance: "10",
-                    available: "90",
-                },
-            ]);
+            const result = mapProBalanceResponse(valid);
+            expect(result).toHaveLength(1);
+            expect(result[0]).toMatchObject({
+                symbol: "EUR",
+                balance: "100",
+                blocked: "10",
+                available: "90",
+            });
         });
 
         it("should map pro order response", () => {

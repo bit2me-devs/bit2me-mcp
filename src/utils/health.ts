@@ -3,48 +3,30 @@
  */
 
 import { logger } from "./logger.js";
-import { getConfig } from "../config.js";
+import { getConfig, BIT2ME_GATEWAY_URL } from "../config.js";
 import { apiCircuitBreaker, CircuitState } from "./circuit-breaker.js";
-import { metricsCollector } from "./metrics.js";
-import { cache } from "./cache.js";
 import { bit2meRequest } from "../services/bit2me.js";
 import { getCorrelationId } from "./context.js";
+import axios from "axios";
+
+export type ServiceStatus = "online" | "degraded" | "offline";
 
 export interface HealthStatus {
-    status: "healthy" | "degraded" | "unhealthy";
+    status: ServiceStatus;
     timestamp: string;
     version: string;
-    uptime: number;
-    checks: {
-        api: ApiHealthCheck;
-        circuitBreaker: CircuitBreakerHealthCheck;
-        cache: CacheHealthCheck;
-        metrics: MetricsHealthCheck;
+    uptime_seconds: number;
+    components: {
+        bit2me_server: {
+            status: "online" | "offline";
+            response_time_ms: number;
+        };
+        mcp_server: {
+            status: "online" | "offline";
+            response_time_ms?: number;
+            details?: string;
+        };
     };
-}
-
-export interface ApiHealthCheck {
-    status: "ok" | "error";
-    responseTime?: number;
-    error?: string;
-}
-
-export interface CircuitBreakerHealthCheck {
-    status: "closed" | "open" | "half_open";
-    state: CircuitState;
-    failureCount: number;
-    lastFailureTime?: number;
-}
-
-export interface CacheHealthCheck {
-    status: "ok";
-    entries: number;
-    stats: ReturnType<typeof cache.getStats>;
-}
-
-export interface MetricsHealthCheck {
-    status: "ok";
-    summary: ReturnType<typeof metricsCollector.getSummary>;
 }
 
 const startTime = Date.now();
@@ -57,116 +39,116 @@ export async function performHealthCheck(): Promise<HealthStatus> {
     const correlationId = getCorrelationId();
     logger.debug("Performing health check", { correlationId });
 
-    // Check API connectivity
-    const apiCheck = await checkApiHealth();
+    // 1. Check Bit2Me Server (Public Liveness)
+    const platformCheck = await checkBit2MePlatform();
 
-    // Check circuit breaker
-    const circuitBreakerCheck = checkCircuitBreakerHealth();
+    // 2. Check MCP Server (Authenticated API + Circuit Breaker)
+    const integrationCheck = await checkMcpIntegration();
 
-    // Check cache
-    const cacheCheck = checkCacheHealth();
+    // 3. Determine Global Status
+    // "online" if both are online
+    // "degraded" if only one is online
+    // "offline" if both are offline
+    let globalStatus: ServiceStatus = "offline";
 
-    // Check metrics
-    const metricsCheck = checkMetricsHealth();
-
-    // Determine overall status
-    let overallStatus: "healthy" | "degraded" | "unhealthy" = "healthy";
-    if (apiCheck.status === "error" || circuitBreakerCheck.status === "open") {
-        overallStatus = "unhealthy";
-    } else if (circuitBreakerCheck.status === "half_open") {
-        overallStatus = "degraded";
+    if (platformCheck.status === "online" && integrationCheck.status === "online") {
+        globalStatus = "online";
+    } else if (platformCheck.status === "online" || integrationCheck.status === "online") {
+        globalStatus = "degraded";
+    } else {
+        globalStatus = "offline";
     }
 
     const health: HealthStatus = {
-        status: overallStatus,
+        status: globalStatus,
         timestamp: new Date().toISOString(),
         version: process.env.npm_package_version || "unknown",
-        uptime: Date.now() - startTime,
-        checks: {
-            api: apiCheck,
-            circuitBreaker: circuitBreakerCheck,
-            cache: cacheCheck,
-            metrics: metricsCheck,
+        uptime_seconds: Math.floor((Date.now() - startTime) / 1000),
+        components: {
+            bit2me_server: {
+                status: platformCheck.status,
+                response_time_ms: platformCheck.responseTime,
+            },
+            mcp_server: {
+                status: integrationCheck.status,
+                response_time_ms: integrationCheck.responseTime,
+                details: integrationCheck.error,
+            },
         },
     };
 
     logger.info("Health check completed", {
         correlationId,
-        status: overallStatus,
-        apiStatus: apiCheck.status,
-        circuitBreakerStatus: circuitBreakerCheck.status,
+        status: globalStatus,
+        platform: platformCheck.status,
+        integration: integrationCheck.status,
     });
 
     return health;
 }
 
 /**
- * Check API health by making a lightweight request
+ * Check Bit2Me Platform Liveness (Public /alive)
  */
-async function checkApiHealth(): Promise<ApiHealthCheck> {
+async function checkBit2MePlatform(): Promise<{ status: "online" | "offline"; responseTime: number }> {
     const startTime = Date.now();
     try {
-        // Try a lightweight endpoint (account info is usually fast)
-        await bit2meRequest("GET", "/v1/account", undefined, 0, 5000); // 5 second timeout for health check
-        const responseTime = Date.now() - startTime;
-        return {
-            status: "ok",
-            responseTime,
-        };
-    } catch (error: any) {
-        const responseTime = Date.now() - startTime;
-        logger.warn("API health check failed", {
-            correlationId: getCorrelationId(),
-            error: error.message,
-            responseTime,
+        const response = await axios.get(`${BIT2ME_GATEWAY_URL}/alive`, {
+            timeout: 5000,
+            validateStatus: () => true,
         });
+
+        const responseTime = Date.now() - startTime;
+
+        if (response.status === 200) {
+            return { status: "online", responseTime };
+        }
+
+        return { status: "offline", responseTime };
+    } catch (error) {
         return {
-            status: "error",
-            responseTime,
-            error: error.message,
+            status: "offline",
+            responseTime: Date.now() - startTime,
         };
     }
 }
 
 /**
- * Check circuit breaker health
+ * Check MCP Integration (Authenticated /account + Circuit Breaker)
  */
-function checkCircuitBreakerHealth(): CircuitBreakerHealthCheck {
-    const stats = apiCircuitBreaker.getStats();
-    return {
-        status:
-            stats.state === CircuitState.CLOSED
-                ? "closed"
-                : stats.state === CircuitState.HALF_OPEN
-                  ? "half_open"
-                  : "open",
-        state: stats.state,
-        failureCount: stats.failureCount,
-        lastFailureTime: stats.lastFailureTime > 0 ? stats.lastFailureTime : undefined,
-    };
-}
+async function checkMcpIntegration(): Promise<{ status: "online" | "offline"; responseTime?: number; error?: string }> {
+    // Check Circuit Breaker first
+    const cbState = apiCircuitBreaker.getState();
+    if (cbState === CircuitState.OPEN) {
+        return {
+            status: "offline",
+            error: "Integration suspended for safety (Circuit Breaker Open)",
+        };
+    }
 
-/**
- * Check cache health
- */
-function checkCacheHealth(): CacheHealthCheck {
-    const stats = cache.getStats();
-    return {
-        status: "ok",
-        entries: stats.totalEntries,
-        stats,
-    };
-}
+    const startTime = Date.now();
+    try {
+        // Try a lightweight authenticated endpoint
+        await bit2meRequest("GET", "/v1/account", undefined, 0, 5000);
+        const responseTime = Date.now() - startTime;
 
-/**
- * Check metrics health
- */
-function checkMetricsHealth(): MetricsHealthCheck {
-    const summary = metricsCollector.getSummary();
-    return {
-        status: "ok",
-        summary,
-    };
+        return {
+            status: "online",
+            responseTime,
+        };
+    } catch (error: any) {
+        const responseTime = Date.now() - startTime;
+        logger.warn("Integration health check failed", {
+            correlationId: getCorrelationId(),
+            error: error.message,
+            responseTime,
+        });
+        return {
+            status: "offline",
+            responseTime,
+            error: error.message,
+        };
+    }
 }
 
 /**
@@ -185,7 +167,7 @@ export async function getSimpleHealthStatus(): Promise<{ status: string; timesta
             error: error.message,
         });
         return {
-            status: "unhealthy",
+            status: "offline",
             timestamp: new Date().toISOString(),
         };
     }

@@ -151,12 +151,12 @@ export async function handleAggregationTool(name: string, args: any) {
             };
             const result = {
                 quote_symbol: quote_symbol,
-                total_value: smartRound(totalVal).toString(),
+                total_balance: smartRound(totalVal).toString(),
                 by_service: {
-                    wallet: smartRound(walletTotal).toString(),
-                    pro: smartRound(proTotal).toString(),
-                    earn: smartRound(earnTotal).toString(),
-                    loan_guarantees: smartRound(loanGuaranteeTotal).toString(),
+                    wallet_balance: smartRound(walletTotal).toString(),
+                    pro_balance: smartRound(proTotal).toString(),
+                    earn_balance: smartRound(earnTotal).toString(),
+                    loan_guarantees_balance: smartRound(loanGuaranteeTotal).toString(),
                 },
                 details: breakdown.map((item) => ({
                     symbol: item.symbol,

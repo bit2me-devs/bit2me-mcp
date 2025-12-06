@@ -96,6 +96,20 @@ export interface MarketOrderBookResponse {
     date: string;
 }
 
+export interface ProTickerResponse {
+    symbol: string;
+    open: string;
+    close: string;
+    bid: string;
+    ask: string;
+    high: string;
+    low: string;
+    baseVolume: string;
+    percentage: string;
+    quoteVolume: string;
+    date: string;
+}
+
 export interface PublicTradeResponse {
     id: string;
     pair: string;
@@ -141,7 +155,7 @@ export interface WalletPocketResponse {
 
 export interface WalletMovementResponse {
     id: string;
-    date: string;
+    created_at: string;
     type: string;
     subtype?: string;
     status: "pending" | "completed" | "failed";
@@ -219,6 +233,7 @@ export interface EarnPositionResponse {
     converted_balance?: {
         value: string;
         symbol: string;
+        created_at?: string;
     };
     created_at?: string;
     updated_at?: string;
@@ -363,7 +378,7 @@ export interface LoanConfigResponse {
 export interface ProBalanceResponse {
     symbol: string;
     balance: string;
-    blocked_balance: string;
+    blocked: string;
     available: string;
 }
 
@@ -425,7 +440,7 @@ export interface PortfolioAssetDetail {
 
 export interface PortfolioValuationResponse {
     quote_symbol: string;
-    total_value: string;
+    total_balance: string;
     details: PortfolioAssetDetail[];
 }
 
@@ -479,7 +494,7 @@ export interface WalletAddressDetailsResponse {
 
 export interface WalletMovementDetailsResponse {
     id: string;
-    date: string;
+    created_at: string;
     type: "deposit" | "withdrawal" | "swap" | "purchase" | "transfer" | "fee" | "other";
     subtype?: string;
     status: "pending" | "completed" | "failed";
@@ -519,6 +534,7 @@ export interface EarnPositionDetailsResponse {
     converted_balance?: {
         value: string;
         symbol: string;
+        created_at?: string;
     };
     created_at?: string;
     updated_at?: string;
@@ -535,8 +551,17 @@ export interface EarnMovementsSummaryResponse {
     symbol: string;
 }
 
+export interface EarnAssetWithAPY {
+    symbol: string;
+    apy?: {
+        daily_yield_ratio: string;
+        weekly_yield_ratio: string;
+        monthly_yield_ratio: string;
+    };
+}
+
 export interface EarnAssetsResponse {
-    symbols: string[];
+    assets: EarnAssetWithAPY[];
 }
 
 export interface EarnRewardsConfigResponse {

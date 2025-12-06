@@ -48,11 +48,11 @@ vi.mock("../src/utils/logger.js", () => ({
 
 // Mock all tool modules
 vi.mock("../src/tools/general.js", () => ({
-    generalTools: [{ name: "get_assets_details" }, { name: "account_get_info" }, { name: "portfolio_get_valuation" }],
+    generalTools: [{ name: "general_get_assets_config" }, { name: "portfolio_get_valuation" }],
     handleGeneralTool: vi.fn(),
 }));
 vi.mock("../src/tools/broker.js", () => ({
-    brokerTools: [{ name: "broker_get_price" }, { name: "broker_get_info" }],
+    brokerTools: [{ name: "broker_get_asset_price" }, { name: "broker_get_asset_data" }],
     handleBrokerTool: vi.fn(),
 }));
 vi.mock("../src/tools/wallet.js", () => ({ walletTools: [], handleWalletTool: vi.fn() }));
@@ -98,11 +98,10 @@ describe("Server Entry Point", () => {
         const handler = listToolsHandler || mockSetRequestHandler.mock.calls[0][1];
         const result = await handler();
         expect(result.tools).toBeDefined();
-        expect(result.tools).toContainEqual({ name: "get_assets_details" });
-        expect(result.tools).toContainEqual({ name: "account_get_info" });
+        expect(result.tools).toContainEqual({ name: "general_get_assets_config" });
         expect(result.tools).toContainEqual({ name: "portfolio_get_valuation" });
-        expect(result.tools).toContainEqual({ name: "broker_get_price" });
-        expect(result.tools).toContainEqual({ name: "broker_get_info" });
+        expect(result.tools).toContainEqual({ name: "broker_get_asset_price" });
+        expect(result.tools).toContainEqual({ name: "broker_get_asset_data" });
     });
 
     it("should handle ListPrompts request", async () => {
@@ -180,12 +179,12 @@ describe("Server Entry Point", () => {
 
         const result = await callToolHandler({
             params: {
-                name: "broker_get_info",
+                name: "broker_get_asset_data",
                 arguments: { base_symbol: "BTC" },
             },
         });
 
-        expect(handleBrokerTool).toHaveBeenCalledWith("broker_get_info", { base_symbol: "BTC" });
+        expect(handleBrokerTool).toHaveBeenCalledWith("broker_get_asset_data", { base_symbol: "BTC" });
         expect(result).toEqual({ content: [{ type: "text", text: "success" }] });
     });
 
@@ -222,13 +221,13 @@ describe("Server Entry Point", () => {
 
         const result = await callToolHandler({
             params: {
-                name: "broker_get_info",
+                name: "broker_get_asset_data",
                 arguments: {},
             },
         });
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toContain("Error executing broker_get_info: Tool failed");
+        expect(result.content[0].text).toContain("Error executing broker_get_asset_data: Tool failed");
     });
 
     it("should handle startup errors gracefully", async () => {

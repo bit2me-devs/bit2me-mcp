@@ -6,7 +6,7 @@ describeE2E("E2E: General Tools", () => {
     it(
         "should get all available assets",
         async () => {
-            const result = await handleGeneralTool("get_assets_details", {});
+            const result = await handleGeneralTool("general_get_assets_config", {});
             const assets = JSON.parse(result.content[0].text);
 
             expect(Array.isArray(assets)).toBe(true);
@@ -24,7 +24,7 @@ describeE2E("E2E: General Tools", () => {
     it(
         "should get asset details",
         async () => {
-            const result = await handleGeneralTool("get_assets_details", { symbol: "BTC" });
+            const result = await handleGeneralTool("general_get_assets_config", { symbol: "BTC" });
             const asset = JSON.parse(result.content[0].text);
 
             expect(asset).toHaveProperty("symbol", "BTC");

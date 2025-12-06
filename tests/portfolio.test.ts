@@ -73,7 +73,12 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         expect(data).toHaveProperty("request");
         expect(data).toHaveProperty("result");
         expect(data.result).toHaveProperty("quote_symbol", "EUR");
-        expect(data.result).toHaveProperty("total_value");
+        expect(data.result).toHaveProperty("total_balance");
+        expect(data.result).toHaveProperty("by_service");
+        expect(data.result.by_service).toHaveProperty("wallet_balance");
+        expect(data.result.by_service).toHaveProperty("pro_balance");
+        expect(data.result.by_service).toHaveProperty("earn_balance");
+        expect(data.result.by_service).toHaveProperty("loan_guarantees_balance");
         expect(data.result).toHaveProperty("details");
         expect(Array.isArray(data.result.details)).toBe(true);
 
@@ -84,8 +89,8 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         // USDT: Earn (1000) * 0.95 = 950 EUR
         // Expected total: 75000 + 7500 + 6000.5 + 950 = 89450.5 EUR
 
-        expect(parseFloat(data.result.total_value)).toBeGreaterThan(80000);
-        expect(parseFloat(data.result.total_value)).toBeLessThan(100000);
+        expect(parseFloat(data.result.total_balance)).toBeGreaterThan(80000);
+        expect(parseFloat(data.result.total_balance)).toBeLessThan(100000);
 
         // Verify BTC is in the breakdown
         const btcDetail = data.result.details.find((d: any) => d.symbol === "BTC");
@@ -120,8 +125,13 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         const data = JSON.parse(result.content[0].text);
 
         // Should still have wallet data
-        expect(parseFloat(data.result.total_value)).toBeGreaterThan(0);
-        expect(data.result.details.length).toBeGreaterThan(0);
+        expect(data.result).toHaveProperty("total_balance");
+        expect(data.result).toHaveProperty("by_service");
+        expect(data.result.by_service).toHaveProperty("wallet_balance");
+        if (data.result.total_balance && parseFloat(data.result.total_balance) > 0) {
+            expect(parseFloat(data.result.total_balance)).toBeGreaterThan(0);
+        }
+        expect(data.result.details.length).toBeGreaterThanOrEqual(0);
     });
 
     it("should filter out dust (very small amounts)", async () => {

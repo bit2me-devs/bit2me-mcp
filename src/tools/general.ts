@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
-import { mapAssetsResponse, mapAccountInfoResponse } from "../utils/response-mappers.js";
+import { mapAssetsResponse } from "../utils/response-mappers.js";
 import { buildSimpleContextualResponse, buildFilteredContextualResponse } from "../utils/contextual-response.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
@@ -19,7 +19,7 @@ export const generalTools: Tool[] = getCategoryTools("general");
  */
 export async function handleGeneralTool(name: string, args: any) {
     return executeTool(name, args, async () => {
-        if (name === "get_assets_details") {
+        if (name === "general_get_assets_config") {
             const params: any = {};
             if (args.include_testnet !== undefined) params.includeTestnet = args.include_testnet;
             if (args.show_exchange !== undefined) params.showExchange = args.show_exchange;
@@ -62,14 +62,6 @@ export async function handleGeneralTool(name: string, args: any) {
                 },
                 data
             );
-            return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-        }
-
-        if (name === "account_get_info") {
-            const requestContext = {};
-            const data = await bit2meRequest("GET", "/v1/account");
-            const optimized = mapAccountInfoResponse(data);
-            const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
         }
 

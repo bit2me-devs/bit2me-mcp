@@ -12,10 +12,15 @@ describeE2E("E2E: Portfolio Tools", () => {
             const valuation = JSON.parse(result.content[0].text);
 
             expect(typeof valuation).toBe("object");
-            expect(valuation).toHaveProperty("total_value");
-            expect(valuation).toHaveProperty("currency", "EUR");
-            expect(valuation).toHaveProperty("details");
-            expect(Array.isArray(valuation.details)).toBe(true);
+            expect(valuation.result).toHaveProperty("total_balance");
+            expect(valuation.result).toHaveProperty("quote_symbol", "EUR");
+            expect(valuation.result).toHaveProperty("by_service");
+            expect(valuation.result.by_service).toHaveProperty("wallet_balance");
+            expect(valuation.result.by_service).toHaveProperty("pro_balance");
+            expect(valuation.result.by_service).toHaveProperty("earn_balance");
+            expect(valuation.result.by_service).toHaveProperty("loan_guarantees_balance");
+            expect(valuation.result).toHaveProperty("details");
+            expect(Array.isArray(valuation.result.details)).toBe(true);
         },
         E2E_TIMEOUT
     );
@@ -28,7 +33,7 @@ describeE2E("E2E: Portfolio Tools", () => {
             });
             const valuation = JSON.parse(result.content[0].text);
 
-            expect(valuation).toHaveProperty("currency", "USD");
+            expect(valuation.result).toHaveProperty("quote_symbol", "USD");
         },
         E2E_TIMEOUT
     );

@@ -11,10 +11,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, "..", "..");
 
+export interface ToolAttributes {
+    requires_auth: boolean;
+    scope?: "read" | "write";
+    complexity?: "low" | "medium" | "high";
+}
+
 export interface ToolMetadata {
     name: string;
     description: string;
     type: "READ" | "WRITE" | "META";
+    attributes?: ToolAttributes;
     inputSchema: {
         type: "object";
         properties?: Record<string, any>;
@@ -90,13 +97,37 @@ export function getToolMetadata(toolName: string): ToolMetadata | undefined {
 
 /**
  * Convert ToolMetadata to MCP Tool format
+ * Includes custom attributes for internal use (requires_auth)
  */
 export function metadataToTool(metadata: ToolMetadata): Tool {
-    return {
+    const tool: Tool = {
         name: metadata.name,
         description: metadata.description,
         inputSchema: metadata.inputSchema,
     };
+
+    // Add custom attributes if present (for internal use, not part of MCP spec)
+    if (metadata.attributes) {
+        (tool as any).attributes = metadata.attributes;
+    }
+
+    return tool;
+}
+
+/**
+ * Check if a tool requires authentication
+ */
+export function toolRequiresAuth(toolName: string): boolean {
+    const metadata = getToolMetadata(toolName);
+    return metadata?.attributes?.requires_auth ?? false;
+}
+
+/**
+ * Get tool attributes
+ */
+export function getToolAttributes(toolName: string): ToolAttributes | undefined {
+    const metadata = getToolMetadata(toolName);
+    return metadata?.attributes;
 }
 
 /**
