@@ -132,25 +132,65 @@ describe("Response Mappers", () => {
 
         it("should map market config response", () => {
             expect(mapProMarketConfigResponse(null)).toEqual([]);
-            const valid = {
-                "BTC-USD": {
-                    basePrecision: 8,
-                    quotePrecision: 2,
-                    minAmount: "0.001",
-                    maxAmount: "10",
-                    status: "active",
-                },
-            };
-            expect(mapProMarketConfigResponse(valid)).toEqual([
+
+            // Test array format (real API format)
+            const arrayValid = [
                 {
-                    pair: "BTC-USD",
-                    base_precision: 8,
-                    quote_precision: 2,
-                    min_amount: "0.001",
-                    max_amount: "10",
+                    id: "31fdfac9-a5b2-4efd-ae3f-b578532294e7",
+                    symbol: "GFI/EUR",
+                    feeMakerPercentage: 0,
+                    feeTakerPercentage: 0.1,
+                    minAmount: 3,
+                    maxAmount: 50000,
+                    minPrice: 0.1,
+                    maxPrice: 100,
+                    minOrderSize: 2,
+                    tickSize: 0.001,
+                    pricePrecision: 3,
+                    amountPrecision: 5,
+                    marketEnabled: "enabled",
+                },
+            ];
+            const arrayResult = mapProMarketConfigResponse(arrayValid);
+            expect(arrayResult).toEqual([
+                {
+                    id: "31fdfac9-a5b2-4efd-ae3f-b578532294e7",
+                    pair: "GFI-EUR",
+                    base_precision: "5",
+                    quote_precision: "3",
+                    min_amount: "3",
+                    max_amount: "50000",
+                    min_price: "0.1",
+                    max_price: "100",
+                    min_order_size: "2",
+                    tick_size: "0.001",
+                    fee_maker: "0",
+                    fee_taker: "0.1",
                     status: "active",
                 },
             ]);
+
+            // Test status mapping
+            const disabledMarket = [{ symbol: "TEST/EUR", marketEnabled: "disabled" }];
+            expect(mapProMarketConfigResponse(disabledMarket)[0].status).toBe("inactive");
+
+            // Test fallback map format
+            const mapValid = {
+                "BTC-USD": {
+                    amountPrecision: 8,
+                    pricePrecision: 2,
+                    minAmount: "0.001",
+                    maxAmount: "10",
+                    marketEnabled: "enabled",
+                },
+            };
+            const mapResult = mapProMarketConfigResponse(mapValid);
+            expect(mapResult[0]).toMatchObject({
+                pair: "BTC-USD",
+                base_precision: "8",
+                quote_precision: "2",
+                status: "active",
+            });
         });
 
         it("should map order book response", () => {

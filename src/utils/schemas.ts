@@ -76,12 +76,19 @@ export interface MarketAssetResponse {
 }
 
 export interface ProMarketConfigResponse {
+    id: string;
     pair: string;
-    base_precision: number;
-    quote_precision: number;
+    base_precision: string;
+    quote_precision: string;
     min_amount: string;
     max_amount: string;
-    status: "active" | "inactive" | "maintenance";
+    min_price: string;
+    max_price: string;
+    min_order_size: string;
+    tick_size: string;
+    fee_maker: string;
+    fee_taker: string;
+    status: "active" | "inactive";
 }
 
 export interface OrderBookEntry {

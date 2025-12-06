@@ -205,6 +205,39 @@ export function mapAssetsResponse(raw: unknown): MarketAssetResponse[] {
 }
 
 /**
+ * Maps marketEnabled field to status
+ * "enabled" -> "active", anything else -> "inactive"
+ */
+function mapMarketStatus(marketEnabled: string | undefined): "active" | "inactive" {
+    return marketEnabled === "enabled" ? "active" : "inactive";
+}
+
+/**
+ * Maps a single market config object to optimized schema
+ */
+function mapSingleMarketConfig(config: any, fallbackPair?: string): ProMarketConfigResponse {
+    // Normalize pair format: "GFI/EUR" -> "GFI-EUR"
+    const rawPair = config.pair || config.symbol || fallbackPair || "UNKNOWN";
+    const pair = rawPair.replace("/", "-");
+
+    return {
+        id: config.id || "",
+        pair,
+        base_precision: String(config.amountPrecision ?? config.basePrecision ?? 0),
+        quote_precision: String(config.pricePrecision ?? config.quotePrecision ?? 0),
+        min_amount: String(config.minAmount ?? DEFAULT_AMOUNT),
+        max_amount: String(config.maxAmount ?? DEFAULT_AMOUNT),
+        min_price: String(config.minPrice ?? DEFAULT_AMOUNT),
+        max_price: String(config.maxPrice ?? DEFAULT_AMOUNT),
+        min_order_size: String(config.minOrderSize ?? DEFAULT_AMOUNT),
+        tick_size: String(config.tickSize ?? DEFAULT_AMOUNT),
+        fee_maker: String(config.feeMakerPercentage ?? 0),
+        fee_taker: String(config.feeTakerPercentage ?? 0),
+        status: mapMarketStatus(config.marketEnabled),
+    };
+}
+
+/**
  * Maps raw market config response to optimized schema
  * @param raw - Raw API response with market configuration
  * @returns Array of optimized market config responses
@@ -212,26 +245,12 @@ export function mapAssetsResponse(raw: unknown): MarketAssetResponse[] {
 export function mapProMarketConfigResponse(raw: unknown): ProMarketConfigResponse[] {
     // Handle array response (most likely format)
     if (Array.isArray(raw)) {
-        return raw.map((config: any) => ({
-            pair: config.pair || config.symbol || "UNKNOWN",
-            base_precision: config.basePrecision || 0,
-            quote_precision: config.quotePrecision || 0,
-            min_amount: config.minAmount || DEFAULT_AMOUNT,
-            max_amount: config.maxAmount || DEFAULT_AMOUNT,
-            status: (normalizeStatus(config.status) || "active") as "active" | "inactive" | "maintenance",
-        }));
+        return raw.map((config: any) => mapSingleMarketConfig(config));
     }
 
     // Handle map response (fallback)
     if (isValidObject(raw)) {
-        return Object.entries(raw).map(([pair, config]: [string, any]) => ({
-            pair,
-            base_precision: config.basePrecision || 0,
-            quote_precision: config.quotePrecision || 0,
-            min_amount: config.minAmount || DEFAULT_AMOUNT,
-            max_amount: config.maxAmount || DEFAULT_AMOUNT,
-            status: (normalizeStatus(config.status) || "active") as "active" | "inactive" | "maintenance",
-        }));
+        return Object.entries(raw).map(([pair, config]: [string, any]) => mapSingleMarketConfig(config, pair));
     }
 
     return [];

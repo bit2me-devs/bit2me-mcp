@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2025-12-06T01:21:46.605Z
+> Generated on 2025-12-06T01:26:16.887Z
 
 
 ==================================================

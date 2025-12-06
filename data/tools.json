@@ -2114,7 +2114,7 @@
                 },
                 {
                     "name": "pro_get_market_config",
-                    "description": "Gets market configuration including precision (decimal places), minimum/maximum amounts, and trading status. Optional pair filter for a specific market. Use this before placing orders to ensure amounts meet requirements. Response is a list of configurations. [PUBLIC]",
+                    "description": "Gets full market configuration including precision, amounts, prices, fees, and trading status. Use this before placing orders to validate amounts, prices, and understand fee structure. [PUBLIC]",
                     "type": "READ",
                     "attributes": {
                         "requires_auth": false,
@@ -2125,24 +2125,31 @@
                         "properties": {
                             "pair": {
                                 "type": "string",
-                                "description": "Filter by trading pair (e.g., BTC-USD)"
+                                "description": "Filter by trading pair (e.g., BTC-EUR)"
                             }
                         }
                     },
                     "exampleArgs": {
-                        "pair": "BTC-USD"
+                        "pair": "BTC-EUR"
                     },
                     "exampleResponse": {
                         "request": {
-                            "pair": "BTC-USD"
+                            "pair": "BTC-EUR"
                         },
                         "result": [
                             {
-                                "pair": "BTC-USD",
-                                "base_precision": 8,
-                                "quote_precision": 2,
+                                "id": "31fdfac9-a5b2-4efd-ae3f-b578532294e7",
+                                "pair": "BTC-EUR",
+                                "base_precision": "8",
+                                "quote_precision": "2",
                                 "min_amount": "0.0001",
                                 "max_amount": "100",
+                                "min_price": "1000",
+                                "max_price": "500000",
+                                "min_order_size": "10",
+                                "tick_size": "0.01",
+                                "fee_maker": "0.1",
+                                "fee_taker": "0.2",
                                 "status": "active"
                             }
                         ],
@@ -2155,38 +2162,74 @@
                         "items": {
                             "type": "object",
                             "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "description": "Unique market identifier (UUID)"
+                                },
                                 "pair": {
                                     "type": "string",
-                                    "description": "Trading pair in BASE-QUOTE format (e.g., BTC-USD)"
+                                    "description": "Trading pair in BASE-QUOTE format (e.g., BTC-EUR)"
                                 },
                                 "base_precision": {
-                                    "type": "number",
-                                    "description": "Number of decimal places allowed for base currency amounts"
+                                    "type": "string",
+                                    "description": "Decimal places for base currency amounts (e.g., '8' for BTC)"
                                 },
                                 "quote_precision": {
-                                    "type": "number",
-                                    "description": "Number of decimal places allowed for quote currency amounts"
+                                    "type": "string",
+                                    "description": "Decimal places for quote currency prices (e.g., '2' for EUR)"
                                 },
                                 "min_amount": {
                                     "type": "string",
-                                    "description": "Minimum order amount allowed in base currency"
+                                    "description": "Minimum order amount in base currency"
                                 },
                                 "max_amount": {
                                     "type": "string",
-                                    "description": "Maximum order amount allowed in base currency"
+                                    "description": "Maximum order amount in base currency"
+                                },
+                                "min_price": {
+                                    "type": "string",
+                                    "description": "Minimum allowed price for limit orders"
+                                },
+                                "max_price": {
+                                    "type": "string",
+                                    "description": "Maximum allowed price for limit orders"
+                                },
+                                "min_order_size": {
+                                    "type": "string",
+                                    "description": "Minimum order value in quote currency"
+                                },
+                                "tick_size": {
+                                    "type": "string",
+                                    "description": "Minimum price increment for limit orders"
+                                },
+                                "fee_maker": {
+                                    "type": "string",
+                                    "description": "Fee percentage for maker orders (adds liquidity)"
+                                },
+                                "fee_taker": {
+                                    "type": "string",
+                                    "description": "Fee percentage for taker orders (removes liquidity)"
                                 },
                                 "status": {
                                     "type": "string",
-                                    "description": "Market/position status: open (active), filled (completed), cancelled (terminated), inactive (paused)",
-                                    "enum": ["open", "filled", "cancelled", "inactive"]
+                                    "description": "Market status: active (trading enabled), inactive (trading disabled)",
+                                    "enum": ["active", "inactive"]
                                 }
                             },
                             "required": [
+                                "id",
                                 "pair",
                                 "base_precision",
                                 "quote_precision",
                                 "min_amount",
                                 "max_amount",
+                                "min_price",
+                                "max_price",
+                                "min_order_size",
+                                "tick_size",
+                                "fee_maker",
+                                "fee_taker",
                                 "status"
                             ]
                         }
