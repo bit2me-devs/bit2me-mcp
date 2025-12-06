@@ -4907,7 +4907,7 @@ const toolsData = [
 ];
 
 // Package version
-const packageVersion = '3.1.0';
+const packageVersion = '3.1.1';
 
 // Export for use in landing page
 if (typeof window !== 'undefined') {
