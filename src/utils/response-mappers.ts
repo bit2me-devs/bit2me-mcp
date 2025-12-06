@@ -928,25 +928,32 @@ export function mapLoanOrdersResponse(raw: unknown): LoanOrderResponse[] {
 
 /**
  * Maps raw loan movements response to optimized schema
+ * Handles both direct array and { data: [...] } wrapper formats
  */
 export function mapLoanMovementsResponse(raw: unknown): LoanMovementResponse[] {
-    if (!isValidArray(raw)) {
+    // Handle { data: [...] } wrapper (common API format)
+    let movements: any[] = [];
+    if (isValidObject(raw) && Array.isArray((raw as any).data)) {
+        movements = (raw as any).data;
+    } else if (isValidArray(raw)) {
+        movements = raw;
+    } else {
         return [];
     }
 
-    return raw.map((tx: any) => {
+    return movements.map((tx: any) => {
         const date = tx.date || tx.createdAt || "";
         return {
-            id: tx.id || tx.transactionId || "",
-            order_id: tx.orderId || "",
-            type: normalizeLoanMovementType(tx.type) as
+            id: tx.id || tx.transactionId || tx.movementId || "",
+            order_id: tx.orderId || tx.order_id || "",
+            type: normalizeLoanMovementType(tx.type || tx.movementType) as
                 | "payment"
                 | "interest"
                 | "guarantee_change"
                 | "liquidation"
                 | "other",
-            amount: tx.amount || "0",
-            symbol: (tx.currency || "").toUpperCase(),
+            amount: String(tx.amount || "0"),
+            symbol: (tx.currency || tx.symbol || "").toUpperCase(),
             date,
             status: normalizeMovementStatus(tx.status),
         };
