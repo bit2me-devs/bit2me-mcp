@@ -24,18 +24,16 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 
 ## 🛠️ Available Tools & API Endpoints
 
-The server provides **51 tools** organized into categories:
+The server provides **46 tools** organized into categories:
 
 - 2 General Tools
-- 7 Broker (Simple Trading) Tools
-- 8 Wallet Tools
-- 13 Earn Tools
-- 8 Loan Tools
+- 8 Broker (Simple Trading) Tools
+- 4 Wallet Tools
+- 11 Earn Tools
+- 7 Loan Tools
 - 14 Pro (Advanced Trading) Tools
 
 _Note: Operation tools (write actions) are included in their respective categories above._
-
-_Note: Operation tools are included in the categories above._
 
 Below is a detailed list of tools and the Bit2Me API endpoints they use.
 
