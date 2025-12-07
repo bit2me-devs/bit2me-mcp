@@ -80,21 +80,26 @@ export async function handleGeneralTool(name: string, args: any) {
                 bit2meRequest("GET", "/v1/loan/orders", undefined, undefined, PORTFOLIO_REQUEST_TIMEOUT), // 3
             ]);
 
-            // Check if ALL calls failed - this indicates an authentication issue
-            const allFailed = results.every((r) => r.status === "rejected");
-            if (allFailed) {
-                // Get the first error to propagate
-                const firstError = (results[0] as PromiseRejectedResult).reason;
-                throw firstError;
-            }
-
-            // Check if any call failed due to authentication
+            // Check if any call failed due to authentication (401)
             const authErrors = results.filter(
                 (r) => r.status === "rejected" && r.reason?.name === "AuthenticationError"
             );
             if (authErrors.length > 0) {
                 // If any auth error, throw it - likely JWT/API key issue
                 throw (authErrors[0] as PromiseRejectedResult).reason;
+            }
+
+            // Check if ALL calls failed - this strongly indicates an authentication/credentials issue
+            // Some Bit2Me endpoints return 404 instead of 401 for invalid credentials
+            const allFailed = results.every((r) => r.status === "rejected");
+            if (allFailed) {
+                const firstError = (results[0] as PromiseRejectedResult).reason;
+                // If all calls fail, it's almost certainly a credentials problem
+                // Override error message to be more helpful
+                const credentialsHint =
+                    "All API calls failed. This usually indicates invalid or missing API credentials. " +
+                    "Please verify your BIT2ME_API_KEY and BIT2ME_API_SECRET (or jwt parameter) are correct.";
+                throw new Error(credentialsHint + ` Original error: ${firstError?.message || "Unknown"}`);
             }
 
             const wallet: any = results[0].status === "fulfilled" ? results[0].value : [];

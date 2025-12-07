@@ -75,10 +75,13 @@ export class BadRequestError extends Bit2MeAPIError {
 
 /**
  * Error thrown for not found resources (404)
+ * Note: Some Bit2Me endpoints return 404 instead of 401 for invalid credentials
  */
 export class NotFoundError extends Bit2MeAPIError {
     constructor(endpoint: string, resource?: string) {
-        const message = resource ? `${resource} not found` : "Resource not found";
+        const baseMessage = resource ? `${resource} not found` : "Resource not found";
+        // Add hint about credentials since some endpoints return 404 for auth failures
+        const message = `${baseMessage}. If this is unexpected, please verify your API credentials are correct.`;
         super(404, message, endpoint);
         this.name = "NotFoundError";
     }

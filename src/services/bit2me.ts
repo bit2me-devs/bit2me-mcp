@@ -205,9 +205,16 @@ export async function bit2meRequest<T = any>(
             endpoint: urlToSign,
         });
 
-        // Record failure in circuit breaker (except for 429 which is handled separately)
-        // Don't record 429 as a failure since it's a rate limit, not a service failure
-        if (status !== 429) {
+        // Record failure in circuit breaker ONLY for server errors (5xx) and connection failures
+        // Client errors (4xx) are user mistakes, not service failures:
+        // - 400: Bad request (invalid parameters)
+        // - 401: Authentication failed (invalid API key or JWT)
+        // - 403: Forbidden (insufficient permissions)
+        // - 404: Not found (resource doesn't exist)
+        // - 429: Rate limit (handled separately with retry)
+        const isServerError = status && status >= 500;
+        const isConnectionError = !status; // No status = connection/timeout error
+        if (isServerError || isConnectionError) {
             apiCircuitBreaker.recordFailure();
         }
 
