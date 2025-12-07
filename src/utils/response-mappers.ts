@@ -66,6 +66,7 @@ import type {
     ProOrderTradesResponse,
     ProTradeResponse,
     // Operations
+    FeeBreakdown,
     ProformaResponse,
     OperationConfirmationResponse,
     EarnOperationResponse,
@@ -572,22 +573,93 @@ export function mapWalletCardsResponse(raw: unknown): WalletCardResponse[] {
 
 /**
  * Maps raw proforma response to optimized schema
+ * Extracts rate from destination.rate.rate.value and calculates total fee from breakdown
  */
 export function mapProformaResponse(raw: unknown): ProformaResponse {
     if (!isValidObject(raw)) {
         throw new ValidationError("Invalid proforma response structure");
     }
 
-    const expires_at = raw.expiresAt || raw.validUntil || "";
+    // 1. Expiration time - API returns expirationTime
+    const expires_at = raw.expirationTime || raw.expiresAt || raw.validUntil || "";
+
+    // 2. Rate - extract from destination.rate.value (actual API structure)
+    // API returns: destination.rate.value and destination.rate.pair (NOT rate.rate.value)
+    // Also check userRate.rate.value as fallback
+    const destRateValue = raw.destination?.rate?.value;
+    const userRateValue = raw.userRate?.rate?.value;
+    const rateValue = destRateValue || userRateValue || raw.rate || raw.exchangeRate || "0";
+
+    // Rate pair from destination.rate.pair or userRate.rate.pair
+    const destRatePair = raw.destination?.rate?.pair;
+    const userRatePair = raw.userRate?.rate?.pair;
+    const ratePair = destRatePair || userRatePair;
+    const ratePairStr = ratePair ? `${ratePair.base}/${ratePair.quote}` : undefined;
+
+    // 3. Fee calculation - extract all fee components and calculate total
+    const feeBreakdown: FeeBreakdown = {};
+    let totalFeeAmount = 0;
+    let feeCurrency = "";
+
+    if (raw.fee) {
+        // Network fee
+        if (raw.fee.network?.amount) {
+            const amount = raw.fee.network.amount;
+            feeBreakdown.network = {
+                amount,
+                currency: raw.fee.network.currency || "",
+            };
+            totalFeeAmount += parseFloat(amount) || 0;
+            feeCurrency = feeCurrency || raw.fee.network.currency;
+        }
+
+        // Flip fee (spread)
+        if (raw.fee.flip?.amount) {
+            const amount = raw.fee.flip.amount;
+            feeBreakdown.flip = {
+                amount,
+                currency: raw.fee.flip.currency || "",
+                percentage: raw.fee.flip.percentage,
+            };
+            totalFeeAmount += parseFloat(amount) || 0;
+            feeCurrency = feeCurrency || raw.fee.flip.currency;
+        }
+
+        // Teller fixed fee
+        if (raw.fee.teller?.fixed?.amount) {
+            const amount = raw.fee.teller.fixed.amount;
+            feeBreakdown.teller_fixed = {
+                amount,
+                currency: raw.fee.teller.fixed.currency || "",
+            };
+            totalFeeAmount += parseFloat(amount) || 0;
+            feeCurrency = feeCurrency || raw.fee.teller.fixed.currency;
+        }
+
+        // Teller variable fee
+        if (raw.fee.teller?.variable?.amount) {
+            const amount = raw.fee.teller.variable.amount;
+            feeBreakdown.teller_variable = {
+                amount,
+                currency: raw.fee.teller.variable.currency || "",
+                percentage: raw.fee.teller.variable.percentage,
+            };
+            totalFeeAmount += parseFloat(amount) || 0;
+            feeCurrency = feeCurrency || raw.fee.teller.variable.currency;
+        }
+    }
 
     return {
         proforma_id: raw.id || raw.proformaId || "",
         origin_amount: raw.origin?.amount || raw.originAmount || "0",
-        origin_symbol: raw.origin?.currency || raw.originCurrency || "",
+        origin_symbol: (raw.origin?.currency || raw.originCurrency || "").toUpperCase(),
         destination_amount: raw.destination?.amount || raw.destinationAmount || "0",
-        destination_symbol: raw.destination?.currency || raw.destinationCurrency || "",
-        rate: raw.rate || raw.exchangeRate || "0",
-        fee: raw.fee?.amount || raw.feeAmount || "0",
+        destination_symbol: (raw.destination?.currency || raw.destinationCurrency || "").toUpperCase(),
+        rate: rateValue,
+        rate_pair: ratePairStr,
+        total_fee: smartRound(totalFeeAmount).toString(),
+        fee_currency: feeCurrency.toUpperCase(),
+        fee_breakdown: Object.keys(feeBreakdown).length > 0 ? feeBreakdown : undefined,
         expires_at,
     };
 }

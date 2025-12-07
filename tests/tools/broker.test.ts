@@ -134,15 +134,15 @@ describe("Broker Tools Handler", () => {
         const args = { origin_pocket_id: VALID_UUID, destination_pocket_id: VALID_UUID_2, amount: "100" };
         await handleBrokerTool("broker_quote_buy", args);
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", { id: VALID_UUID });
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", {});
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "POST",
             "/v1/wallet/transaction/proforma",
             expect.objectContaining({
-                operation: "buy",
                 pocket: VALID_UUID,
                 destination: { pocket: VALID_UUID_2 },
                 amount: "100",
+                currency: "EUR",
             })
         );
     });
@@ -155,15 +155,15 @@ describe("Broker Tools Handler", () => {
         const args = { origin_pocket_id: VALID_UUID, destination_pocket_id: VALID_UUID_2, amount: "0.001" };
         await handleBrokerTool("broker_quote_sell", args);
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", { id: VALID_UUID });
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", {});
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "POST",
             "/v1/wallet/transaction/proforma",
             expect.objectContaining({
-                operation: "sell",
                 pocket: VALID_UUID,
                 destination: { pocket: VALID_UUID_2 },
                 amount: "0.001",
+                currency: "BTC",
             })
         );
     });
@@ -176,15 +176,17 @@ describe("Broker Tools Handler", () => {
         const args = { origin_pocket_id: VALID_UUID, destination_pocket_id: VALID_UUID_2, amount: "0.001" };
         await handleBrokerTool("broker_quote_swap", args);
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", { id: VALID_UUID });
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/wallet/pocket", {});
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "POST",
             "/v1/wallet/transaction/proforma",
             expect.objectContaining({
-                operation: "purchase",
                 pocket: VALID_UUID,
                 destination: { pocket: VALID_UUID_2 },
                 amount: "0.001",
+                currency: "BTC",
+                type: "SEA",
+                userCurrency: "EUR",
             })
         );
     });

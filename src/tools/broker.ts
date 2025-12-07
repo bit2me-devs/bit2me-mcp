@@ -221,16 +221,18 @@ export async function handleBrokerTool(name: string, args: any) {
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
 
-            // Fetch origin pocket to get currency
-            const originPocketData = await bit2meRequest("GET", "/v1/wallet/pocket", { id: params.origin_pocket_id });
-            const originPocket = Array.isArray(originPocketData) ? originPocketData[0] : originPocketData;
+            // Fetch all pockets and find the origin pocket
+            const allPocketsData = await bit2meRequest("GET", "/v1/wallet/pocket", {});
+            const allPockets = Array.isArray(allPocketsData) ? allPocketsData : [];
+            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id);
 
             if (!originPocket || !originPocket.currency) {
                 throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
             }
 
+            // API format: pocket + destination (without operation field)
+            // Amount must be string according to swagger docs
             const body = {
-                operation: "buy",
                 pocket: params.origin_pocket_id,
                 destination: { pocket: params.destination_pocket_id },
                 amount: params.amount,
@@ -261,16 +263,18 @@ export async function handleBrokerTool(name: string, args: any) {
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
 
-            // Fetch origin pocket to get currency
-            const originPocketData = await bit2meRequest("GET", "/v1/wallet/pocket", { id: params.origin_pocket_id });
-            const originPocket = Array.isArray(originPocketData) ? originPocketData[0] : originPocketData;
+            // Fetch all pockets and find the origin pocket
+            const allPocketsData = await bit2meRequest("GET", "/v1/wallet/pocket", {});
+            const allPockets = Array.isArray(allPocketsData) ? allPocketsData : [];
+            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id);
 
             if (!originPocket || !originPocket.currency) {
                 throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
             }
 
+            // API format: pocket + destination (without operation field)
+            // Amount must be string according to swagger docs
             const body = {
-                operation: "sell",
                 pocket: params.origin_pocket_id,
                 destination: { pocket: params.destination_pocket_id },
                 amount: params.amount,
@@ -301,20 +305,24 @@ export async function handleBrokerTool(name: string, args: any) {
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
 
-            // Fetch origin pocket to get currency
-            const originPocketData = await bit2meRequest("GET", "/v1/wallet/pocket", { id: params.origin_pocket_id });
-            const originPocket = Array.isArray(originPocketData) ? originPocketData[0] : originPocketData;
+            // Fetch all pockets and find the origin pocket
+            const allPocketsData = await bit2meRequest("GET", "/v1/wallet/pocket", {});
+            const allPockets = Array.isArray(allPocketsData) ? allPocketsData : [];
+            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id);
 
             if (!originPocket || !originPocket.currency) {
                 throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
             }
 
+            // API format for swap: pocket + destination + type + userCurrency
+            // Amount must be string according to swagger docs
             const body = {
-                operation: "purchase",
                 pocket: params.origin_pocket_id,
                 destination: { pocket: params.destination_pocket_id },
                 amount: params.amount,
                 currency: normalizeSymbol(originPocket.currency),
+                type: "SEA",
+                userCurrency: "EUR",
             };
             const requestContext = {
                 origin_pocket_id: params.origin_pocket_id,

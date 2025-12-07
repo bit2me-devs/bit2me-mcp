@@ -470,6 +470,28 @@ export interface PortfolioValuationResponse {
 // OPERATION TOOLS (Responses for write operations)
 // ============================================================================
 
+/**
+ * Individual fee component with amount, currency and optional percentage
+ */
+export interface FeeComponent {
+    amount: string;
+    currency: string;
+    percentage?: string;
+}
+
+/**
+ * Breakdown of all fee components from a proforma
+ */
+export interface FeeBreakdown {
+    network?: FeeComponent;
+    flip?: FeeComponent;
+    teller_fixed?: FeeComponent;
+    teller_variable?: FeeComponent;
+}
+
+/**
+ * Proforma response with complete fee breakdown and correct rate extraction
+ */
 export interface ProformaResponse {
     proforma_id: string;
     origin_amount: string;
@@ -477,7 +499,10 @@ export interface ProformaResponse {
     destination_amount: string;
     destination_symbol: string;
     rate: string;
-    fee: string;
+    rate_pair?: string;
+    total_fee: string;
+    fee_currency: string;
+    fee_breakdown?: FeeBreakdown;
     expires_at: string;
 }
 

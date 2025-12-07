@@ -182,7 +182,9 @@ export async function bit2meRequest<T = any>(
     }
 
     try {
-        logger.debug(`API Request: ${method} ${urlToSign}`);
+        logger.debug(`API Request: ${method} ${urlToSign}`, {
+            body: signatureData,
+        });
         const response = await axios(requestConfig);
         logger.debug(`API Response: ${method} ${urlToSign} - Status ${response.status}`);
 
@@ -203,6 +205,8 @@ export async function bit2meRequest<T = any>(
             status,
             message: errorMsg,
             endpoint: urlToSign,
+            requestBody: signatureData,
+            responseData: data,
         });
 
         // Record failure in circuit breaker ONLY for server errors (5xx) and connection failures
