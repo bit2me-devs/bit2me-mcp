@@ -1,3 +1,9 @@
+## [3.2.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.0...v3.2.1) (2025-12-07)
+
+### Bug Fixes
+
+- inject jwt parameter only in tools that require authentication ([db0e191](https://github.com/bit2me-devs/bit2me-mcp/commit/db0e19119571143dd7428d21341e265d2d665c08))
+
 # [3.2.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.2...v3.2.0) (2025-12-07)
 
 ### Bug Fixes
