@@ -86,9 +86,10 @@ describe("Session Authentication - JWT Parameter", () => {
         for (const category of categories) {
             const tools = getCategoryTools(category);
             for (const tool of tools) {
-                expect(tool.inputSchema?.properties).toBeDefined();
-                expect(tool.inputSchema?.properties?.jwt).toBeDefined();
-                expect(tool.inputSchema?.properties?.jwt?.type).toBe("string");
+                const properties = tool.inputSchema?.properties as Record<string, { type?: string }> | undefined;
+                expect(properties).toBeDefined();
+                expect(properties?.jwt).toBeDefined();
+                expect(properties?.jwt?.type).toBe("string");
             }
         }
     });
