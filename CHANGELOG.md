@@ -1,3 +1,14 @@
+# [3.2.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.2...v3.2.0) (2025-12-07)
+
+### Bug Fixes
+
+- improve error messages for authentication and API failures ([9452ba5](https://github.com/bit2me-devs/bit2me-mcp/commit/9452ba522816c3ae128976106c6ba87f0fa0b3c7))
+- resolve TypeScript error in auth test ([4d40d49](https://github.com/bit2me-devs/bit2me-mcp/commit/4d40d49531709fd6506f57d45080a410a9b90ff6))
+
+### Features
+
+- add JWT session authentication support ([d2bbae1](https://github.com/bit2me-devs/bit2me-mcp/commit/d2bbae189eefd66b186fee0445c74950acc35436))
+
 ## [3.1.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.1...v3.1.2) (2025-12-06)
 
 ### Bug Fixes
