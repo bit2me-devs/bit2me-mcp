@@ -1,3 +1,9 @@
+## [3.2.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.1...v3.2.2) (2025-12-07)
+
+### Bug Fixes
+
+- correct broker proforma response mapping ([1a27d2b](https://github.com/bit2me-devs/bit2me-mcp/commit/1a27d2b771319ff9a7cd3b3ba884026f4e4bd0f9))
+
 ## [3.2.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.0...v3.2.1) (2025-12-07)
 
 ### Bug Fixes
