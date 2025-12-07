@@ -82,16 +82,42 @@ const ENDPOINT_MAPPINGS = {
 };
 
 /**
+ * Parameters marked as internal (with _internal: true) are excluded from documentation
+ */
+
+/**
+ * Global JWT parameter that is injected into all tools
+ * This parameter enables alternative session-based authentication
+ */
+const JWT_PARAMETER = {
+    type: 'string',
+    description: 'Optional session token for authentication. API keys are recommended for most use cases.'
+};
+
+/**
  * Convert inputSchema to simplified args format for landing
+ * Excludes internal parameters (marked with _internal: true) from documentation
+ * Injects the global jwt parameter into all tools
  */
 function convertInputSchemaToArgs(inputSchema) {
     if (!inputSchema.properties) {
-        return {};
+        // Even if no properties, inject jwt parameter
+        return {
+            jwt: {
+                type: JWT_PARAMETER.type,
+                desc: JWT_PARAMETER.description,
+                required: false
+            }
+        };
     }
 
     const requiredFields = inputSchema.required || [];
     const args = {};
     for (const [key, value] of Object.entries(inputSchema.properties)) {
+        // Skip internal parameters only
+        if (value._internal === true) {
+            continue;
+        }
         args[key] = {
             type: value.type || 'string',
             desc: value.description || '',
@@ -101,6 +127,14 @@ function convertInputSchemaToArgs(inputSchema) {
         if (value.examples) args[key].examples = value.examples;
         if (value.default !== undefined) args[key].default = value.default;
     }
+
+    // Inject global jwt parameter
+    args.jwt = {
+        type: JWT_PARAMETER.type,
+        desc: JWT_PARAMETER.description,
+        required: false
+    };
+
     return args;
 }
 
@@ -147,8 +181,14 @@ if (typeof window !== 'undefined') {
 
 /**
  * Format a schema property for markdown documentation
+ * Returns empty string for internal parameters (marked with _internal: true)
  */
 function formatSchemaProperty(key, prop, required, indent = '') {
+    // Skip internal parameters only
+    if (prop._internal === true) {
+        return '';
+    }
+    
     let typeStr = prop.type || 'any';
     if (prop.format) typeStr += ` (${prop.format})`;
     

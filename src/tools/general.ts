@@ -80,12 +80,29 @@ export async function handleGeneralTool(name: string, args: any) {
                 bit2meRequest("GET", "/v1/loan/orders", undefined, undefined, PORTFOLIO_REQUEST_TIMEOUT), // 3
             ]);
 
+            // Check if ALL calls failed - this indicates an authentication issue
+            const allFailed = results.every((r) => r.status === "rejected");
+            if (allFailed) {
+                // Get the first error to propagate
+                const firstError = (results[0] as PromiseRejectedResult).reason;
+                throw firstError;
+            }
+
+            // Check if any call failed due to authentication
+            const authErrors = results.filter(
+                (r) => r.status === "rejected" && r.reason?.name === "AuthenticationError"
+            );
+            if (authErrors.length > 0) {
+                // If any auth error, throw it - likely JWT/API key issue
+                throw (authErrors[0] as PromiseRejectedResult).reason;
+            }
+
             const wallet: any = results[0].status === "fulfilled" ? results[0].value : [];
             const pro: any = results[1].status === "fulfilled" ? results[1].value : [];
             const earn: any = results[2].status === "fulfilled" ? results[2].value : [];
             const loans: any = results[3].status === "fulfilled" ? results[3].value : {};
 
-            // Errors are logged but not thrown to allow partial portfolio view
+            // Partial failures are logged but not thrown to allow partial portfolio view
 
             const assets: Record<string, number> = {};
 

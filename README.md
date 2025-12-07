@@ -49,12 +49,35 @@ All tool responses are normalised for LLM consumption (consistent naming, flatte
 - **Node.js**: v18 or higher.
 - **Bit2Me Account**: You need a verified Bit2Me account.
 
-### 🔑 Generating API Keys
+### 🔑 Authentication Methods
+
+#### API Keys (Recommended)
+
+The recommended way to authenticate is using API Keys. This method is secure, granular, and designed for programmatic access.
 
 1. Go to your **[Bit2Me API Dashboard](https://app.bit2me.com/profile/api)**.
 2. Click on **"New Key"**.
 3. Select the permissions you need (e.g., Wallets, Trading, Earn, Loans).
     > **⚠️ Security Note:** This MCP server does **NOT** support crypto withdrawals to external blockchain addresses or transfers to other users. For security best practices, please **DO NOT** enable "Withdrawal" permissions on your API Key. Internal transfers between your own Bit2Me wallets (Wallet ↔ Pro ↔ Earn) are fully supported.
+
+#### JWT Session Token (Alternative)
+
+All tools support an optional `jwt` parameter for session-based authentication. This is useful for:
+
+- **Multi-tenant applications**: Where each request is made on behalf of a different user.
+- **Web integrations**: Where users are already authenticated via the Bit2Me web interface.
+
+When the `jwt` parameter is provided, the server will use cookie-based authentication instead of API Keys.
+
+```typescript
+// Example: Using JWT session token
+const result = await mcpClient.callTool("wallet_get_pockets", {
+    symbol: "BTC",
+    jwt: "user_session_token_here"  // Optional - uses API keys if omitted
+});
+```
+
+> **📝 Note:** API Keys are recommended for most use cases. The `jwt` parameter should only be used when building multi-tenant applications or web integrations where users have existing Bit2Me sessions.
 
 ### Steps
 

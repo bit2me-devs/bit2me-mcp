@@ -103,7 +103,7 @@ describe("Tools - Asset Management", () => {
         });
 
         await expect(bit2meRequest("GET", "/v1/wallet/pocket")).rejects.toThrow(
-            "Bit2Me API Error (401): Authentication failed"
+            "Bit2Me API Error (401): API Key authentication failed"
         );
     });
 
@@ -247,7 +247,7 @@ describe("Tools - Error Handling", () => {
             response: { status: 401, data: { message: "Unauthorized" } },
         });
 
-        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Authentication failed");
+        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("API Key authentication failed");
     });
 
     it("should throw BadRequestError on 400", async () => {

@@ -41,7 +41,7 @@ export function generateSignature(nonce: number, endpoint: string, data: any, se
 import { rateLimiter } from "../utils/rate-limiter.js";
 import { endpointRateLimiter } from "../utils/rate-limiter-config.js";
 import { apiCircuitBreaker } from "../utils/circuit-breaker.js";
-import { getCorrelationId } from "../utils/context.js";
+import { getCorrelationId, getSessionToken } from "../utils/context.js";
 
 // ============================================================================
 // API REQUEST HANDLING
@@ -67,18 +67,26 @@ function calculateBackoffDelay(retryAttempt: number, baseDelay: number, maxDelay
  * - Wallet/Earn/Loan typically use v1 or v2
  * - Market data often uses v3
  * This wrapper is version-agnostic; the caller must provide the full path including version (e.g. "/v3/currency/ticker").
+ *
+ * AUTHENTICATION MODES:
+ * - API Key mode (default): Uses x-api-key + signature headers
+ * - Session mode: Uses JWT cookie for web-like authentication (when sessionToken is provided)
  */
 export async function bit2meRequest<T = any>(
     method: "GET" | "POST" | "DELETE",
     endpoint: string,
     params?: any,
     retries?: number,
-    timeoutOverride?: number
+    timeoutOverride?: number,
+    sessionToken?: string
 ): Promise<T> {
     const appConfig = getConfig();
     const maxRetries = retries ?? appConfig.MAX_RETRIES;
     const baseDelay = appConfig.RETRY_BASE_DELAY;
     const timeout = timeoutOverride ?? appConfig.REQUEST_TIMEOUT;
+
+    // Resolve session token: explicit parameter takes priority, fallback to context
+    const resolvedSessionToken = sessionToken ?? getSessionToken();
 
     // Circuit Breaker: Check if circuit allows request
     if (!apiCircuitBreaker.canExecute()) {
@@ -114,14 +122,26 @@ export async function bit2meRequest<T = any>(
     // 1. PREPARE URL TO SIGN (Endpoint + Query Params)
     let urlToSign = endpoint;
 
+    // Determine authentication mode: Session (cookie) or API Key (signature)
+    const useSessionAuth = !!resolvedSessionToken;
+
     const requestConfig: AxiosRequestConfig = {
         method,
         timeout,
-        headers: {
-            "x-api-key": apiKey,
-            "x-nonce": nonce.toString(),
-            "Content-Type": "application/json",
-        },
+        headers: useSessionAuth
+            ? {
+                  // Session mode: authenticate via JWT cookie (web-like)
+                  Cookie: `b2m-atoken=${resolvedSessionToken}`,
+                  "User-Agent":
+                      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                  "Content-Type": "application/json",
+              }
+            : {
+                  // API Key mode: authenticate via signature
+                  "x-api-key": apiKey,
+                  "x-nonce": nonce.toString(),
+                  "Content-Type": "application/json",
+              },
     };
 
     let signatureData = undefined; // For body in POST/DELETE
@@ -152,12 +172,13 @@ export async function bit2meRequest<T = any>(
         requestConfig.url = `${getBaseUrl()}${endpoint}`;
     }
 
-    // 3. GENERATE SIGNATURE
+    // 3. GENERATE SIGNATURE (only for API Key mode)
     // IMPORTANT: We pass 'urlToSign' which now includes the query string if it is a GET
-    const signature = generateSignature(nonce, urlToSign, signatureData, apiSecret);
-
-    if (requestConfig.headers) {
-        requestConfig.headers["api-signature"] = signature;
+    if (!useSessionAuth) {
+        const signature = generateSignature(nonce, urlToSign, signatureData, apiSecret);
+        if (requestConfig.headers) {
+            requestConfig.headers["api-signature"] = signature;
+        }
     }
 
     try {
@@ -197,15 +218,16 @@ export async function bit2meRequest<T = any>(
 
             logger.warn(`Rate limit hit. Retrying in ${Math.round(delay)}ms... (${maxRetries} retries left)`);
             await new Promise((resolve) => setTimeout(resolve, delay));
-            // Pass timeoutOverride to retry
-            return bit2meRequest(method, endpoint, params, maxRetries - 1, timeoutOverride);
+            // Pass timeoutOverride and sessionToken to retry
+            return bit2meRequest(method, endpoint, params, maxRetries - 1, timeoutOverride, sessionToken);
         }
 
         // Throw specific error types based on status code
         if (status === 429) {
             throw new RateLimitError(urlToSign);
         } else if (status === 401) {
-            throw new AuthenticationError(urlToSign);
+            // Provide specific error message based on authentication method used
+            throw new AuthenticationError(urlToSign, useSessionAuth ? "jwt" : "api_key");
         } else if (status === 400) {
             throw new BadRequestError(urlToSign, errorMsg);
         } else if (status === 404) {

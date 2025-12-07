@@ -35,8 +35,15 @@ export class RateLimitError extends Bit2MeAPIError {
  * Error thrown when authentication fails (401)
  */
 export class AuthenticationError extends Bit2MeAPIError {
-    constructor(endpoint: string) {
-        super(401, "Authentication failed", endpoint);
+    constructor(
+        endpoint: string,
+        public authMethod: "api_key" | "jwt" = "api_key"
+    ) {
+        const message =
+            authMethod === "jwt"
+                ? "JWT session authentication failed. The token may be invalid, expired, or revoked. Please provide a valid session token."
+                : "API Key authentication failed. Please check your BIT2ME_API_KEY and BIT2ME_API_SECRET configuration.";
+        super(401, message, endpoint);
         this.name = "AuthenticationError";
     }
 }

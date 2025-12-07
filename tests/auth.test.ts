@@ -75,3 +75,72 @@ describe("Security - HMAC Signatures", () => {
         expect(signature1).not.toBe(signature2);
     });
 });
+
+describe("Session Authentication - JWT Parameter", () => {
+    it("should inject 'jwt' parameter into all tools", async () => {
+        const { getCategoryTools } = await import("../src/utils/tool-metadata.js");
+
+        // Test all categories
+        const categories = ["general", "broker", "wallet", "earn", "loan", "pro"];
+
+        for (const category of categories) {
+            const tools = getCategoryTools(category);
+            for (const tool of tools) {
+                expect(tool.inputSchema?.properties).toBeDefined();
+                expect(tool.inputSchema?.properties?.jwt).toBeDefined();
+                expect(tool.inputSchema?.properties?.jwt?.type).toBe("string");
+            }
+        }
+    });
+
+    it("should set session token in context when 'jwt' is provided", async () => {
+        const { setSessionToken, getSessionToken, clearSessionToken } = await import("../src/utils/context.js");
+
+        // Initially no session
+        clearSessionToken();
+        expect(getSessionToken()).toBeUndefined();
+
+        // Set session
+        setSessionToken("test-jwt-token");
+        expect(getSessionToken()).toBe("test-jwt-token");
+
+        // Clear session
+        clearSessionToken();
+        expect(getSessionToken()).toBeUndefined();
+    });
+
+    it("should redact jwt parameter in logs", async () => {
+        const { logger } = await import("../src/utils/logger.js");
+
+        // Create a mock to capture log output
+        const logOutput: string[] = [];
+        const originalError = console.error;
+        console.error = (msg: string) => logOutput.push(msg);
+
+        // Log with sensitive 'jwt' parameter
+        logger.setLevel("debug");
+        logger.debug("Test message", { jwt: "secret-jwt-token", other: "visible" });
+
+        console.error = originalError;
+
+        // Verify 'jwt' is redacted
+        const lastLog = logOutput[logOutput.length - 1];
+        expect(lastLog).toContain("***REDACTED***");
+        expect(lastLog).not.toContain("secret-jwt-token");
+        expect(lastLog).toContain("visible");
+    });
+
+    it("should provide specific error message for JWT authentication failure", async () => {
+        const { AuthenticationError } = await import("../src/utils/errors.js");
+
+        const jwtError = new AuthenticationError("/test", "jwt");
+        expect(jwtError.message).toContain("JWT session authentication failed");
+        expect(jwtError.message).toContain("invalid, expired, or revoked");
+        expect(jwtError.authMethod).toBe("jwt");
+
+        const apiKeyError = new AuthenticationError("/test", "api_key");
+        expect(apiKeyError.message).toContain("API Key authentication failed");
+        expect(apiKeyError.message).toContain("BIT2ME_API_KEY");
+        expect(apiKeyError.authMethod).toBe("api_key");
+    });
+});

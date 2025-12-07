@@ -27,7 +27,14 @@ class Logger {
         "apikey",
         "api_key",
         "api_secret",
+        "cookie",
+        "sessiontoken",
+        "session_token",
+        "b2m-atoken",
     ];
+
+    // Exact key matches that should always be redacted
+    private exactSensitiveKeys = ["jwt"];
 
     constructor(level: LogLevel = "info") {
         this.level = level;
@@ -59,7 +66,9 @@ class Logger {
         const obj = data as Record<string, unknown>;
         for (const [key, value] of Object.entries(obj)) {
             const keyLower = key.toLowerCase();
-            const isSensitive = this.sensitiveKeys.some((k) => keyLower.includes(k));
+            // Check both partial matches and exact matches for sensitive keys
+            const isSensitive =
+                this.sensitiveKeys.some((k) => keyLower.includes(k)) || this.exactSensitiveKeys.includes(key);
 
             if (isSensitive && typeof value === "string") {
                 sanitized[key] = "***REDACTED***";

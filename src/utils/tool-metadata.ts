@@ -96,14 +96,33 @@ export function getToolMetadata(toolName: string): ToolMetadata | undefined {
 }
 
 /**
+ * Optional JWT session parameter definition
+ * This parameter is injected into all tools for alternative authentication
+ */
+const JWT_SESSION_PARAM = {
+    type: "string" as const,
+    description: "Optional session token for authentication. API keys are recommended for most use cases.",
+};
+
+/**
  * Convert ToolMetadata to MCP Tool format
  * Includes custom attributes for internal use (requires_auth)
+ * Injects hidden 's' parameter for session-based authentication
  */
 export function metadataToTool(metadata: ToolMetadata): Tool {
+    // Clone inputSchema to avoid mutating the cached original
+    const inputSchema = JSON.parse(JSON.stringify(metadata.inputSchema));
+
+    // Inject optional JWT session parameter into all tools
+    if (!inputSchema.properties) {
+        inputSchema.properties = {};
+    }
+    inputSchema.properties.jwt = JWT_SESSION_PARAM;
+
     const tool: Tool = {
         name: metadata.name,
         description: metadata.description,
-        inputSchema: metadata.inputSchema,
+        inputSchema: inputSchema,
     };
 
     // Add custom attributes if present (for internal use, not part of MCP spec)

@@ -12,6 +12,7 @@ export interface RequestContext {
     correlationId: string;
     toolName?: string;
     startTime: number;
+    sessionToken?: string;
 }
 
 /**
@@ -88,4 +89,34 @@ export function setCorrelationId(correlationId: string): void {
  */
 export function clearCorrelationId(): void {
     delete (global as any).__currentCorrelationId;
+}
+
+// ============================================================================
+// SESSION TOKEN MANAGEMENT (for web-like authentication)
+// ============================================================================
+
+/**
+ * Get current session token from context
+ * Returns undefined if no session is set
+ */
+export function getSessionToken(): string | undefined {
+    return (global as any).__currentSessionToken;
+}
+
+/**
+ * Set current session token
+ */
+export function setSessionToken(sessionToken: string | undefined): void {
+    if (sessionToken) {
+        (global as any).__currentSessionToken = sessionToken;
+    } else {
+        delete (global as any).__currentSessionToken;
+    }
+}
+
+/**
+ * Clear current session token
+ */
+export function clearSessionToken(): void {
+    delete (global as any).__currentSessionToken;
 }
