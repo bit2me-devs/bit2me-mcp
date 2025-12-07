@@ -77,8 +77,8 @@ describe("Security - HMAC Signatures", () => {
 });
 
 describe("Session Authentication - JWT Parameter", () => {
-    it("should inject 'jwt' parameter into all tools", async () => {
-        const { getCategoryTools } = await import("../src/utils/tool-metadata.js");
+    it("should inject 'jwt' parameter only into tools that require authentication", async () => {
+        const { getCategoryTools, toolRequiresAuth } = await import("../src/utils/tool-metadata.js");
 
         // Test all categories
         const categories = ["general", "broker", "wallet", "earn", "loan", "pro"];
@@ -87,9 +87,16 @@ describe("Session Authentication - JWT Parameter", () => {
             const tools = getCategoryTools(category);
             for (const tool of tools) {
                 const properties = tool.inputSchema?.properties as Record<string, { type?: string }> | undefined;
-                expect(properties).toBeDefined();
-                expect(properties?.jwt).toBeDefined();
-                expect(properties?.jwt?.type).toBe("string");
+                const requiresAuth = toolRequiresAuth(tool.name);
+
+                if (requiresAuth) {
+                    // Private tools should have jwt parameter
+                    expect(properties?.jwt).toBeDefined();
+                    expect(properties?.jwt?.type).toBe("string");
+                } else {
+                    // Public tools should NOT have jwt parameter
+                    expect(properties?.jwt).toBeUndefined();
+                }
             }
         }
     });

@@ -86,8 +86,7 @@ const ENDPOINT_MAPPINGS = {
  */
 
 /**
- * Global JWT parameter that is injected into all tools
- * This parameter enables alternative session-based authentication
+ * JWT parameter definition for tools that require authentication
  */
 const JWT_PARAMETER = {
     type: 'string',
@@ -97,43 +96,40 @@ const JWT_PARAMETER = {
 /**
  * Convert inputSchema to simplified args format for landing
  * Excludes internal parameters (marked with _internal: true) from documentation
- * Injects the global jwt parameter into all tools
+ * Injects jwt parameter ONLY for tools that require authentication
+ * @param {object} inputSchema - The tool's input schema
+ * @param {boolean} requiresAuth - Whether the tool requires authentication
  */
-function convertInputSchemaToArgs(inputSchema) {
-    if (!inputSchema.properties) {
-        // Even if no properties, inject jwt parameter
-        return {
-            jwt: {
-                type: JWT_PARAMETER.type,
-                desc: JWT_PARAMETER.description,
-                required: false
-            }
-        };
-    }
-
-    const requiredFields = inputSchema.required || [];
+function convertInputSchemaToArgs(inputSchema, requiresAuth = false) {
     const args = {};
-    for (const [key, value] of Object.entries(inputSchema.properties)) {
-        // Skip internal parameters only
-        if (value._internal === true) {
-            continue;
+
+    if (inputSchema.properties) {
+        const requiredFields = inputSchema.required || [];
+        for (const [key, value] of Object.entries(inputSchema.properties)) {
+            // Skip internal parameters only
+            if (value._internal === true) {
+                continue;
+            }
+            args[key] = {
+                type: value.type || 'string',
+                desc: value.description || '',
+                required: requiredFields.includes(key)
+            };
+            if (value.enum) args[key].enum = value.enum;
+            if (value.examples) args[key].examples = value.examples;
+            if (value.default !== undefined) args[key].default = value.default;
         }
-        args[key] = {
-            type: value.type || 'string',
-            desc: value.description || '',
-            required: requiredFields.includes(key)
-        };
-        if (value.enum) args[key].enum = value.enum;
-        if (value.examples) args[key].examples = value.examples;
-        if (value.default !== undefined) args[key].default = value.default;
     }
 
-    // Inject global jwt parameter
-    args.jwt = {
-        type: JWT_PARAMETER.type,
-        desc: JWT_PARAMETER.description,
-        required: false
-    };
+    // Inject jwt parameter ONLY for tools that require authentication
+    // Public tools don't need JWT
+    if (requiresAuth) {
+        args.jwt = {
+            type: JWT_PARAMETER.type,
+            desc: JWT_PARAMETER.description,
+            required: false
+        };
+    }
 
     return args;
 }
@@ -148,11 +144,12 @@ function generateLandingToolsData(metadata, version) {
         icon: cat.icon,
         description: cat.description || '',
         tools: cat.tools.map(tool => {
+            const requiresAuth = tool.attributes?.requires_auth || false;
             const toolData = {
                 name: tool.name, // Keep original name for API compatibility
                 type: tool.type,
                 desc: tool.description,
-                args: convertInputSchemaToArgs(tool.inputSchema),
+                args: convertInputSchemaToArgs(tool.inputSchema, requiresAuth),
                 exampleArgs: tool.exampleArgs,
                 response: tool.exampleResponse,
                 responseSchema: tool.responseSchema, // Include response schema for field descriptions

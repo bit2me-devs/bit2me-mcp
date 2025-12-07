@@ -29,11 +29,6 @@ const toolsData = [
                         "desc": "Include exchange-specific properties in response",
                         "required": false,
                         "default": false
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -238,13 +233,7 @@ const toolsData = [
                 "name": "general_health",
                 "type": "READ",
                 "desc": "Check the system health. Returns global status (online/degraded/offline), Bit2Me server reachability, and MCP server status.",
-                "args": {
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
-                    }
-                },
+                "args": {},
                 "exampleArgs": {},
                 "response": {
                     "request": {},
@@ -377,11 +366,6 @@ const toolsData = [
                         "type": "string",
                         "desc": "Timestamp or date string (ISO 8601) for historical rates",
                         "required": false
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -456,11 +440,6 @@ const toolsData = [
                         "desc": "Quote symbol for prices (default: EUR)",
                         "required": false,
                         "default": "EUR"
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -557,11 +536,6 @@ const toolsData = [
                             "1M",
                             "1y"
                         ]
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2483,11 +2457,6 @@ const toolsData = [
                         "type": "string",
                         "desc": "Filter by trading pair (e.g., BTC-EUR)",
                         "required": false
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2612,11 +2581,6 @@ const toolsData = [
                         "type": "string",
                         "desc": "Trading pair in BASE-QUOTE format (e.g., BTC-USD, ETH-EUR)",
                         "required": true
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2733,11 +2697,6 @@ const toolsData = [
                     "sort": {
                         "type": "string",
                         "desc": "Sort order: ASC (oldest first) or DESC (newest first)",
-                        "required": false
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
                         "required": false
                     }
                 },
@@ -2858,11 +2817,6 @@ const toolsData = [
                         "type": "number",
                         "desc": "End time in Unix epoch milliseconds (default: current time)",
                         "required": false
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -2949,11 +2903,6 @@ const toolsData = [
                     "pair": {
                         "type": "string",
                         "desc": "Filter by trading pair (e.g., BTC-EUR). If not provided, returns all markets.",
-                        "required": false
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
                         "required": false
                     }
                 },
@@ -4056,13 +4005,7 @@ const toolsData = [
                 "name": "earn_get_assets",
                 "type": "READ",
                 "desc": "Get list of assets (cryptocurrencies) supported in Earn/Staking with full details. Returns symbols, APY rates, availability status, lock period options, and reward currencies. Use this to discover stakeable assets, verify availability before deposit/withdrawal, and compare returns. [PUBLIC]",
-                "args": {
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
-                    }
-                },
+                "args": {},
                 "exampleArgs": {},
                 "response": {
                     "request": {},
@@ -4234,11 +4177,6 @@ const toolsData = [
                         "type": "string",
                         "desc": "Loan amount (optional if guarantee_amount is given)",
                         "required": false
-                    },
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
                     }
                 },
                 "exampleArgs": {
@@ -4327,13 +4265,7 @@ const toolsData = [
                 "name": "loan_get_config",
                 "type": "READ",
                 "desc": "Get currency configuration for loans. Returns two separate arrays: guarantee_currencies (cryptocurrencies that can be used as collateral with LTV limits) and loan_currencies (currencies available for borrowing with APR, liquidity, and min/max amounts). Use guarantee currencies as collateral to receive loan currencies. Use this before creating a loan to understand available options and limits. [PUBLIC]",
-                "args": {
-                    "jwt": {
-                        "type": "string",
-                        "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
-                        "required": false
-                    }
-                },
+                "args": {},
                 "exampleArgs": {},
                 "response": {
                     "request": {},
