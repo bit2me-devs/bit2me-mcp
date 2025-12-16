@@ -1,3 +1,9 @@
+## [3.2.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.2...v3.2.3) (2025-12-16)
+
+### Bug Fixes
+
+- resolve all eslint warnings ([1e493a0](https://github.com/bit2me-devs/bit2me-mcp/commit/1e493a0a097db6eb9b567d710d8c12e369e723da))
+
 ## [3.2.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.1...v3.2.2) (2025-12-07)
 
 ### Bug Fixes
