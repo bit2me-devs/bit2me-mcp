@@ -46,7 +46,6 @@ import type {
     EarnPositionMovementResponse,
     EarnPositionDetailsResponse,
     EarnMovementsSummaryResponse,
-    EarnAssetsResponse,
     EarnAssetWithAPY,
     EarnRewardsConfigResponse,
     EarnPositionRewardsConfigResponse,

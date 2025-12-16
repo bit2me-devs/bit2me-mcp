@@ -20,6 +20,7 @@ beforeAll(() => {
                     "RUN_E2E=true BIT2ME_API_KEY=xxx BIT2ME_API_SECRET=yyy npm run test:e2e"
             );
         }
+        // eslint-disable-next-line no-console
         console.log("✓ E2E tests enabled - using real Bit2Me API");
     }
 });

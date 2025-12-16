@@ -68,10 +68,13 @@ describeE2E("E2E: Broker Tools", () => {
             const pocketsResult = await handleWalletTool("wallet_get_pockets", {});
             const pockets = JSON.parse(pocketsResult.content[0].text).result;
 
-            const eurPocket = pockets.find((p: any) => p.symbol === "EUR" && parseFloat(p.balance) > 0);
-            const btcPocket = pockets.find((p: any) => p.symbol === "BTC");
+            const eurPocket = pockets.find(
+                (p: { symbol: string; balance: string }) => p.symbol === "EUR" && parseFloat(p.balance) > 0
+            );
+            const btcPocket = pockets.find((p: { symbol: string }) => p.symbol === "BTC");
 
             if (!eurPocket || !btcPocket) {
+                // eslint-disable-next-line no-console
                 console.log("Skipping broker_quote_buy test - missing required pockets");
                 return;
             }

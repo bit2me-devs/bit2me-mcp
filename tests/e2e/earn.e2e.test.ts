@@ -76,6 +76,7 @@ describeE2E("E2E: Earn/Staking Tools", () => {
             const positions = JSON.parse(positionsResult.content[0].text);
 
             if (positions.result.length === 0) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping earn position details test - no earn positions found");
                 return;
             }
@@ -102,6 +103,7 @@ describeE2E("E2E: Earn/Staking Tools", () => {
             const positions = JSON.parse(positionsResult.content[0].text);
 
             if (positions.length === 0) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping earn position movements test - no earn positions found");
                 return;
             }

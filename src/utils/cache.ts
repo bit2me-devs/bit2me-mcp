@@ -38,7 +38,7 @@ const DEFAULT_TTLS: Record<CacheCategory, number> = {
  * Used to store data with appropriate cache durations based on data type.
  */
 export class CacheManager {
-    private cache: Map<string, CacheEntry<any>> = new Map();
+    private cache: Map<string, CacheEntry<unknown>> = new Map();
     private static instance: CacheManager;
     private maxSize: number = 1000; // Maximum number of entries
 

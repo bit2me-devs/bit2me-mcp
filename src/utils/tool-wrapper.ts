@@ -7,7 +7,7 @@ import { setCorrelationId, contextManager, clearCorrelationId, setSessionToken, 
  * @param args - The original arguments
  * @returns Sanitized arguments safe for logging
  */
-function sanitizeArgsForLogging(args: any): any {
+function sanitizeArgsForLogging(args: Record<string, unknown>): Record<string, unknown> {
     if (!args || typeof args !== "object") return args;
 
     const sanitized = { ...args };
@@ -26,14 +26,18 @@ function sanitizeArgsForLogging(args: any): any {
  * @param executor - The function containing the tool's core logic
  * @returns The result of the executor function
  */
-export async function executeTool<T>(name: string, args: any, executor: () => Promise<T>): Promise<T> {
+export async function executeTool<T>(
+    name: string,
+    args: Record<string, unknown>,
+    executor: () => Promise<T>
+): Promise<T> {
     // Create context for this request
     const context = contextManager.createContext(name);
     setCorrelationId(context.correlationId);
 
     // Extract session token from args ('jwt' parameter) and set in context
     // This enables web-like authentication for all API calls within this execution
-    const sessionToken = args?.jwt;
+    const sessionToken = typeof args?.jwt === "string" ? args.jwt : undefined;
     if (sessionToken) {
         setSessionToken(sessionToken);
         context.sessionToken = sessionToken;
@@ -59,14 +63,15 @@ export async function executeTool<T>(name: string, args: any, executor: () => Pr
         });
 
         return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
         const duration = Date.now() - startTime;
+        const errorMessage = error instanceof Error ? error.message : String(error);
 
         // Record failed execution
         metricsCollector.recordToolExecution(name, duration, false);
         logger.error(`Tool ${name} failed`, {
             duration,
-            error: error.message,
+            error: errorMessage,
             correlationId: context.correlationId,
         });
 

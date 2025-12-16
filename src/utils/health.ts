@@ -105,7 +105,7 @@ async function checkBit2MePlatform(): Promise<{ status: "online" | "offline"; re
         }
 
         return { status: "offline", responseTime };
-    } catch (error) {
+    } catch {
         return {
             status: "offline",
             responseTime: Date.now() - startTime,
@@ -136,17 +136,18 @@ async function checkMcpIntegration(): Promise<{ status: "online" | "offline"; re
             status: "online",
             responseTime,
         };
-    } catch (error: any) {
+    } catch (error: unknown) {
         const responseTime = Date.now() - startTime;
+        const errorMessage = error instanceof Error ? error.message : String(error);
         logger.warn("Integration health check failed", {
             correlationId: getCorrelationId(),
-            error: error.message,
+            error: errorMessage,
             responseTime,
         });
         return {
             status: "offline",
             responseTime,
-            error: error.message,
+            error: errorMessage,
         };
     }
 }
@@ -161,10 +162,11 @@ export async function getSimpleHealthStatus(): Promise<{ status: string; timesta
             status: health.status,
             timestamp: health.timestamp,
         };
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error("Health check failed", {
             correlationId: getCorrelationId(),
-            error: error.message,
+            error: errorMessage,
         });
         return {
             status: "offline",

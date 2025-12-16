@@ -6,6 +6,19 @@
 import { randomUUID } from "crypto";
 
 /**
+ * Global context storage interface
+ */
+interface GlobalContext {
+    __currentCorrelationId?: string;
+    __currentSessionToken?: string;
+}
+
+/**
+ * Type-safe global context accessor
+ */
+const globalContext = global as unknown as GlobalContext;
+
+/**
  * Request context interface
  */
 export interface RequestContext {
@@ -74,21 +87,21 @@ export const contextManager = new ContextManager();
 export function getCorrelationId(): string | undefined {
     // For now, we'll use a simple approach with a global variable
     // In a more complex setup, we could use AsyncLocalStorage
-    return (global as any).__currentCorrelationId;
+    return globalContext.__currentCorrelationId;
 }
 
 /**
  * Set current correlation ID
  */
 export function setCorrelationId(correlationId: string): void {
-    (global as any).__currentCorrelationId = correlationId;
+    globalContext.__currentCorrelationId = correlationId;
 }
 
 /**
  * Clear current correlation ID
  */
 export function clearCorrelationId(): void {
-    delete (global as any).__currentCorrelationId;
+    globalContext.__currentCorrelationId = undefined;
 }
 
 // ============================================================================
@@ -100,7 +113,7 @@ export function clearCorrelationId(): void {
  * Returns undefined if no session is set
  */
 export function getSessionToken(): string | undefined {
-    return (global as any).__currentSessionToken;
+    return globalContext.__currentSessionToken;
 }
 
 /**
@@ -108,9 +121,9 @@ export function getSessionToken(): string | undefined {
  */
 export function setSessionToken(sessionToken: string | undefined): void {
     if (sessionToken) {
-        (global as any).__currentSessionToken = sessionToken;
+        globalContext.__currentSessionToken = sessionToken;
     } else {
-        delete (global as any).__currentSessionToken;
+        globalContext.__currentSessionToken = undefined;
     }
 }
 
@@ -118,5 +131,5 @@ export function setSessionToken(sessionToken: string | undefined): void {
  * Clear current session token
  */
 export function clearSessionToken(): void {
-    delete (global as any).__currentSessionToken;
+    globalContext.__currentSessionToken = undefined;
 }

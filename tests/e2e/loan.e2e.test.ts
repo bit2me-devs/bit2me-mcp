@@ -85,6 +85,7 @@ describeE2E("E2E: Loan Tools", () => {
             const ordersResponse = JSON.parse(ordersResult.content[0].text);
 
             if (ordersResponse.result.length === 0) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping loan order details test - no loan orders found");
                 return;
             }

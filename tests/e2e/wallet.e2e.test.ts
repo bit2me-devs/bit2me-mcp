@@ -25,7 +25,7 @@ describeE2E("E2E: Wallet Tools", () => {
             const pockets = JSON.parse(result.content[0].text);
 
             expect(Array.isArray(pockets)).toBe(true);
-            pockets.forEach((pocket: any) => {
+            pockets.forEach((pocket: { symbol: string }) => {
                 expect(pocket.symbol).toBe("EUR");
             });
         },
@@ -90,9 +90,10 @@ describeE2E("E2E: Wallet Tools", () => {
             // Get EUR and BTC pockets
             const eurResult = await handleWalletTool("wallet_get_pockets", { symbol: "EUR" });
             const eurPockets = JSON.parse(eurResult.content[0].text);
-            const eurPocket = eurPockets.find((p: any) => parseFloat(p.balance) > 1);
+            const eurPocket = eurPockets.find((p: { balance: string }) => parseFloat(p.balance) > 1);
 
             if (!eurPocket) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping transaction test - no EUR pocket with sufficient balance");
                 return;
             }
@@ -102,6 +103,7 @@ describeE2E("E2E: Wallet Tools", () => {
             const btcPocket = btcPockets[0];
 
             if (!btcPocket) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping transaction test - no BTC pocket found");
                 return;
             }
@@ -120,6 +122,7 @@ describeE2E("E2E: Wallet Tools", () => {
             const btcPockets = JSON.parse(btcResult.content[0].text);
 
             if (btcPockets.length === 0) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping pocket addresses test - no BTC pocket found");
                 return;
             }
@@ -151,6 +154,7 @@ describeE2E("E2E: Wallet Tools", () => {
             const response = JSON.parse(txResult.content[0].text);
 
             if (response.result.length === 0) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping movement details test - no movements found");
                 return;
             }

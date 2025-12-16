@@ -68,6 +68,7 @@ describeE2E("E2E: Pro Trading Tools", () => {
             const ordersResponse = JSON.parse(ordersResult.content[0].text);
 
             if (ordersResponse.result.length === 0) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping pro order details test - no open orders found");
                 return;
             }
@@ -95,6 +96,7 @@ describeE2E("E2E: Pro Trading Tools", () => {
             const txResponse = JSON.parse(txResult.content[0].text);
 
             if (txResponse.trades.length === 0) {
+                // eslint-disable-next-line no-console
                 console.warn("⚠️ Skipping order trades test - no transactions found");
                 return;
             }

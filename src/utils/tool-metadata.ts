@@ -24,12 +24,12 @@ export interface ToolMetadata {
     attributes?: ToolAttributes;
     inputSchema: {
         type: "object";
-        properties?: Record<string, any>;
+        properties?: Record<string, unknown>;
         required?: string[];
-        [key: string]: any;
+        [key: string]: unknown;
     };
-    exampleArgs: Record<string, any>;
-    exampleResponse: any;
+    exampleArgs: Record<string, unknown>;
+    exampleResponse: unknown;
 }
 
 export interface CategoryMetadata {
@@ -130,7 +130,7 @@ export function metadataToTool(metadata: ToolMetadata): Tool {
 
     // Add custom attributes if present (for internal use, not part of MCP spec)
     if (metadata.attributes) {
-        (tool as any).attributes = metadata.attributes;
+        (tool as Tool & { attributes?: ToolAttributes }).attributes = metadata.attributes;
     }
 
     return tool;
