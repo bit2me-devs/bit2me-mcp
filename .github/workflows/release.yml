@@ -52,9 +52,18 @@ jobs:
                       build/index.js
                       package.json
 
+            - name: Get npm OIDC token
+              id: npm-oidc
+              run: |
+                  NPM_TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+                    "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://registry.npmjs.org" | jq -r '.value')
+                  echo "::add-mask::$NPM_TOKEN"
+                  echo "token=$NPM_TOKEN" >> $GITHUB_OUTPUT
+
             - name: Semantic Release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ steps.npm-oidc.outputs.token }}
                   NPM_CONFIG_PROVENANCE: true
               run: pnpm dlx semantic-release
 
