@@ -52,15 +52,9 @@ jobs:
                       build/index.js
                       package.json
 
-            - name: Configure npm for publishing
-              run: |
-                  echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-                  pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
-
             - name: Semantic Release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: pnpm dlx semantic-release
 
             - name: Regenerate documentation with new version
