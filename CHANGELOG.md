@@ -1,3 +1,9 @@
+## [4.1.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.2...v4.1.3) (2026-01-24)
+
+### Bug Fixes
+
+- **ci:** manually obtain OIDC token for npm publish ([09340f6](https://github.com/bit2me-devs/bit2me-mcp/commit/09340f6e65f71ba5fb06e879d1b46a3f715aa177))
+
 ## [4.1.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.1...v4.1.2) (2026-01-24)
 
 ### Bug Fixes
