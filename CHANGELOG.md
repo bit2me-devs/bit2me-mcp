@@ -1,3 +1,14 @@
+# [4.1.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.0.0...v4.1.0) (2026-01-24)
+
+### Features
+
+- switch package manager from npm to pnpm ([ecb273d](https://github.com/bit2me-devs/bit2me-mcp/commit/ecb273d1751ef4de0ddb5a9a80c2545fb253ae3c))
+
+### BREAKING CHANGES
+
+- Project now requires pnpm >= 10.0.0 as the package manager.
+  Users should install pnpm globally with `npm install -g pnpm` before contributing.
+
 # [4.0.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.3...v4.0.0) (2026-01-24)
 
 ### Build System
