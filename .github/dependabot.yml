@@ -1,9 +1,9 @@
 version: 2
 updates:
     # ---------------------------------------------------------
-    # 1. NPM (Project dependencies)
+    # 1. pnpm (Project dependencies)
     # ---------------------------------------------------------
-    - package-ecosystem: "npm"
+    - package-ecosystem: "npm" # Dependabot uses "npm" ecosystem for npm/yarn/pnpm
       directory: "/"
       schedule:
           interval: "weekly"
@@ -23,7 +23,7 @@ updates:
       # Labels for easy filtering in GitHub
       labels:
           - "dependencies"
-          - "npm"
+          - "pnpm"
 
       # Commit Message Configuration for Semantic Release compatibility
       commit-message:
