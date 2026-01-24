@@ -1,3 +1,9 @@
+## [4.1.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.1...v4.1.2) (2026-01-24)
+
+### Bug Fixes
+
+- **ci:** enable npm provenance for OIDC authentication ([6bb59fc](https://github.com/bit2me-devs/bit2me-mcp/commit/6bb59fca0d67376f2083c2f6da350c7fc2ba0473))
+
 ## [4.1.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.0...v4.1.1) (2026-01-24)
 
 ### Bug Fixes
