@@ -1,3 +1,13 @@
+# [4.0.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.3...v4.0.0) (2026-01-24)
+
+### Build System
+
+- migrate from npm to pnpm ([b34b5d0](https://github.com/bit2me-devs/bit2me-mcp/commit/b34b5d0f88167b6b5b3b6aa3466e3509e5a3770c))
+
+### BREAKING CHANGES
+
+- Project now requires pnpm >= 10.0.0
+
 ## [3.2.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.2...v3.2.3) (2025-12-16)
 
 ### Bug Fixes
