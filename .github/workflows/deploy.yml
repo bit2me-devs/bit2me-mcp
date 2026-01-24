@@ -29,26 +29,29 @@ jobs:
             - name: Checkout
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+
             - name: Setup Node
               uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
               with:
                   node-version: "20"
-                  cache: "npm"
+                  cache: "pnpm"
 
             - name: Install dependencies
-              run: npm ci
+              run: pnpm install --frozen-lockfile
 
             - name: Lint
-              run: npm run lint
+              run: pnpm run lint
 
             - name: Test
-              run: npm test
+              run: pnpm test
 
             - name: Build
-              run: npm run build
+              run: pnpm run build
 
             - name: Generate LLM Docs
-              run: npm run build:llms
+              run: pnpm run build:llms
 
             - name: Minify HTML for production
               run: MINIFY=true node scripts/minify-html.js

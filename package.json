@@ -4,8 +4,10 @@
     "description": "Bit2Me MCP Server",
     "type": "module",
     "main": "build/index.js",
+    "packageManager": "pnpm@10.0.0",
     "engines": {
-        "node": ">=18.0.0"
+        "node": ">=18.0.0",
+        "pnpm": ">=10.0.0"
     },
     "bin": {
         "bit2me-mcp-server": "./build/index.js"
@@ -18,9 +20,9 @@
         "build": "tsc -p tsconfig.build.json",
         "build:llms": "node scripts/generate-llms.js",
         "build:docs": "node scripts/generate-tools-docs.js",
-        "prepublishOnly": "npm run build",
+        "prepublishOnly": "pnpm run build",
         "start": "node build/index.js",
-        "dev": "node build/index.js",
+        "dev": "pnpm dlx @modelcontextprotocol/inspector node build/index.js",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:e2e": "RUN_E2E=true vitest run tests/e2e",
@@ -34,10 +36,10 @@
         "eslint:legacy": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
         "eslint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
         "prettier": "prettier --write .",
-        "audit": "npm audit --audit-level=high",
+        "audit": "pnpm audit --audit-level=high",
         "secret-scan": "bash -c 'if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose --redact; else echo \"⚠️ Gitleaks not found, skipping secret scan. Install it for better security.\"; fi' --",
         "clean": "rm -rf build coverage",
-        "validate": "npm run typecheck && npm run lint && npm test",
+        "validate": "pnpm run typecheck && pnpm run lint && pnpm test",
         "prepare": "husky"
     },
     "keywords": [
@@ -53,7 +55,7 @@
     "author": "Bit2Me",
     "license": "MIT",
     "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.22.0",
+        "@modelcontextprotocol/sdk": "^1.25.1",
         "axios": "^1.6.0",
         "dotenv": "^17.2.3",
         "zod": "^4.2.0"
@@ -64,7 +66,7 @@
         "@eslint/js": "^9.39.2",
         "@semantic-release/changelog": "^6.0.3",
         "@semantic-release/git": "^10.0.1",
-        "@types/node": "^24.10.1",
+        "@types/node": "^25.0.3",
         "@typescript-eslint/eslint-plugin": "^8.53.0",
         "@typescript-eslint/parser": "^8.53.0",
         "@vitest/coverage-v8": "^4.0.17",
@@ -84,16 +86,16 @@
     },
     "lint-staged": {
         "*": [
-            "npm run secret-scan"
+            "pnpm run secret-scan"
         ],
         "package.json": [
-            "npm run audit"
+            "pnpm run audit"
         ],
-        "package-lock.json": [
-            "npm run audit"
+        "pnpm-lock.yaml": [
+            "pnpm run audit"
         ],
         "*.ts": [
-            "npm run eslint -- --fix",
+            "pnpm run eslint -- --fix",
             "prettier --write",
             "vitest related --run"
         ],

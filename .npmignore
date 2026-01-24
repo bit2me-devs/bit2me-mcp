@@ -21,6 +21,6 @@ vitest.config.ts
 .husky/
 
 # Logs y otros
-npm-debug.log
+pnpm-debug.log
 terminals/
 
