@@ -1,3 +1,9 @@
+## [4.1.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.0...v4.1.1) (2026-01-24)
+
+### Bug Fixes
+
+- **ci:** switch to npm OIDC trusted publisher for secure publishing ([4c479aa](https://github.com/bit2me-devs/bit2me-mcp/commit/4c479aa6487e0852ddb1494ab1639e93d70c8ace))
+
 # [4.1.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.0.0...v4.1.0) (2026-01-24)
 
 ### Features
