@@ -1,3 +1,9 @@
+## [4.1.4](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.3...v4.1.4) (2026-01-24)
+
+### Bug Fixes
+
+- **ci:** remove registry-url to allow npm OIDC authentication ([1e636eb](https://github.com/bit2me-devs/bit2me-mcp/commit/1e636ebc449999f44b1c8953572e19415c2733cd))
+
 ## [4.1.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.2...v4.1.3) (2026-01-24)
 
 ### Bug Fixes
