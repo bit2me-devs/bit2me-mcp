@@ -4,6 +4,18 @@
     "description": "Bit2Me MCP Server",
     "type": "module",
     "main": "build/index.js",
+    "types": "build/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./build/index.d.ts",
+            "default": "./build/index.js"
+        }
+    },
+    "files": [
+        "build",
+        "README.md",
+        "LICENSE"
+    ],
     "packageManager": "pnpm@10.0.0",
     "engines": {
         "node": ">=18.0.0",
@@ -39,7 +51,8 @@
         "audit": "pnpm audit --audit-level=high",
         "secret-scan": "bash -c 'if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose --redact; else echo \"⚠️ Gitleaks not found, skipping secret scan. Install it for better security.\"; fi' --",
         "clean": "rm -rf build coverage",
-        "validate": "pnpm run typecheck && pnpm run lint && pnpm test",
+        "publint": "publint",
+        "validate": "pnpm run typecheck && pnpm run lint && pnpm run publint && pnpm test",
         "prepare": "husky"
     },
     "keywords": [
@@ -55,34 +68,36 @@
     "author": "Bit2Me",
     "license": "MIT",
     "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.25.1",
-        "axios": "^1.6.0",
-        "dotenv": "^17.2.3",
-        "zod": "^4.2.0"
+        "@modelcontextprotocol/sdk": "^1.29.0",
+        "axios": "1.15.2",
+        "dotenv": "^17.4.2",
+        "zod": "^4.4.3"
     },
     "devDependencies": {
-        "@commitlint/cli": "^20.3.1",
-        "@commitlint/config-conventional": "^20.3.1",
-        "@eslint/js": "^9.39.2",
+        "@commitlint/cli": "^20.5.3",
+        "@commitlint/config-conventional": "^20.5.3",
+        "@eslint/js": "^9.39.4",
         "@semantic-release/changelog": "^6.0.3",
         "@semantic-release/git": "^10.0.1",
-        "@types/node": "^25.0.3",
-        "@typescript-eslint/eslint-plugin": "^8.53.0",
-        "@typescript-eslint/parser": "^8.53.0",
-        "@vitest/coverage-v8": "^4.0.17",
-        "eslint": "^9.39.2",
+        "@types/node": "^25.6.2",
+        "@typescript-eslint/eslint-plugin": "^8.59.2",
+        "@typescript-eslint/parser": "^8.59.2",
+        "@vitest/coverage-v8": "^4.1.5",
+        "eslint": "^9.39.4",
         "eslint-plugin-security": "^3.0.1",
-        "fast-check": "^4.5.3",
-        "globals": "^16.5.0",
+        "fast-check": "^4.7.0",
+        "globals": "^17.6.0",
         "html-minifier-terser": "^7.2.0",
         "husky": "^9.1.7",
-        "lint-staged": "^16.2.7",
-        "prettier": "^3.8.0",
-        "semantic-release": "^25.0.2",
-        "ts-node": "^10.9.1",
-        "typescript": "^5.0.0",
-        "typescript-eslint": "^8.53.0",
-        "vitest": "^4.0.15"
+        "lint-staged": "^16.4.0",
+        "prettier": "^3.8.3",
+        "publint": "^0.3.20",
+        "semantic-release": "^25.0.3",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.59.2",
+        "vite": "7.3.3",
+        "vitest": "^4.1.5"
     },
     "lint-staged": {
         "*": [
