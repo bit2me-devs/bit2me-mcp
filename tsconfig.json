@@ -5,11 +5,22 @@
         "moduleResolution": "Node16",
         "outDir": "./build",
         
-        // Strict mode (enabled incrementally)
+        // Strict mode.
+        //
+        // `exactOptionalPropertyTypes` is enabled here so the whole tree
+        // (src + tests + examples) stays consistent — that flag is the most
+        // valuable for catching contract mismatches between API responses
+        // and our internal schemas.
+        //
+        // `noUncheckedIndexedAccess` is intentionally kept only in
+        // `tsconfig.build.json` (production build). Test files perform a lot
+        // of `arr[0]` access after manually asserting length, and adding
+        // non-null assertions everywhere would obscure the assertion logic
+        // without buying additional safety in tests. Production code does
+        // get the stricter check.
         "strict": true,
         "noImplicitOverride": true,
-        // "noUncheckedIndexedAccess": true,      // TODO: Enable and fix array access
-        // "exactOptionalPropertyTypes": true,    // TODO: Enable and fix optional props
+        "exactOptionalPropertyTypes": true,
         // "noPropertyAccessFromIndexSignature": true, // Too strict for current codebase
         
         // Module resolution
