@@ -338,6 +338,39 @@ const toolsData = [
                     "requires_auth": false,
                     "complexity": "low"
                 }
+            },
+            {
+                "name": "general_describe_tool",
+                "type": "META",
+                "desc": "Self-introspection tool: returns the description, inputSchema, exampleArgs and exampleResponse of any other tool in the catalog. Useful when an LLM needs to learn how to call a tool it hasn't seen before. [PUBLIC]",
+                "args": {
+                    "tool_name": {
+                        "type": "string",
+                        "desc": "Exact name of the tool to introspect (e.g. 'broker_quote_buy').",
+                        "required": true
+                    }
+                },
+                "exampleArgs": {
+                    "tool_name": "broker_get_asset_price"
+                },
+                "response": {
+                    "request": {
+                        "tool_name": "broker_get_asset_price"
+                    },
+                    "result": {
+                        "name": "broker_get_asset_price",
+                        "description": "...",
+                        "inputSchema": {
+                            "type": "object"
+                        },
+                        "exampleArgs": {},
+                        "exampleResponse": {}
+                    }
+                },
+                "attributes": {
+                    "requires_auth": false,
+                    "complexity": "low"
+                }
             }
         ]
     },
@@ -5080,7 +5113,7 @@ const toolsData = [
 ];
 
 // Package version
-const packageVersion = '4.0.0';
+const packageVersion = '4.1.3';
 
 // Export for use in landing page
 if (typeof window !== 'undefined') {

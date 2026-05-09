@@ -2,9 +2,9 @@
 
 This document shows the exact JSON structure returned by each Bit2Me MCP tool, including detailed descriptions of each field and their possible values.
 
-## Tool Count (47 total)
+## Tool Count (48 total)
 
-- 3 General Tools
+- 4 General Tools
 - 8 Broker (Simple Trading) Tools
 - 4 Wallet (Storage) Tools
 - 14 Pro (Advanced Trading) Tools
@@ -15,7 +15,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ---
 
-## General (3 tools)
+## General (4 tools)
 
 > **Note:** General information tools including asset details, account information, and portfolio valuation.
 
@@ -155,6 +155,31 @@ _Note: Write operation tools are included in their respective categories._
                 "response_time_ms": 120
             }
         }
+    }
+}
+```
+
+**Bit2Me API:** `N/A`
+
+### general_describe_tool
+
+> Self-introspection tool: returns the description, inputSchema, exampleArgs and exampleResponse of any other tool in the catalog. Useful when an LLM needs to learn how to call a tool it hasn't seen before. [PUBLIC]
+
+#### Example Response
+
+```json
+{
+    "request": {
+        "tool_name": "broker_get_asset_price"
+    },
+    "result": {
+        "name": "broker_get_asset_price",
+        "description": "...",
+        "inputSchema": {
+            "type": "object"
+        },
+        "exampleArgs": {},
+        "exampleResponse": {}
     }
 }
 ```
@@ -1837,4 +1862,4 @@ _Note: Write operation tools are included in their respective categories._
 
 ---
 
-_Auto-generated on 2026-01-24._
+_Auto-generated on 2026-05-09._

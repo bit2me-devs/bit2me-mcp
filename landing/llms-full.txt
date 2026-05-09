@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2025-12-06T17:43:41.210Z
+> Generated on 2026-05-09T11:18:55.073Z
 
 
 ==================================================
@@ -50,12 +50,35 @@ All tool responses are normalised for LLM consumption (consistent naming, flatte
 - **Node.js**: v18 or higher.
 - **Bit2Me Account**: You need a verified Bit2Me account.
 
-### 🔑 Generating API Keys
+### 🔑 Authentication Methods
+
+#### API Keys (Recommended)
+
+The recommended way to authenticate is using API Keys. This method is secure, granular, and designed for programmatic access.
 
 1. Go to your **[Bit2Me API Dashboard](https://app.bit2me.com/profile/api)**.
 2. Click on **"New Key"**.
 3. Select the permissions you need (e.g., Wallets, Trading, Earn, Loans).
     > **⚠️ Security Note:** This MCP server does **NOT** support crypto withdrawals to external blockchain addresses or transfers to other users. For security best practices, please **DO NOT** enable "Withdrawal" permissions on your API Key. Internal transfers between your own Bit2Me wallets (Wallet ↔ Pro ↔ Earn) are fully supported.
+
+#### JWT Session Token (Alternative)
+
+All tools support an optional `jwt` parameter for session-based authentication. This is useful for:
+
+- **Multi-tenant applications**: Where each request is made on behalf of a different user.
+- **Web integrations**: Where users are already authenticated via the Bit2Me web interface.
+
+When the `jwt` parameter is provided, the server will use cookie-based authentication instead of API Keys.
+
+```typescript
+// Example: Using JWT session token
+const result = await mcpClient.callTool("wallet_get_pockets", {
+    symbol: "BTC",
+    jwt: "user_session_token_here"  // Optional - uses API keys if omitted
+});
+```
+
+> **📝 Note:** API Keys are recommended for most use cases. The `jwt` parameter should only be used when building multi-tenant applications or web integrations where users have existing Bit2Me sessions.
 
 ### Steps
 
@@ -172,13 +195,56 @@ The Bit2Me API enforces rate limits to ensure stability.
 
 ## 📊 Logging
 
-The server implements a structured logging system that automatically sanitizes sensitive data (API keys, signatures).
+The server implements a structured logging system that automatically sanitizes sensitive data (API keys, signatures, JWTs, emails, IBANs, and other PII).
 You can control the verbosity using the `BIT2ME_LOG_LEVEL` environment variable:
 
 - `debug`: Detailed request/response logs (useful for development)
 - `info`: Startup and operational events (default)
 - `warn`: Rate limits and non-critical issues
 - `error`: API errors and failures
+
+Set `LOG_FORMAT=json` to switch the logger to a single-JSON-object-per-line format suitable for log aggregators (Loki, Datadog, CloudWatch, etc.). The default is human-readable.
+
+All logs are written to **stderr**; stdout is reserved for the MCP JSON-RPC frame.
+
+## 🧵 Concurrency Model
+
+Each incoming tool call runs inside its own [`AsyncLocalStorage`](https://nodejs.org/api/async_context.html#class-asynclocalstorage) boundary. The store carries:
+
+- `correlationId`: a UUID generated per request, included in every log line
+- `sessionToken` (`jwt`): the optional per-call session token, never logged in the clear
+- `toolName`, `startTime`: useful for metrics / audit
+
+Two requests that arrive concurrently — for example two different users hitting the HTTP transport with their own JWTs — never share state. The legacy global-context fallbacks remain for unit tests that run outside a `runWithContext` boundary, but production code paths always create a context. See `tests/concurrency.test.ts` and `tests/http-transport.test.ts` for the regression coverage.
+
+Per-request state stored via `memoizePerRequest()` (e.g. wallet pockets fetched multiple times during a single broker quote) is keyed by `correlationId` and cleared in the `finally` block of `executeTool()` so the cache cannot grow unbounded.
+
+## 🚢 Operating in Production
+
+Two binaries ship with this package:
+
+- `bit2me-mcp-server` — the original stdio transport, designed to be spawned by a single LLM client (Claude Desktop, Cursor, …).
+- `bit2me-mcp-http` — the multi-tenant HTTP/SSE transport (`src/index-http.ts`). Each request supplies its own credentials in headers (`X-Bit2Me-Api-Key` + `X-Bit2Me-Api-Secret` or `Authorization: Bearer <jwt>`). TLS termination is delegated to a reverse proxy.
+
+Recommended environment variables for the HTTP binary:
+
+- `MCP_HTTP_HOST` / `MCP_HTTP_PORT` (default `127.0.0.1:3000`)
+- `MCP_HTTP_AUTH_MODE`: `api_key` (default), `jwt`, or `both`
+- `LOG_FORMAT=json` for structured logs
+- `AUDIT_LOG_PATH=/var/log/bit2me-mcp/audit.log` to ship audit lines to a file
+
+Built-in observability endpoints (HTTP transport only):
+
+- `GET /health` — liveness + Bit2Me reachability + cache/circuit-breaker/rate-limiter snapshot. Cached for 30s.
+- `GET /metrics` — Prometheus text-format counters (`bit2me_mcp_tool_calls_total`, `bit2me_mcp_tool_errors_total`, `bit2me_mcp_tool_duration_avg_ms`).
+
+Reliability features active by default:
+
+- Circuit breaker on the upstream Bit2Me API (`src/utils/circuit-breaker.ts`).
+- Per-endpoint rate limiter with exponential backoff + jitter.
+- Idempotency keys on every write tool (`pro_create_order`, `loan_create`, `earn_deposit`, …) — the SDK auto-generates one if the caller doesn't supply `idempotency_key`.
+- Monotonic request nonces for API-key signing (replay-safe even under high concurrency).
+- Append-only audit log for every successful **and** failed write operation.
 
 ## ❓ Troubleshooting
 
@@ -942,6 +1008,92 @@ git commit -m "chore: update deps"     # No release
 ==================================================
 FILE: CHANGELOG.md (Changelog)
 ==================================================
+
+## [4.1.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.2...v4.1.3) (2026-01-24)
+
+### Bug Fixes
+
+- **ci:** manually obtain OIDC token for npm publish ([09340f6](https://github.com/bit2me-devs/bit2me-mcp/commit/09340f6e65f71ba5fb06e879d1b46a3f715aa177))
+
+## [4.1.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.1...v4.1.2) (2026-01-24)
+
+### Bug Fixes
+
+- **ci:** enable npm provenance for OIDC authentication ([6bb59fc](https://github.com/bit2me-devs/bit2me-mcp/commit/6bb59fca0d67376f2083c2f6da350c7fc2ba0473))
+
+## [4.1.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.0...v4.1.1) (2026-01-24)
+
+### Bug Fixes
+
+- **ci:** switch to npm OIDC trusted publisher for secure publishing ([4c479aa](https://github.com/bit2me-devs/bit2me-mcp/commit/4c479aa6487e0852ddb1494ab1639e93d70c8ace))
+
+# [4.1.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.0.0...v4.1.0) (2026-01-24)
+
+### Features
+
+- switch package manager from npm to pnpm ([ecb273d](https://github.com/bit2me-devs/bit2me-mcp/commit/ecb273d1751ef4de0ddb5a9a80c2545fb253ae3c))
+
+### BREAKING CHANGES
+
+- Project now requires pnpm >= 10.0.0 as the package manager.
+  Users should install pnpm globally with `npm install -g pnpm` before contributing.
+
+# [4.0.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.3...v4.0.0) (2026-01-24)
+
+### Build System
+
+- migrate from npm to pnpm ([b34b5d0](https://github.com/bit2me-devs/bit2me-mcp/commit/b34b5d0f88167b6b5b3b6aa3466e3509e5a3770c))
+
+### BREAKING CHANGES
+
+- Project now requires pnpm >= 10.0.0
+
+## [3.2.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.2...v3.2.3) (2025-12-16)
+
+### Bug Fixes
+
+- resolve all eslint warnings ([1e493a0](https://github.com/bit2me-devs/bit2me-mcp/commit/1e493a0a097db6eb9b567d710d8c12e369e723da))
+
+## [3.2.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.1...v3.2.2) (2025-12-07)
+
+### Bug Fixes
+
+- correct broker proforma response mapping ([1a27d2b](https://github.com/bit2me-devs/bit2me-mcp/commit/1a27d2b771319ff9a7cd3b3ba884026f4e4bd0f9))
+
+## [3.2.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.2.0...v3.2.1) (2025-12-07)
+
+### Bug Fixes
+
+- inject jwt parameter only in tools that require authentication ([db0e191](https://github.com/bit2me-devs/bit2me-mcp/commit/db0e19119571143dd7428d21341e265d2d665c08))
+
+# [3.2.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.2...v3.2.0) (2025-12-07)
+
+### Bug Fixes
+
+- improve error messages for authentication and API failures ([9452ba5](https://github.com/bit2me-devs/bit2me-mcp/commit/9452ba522816c3ae128976106c6ba87f0fa0b3c7))
+- resolve TypeScript error in auth test ([4d40d49](https://github.com/bit2me-devs/bit2me-mcp/commit/4d40d49531709fd6506f57d45080a410a9b90ff6))
+
+### Features
+
+- add JWT session authentication support ([d2bbae1](https://github.com/bit2me-devs/bit2me-mcp/commit/d2bbae189eefd66b186fee0445c74950acc35436))
+
+## [3.1.2](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.1...v3.1.2) (2025-12-06)
+
+### Bug Fixes
+
+- **ci:** add TOOLS_DOCUMENTATION.md to release doc regeneration ([895d70e](https://github.com/bit2me-devs/bit2me-mcp/commit/895d70ef1650fdd79bf2968118f93bab1c14e3ba))
+
+## [3.1.1](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.1.0...v3.1.1) (2025-12-06)
+
+### Bug Fixes
+
+- **ci:** fix shell quoting in release workflow ([077fdb6](https://github.com/bit2me-devs/bit2me-mcp/commit/077fdb6769bc165872fbe1ff0114e0fc6a79283d))
+
+# [3.1.0](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.3...v3.1.0) (2025-12-06)
+
+### Features
+
+- **config:** add configurable BIT2ME_GATEWAY_URL for QA/staging ([30a0408](https://github.com/bit2me-devs/bit2me-mcp/commit/30a0408542bd1bcd8ac28c7ab69e09c9d824ba3f))
 
 ## [3.0.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v3.0.2...v3.0.3) (2025-12-06)
 

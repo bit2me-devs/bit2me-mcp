@@ -304,6 +304,36 @@
                         },
                         "required": ["status", "timestamp", "version", "uptime_seconds", "components"]
                     }
+                },
+                {
+                    "name": "general_describe_tool",
+                    "description": "Self-introspection tool: returns the description, inputSchema, exampleArgs and exampleResponse of any other tool in the catalog. Useful when an LLM needs to learn how to call a tool it hasn't seen before. [PUBLIC]",
+                    "type": "META",
+                    "attributes": {
+                        "requires_auth": false,
+                        "complexity": "low"
+                    },
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "tool_name": {
+                                "type": "string",
+                                "description": "Exact name of the tool to introspect (e.g. 'broker_quote_buy')."
+                            }
+                        },
+                        "required": ["tool_name"]
+                    },
+                    "exampleArgs": { "tool_name": "broker_get_asset_price" },
+                    "exampleResponse": {
+                        "request": { "tool_name": "broker_get_asset_price" },
+                        "result": {
+                            "name": "broker_get_asset_price",
+                            "description": "...",
+                            "inputSchema": { "type": "object" },
+                            "exampleArgs": {},
+                            "exampleResponse": {}
+                        }
+                    }
                 }
             ]
         },
