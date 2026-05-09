@@ -37,22 +37,18 @@ jobs:
               uses: pnpm/action-setup@91ab88e2619ed1f46221f0ba42d1492c02baf788 # v6
 
             - name: Setup Node.js
+              # Node.js 24 ships with npm >= 11.5.1, which is the minimum
+              # required for OIDC trusted publishing. Sticking with Node 22
+              # forced an in-place self-upgrade of npm that fails on hosted
+              # runners (https://github.com/npm/cli/issues/4815).
               uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
               with:
-                  node-version: "22"
+                  node-version: "24"
                   cache: "pnpm"
                   registry-url: "https://registry.npmjs.org/"
 
-            - name: Upgrade npm to a version that supports OIDC trusted publishing
-              # The npm bundled with Node.js 22 is 10.x, which does not support
-              # OIDC trusted publishing. Pin a version >= 11.5.1 so semantic-
-              # release/npm can authenticate to the registry without a token.
-              # `--force` works around a long-standing self-upgrade bug where
-              # npm@10 cannot rebuild itself in place when promoting to npm@11
-              # (see https://github.com/npm/cli/issues/4815).
-              run: |
-                  npm install -g npm@latest --force
-                  npm --version
+            - name: Print npm version
+              run: npm --version
 
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
