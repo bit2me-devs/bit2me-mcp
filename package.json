@@ -18,11 +18,12 @@
     ],
     "packageManager": "pnpm@10.0.0",
     "engines": {
-        "node": ">=18.0.0",
+        "node": ">=20.0.0",
         "pnpm": ">=10.0.0"
     },
     "bin": {
-        "bit2me-mcp-server": "./build/index.js"
+        "bit2me-mcp-server": "./build/index.js",
+        "bit2me-mcp-http": "./build/index-http.js"
     },
     "publishConfig": {
         "access": "public",
@@ -32,7 +33,7 @@
         "build": "tsc -p tsconfig.build.json",
         "build:llms": "node scripts/generate-llms.js",
         "build:docs": "node scripts/generate-tools-docs.js",
-        "prepublishOnly": "pnpm run build",
+        "prepublishOnly": "pnpm run validate && pnpm run build",
         "start": "node build/index.js",
         "dev": "pnpm dlx @modelcontextprotocol/inspector node build/index.js",
         "test": "vitest run",
@@ -49,7 +50,7 @@
         "eslint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
         "prettier": "prettier --write .",
         "audit": "pnpm audit --audit-level=high",
-        "secret-scan": "bash -c 'if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose --redact; else echo \"⚠️ Gitleaks not found, skipping secret scan. Install it for better security.\"; fi' --",
+        "secret-scan": "bash -c 'if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose --redact; else echo \"ERROR: gitleaks is required for the pre-commit secret scan. Install it from https://github.com/gitleaks/gitleaks (e.g. \\`brew install gitleaks\\` or \\`apt install gitleaks\\`).\" >&2; exit 1; fi' --",
         "clean": "rm -rf build coverage",
         "publint": "publint",
         "validate": "pnpm run typecheck && pnpm run lint && pnpm run publint && pnpm test",
@@ -68,9 +69,12 @@
     "author": "Bit2Me",
     "license": "MIT",
     "dependencies": {
+        "@fastify/rate-limit": "^10.3.0",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "axios": "1.15.2",
+        "decimal.js": "^10.6.0",
         "dotenv": "^17.4.2",
+        "fastify": "^5.8.5",
         "zod": "^4.4.3"
     },
     "devDependencies": {

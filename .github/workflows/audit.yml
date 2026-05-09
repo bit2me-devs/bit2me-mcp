@@ -1,0 +1,54 @@
+name: Weekly Dependency Audit
+
+# Runs `pnpm audit` once a week (Mondays 06:00 UTC) and on demand. Failures
+# do NOT break PRs — they show up as a tracked issue so the maintainers
+# notice newly disclosed CVEs in the supply chain without forcing a hot
+# fix at the moment of disclosure.
+on:
+    schedule:
+        - cron: "0 6 * * 1"
+    workflow_dispatch: {}
+
+permissions:
+    contents: read
+    issues: write
+
+jobs:
+    audit:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+                  cache: "pnpm"
+
+            - run: pnpm install --frozen-lockfile
+
+            - name: Run audit
+              id: audit
+              run: |
+                  set +e
+                  pnpm audit --prod --audit-level=high --json > audit.json
+                  echo "exit_code=$?" >> $GITHUB_OUTPUT
+                  cat audit.json | head -200 || true
+
+            - name: Open issue when vulnerabilities are found
+              if: steps.audit.outputs.exit_code != '0'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const fs = require('fs');
+                      const body = fs.readFileSync('audit.json', 'utf8');
+                      await github.rest.issues.create({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        title: `[security] Weekly audit found vulnerabilities (${new Date().toISOString().slice(0,10)})`,
+                        body: '```json\n' + body.slice(0, 60000) + '\n```',
+                        labels: ['security', 'dependencies'],
+                      });

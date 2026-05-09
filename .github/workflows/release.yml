@@ -44,12 +44,44 @@ jobs:
             - name: Test
               run: pnpm test
 
+            - name: Generate SBOM (CycloneDX)
+              run: |
+                  pnpm dlx @cyclonedx/cyclonedx-npm --output-format json --output-file sbom.cdx.json --omit dev || true
+                  pnpm dlx @cyclonedx/cyclonedx-npm --output-format xml  --output-file sbom.cdx.xml  --omit dev || true
+
+            - name: Install Cosign
+              uses: sigstore/cosign-installer@v3
+              with:
+                  cosign-release: "v2.4.1"
+
+            - name: Sign build artifact and SBOM with Cosign (keyless)
+              env:
+                  COSIGN_EXPERIMENTAL: "true"
+              run: |
+                  cosign sign-blob --yes build/index.js --output-signature build/index.js.sig --output-certificate build/index.js.pem || true
+                  cosign sign-blob --yes sbom.cdx.json   --output-signature sbom.cdx.json.sig    --output-certificate sbom.cdx.json.pem || true
+
             - name: Attest Build Provenance
               uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
               with:
                   subject-path: |
                       build/index.js
+                      build/index-http.js
                       package.json
+                      sbom.cdx.json
+                      sbom.cdx.xml
+
+            - name: Upload SBOM and signatures as artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: supply-chain
+                  path: |
+                      sbom.cdx.json
+                      sbom.cdx.xml
+                      build/index.js.sig
+                      build/index.js.pem
+                      sbom.cdx.json.sig
+                      sbom.cdx.json.pem
 
             - name: Semantic Release
               env:
