@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest } from "../services/bit2me.js";
+import { bit2meRequest, resolveIdempotencyKey } from "../services/bit2me.js";
 import {
     mapEarnSummaryResponse,
     mapEarnAPYResponse,
@@ -242,6 +242,7 @@ export async function handleEarnTool(name: string, args: any) {
                 symbol,
                 amount: params.amount,
             };
+            const depositIdemKey = resolveIdempotencyKey(args);
             const data = await bit2meRequest(
                 "POST",
                 `/v1/earn/wallets/${encodeURIComponent(params.pocket_id)}/movements`,
@@ -249,7 +250,11 @@ export async function handleEarnTool(name: string, args: any) {
                     currency: symbol,
                     amount: params.amount,
                     type: "deposit",
-                }
+                },
+                undefined,
+                undefined,
+                undefined,
+                { idempotencyKey: depositIdemKey }
             );
             const optimized = mapEarnOperationResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
@@ -276,6 +281,7 @@ export async function handleEarnTool(name: string, args: any) {
                 symbol,
                 amount: params.amount,
             };
+            const withdrawIdemKey = resolveIdempotencyKey(args);
             const data = await bit2meRequest(
                 "POST",
                 `/v1/earn/wallets/${encodeURIComponent(params.pocket_id)}/movements`,
@@ -283,7 +289,11 @@ export async function handleEarnTool(name: string, args: any) {
                     currency: symbol,
                     amount: params.amount,
                     type: "withdrawal",
-                }
+                },
+                undefined,
+                undefined,
+                undefined,
+                { idempotencyKey: withdrawIdemKey }
             );
             const optimized = mapEarnOperationResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);

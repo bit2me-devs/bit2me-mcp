@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest } from "../services/bit2me.js";
+import { bit2meRequest, resolveIdempotencyKey } from "../services/bit2me.js";
 import {
     mapProBalanceResponse,
     mapProOrderTradesResponse,
@@ -52,6 +52,7 @@ import {
     convertProTimeframe,
 } from "../utils/format.js";
 import { ValidationError } from "../utils/errors.js";
+import { cache, CacheCategory } from "../utils/cache.js";
 
 export const proTools: Tool[] = getCategoryTools("pro");
 
@@ -254,7 +255,10 @@ export async function handleProTool(name: string, args: any) {
             };
             if (params.price) requestContext.price = params.price;
             if (params.stop_price) requestContext.stop_price = params.stop_price;
-            const data = await bit2meRequest("POST", "/v1/trading/order", body);
+            const idempotencyKey = resolveIdempotencyKey(args);
+            const data = await bit2meRequest("POST", "/v1/trading/order", body, undefined, undefined, undefined, {
+                idempotencyKey,
+            });
             const optimized = mapProOrderResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -269,7 +273,16 @@ export async function handleProTool(name: string, args: any) {
             const requestContext = {
                 order_id: params.order_id,
             };
-            const data = await bit2meRequest("DELETE", `/v1/trading/order/${encodeURIComponent(params.order_id)}`);
+            const cancelIdemKey = resolveIdempotencyKey(args);
+            const data = await bit2meRequest(
+                "DELETE",
+                `/v1/trading/order/${encodeURIComponent(params.order_id)}`,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                { idempotencyKey: cancelIdemKey }
+            );
             const optimized = mapProCancelOrderResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -286,7 +299,10 @@ export async function handleProTool(name: string, args: any) {
                 requestContext.pair = pair;
             }
             // Endpoint is DELETE /v1/trading/order (singular) with query params
-            const data = await bit2meRequest("DELETE", "/v1/trading/order", queryParams);
+            const cancelAllIdemKey = resolveIdempotencyKey(args);
+            const data = await bit2meRequest("DELETE", "/v1/trading/order", queryParams, undefined, undefined, undefined, {
+                idempotencyKey: cancelAllIdemKey,
+            });
             const optimized = mapProCancelAllOrdersResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -306,10 +322,19 @@ export async function handleProTool(name: string, args: any) {
                 symbol,
                 amount: params.amount,
             };
-            const data = await bit2meRequest("POST", "/v1/trading/wallet/deposit", {
-                currency: symbol,
-                amount: params.amount,
-            });
+            const depositIdemKey = resolveIdempotencyKey(args);
+            const data = await bit2meRequest(
+                "POST",
+                "/v1/trading/wallet/deposit",
+                {
+                    currency: symbol,
+                    amount: params.amount,
+                },
+                undefined,
+                undefined,
+                undefined,
+                { idempotencyKey: depositIdemKey }
+            );
             const optimized = mapProDepositResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -343,7 +368,10 @@ export async function handleProTool(name: string, args: any) {
             if (params.to_pocket_id) {
                 requestContext.to_pocket_id = params.to_pocket_id;
             }
-            const data = await bit2meRequest("POST", "/v1/trading/wallet/withdraw", body);
+            const withdrawIdemKey = resolveIdempotencyKey(args);
+            const data = await bit2meRequest("POST", "/v1/trading/wallet/withdraw", body, undefined, undefined, undefined, {
+                idempotencyKey: withdrawIdemKey,
+            });
             const optimized = mapProWithdrawResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -354,7 +382,12 @@ export async function handleProTool(name: string, args: any) {
             const queryParams: any = {};
             if (params.pair) queryParams.symbol = normalizePair(params.pair);
 
-            const data = await bit2meRequest("GET", "/v1/trading/market-config", queryParams);
+            const cacheKey = `pro_market_config:${params.pair ? normalizePair(params.pair) : "ALL"}`;
+            let data = cache.get<unknown>(cacheKey);
+            if (!data) {
+                data = await bit2meRequest("GET", "/v1/trading/market-config", queryParams);
+                cache.set(cacheKey, data, CacheCategory.STATIC);
+            }
 
             const requestContext: any = {};
             if (params.pair) {

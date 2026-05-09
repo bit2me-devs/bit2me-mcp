@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest, getTicker } from "../services/bit2me.js";
+import { bit2meRequest, getTicker, resolveIdempotencyKey } from "../services/bit2me.js";
+import { memoizePerRequest } from "../utils/request-cache.js";
 import {
     mapTickerResponse,
     mapCurrencyRateResponse,
@@ -40,6 +41,20 @@ import { MAX_PAGINATION_LIMIT } from "../constants.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
 
 export const brokerTools: Tool[] = getCategoryTools("broker");
+
+/**
+ * Fetch all wallet pockets, deduplicating concurrent calls inside the same
+ * MCP request. The three quote tools (`broker_quote_buy/sell/swap`) all
+ * need the origin pocket's currency; without memoization, a workflow that
+ * touches more than one of them would download the full pocket list once
+ * per call.
+ */
+async function getAllPocketsForRequest(): Promise<unknown[]> {
+    const data = await memoizePerRequest("/v1/wallet/pocket", () =>
+        bit2meRequest("GET", "/v1/wallet/pocket", {})
+    );
+    return Array.isArray(data) ? (data as unknown[]) : [];
+}
 
 /**
  * Handles broker-related tool requests (simple trading and broker prices)
@@ -221,10 +236,8 @@ export async function handleBrokerTool(name: string, args: any) {
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
 
-            // Fetch all pockets and find the origin pocket
-            const allPocketsData = await bit2meRequest("GET", "/v1/wallet/pocket", {});
-            const allPockets = Array.isArray(allPocketsData) ? allPocketsData : [];
-            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id);
+            const allPockets = await getAllPocketsForRequest();
+            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id) as any;
 
             if (!originPocket || !originPocket.currency) {
                 throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
@@ -263,10 +276,8 @@ export async function handleBrokerTool(name: string, args: any) {
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
 
-            // Fetch all pockets and find the origin pocket
-            const allPocketsData = await bit2meRequest("GET", "/v1/wallet/pocket", {});
-            const allPockets = Array.isArray(allPocketsData) ? allPocketsData : [];
-            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id);
+            const allPockets = await getAllPocketsForRequest();
+            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id) as any;
 
             if (!originPocket || !originPocket.currency) {
                 throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
@@ -305,10 +316,8 @@ export async function handleBrokerTool(name: string, args: any) {
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
 
-            // Fetch all pockets and find the origin pocket
-            const allPocketsData = await bit2meRequest("GET", "/v1/wallet/pocket", {});
-            const allPockets = Array.isArray(allPocketsData) ? allPocketsData : [];
-            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id);
+            const allPockets = await getAllPocketsForRequest();
+            const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id) as any;
 
             if (!originPocket || !originPocket.currency) {
                 throw new NotFoundError("/v1/wallet/pocket", `Origin Pocket ${params.origin_pocket_id}`);
@@ -341,7 +350,16 @@ export async function handleBrokerTool(name: string, args: any) {
                 proforma_id: params.proforma_id,
             };
             const body = { proforma: params.proforma_id };
-            const data = await bit2meRequest("POST", "/v1/wallet/transaction", body);
+            const idempotencyKey = resolveIdempotencyKey(args);
+            const data = await bit2meRequest(
+                "POST",
+                "/v1/wallet/transaction",
+                body,
+                undefined,
+                undefined,
+                undefined,
+                { idempotencyKey }
+            );
             const optimized = mapOperationConfirmationResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };

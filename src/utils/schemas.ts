@@ -60,8 +60,8 @@ export interface MarketTickerResponse {
     price: string;
     market_cap: string;
     volume_24h: string;
-    max_supply?: string;
-    total_supply?: string;
+    max_supply?: string | undefined;
+    total_supply?: string | undefined;
 }
 
 export interface MarketAssetResponse {
@@ -164,25 +164,31 @@ export interface WalletMovementResponse {
     id: string;
     created_at: string;
     type: string;
-    subtype?: string;
+    subtype?: string | undefined;
     status: "pending" | "completed" | "failed";
     amount: string;
     symbol: string;
-    origin?: {
-        amount: string;
-        symbol: string;
-        class: string;
-    };
-    destination?: {
-        amount: string;
-        symbol: string;
-        class: string;
-    };
-    fee?: {
-        amount: string;
-        symbol: string;
-        class: string;
-    };
+    origin?:
+        | {
+              amount: string;
+              symbol: string;
+              class: string;
+          }
+        | undefined;
+    destination?:
+        | {
+              amount: string;
+              symbol: string;
+              class: string;
+          }
+        | undefined;
+    fee?:
+        | {
+              amount: string;
+              symbol: string;
+              class: string;
+          }
+        | undefined;
 }
 
 export interface WalletAddressResponse {
@@ -233,21 +239,25 @@ export interface EarnPositionResponse {
     symbol: string;
     balance: string;
     strategy: string;
-    lock_period?: {
-        lock_period_id: string;
-        months: number;
-    };
-    converted_balance?: {
-        value: string;
-        symbol: string;
-        created_at?: string;
-    };
-    created_at?: string;
-    updated_at?: string;
+    lock_period?:
+        | {
+              lock_period_id: string;
+              months: number;
+          }
+        | undefined;
+    converted_balance?:
+        | {
+              value: string;
+              symbol: string;
+              created_at?: string | undefined;
+          }
+        | undefined;
+    created_at?: string | undefined;
+    updated_at?: string | undefined;
     // Keep id and wallet_id for backward compatibility
-    id?: string;
-    wallet_id?: string;
-    total_balance?: string; // v2/earn/wallets has totalBalance
+    id?: string | undefined;
+    wallet_id?: string | undefined;
+    total_balance?: string | undefined; // v2/earn/wallets has totalBalance
 }
 
 /**
@@ -410,7 +420,7 @@ export interface ProOrderResponse {
     side: "buy" | "sell";
     type: "limit" | "market" | "stop-limit";
     status: "open" | "filled" | "cancelled";
-    price?: string;
+    price?: string | undefined;
     amount: string;
     filled: string;
     remaining: string;
@@ -499,10 +509,10 @@ export interface ProformaResponse {
     destination_amount: string;
     destination_symbol: string;
     rate: string;
-    rate_pair?: string;
+    rate_pair?: string | undefined;
     total_fee: string;
     fee_currency: string;
-    fee_breakdown?: FeeBreakdown;
+    fee_breakdown?: FeeBreakdown | undefined;
     expires_at: string;
 }
 
@@ -543,26 +553,32 @@ export interface WalletMovementDetailsResponse {
     id: string;
     created_at: string;
     type: "deposit" | "withdrawal" | "swap" | "purchase" | "transfer" | "fee" | "other";
-    subtype?: string;
+    subtype?: string | undefined;
     status: "pending" | "completed" | "failed";
     amount: string;
     symbol: string;
-    origin?: {
-        amount: string;
-        symbol: string;
-        class: string;
-        rate_applied?: string;
-    };
-    destination?: {
-        amount: string;
-        symbol: string;
-        class: string;
-    };
-    fee?: {
-        amount: string;
-        symbol: string;
-        class: string;
-    };
+    origin?:
+        | {
+              amount: string;
+              symbol: string;
+              class: string;
+              rate_applied?: string | undefined;
+          }
+        | undefined;
+    destination?:
+        | {
+              amount: string;
+              symbol: string;
+              class: string;
+          }
+        | undefined;
+    fee?:
+        | {
+              amount: string;
+              symbol: string;
+              class: string;
+          }
+        | undefined;
 }
 
 // ============================================================================
@@ -574,21 +590,25 @@ export interface EarnPositionDetailsResponse {
     symbol: string;
     balance: string;
     strategy: string;
-    lock_period?: {
-        lock_period_id: string;
-        months: number;
-    };
-    converted_balance?: {
-        value: string;
-        symbol: string;
-        created_at?: string;
-    };
-    created_at?: string;
-    updated_at?: string;
+    lock_period?:
+        | {
+              lock_period_id: string;
+              months: number;
+          }
+        | undefined;
+    converted_balance?:
+        | {
+              value: string;
+              symbol: string;
+              created_at?: string | undefined;
+          }
+        | undefined;
+    created_at?: string | undefined;
+    updated_at?: string | undefined;
     // Keep id and wallet_id for backward compatibility
-    id?: string;
-    wallet_id?: string;
-    total_balance?: string;
+    id?: string | undefined;
+    wallet_id?: string | undefined;
+    total_balance?: string | undefined;
 }
 
 export interface EarnMovementsSummaryResponse {
@@ -704,12 +724,14 @@ export interface LoanOrderDetailsResponse {
     liquidation_price: string;
     created_at: string;
     expires_at: string;
-    apr_details?: {
-        base_apr: string;
-        final_apr: string;
-        user_discount: string;
-        total_discount: string;
-    };
+    apr_details?:
+        | {
+              base_apr: string;
+              final_apr: string;
+              user_discount: string;
+              total_discount: string;
+          }
+        | undefined;
 }
 
 // ============================================================================

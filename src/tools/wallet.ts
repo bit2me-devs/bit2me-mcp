@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
+import { cache, CacheCategory } from "../utils/cache.js";
 import { MAX_PAGINATION_LIMIT } from "../constants.js";
 import {
     normalizeSymbol,
@@ -121,7 +122,15 @@ export async function handleWalletTool(name: string, args: any) {
             const requestContext = {
                 symbol,
             };
-            const data = await bit2meRequest("GET", `/v1/wallet/currency/${encodeURIComponent(symbol)}/network`);
+            const cacheKey = `wallet_networks:${symbol}`;
+            let data = cache.get<unknown>(cacheKey);
+            if (!data) {
+                data = await bit2meRequest(
+                    "GET",
+                    `/v1/wallet/currency/${encodeURIComponent(symbol)}/network`
+                );
+                cache.set(cacheKey, data, CacheCategory.STATIC);
+            }
             const optimized = mapWalletNetworksResponse(data);
             const contextual = buildFilteredContextualResponse(
                 requestContext,

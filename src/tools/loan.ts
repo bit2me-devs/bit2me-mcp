@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { bit2meRequest } from "../services/bit2me.js";
+import { bit2meRequest, resolveIdempotencyKey } from "../services/bit2me.js";
 import {
     mapLoanOrdersResponse,
     mapLoanMovementsResponse,
@@ -259,12 +259,21 @@ export async function handleLoanTool(name: string, args: any) {
             };
             if (params.user_symbol) requestContext.user_symbol = params.user_symbol;
 
-            const data = await bit2meRequest("POST", "/v1/loan", {
-                guaranteeCurrency: guarantee_symbol,
-                guaranteeAmount: guarantee_amount,
-                loanCurrency: loan_symbol,
-                loanAmount: loan_amount,
-            });
+            const createIdemKey = resolveIdempotencyKey(args);
+            const data = await bit2meRequest(
+                "POST",
+                "/v1/loan",
+                {
+                    guaranteeCurrency: guarantee_symbol,
+                    guaranteeAmount: guarantee_amount,
+                    loanCurrency: loan_symbol,
+                    loanAmount: loan_amount,
+                },
+                undefined,
+                undefined,
+                undefined,
+                { idempotencyKey: createIdemKey }
+            );
             const optimized = mapLoanCreateResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -284,12 +293,17 @@ export async function handleLoanTool(name: string, args: any) {
                 order_id: params.order_id,
                 guarantee_amount: params.guarantee_amount,
             };
+            const increaseIdemKey = resolveIdempotencyKey(args);
             const data = await bit2meRequest(
                 "POST",
                 `/v1/loan/${encodeURIComponent(params.order_id)}/guarantee/increase`,
                 {
                     guaranteeAmount: params.guarantee_amount,
-                }
+                },
+                undefined,
+                undefined,
+                undefined,
+                { idempotencyKey: increaseIdemKey }
             );
             const optimized = mapLoanIncreaseGuaranteeResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
@@ -310,9 +324,18 @@ export async function handleLoanTool(name: string, args: any) {
                 order_id: params.order_id,
                 payback_amount: params.payback_amount,
             };
-            const data = await bit2meRequest("POST", `/v1/loan/${encodeURIComponent(params.order_id)}/payback`, {
-                paybackAmount: params.payback_amount,
-            });
+            const paybackIdemKey = resolveIdempotencyKey(args);
+            const data = await bit2meRequest(
+                "POST",
+                `/v1/loan/${encodeURIComponent(params.order_id)}/payback`,
+                {
+                    paybackAmount: params.payback_amount,
+                },
+                undefined,
+                undefined,
+                undefined,
+                { idempotencyKey: paybackIdemKey }
+            );
             const optimized = mapLoanPaybackResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };

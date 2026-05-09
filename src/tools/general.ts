@@ -10,6 +10,23 @@ import { cache, CacheCategory } from "../utils/cache.js";
 import { MIN_DUST_VALUE, PORTFOLIO_REQUEST_TIMEOUT } from "../constants.js";
 import { PortfolioValuationArgs } from "../utils/args.js";
 import { performHealthCheck } from "../utils/health.js";
+import { Decimal } from "decimal.js";
+
+/**
+ * Parse a possibly-undefined string/number into a non-negative Decimal.
+ * Returns Decimal(0) for invalid / negative / NaN input so the aggregator
+ * stays defensive against malformed upstream rows.
+ */
+function toDecimal(value: unknown): Decimal {
+    if (value === undefined || value === null) return new Decimal(0);
+    try {
+        const d = new Decimal(typeof value === "string" ? value : String(value));
+        if (!d.isFinite() || d.isNegative()) return new Decimal(0);
+        return d;
+    } catch {
+        return new Decimal(0);
+    }
+}
 
 export const generalTools: Tool[] = getCategoryTools("general");
 
@@ -107,31 +124,31 @@ export async function handleGeneralTool(name: string, args: any) {
             const earn: any = results[2].status === "fulfilled" ? results[2].value : [];
             const loans: any = results[3].status === "fulfilled" ? results[3].value : {};
 
-            // Partial failures are logged but not thrown to allow partial portfolio view
+            // Partial failures are logged but not thrown to allow partial portfolio view.
+            //
+            // We aggregate balances using arbitrary-precision `Decimal` instead
+            // of native floats. Account balances often have many decimals
+            // (e.g. 0.00000001 BTC) and accumulating them with `parseFloat` +
+            // `+` produces non-deterministic rounding errors that surface as
+            // "missing satoshis" in the response.
 
-            const assets: Record<string, number> = {};
-
-            // Service-level totals for breakdown
-            let walletTotal = 0;
-            let proTotal = 0;
-            let earnTotal = 0;
-            let loanGuaranteeTotal = 0;
+            const assets: Record<string, Decimal> = {};
 
             // Process Wallet
             if (Array.isArray(wallet))
                 wallet.forEach((p: any) => {
-                    const val = parseFloat(p.balance || "0");
-                    if (val > 0) {
-                        assets[p.currency] = (assets[p.currency] || 0) + val;
+                    const val = toDecimal(p.balance);
+                    if (val.gt(0)) {
+                        assets[p.currency] = (assets[p.currency] ?? new Decimal(0)).plus(val);
                     }
                 });
 
             // Process Pro
             if (Array.isArray(pro))
                 pro.forEach((w: any) => {
-                    const val = parseFloat(w.balance || "0");
-                    if (val > 0) {
-                        assets[w.currency] = (assets[w.currency] || 0) + val;
+                    const val = toDecimal(w.balance);
+                    if (val.gt(0)) {
+                        assets[w.currency] = (assets[w.currency] ?? new Decimal(0)).plus(val);
                     }
                 });
 
@@ -141,99 +158,111 @@ export async function handleGeneralTool(name: string, args: any) {
             if (Array.isArray(earnPositions))
                 earnPositions.forEach((e: any) => {
                     // Support both totalBalance (legacy/mapped) and balance (raw v2)
-                    const val = parseFloat(e.totalBalance || e.balance || "0");
-                    if (val > 0) {
-                        assets[e.currency] = (assets[e.currency] || 0) + val;
+                    const val = toDecimal(e.totalBalance ?? e.balance);
+                    if (val.gt(0)) {
+                        assets[e.currency] = (assets[e.currency] ?? new Decimal(0)).plus(val);
                     }
                 });
 
             // Process Loans
             if (loans?.data && Array.isArray(loans.data))
                 loans.data.forEach((l: any) => {
-                    const val = parseFloat(l.guaranteeAmount || "0");
-                    if (val > 0) {
-                        assets[l.guaranteeCurrency] = (assets[l.guaranteeCurrency] || 0) + val;
+                    const val = toDecimal(l.guaranteeAmount);
+                    if (val.gt(0)) {
+                        assets[l.guaranteeCurrency] = (assets[l.guaranteeCurrency] ?? new Decimal(0)).plus(val);
                     }
                 });
 
             // 2. Valuation
             const uniqueSymbols = Object.keys(assets);
             const prices = await Promise.all(uniqueSymbols.map((s) => getMarketPrice(s, quote_symbol)));
-
-            const breakdown: any[] = [];
-            let totalVal = 0;
-
+            const priceMap: Record<string, Decimal> = {};
             uniqueSymbols.forEach((symbol, idx) => {
-                const price = prices[idx];
-                const amount = assets[symbol];
-                const val = amount * price;
-                totalVal += val;
+                priceMap[symbol] = toDecimal(prices[idx]);
+            });
 
-                // Filter out dust values and zero amounts
-                if (val > MIN_DUST_VALUE && amount > 0) {
+            type BreakdownEntry = {
+                symbol: string;
+                balance: Decimal;
+                priceUnit: Decimal;
+                convertedBalance: Decimal;
+            };
+            const breakdown: BreakdownEntry[] = [];
+            let totalVal = new Decimal(0);
+
+            uniqueSymbols.forEach((symbol) => {
+                const price = priceMap[symbol] ?? new Decimal(0);
+                const amount = assets[symbol] ?? new Decimal(0);
+                const val = amount.mul(price);
+                totalVal = totalVal.plus(val);
+
+                if (val.gt(MIN_DUST_VALUE) && amount.gt(0)) {
                     breakdown.push({
-                        symbol: symbol,
+                        symbol,
                         balance: amount,
-                        price_unit: smartRound(price),
-                        converted_balance: parseFloat(val.toFixed(2)),
+                        priceUnit: price,
+                        // Mirror legacy 2-decimal rounding for the displayed value.
+                        convertedBalance: val.toDecimalPlaces(2),
                     });
                 }
             });
 
-            breakdown.sort((a, b) => b.converted_balance - a.converted_balance);
+            breakdown.sort((a, b) => b.convertedBalance.comparedTo(a.convertedBalance));
 
-            // Calculate service totals from raw data and prices
-            const priceMap: Record<string, number> = {};
-            uniqueSymbols.forEach((symbol, idx) => {
-                priceMap[symbol] = prices[idx];
-            });
+            // Service-level totals computed with Decimal precision.
+            let walletTotal = new Decimal(0);
+            let proTotal = new Decimal(0);
+            let earnTotal = new Decimal(0);
+            let loanGuaranteeTotal = new Decimal(0);
 
             if (Array.isArray(wallet))
                 wallet.forEach((p: any) => {
-                    const val = parseFloat(p.balance || "0");
-                    const price = priceMap[p.currency] || 0;
-                    if (val > 0) walletTotal += val * price;
+                    const val = toDecimal(p.balance);
+                    const price = priceMap[p.currency] ?? new Decimal(0);
+                    if (val.gt(0)) walletTotal = walletTotal.plus(val.mul(price));
                 });
 
             if (Array.isArray(pro))
                 pro.forEach((w: any) => {
-                    const val = parseFloat(w.balance || "0");
-                    const price = priceMap[w.currency] || 0;
-                    if (val > 0) proTotal += val * price;
+                    const val = toDecimal(w.balance);
+                    const price = priceMap[w.currency] ?? new Decimal(0);
+                    if (val.gt(0)) proTotal = proTotal.plus(val.mul(price));
                 });
 
             const earnPositionsForTotal = Array.isArray(earn) ? earn : earn?.data || [];
             if (Array.isArray(earnPositionsForTotal))
                 earnPositionsForTotal.forEach((e: any) => {
-                    const val = parseFloat(e.totalBalance || e.balance || "0");
-                    const price = priceMap[e.currency] || 0;
-                    if (val > 0) earnTotal += val * price;
+                    const val = toDecimal(e.totalBalance ?? e.balance);
+                    const price = priceMap[e.currency] ?? new Decimal(0);
+                    if (val.gt(0)) earnTotal = earnTotal.plus(val.mul(price));
                 });
 
             if (loans?.data && Array.isArray(loans.data))
                 loans.data.forEach((l: any) => {
-                    const val = parseFloat(l.guaranteeAmount || "0");
-                    const price = priceMap[l.guaranteeCurrency] || 0;
-                    if (val > 0) loanGuaranteeTotal += val * price;
+                    const val = toDecimal(l.guaranteeAmount);
+                    const price = priceMap[l.guaranteeCurrency] ?? new Decimal(0);
+                    if (val.gt(0)) loanGuaranteeTotal = loanGuaranteeTotal.plus(val.mul(price));
                 });
 
             const requestContext = {
                 quote_symbol: quote_symbol,
             };
+            // `smartRound` operates on number; we go through `toNumber()` only
+            // for the final string conversions.
             const result = {
                 quote_symbol: quote_symbol,
-                total_balance: smartRound(totalVal).toString(),
+                total_balance: smartRound(totalVal.toNumber()).toString(),
                 by_service: {
-                    wallet_balance: smartRound(walletTotal).toString(),
-                    pro_balance: smartRound(proTotal).toString(),
-                    earn_balance: smartRound(earnTotal).toString(),
-                    loan_guarantees_balance: smartRound(loanGuaranteeTotal).toString(),
+                    wallet_balance: smartRound(walletTotal.toNumber()).toString(),
+                    pro_balance: smartRound(proTotal.toNumber()).toString(),
+                    earn_balance: smartRound(earnTotal.toNumber()).toString(),
+                    loan_guarantees_balance: smartRound(loanGuaranteeTotal.toNumber()).toString(),
                 },
                 details: breakdown.map((item) => ({
                     symbol: item.symbol,
                     balance: item.balance.toString(),
-                    price_unit: smartRound(item.price_unit).toString(),
-                    converted_balance: smartRound(item.converted_balance).toString(),
+                    price_unit: smartRound(item.priceUnit.toNumber()).toString(),
+                    converted_balance: smartRound(item.convertedBalance.toNumber()).toString(),
                 })),
             };
 
@@ -258,6 +287,30 @@ export async function handleGeneralTool(name: string, args: any) {
                         text: JSON.stringify(health, null, 2),
                     },
                 ],
+            };
+        }
+
+        if (name === "general_describe_tool") {
+            const targetName = typeof args.tool_name === "string" ? args.tool_name : undefined;
+            if (!targetName) {
+                throw new Error("tool_name is required");
+            }
+            const { getToolMetadata } = await import("../utils/tool-metadata.js");
+            const meta = getToolMetadata(targetName);
+            if (!meta) {
+                throw new Error(`Unknown tool: ${targetName}`);
+            }
+            const result = {
+                name: meta.name,
+                description: meta.description,
+                type: meta.type,
+                attributes: meta.attributes,
+                inputSchema: meta.inputSchema,
+                exampleArgs: meta.exampleArgs,
+                exampleResponse: meta.exampleResponse,
+            };
+            return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
             };
         }
 
