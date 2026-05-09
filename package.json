@@ -114,7 +114,7 @@
             "pnpm run audit"
         ],
         "*.ts": [
-            "pnpm run eslint -- --fix",
+            "pnpm exec eslint --fix",
             "prettier --write",
             "vitest related --run"
         ],

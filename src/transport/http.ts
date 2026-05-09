@@ -58,12 +58,12 @@ interface RequestCredentials {
 function extractCredentials(req: FastifyRequest, mode: HttpTransportOptions["authMode"]): RequestCredentials | null {
     const headers = req.headers;
     const apiKey = typeof headers["x-bit2me-api-key"] === "string" ? headers["x-bit2me-api-key"] : undefined;
-    const apiSecret =
-        typeof headers["x-bit2me-api-secret"] === "string" ? headers["x-bit2me-api-secret"] : undefined;
+    const apiSecret = typeof headers["x-bit2me-api-secret"] === "string" ? headers["x-bit2me-api-secret"] : undefined;
     const authHeader = typeof headers["authorization"] === "string" ? headers["authorization"] : undefined;
-    const jwt = authHeader && authHeader.toLowerCase().startsWith("bearer ")
-        ? authHeader.slice("bearer ".length).trim()
-        : undefined;
+    const jwt =
+        authHeader && authHeader.toLowerCase().startsWith("bearer ")
+            ? authHeader.slice("bearer ".length).trim()
+            : undefined;
 
     const hasApiKeyPair = !!apiKey && !!apiSecret;
     const hasJwt = !!jwt;
@@ -84,9 +84,24 @@ function extractCredentials(req: FastifyRequest, mode: HttpTransportOptions["aut
     return creds;
 }
 
-/** Hash a credential into a short tenant identifier. */
+/**
+ * Per-process random key used to derive opaque tenant identifiers from
+ * credentials. The key never leaves memory and is regenerated on every
+ * restart, which means tenant IDs are stable for the lifetime of a single
+ * process (enough to namespace caches/rate limiters) but cannot be
+ * pre-computed offline from a leaked credential. Using HMAC instead of a
+ * bare hash also avoids the credential ever being subject to a length-
+ * extension or rainbow-table style attack.
+ *
+ * NOTE for static analysers: this is NOT a password hash. Credentials are
+ * never stored — they live only in the request context (AsyncLocalStorage)
+ * for the duration of a single HTTP request. The output of this function is
+ * a non-reversible label used purely for in-memory bookkeeping.
+ */
+const TENANT_ID_KEY: Buffer = crypto.randomBytes(32);
+
 function hashIdentifier(value: string): string {
-    return crypto.createHash("sha256").update(value).digest("hex").slice(0, 16);
+    return crypto.createHmac("sha256", TENANT_ID_KEY).update(value).digest("hex").slice(0, 16);
 }
 
 /**
