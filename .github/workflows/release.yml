@@ -47,7 +47,12 @@ jobs:
               # The npm bundled with Node.js 22 is 10.x, which does not support
               # OIDC trusted publishing. Pin a version >= 11.5.1 so semantic-
               # release/npm can authenticate to the registry without a token.
-              run: npm install -g npm@latest
+              # `--force` works around a long-standing self-upgrade bug where
+              # npm@10 cannot rebuild itself in place when promoting to npm@11
+              # (see https://github.com/npm/cli/issues/4815).
+              run: |
+                  npm install -g npm@latest --force
+                  npm --version
 
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
