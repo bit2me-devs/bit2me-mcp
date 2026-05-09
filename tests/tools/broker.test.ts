@@ -5,7 +5,15 @@ import * as bit2meService from "../../src/services/bit2me.js";
 import { NotFoundError } from "../../src/utils/errors.js";
 
 vi.mock("axios");
-vi.mock("../../src/services/bit2me.js");
+vi.mock("../../src/services/bit2me.js", async (importOriginal) => {
+    const actual = (await importOriginal()) as Record<string, unknown>;
+    return {
+        ...actual,
+        bit2meRequest: vi.fn(),
+        getTicker: vi.fn(),
+        getMarketPrice: vi.fn(),
+    };
+});
 vi.mock("../../src/config.js", () => ({
     BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
     getConfig: () => ({
@@ -197,9 +205,15 @@ describe("Broker Tools Handler", () => {
 
         await handleBrokerTool("broker_confirm_quote", { proforma_id: VALID_UUID });
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("POST", "/v1/wallet/transaction", {
-            proforma: VALID_UUID,
-        });
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
+            "POST",
+            "/v1/wallet/transaction",
+            { proforma: VALID_UUID },
+            undefined,
+            undefined,
+            undefined,
+            expect.objectContaining({ idempotencyKey: expect.any(String) })
+        );
     });
 
     it("should throw error for invalid timeframe", async () => {

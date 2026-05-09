@@ -120,18 +120,21 @@ describe("Session Authentication - JWT Parameter", () => {
     it("should redact jwt parameter in logs", async () => {
         const { logger } = await import("../src/utils/logger.js");
 
-        // Create a mock to capture log output
+        // Capture writes to stderr (logger writes there directly).
         const logOutput: string[] = [];
-        const originalError = console.error;
-        console.error = (msg: string) => logOutput.push(msg);
+        const originalWrite = process.stderr.write.bind(process.stderr);
+        process.stderr.write = ((chunk: unknown) => {
+            logOutput.push(typeof chunk === "string" ? chunk : String(chunk));
+            return true;
+        }) as typeof process.stderr.write;
 
-        // Log with sensitive 'jwt' parameter
-        logger.setLevel("debug");
-        logger.debug("Test message", { jwt: "secret-jwt-token", other: "visible" });
+        try {
+            logger.setLevel("debug");
+            logger.debug("Test message", { jwt: "secret-jwt-token", other: "visible" });
+        } finally {
+            process.stderr.write = originalWrite;
+        }
 
-        console.error = originalError;
-
-        // Verify 'jwt' is redacted
         const lastLog = logOutput[logOutput.length - 1];
         expect(lastLog).toContain("***REDACTED***");
         expect(lastLog).not.toContain("secret-jwt-token");

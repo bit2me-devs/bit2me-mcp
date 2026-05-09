@@ -9,7 +9,15 @@ import * as bit2meService from "../../src/services/bit2me.js";
 const VALID_UUID = "123e4567-e89b-12d3-a456-426614174000";
 const VALID_UUID_2 = "123e4567-e89b-12d3-a456-426614174001";
 
-vi.mock("../../src/services/bit2me.js");
+vi.mock("../../src/services/bit2me.js", async (importOriginal) => {
+    const actual = (await importOriginal()) as Record<string, unknown>;
+    return {
+        ...actual,
+        bit2meRequest: vi.fn(),
+        getTicker: vi.fn(),
+        getMarketPrice: vi.fn(),
+    };
+});
 vi.mock("axios");
 vi.mock("../../src/config.js", () => ({
     BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
@@ -192,7 +200,11 @@ describe("Other Tool Handlers", () => {
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 `/v1/earn/wallets/${VALID_UUID}/movements`,
-                expect.any(Object)
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
             );
         });
 
@@ -206,7 +218,11 @@ describe("Other Tool Handlers", () => {
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 `/v1/earn/wallets/${VALID_UUID}/movements`,
-                expect.any(Object)
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
             );
         });
 
@@ -312,7 +328,15 @@ describe("Other Tool Handlers", () => {
                 loan_amount: "100",
                 amount_type: "fixed_collateral",
             });
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("POST", "/v1/loan", expect.any(Object));
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
+                "POST",
+                "/v1/loan",
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
+            );
         });
 
         it("should handle loan_get_config", async () => {
@@ -349,7 +373,11 @@ describe("Other Tool Handlers", () => {
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 `/v1/loan/${VALID_UUID}/guarantee/increase`,
-                expect.any(Object)
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
             );
         });
 
@@ -359,7 +387,11 @@ describe("Other Tool Handlers", () => {
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 `/v1/loan/${VALID_UUID}/payback`,
-                expect.any(Object)
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
             );
         });
 
@@ -379,7 +411,15 @@ describe("Other Tool Handlers", () => {
         it("should handle pro_create_order", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({ id: VALID_UUID });
             await handleProTool("pro_create_order", { pair: "BTC-USD", side: "buy", type: "market", amount: "1" });
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("POST", "/v1/trading/order", expect.any(Object));
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
+                "POST",
+                "/v1/trading/order",
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
+            );
         });
 
         it("should handle pro_get_open_orders", async () => {
@@ -413,13 +453,29 @@ describe("Other Tool Handlers", () => {
         it("should handle pro_cancel_order", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
             await handleProTool("pro_cancel_order", { order_id: VALID_UUID });
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(`DELETE`, `/v1/trading/order/${VALID_UUID}`);
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
+                `DELETE`,
+                `/v1/trading/order/${VALID_UUID}`,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
+            );
         });
 
         it("should handle pro_cancel_all_orders", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
             await handleProTool("pro_cancel_all_orders", {});
-            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("DELETE", "/v1/trading/order", expect.any(Object));
+            expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
+                "DELETE",
+                "/v1/trading/order",
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
+            );
         });
 
         it("should handle pro_deposit", async () => {
@@ -428,7 +484,11 @@ describe("Other Tool Handlers", () => {
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 "/v1/trading/wallet/deposit",
-                expect.any(Object)
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
             );
         });
 
@@ -438,7 +498,11 @@ describe("Other Tool Handlers", () => {
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 "/v1/trading/wallet/withdraw",
-                expect.any(Object)
+                expect.any(Object),
+                undefined,
+                undefined,
+                undefined,
+                expect.objectContaining({ idempotencyKey: expect.any(String) })
             );
         });
 

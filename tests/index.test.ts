@@ -33,7 +33,10 @@ vi.mock("../src/config.js", () => ({
         LOG_LEVEL: "info",
         REQUEST_TIMEOUT: 5000,
         MAX_RETRIES: 3,
+        GATEWAY_URL: "https://gateway.bit2me.com",
+        SESSION_COOKIE_NAME: "b2m-atoken",
     })),
+    logConfig: vi.fn(),
 }));
 
 vi.mock("../src/utils/logger.js", () => ({
@@ -118,46 +121,25 @@ describe("Server Entry Point", () => {
         vi.mocked(handleGetPrompt).mockResolvedValue({ description: "test" } as any);
 
         await handler({ params: { name: "test_prompt" } });
-        expect(handleGetPrompt).toHaveBeenCalledWith("test_prompt");
+        expect(handleGetPrompt).toHaveBeenCalledWith("test_prompt", undefined);
     });
 
     it("should handle tool execution requests for all tools", async () => {
         await import("../src/index.js");
         const callToolHandler = mockSetRequestHandler.mock.calls.find((call) => call[0] === CallToolRequestSchema)?.[1];
 
-        // Mock all tool handlers
-        const { handleWalletTool } = await import("../src/tools/wallet.js");
-        const { handleEarnTool } = await import("../src/tools/earn.js");
-        const { handleLoanTool } = await import("../src/tools/loan.js");
-        const { handleProTool } = await import("../src/tools/pro.js");
-
-        // Update mocks to have tools in the lists so find() works
-        vi.mocked(await import("../src/tools/general.js")).generalTools = [{ name: "general_tool" } as any];
-        vi.mocked(await import("../src/tools/wallet.js")).walletTools = [{ name: "wallet_tool" } as any];
-        vi.mocked(await import("../src/tools/earn.js")).earnTools = [{ name: "earn_tool" } as any];
-        vi.mocked(await import("../src/tools/loan.js")).loanTools = [{ name: "loan_tool" } as any];
-        vi.mocked(await import("../src/tools/pro.js")).proTools = [{ name: "pro_tool" } as any];
-
-        // Test General
+        // Phase 2 introduced a registry that resolves tool names to their
+        // category up front (in src/tools/registry.ts). The dispatcher now
+        // delegates to a single `dispatchTool()`, so this test verifies
+        // that each known tool name is routed to its registered handler.
         const { handleGeneralTool } = await import("../src/tools/general.js");
-        await callToolHandler({ params: { name: "general_tool", arguments: {} } });
-        expect(handleGeneralTool).toHaveBeenCalledWith("general_tool", {});
+        const { handleBrokerTool } = await import("../src/tools/broker.js");
 
-        // Test Wallet
-        await callToolHandler({ params: { name: "wallet_tool", arguments: {} } });
-        expect(handleWalletTool).toHaveBeenCalledWith("wallet_tool", {});
+        await callToolHandler({ params: { name: "general_get_assets_config", arguments: {} } });
+        expect(handleGeneralTool).toHaveBeenCalledWith("general_get_assets_config", {});
 
-        // Test Earn
-        await callToolHandler({ params: { name: "earn_tool", arguments: {} } });
-        expect(handleEarnTool).toHaveBeenCalledWith("earn_tool", {});
-
-        // Test Loan
-        await callToolHandler({ params: { name: "loan_tool", arguments: {} } });
-        expect(handleLoanTool).toHaveBeenCalledWith("loan_tool", {});
-
-        // Test Pro
-        await callToolHandler({ params: { name: "pro_tool", arguments: {} } });
-        expect(handleProTool).toHaveBeenCalledWith("pro_tool", {});
+        await callToolHandler({ params: { name: "broker_get_asset_data", arguments: {} } });
+        expect(handleBrokerTool).toHaveBeenCalledWith("broker_get_asset_data", {});
     });
 
     it("should handle tool execution requests", async () => {

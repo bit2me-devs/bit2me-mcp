@@ -2,54 +2,58 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { logger, initLogger } from "../src/utils/logger.js";
 
 describe("Logger - Structured Logging", () => {
-    let consoleErrorSpy: any;
+    let stderrSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
-        // Spy on console.error since all logs go to stderr
-        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+        stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     });
 
     afterEach(() => {
-        consoleErrorSpy.mockRestore();
+        stderrSpy.mockRestore();
     });
+
+    function getCall(index: number): string {
+        const call = stderrSpy.mock.calls[index]?.[0];
+        return typeof call === "string" ? call : String(call);
+    }
 
     it("should log messages at info level by default", () => {
         initLogger("info");
         logger.info("Test message");
 
-        expect(consoleErrorSpy).toHaveBeenCalledTimes(2); // initLogger + info message
-        const lastCall = consoleErrorSpy.mock.calls[1][0];
+        expect(stderrSpy).toHaveBeenCalledTimes(2); // initLogger + info message
+        const lastCall = getCall(1);
         expect(lastCall).toContain("INFO");
         expect(lastCall).toContain("Test message");
     });
 
     it("should filter out debug messages when level is info", () => {
         initLogger("info");
-        consoleErrorSpy.mockClear();
+        stderrSpy.mockClear();
 
         logger.debug("Debug message");
         logger.info("Info message");
 
-        expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-        expect(consoleErrorSpy.mock.calls[0][0]).toContain("INFO");
-        expect(consoleErrorSpy.mock.calls[0][0]).toContain("Info message");
+        expect(stderrSpy).toHaveBeenCalledTimes(1);
+        expect(getCall(0)).toContain("INFO");
+        expect(getCall(0)).toContain("Info message");
     });
 
     it("should show debug messages when level is debug", () => {
         initLogger("debug");
-        consoleErrorSpy.mockClear();
+        stderrSpy.mockClear();
 
         logger.debug("Debug message");
         logger.info("Info message");
 
-        expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
-        expect(consoleErrorSpy.mock.calls[0][0]).toContain("DEBUG");
-        expect(consoleErrorSpy.mock.calls[1][0]).toContain("INFO");
+        expect(stderrSpy).toHaveBeenCalledTimes(2);
+        expect(getCall(0)).toContain("DEBUG");
+        expect(getCall(1)).toContain("INFO");
     });
 
     it("should sanitize sensitive data in context objects", () => {
         initLogger("info");
-        consoleErrorSpy.mockClear();
+        stderrSpy.mockClear();
 
         logger.info("API Request", {
             headers: {
@@ -59,8 +63,8 @@ describe("Logger - Structured Logging", () => {
             },
         });
 
-        expect(consoleErrorSpy).toHaveBeenCalled();
-        const logOutput = consoleErrorSpy.mock.calls[0][0];
+        expect(stderrSpy).toHaveBeenCalled();
+        const logOutput = getCall(0);
 
         // Sensitive data should be redacted
         expect(logOutput).toContain("***REDACTED***");
@@ -73,7 +77,7 @@ describe("Logger - Structured Logging", () => {
 
     it("should sanitize nested objects", () => {
         initLogger("info");
-        consoleErrorSpy.mockClear();
+        stderrSpy.mockClear();
 
         logger.error("Error details", {
             response: {
@@ -86,7 +90,7 @@ describe("Logger - Structured Logging", () => {
             },
         });
 
-        const logOutput = consoleErrorSpy.mock.calls[0][0];
+        const logOutput = getCall(0);
 
         expect(logOutput).toContain("***REDACTED***");
         expect(logOutput).not.toContain("token123");
@@ -95,11 +99,11 @@ describe("Logger - Structured Logging", () => {
 
     it("should include timestamps in log entries", () => {
         initLogger("info");
-        consoleErrorSpy.mockClear();
+        stderrSpy.mockClear();
 
         logger.info("Test message");
 
-        const logOutput = consoleErrorSpy.mock.calls[0][0];
+        const logOutput = getCall(0);
 
         // Should contain ISO timestamp format
         expect(logOutput).toMatch(/\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/);
@@ -107,29 +111,29 @@ describe("Logger - Structured Logging", () => {
 
     it("should handle all log levels correctly", () => {
         initLogger("debug");
-        consoleErrorSpy.mockClear();
+        stderrSpy.mockClear();
 
         logger.debug("Debug message");
         logger.info("Info message");
         logger.warn("Warning message");
         logger.error("Error message");
 
-        expect(consoleErrorSpy).toHaveBeenCalledTimes(4);
-        expect(consoleErrorSpy.mock.calls[0][0]).toContain("DEBUG");
-        expect(consoleErrorSpy.mock.calls[1][0]).toContain("INFO");
-        expect(consoleErrorSpy.mock.calls[2][0]).toContain("WARN");
-        expect(consoleErrorSpy.mock.calls[3][0]).toContain("ERROR");
+        expect(stderrSpy).toHaveBeenCalledTimes(4);
+        expect(getCall(0)).toContain("DEBUG");
+        expect(getCall(1)).toContain("INFO");
+        expect(getCall(2)).toContain("WARN");
+        expect(getCall(3)).toContain("ERROR");
     });
 
     it("should default to info level on invalid level", () => {
         initLogger("invalid-level");
-        consoleErrorSpy.mockClear();
+        stderrSpy.mockClear();
 
         logger.debug("Debug message");
         logger.info("Info message");
 
         // Debug should be filtered, info should pass
-        expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-        expect(consoleErrorSpy.mock.calls[0][0]).toContain("INFO");
+        expect(stderrSpy).toHaveBeenCalledTimes(1);
+        expect(getCall(0)).toContain("INFO");
     });
 });

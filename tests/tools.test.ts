@@ -236,8 +236,10 @@ describe("Tools - Market Data", () => {
 });
 
 describe("Tools - Error Handling", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
+        const { cache } = await import("../src/utils/cache.js");
+        cache.clear();
     });
 
     it("should throw AuthenticationError on 401", async () => {

@@ -31,7 +31,11 @@ vi.mock("../src/utils/logger.js", () => ({
         error: vi.fn(),
         info: vi.fn(),
         warn: vi.fn(),
+        addSensitiveKey: vi.fn(),
+        setLevel: vi.fn(),
+        setValueTruncateAt: vi.fn(),
     },
+    initLogger: vi.fn(),
 }));
 
 describe("Config - Validation and Defaults", () => {
@@ -248,9 +252,13 @@ describe("Config - Validation and Defaults", () => {
 
         vi.resetModules();
         const { logger } = await import("../src/utils/logger.js");
-        const { getConfig } = await import("../src/config.js");
+        const { getConfig, logConfig } = await import("../src/config.js");
 
-        getConfig();
+        // `getConfig()` no longer emits info-level logs as a side-effect.
+        // The caller (e.g. `src/index.ts`) is now expected to invoke
+        // `logConfig()` explicitly after the logger has been initialised.
+        const config = getConfig();
+        logConfig(config);
 
         expect(logger.info).toHaveBeenCalledWith("Using custom gateway: https://staging.bit2me.com");
     });
