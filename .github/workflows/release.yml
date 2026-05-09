@@ -96,16 +96,11 @@ jobs:
                   NPM_CONFIG_PROVENANCE: true
               run: pnpm dlx semantic-release
 
-            - name: Regenerate documentation with new version
-              run: |
-                  pnpm run build:docs
-                  if git diff --quiet; then
-                    echo "No documentation changes detected"
-                  else
-                    git config --local user.email "github-actions[bot]@users.noreply.github.com"
-                    git config --local user.name "github-actions[bot]"
-                    git add landing/tools-data.js TOOLS_DOCUMENTATION.md
-                    VERSION=$(node -p "require('./package.json').version")
-                    git commit -m "docs: regenerate documentation with version ${VERSION} [skip ci]" --no-verify
-                    git push
-                  fi
+            # NOTE: Auto-pushes back to main are intentionally NOT performed
+            # here. The "main" ruleset only allows admin users to bypass and
+            # the GITHUB_TOKEN we hold in this workflow runs as the
+            # `github-actions[bot]`, which is not an admin. CHANGELOG.md and
+            # version bumps in package.json are sourced of truth on the
+            # published npm tarball and on the GitHub Release page; the
+            # in-tree CHANGELOG.md is regenerated periodically via a manual
+            # PR by a maintainer.
