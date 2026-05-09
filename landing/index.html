@@ -34,7 +34,7 @@
         <meta name="title" content="Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio" />
         <meta
             name="description"
-            content="Official MCP server for Bit2Me. Connect Claude, Cursor, or any MCP client to manage your crypto wallet, trade, stake, and get loans using natural language. 51 tools available."
+            content="Official MCP server for Bit2Me. Connect Claude, Cursor, or any MCP client to manage your crypto wallet, trade, stake, and get loans using natural language. 48 tools available."
         />
         <meta
             name="keywords"
@@ -54,7 +54,7 @@
         <meta property="og:title" content="Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio" />
         <meta
             property="og:description"
-            content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. Trade, stake, and monitor your portfolio effortlessly. 51 tools available."
+            content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. Trade, stake, and monitor your portfolio effortlessly. 48 tools available."
         />
         <meta property="og:image" content="https://mcp.bit2me.com/mcp-server-og.png" />
         <meta property="og:image:width" content="1200" />
@@ -72,7 +72,7 @@
         <meta name="twitter:title" content="Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio" />
         <meta
             name="twitter:description"
-            content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 51 tools for trading, staking, and portfolio management."
+            content="Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 48 tools for trading, staking, and portfolio management."
         />
         <meta name="twitter:image" content="https://mcp.bit2me.com/mcp-server-twitter.png" />
         <meta name="twitter:image:alt" content="Bit2Me MCP Server - Connect Claude AI to Your Crypto Portfolio" />
@@ -989,7 +989,7 @@
                     "ratingValue": "5",
                     "ratingCount": "1"
                 },
-                "description": "Official MCP server for Bit2Me. Connect Claude, Cursor, or any MCP client to manage your crypto wallet, trade, stake, and get loans using natural language. 51 tools available.",
+                "description": "Official MCP server for Bit2Me. Connect Claude, Cursor, or any MCP client to manage your crypto wallet, trade, stake, and get loans using natural language. 48 tools available.",
                 "url": "https://mcp.bit2me.com",
                 "downloadUrl": "https://www.npmjs.com/package/@bit2me/mcp-server",
                 "softwareVersion": "latest",
@@ -1014,7 +1014,11 @@
                     "Pro Trading: Manage orders (Limit, Market, Stop), query open orders",
                     "Earn & Loans: Manage Earn (Staking) strategies and collateralized loans",
                     "Portfolio Aggregation: Total portfolio valuation unifying all products",
-                    "51 Tools Available: Complete API coverage for Bit2Me ecosystem"
+                    "48 Tools Available: Complete API coverage for Bit2Me ecosystem",
+                    "6 Ready-to-use AI Prompts: tax_report, dca_plan, loan_health_check and more",
+                    "Self-introspection via general_describe_tool — any LLM can discover tools on the fly",
+                    "Idempotency keys on every write tool — safe to retry orders and withdrawals",
+                    "PII redaction in logs — defence-in-depth for email, IBAN, and KYC data"
                 ],
                 "screenshot": "https://mcp.bit2me.com/mcp-server-og.png"
             }
@@ -1054,7 +1058,7 @@
                         "name": "How do I connect Claude AI to Bit2Me?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "To connect Claude AI to Bit2Me, install the Bit2Me MCP Server via npm (@bit2me/mcp-server), configure your Bit2Me API keys in the Claude Desktop config file, and restart Claude Desktop. The server provides 51 tools for managing your crypto portfolio, trading, staking, and loans."
+                            "text": "To connect Claude AI to Bit2Me, install the Bit2Me MCP Server via npm (@bit2me/mcp-server), configure your Bit2Me API keys in the Claude Desktop config file, and restart Claude Desktop. The server provides 48 tools for managing your crypto portfolio, trading, staking, and loans."
                         }
                     },
                     {
@@ -1078,7 +1082,7 @@
                         "name": "How many tools does Bit2Me MCP Server provide?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "The Bit2Me MCP Server provides 52 tools organized into categories: 3 General Tools, 7 Broker (Simple Trading) Tools, 8 Wallet Tools, 13 Earn Tools, 8 Loan Tools, and 14 Pro (Advanced Trading) Tools."
+                            "text": "The Bit2Me MCP Server provides 48 tools organized into categories: 4 General Tools, 8 Broker (Simple Trading) Tools, 4 Wallet Tools, 14 Pro (Advanced Trading) Tools, 11 Earn (Staking) Tools, and 7 Loan Tools. It also ships 6 ready-to-use AI prompts including tax_report, dca_plan, and loan_health_check."
                         }
                     },
                     {
@@ -1381,7 +1385,7 @@
                             </button>
                         </div>
                         <div class="visibility-counter" id="visibilityCounter">
-                            <span id="filteredCount">52</span> tools
+                            <span id="filteredCount">48</span> tools
                         </div>
                     </div>
                 </div>
@@ -3697,7 +3701,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             </summary>
                             <div class="px-6 pb-4 pt-2 text-slate-600 dark:text-slate-300">
                                 <p class="mb-3">
-                                    The Bit2Me MCP Server provides <strong>51 tools</strong> across multiple categories:
+                                    The Bit2Me MCP Server provides <strong>48 tools</strong> across multiple categories:
                                 </p>
                                 <ul class="list-disc list-inside space-y-2 text-sm">
                                     <li>
@@ -5692,7 +5696,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
             window.sharePage = async function () {
                 const shareData = {
                     title: "Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio",
-                    text: "Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 51 tools for trading, staking, and portfolio management.",
+                    text: "Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 48 tools for trading, staking, and portfolio management.",
                     url: window.location.href,
                 };
                 try {
@@ -5720,7 +5724,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 const url = encodeURIComponent(window.location.href);
                 const title = encodeURIComponent("Bit2Me MCP Server | Connect Claude AI to Your Crypto Portfolio");
                 const text = encodeURIComponent(
-                    "Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 51 tools for trading, staking, and portfolio management."
+                    "Official MCP server for Bit2Me. Manage crypto with Claude AI using natural language. 48 tools for trading, staking, and portfolio management."
                 );
 
                 let shareUrl = "";

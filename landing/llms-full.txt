@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2026-05-09T11:18:55.073Z
+> Generated on 2026-05-09T15:47:10.870Z
 
 
 ==================================================
@@ -17,19 +17,25 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 
 ## 🚀 Features
 
-- **General**: Asset information, account details, and portfolio valuation.
+- **General**: Asset information, account details, portfolio valuation, and self-introspection (`general_describe_tool` returns description, schema, and examples for any tool — useful for LLMs encountering a tool for the first time).
 - **Wallet Management**: Query balances, transactions, and wallet (Pockets) details.
 - **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
 - **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
 - **Operations**: Execute trades, transfers, and withdrawals securely.
+- **Idempotency & Retries**: Every write tool auto-generates an idempotency key; failed POST/DELETE calls retry with exponential backoff + jitter, making operations safe to retry without duplicates.
+- **Decimal Precision**: Portfolio valuation uses `decimal.js` — no floating-point drift on large balances or high-precision assets.
+- **Expanded PII Redaction**: Logs automatically scrub email addresses, IBANs, phone numbers, KYC fields, JWT-shaped tokens, and long base64 blobs, in addition to API keys and signatures.
+- **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter, preventing replay attacks even under high concurrency.
+- **Audit Log**: Every write tool (order creation, withdrawals, earn deposits, loan operations, …) appends a tamper-evident JSON line on both success and failure. Set `AUDIT_LOG_PATH` to write to a dedicated file; otherwise audit lines are emitted via the logger with `audit: true`.
+- **Parametrized Prompts**: `analyze_portfolio` and `market_summary` accept arguments. Three new prompts ship out of the box: `tax_report`, `dca_plan`, and `loan_health_check`.
 
 ## 🛠️ Available Tools & API Endpoints
 
-The server currently exposes **47 tools** grouped as follows:
+The server currently exposes **48 tools** grouped as follows:
 
-- 3 General tools
-- 7 Broker (Simple Trading) tools
-- 5 Wallet tools
+- 4 General tools (including `general_describe_tool` for self-introspection)
+- 8 Broker (Simple Trading) tools
+- 4 Wallet tools
 - 14 Pro Trading tools
 - 11 Earn (Staking) tools
 - 7 Loan tools
@@ -47,7 +53,7 @@ All tool responses are normalised for LLM consumption (consistent naming, flatte
 
 ### Prerequisites
 
-- **Node.js**: v18 or higher.
+- **Node.js**: v20 or higher.
 - **Bit2Me Account**: You need a verified Bit2Me account.
 
 ### 🔑 Authentication Methods
@@ -109,11 +115,13 @@ const result = await mcpClient.callTool("wallet_get_pockets", {
     BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
 
     # Optional Configuration
-    BIT2ME_GATEWAY_URL=https://gateway.bit2me.com  # API Gateway URL (default: https://gateway.bit2me.com)
+    BIT2ME_GATEWAY_URL=https://gateway.bit2me.com  # Must be HTTPS (localhost/127.x are exempt)
     BIT2ME_REQUEST_TIMEOUT=30000     # Request timeout in ms (default: 30000)
     BIT2ME_MAX_RETRIES=3             # Max retries for rate limits (default: 3)
     BIT2ME_RETRY_BASE_DELAY=1000     # Base delay for backoff in ms (default: 1000)
     BIT2ME_LOG_LEVEL=info            # Log level: debug, info, warn, error (default: info)
+    LOG_FORMAT=json                  # Optional: "json" for log aggregators; default is human-readable
+    # AUDIT_LOG_PATH=/var/log/bit2me-mcp/audit.log  # Append-only write-tool audit log
     ```
 
     > **💡 QA/Staging:** Use `BIT2ME_GATEWAY_URL` to point to different environments (e.g., `https://qa-gateway.bit2me.com` for QA testing).
@@ -180,9 +188,12 @@ For detailed information about reporting vulnerabilities and our security policy
 
 ### Best Practices
 
-- **API Keys**: Never commit API keys to version control.
+- **API Keys**: Never commit API keys to version control. The pre-commit hook runs `gitleaks` (if installed) to block accidental secret commits.
 - **Permissions**: Use minimal permissions. Avoid "Withdrawal" permissions for MCP usage.
-- **Logging**: The server automatically sanitizes sensitive data in logs.
+- **HTTPS Gateway**: `BIT2ME_GATEWAY_URL` is validated at startup — only `https://` URLs are accepted. Plain `http://` is rejected except for `localhost` / `127.x` addresses (local development only).
+- **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter so concurrent requests cannot generate replay-vulnerable signatures.
+- **Expanded PII Redaction**: The logger scrubs API keys, signatures, JWTs, emails, IBANs, phone numbers, KYC fields, and long base64 blobs before writing any line to stderr.
+- **Audit Log**: Every write tool appends an append-only JSON entry (tool name, sanitised args, outcome, correlation ID, SHA-256 fingerprint of the session token — never the token itself). Set `AUDIT_LOG_PATH` to persist to a file.
 
 ## ⚠️ Rate Limits & Error Handling
 
@@ -348,7 +359,7 @@ npx @modelcontextprotocol/inspector node build/index.js
 The web interface provides:
 
 1. **Tools Tab:**
-    - View all 47 available tools
+    - View all 48 available tools
     - See input schemas for each tool
     - Test tools with custom parameters
     - View formatted responses
@@ -593,6 +604,9 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
 - `tests/tools/*.test.ts` - Tool handler tests
 - `tests/config.test.ts` - Configuration tests
 - `tests/auth.test.ts` - Authentication tests
+- `tests/registry.test.ts` - Zero-diff registry regression: verifies that every tool in `data/tools.json` has a registered handler and that the tool list hasn't changed unexpectedly.
+- `tests/concurrency.test.ts` - Verifies `AsyncLocalStorage` isolation: concurrent requests with different JWTs do not bleed state into each other.
+- `tests/http-transport.test.ts` - Integration tests for the HTTP/SSE binary.
 
 ### Mocking Rules
 
@@ -700,27 +714,81 @@ npm run test:coverage # Generate coverage report
 
 ```
 src/
-├── config.ts              # Environment configuration
+├── config.ts              # Environment configuration (validates HTTPS gateway, etc.)
 ├── constants.ts           # Constants and enums
-├── index.ts              # Main entry point
+├── index.ts               # Stdio entry point — registers tools via registry
+├── index-http.ts          # HTTP/SSE entry point (`bit2me-mcp-http` binary)
+├── prompts/
+│   └── index.ts           # Parametrized prompts (analyze_portfolio, market_summary,
+│                          #   tax_report, dca_plan, loan_health_check)
 ├── services/
-│   └── bit2me.ts        # Bit2Me API client
-├── tools/                # MCP tool handlers
-│   ├── account.ts
-│   ├── aggregation.ts
+│   └── bit2me.ts          # Bit2Me API client (nonce, signing, retry, circuit breaker)
+├── tools/                 # MCP tool handlers
+│   ├── broker.ts
 │   ├── earn.ts
+│   ├── general.ts
 │   ├── loan.ts
-│   ├── market.ts
 │   ├── pro.ts
+│   ├── registry.ts        # Declarative tool registry — O(1) dispatch, audit hook
 │   └── wallet.ts
+├── transport/             # HTTP/SSE transport layer
 └── utils/
-    ├── errors.ts         # Custom error classes
-    ├── logger.ts         # Logging utilities
-    ├── response-mappers.ts  # API response mappers
-    └── schemas.ts        # TypeScript interfaces
+    ├── args.ts            # Argument parsing and validation helpers
+    ├── audit.ts           # Append-only audit log writer
+    ├── cache.ts           # In-memory cache (keyed by correlationId via memoizePerRequest)
+    ├── circuit-breaker.ts # Circuit breaker for upstream Bit2Me API
+    ├── context.ts         # AsyncLocalStorage request context (correlationId, jwt, toolName)
+    ├── errors.ts          # Custom error classes (ValidationError, ApiError, …)
+    ├── format.ts          # Shared validators: validateAmount(), validateDateRange(), etc.
+    ├── health.ts          # Rich /health snapshot (cache, circuit-breaker, rate-limiter)
+    ├── logger.ts          # Structured logger — stderr only, LOG_FORMAT=json support
+    ├── metrics.ts         # Prometheus counters for /metrics endpoint
+    ├── rate-limiter.ts    # Per-endpoint rate limiter with exponential backoff + jitter
+    ├── response-mappers.ts# API response mappers (raw → typed schemas)
+    ├── schemas.ts         # TypeScript interfaces for all tool responses
+    ├── tool-metadata.ts   # Reads data/tools.json at startup; drives registry + docs
+    ├── tool-wrapper.ts    # executeTool(): context init, audit emission, error handling
+    └── request-cache.ts   # Per-request memoization (cleared in finally block)
 ```
 
-### File Naming
+### Architecture: Key Patterns
+
+#### 1. Declarative Tool Registry (`src/tools/registry.ts`)
+
+Tools are registered once at startup using metadata from `data/tools.json`. The registry provides O(1) dispatch — no `if/else` chain in `index.ts`. When you add a new tool you only need to:
+
+1. Add its entry to `data/tools.json` (name, description, inputSchema, type: `"READ"` or `"WRITE"` or `"META"`, category, examples).
+2. Export a handler function from the appropriate `src/tools/<category>.ts`.
+3. Register the handler in `src/tools/registry.ts`.
+
+The registry reads `type` from `data/tools.json` to determine whether a tool is a write operation (required for the audit hook).
+
+#### 2. Per-Request Context Isolation (`src/utils/context.ts`)
+
+Every tool invocation runs inside an `AsyncLocalStorage` boundary (`runWithContext()`). The context store carries:
+
+- `correlationId`: UUID generated per request, included in every log line.
+- `sessionToken` (`jwt`): the optional per-call session token, never logged in the clear.
+- `toolName`, `startTime`: used for metrics and audit.
+
+Two concurrent requests — for example two different users in the HTTP transport — never share state. Tests that run outside a `runWithContext` boundary fall back to a safe default.
+
+#### 3. Tool Wrapper & Audit Hook (`src/utils/tool-wrapper.ts`)
+
+`executeTool()` wraps every handler call:
+
+1. Initialises the `AsyncLocalStorage` context.
+2. Calls the handler.
+3. On completion (success **or** failure), emits an audit log entry if `type === "WRITE"`.
+4. Clears per-request cache in the `finally` block so memory cannot grow unbounded.
+
+#### 4. Audit Log (`src/utils/audit.ts`)
+
+Audit entries are newline-delimited JSON objects written append-only. Each entry contains:
+- `tool`, `args` (sanitised — no credentials), `outcome` (`success` / `error`), `correlationId`
+- `sessionFingerprint`: SHA-256 of the session token (never the token itself)
+
+Set `AUDIT_LOG_PATH` to persist to a dedicated file. If unset, the line is emitted via the logger with `audit: true`.
 
 - **TypeScript files**: `.ts` extension
 - **Test files**: `.test.ts` suffix
@@ -832,33 +900,40 @@ src/
 
 To add a new tool to the MCP server, follow this comprehensive checklist to ensure consistency, quality, and proper documentation.
 
-### 1. Implementation (`src/tools/`)
+### 1. Metadata (`data/tools.json`)
 
-1.  **Identify the category**: Choose an existing category (e.g., `wallet`, `market`, `earn`) or create a new one if necessary.
-2.  **Create/Update file**: Edit `src/tools/<category>.ts`.
-3.  **Define Tool Definition**: Add the tool definition to the `tools` array.
-4.  **Implement Handler**: Add the logic to the `handle<Category>Tool` function.
+Add the tool definition to the appropriate category in `data/tools.json`:
+
+```json
+{
+  "name": "example_get_data",
+  "description": "Get example data from the Bit2Me API",
+  "type": "READ",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "string", "description": "Resource ID" }
+    },
+    "required": ["id"]
+  },
+  "exampleArgs": { "id": "abc123" },
+  "exampleResponse": { "id": "abc123", "value": "42" }
+}
+```
+
+> **`type` field is required**: use `"READ"` for queries, `"WRITE"` for operations that mutate state (orders, withdrawals, deposits, …), and `"META"` for introspection tools. The `type` field drives the audit hook — only `WRITE` tools emit audit entries.
+
+### 2. Implementation (`src/tools/`)
+
+1. **Identify the category**: Choose an existing file (e.g., `wallet.ts`, `earn.ts`) or create a new one.
+2. **Create/Update handler file**: Edit `src/tools/<category>.ts`.
+3. **Implement the handler function**:
 
 ```typescript
 // src/tools/example.ts
-
-export const exampleTools: Tool[] = [
-    {
-        name: "example_get_data",
-        description: "Get example data from Bit2Me API",
-        inputSchema: {
-            type: "object",
-            properties: {
-                id: { type: "string", description: "Resource ID" },
-            },
-            required: ["id"],
-        },
-    },
-];
-
-export async function handleExampleTool(name: string, args: any) {
+export async function handleExampleTool(name: string, args: Record<string, unknown>) {
     if (name === "example_get_data") {
-        const { id } = args;
+        const id = String(args.id ?? "");
         const data = await bit2meRequest("GET", `/v1/example/${id}`);
         const optimized = mapExampleResponse(data);
         return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
@@ -867,10 +942,30 @@ export async function handleExampleTool(name: string, args: any) {
 }
 ```
 
-### 2. Response Mapping (`src/utils/`)
+**Conventions for write tools:**
 
-1.  **Define Schema**: Add the TypeScript interface in `src/utils/schemas.ts`.
-2.  **Create Mapper**: Add the mapper function in `src/utils/response-mappers.ts`.
+- Accept and forward an optional `idempotency_key` argument. If the caller doesn't supply one, the tool wrapper auto-generates a UUID.
+- Use `decimal.js` for any monetary arithmetic (balances, amounts, valuations). Never use plain JS `number` for money.
+- Validate amount inputs with `validateAmount()` from `src/utils/format.ts` (enforces positive value and `MAX_AMOUNT = 1e12`). Validate date ranges with `validateDateRange()`.
+
+### 3. Registry (`src/tools/registry.ts`)
+
+Register the handler so the declarative registry can dispatch it:
+
+```typescript
+// src/tools/registry.ts
+import { handleExampleTool } from "./example.js";
+
+// Add to the registry map:
+registry.set("example_get_data", handleExampleTool);
+```
+
+> **No manual list-tools wiring needed**: The registry reads tool definitions from `data/tools.json` at startup and exposes them automatically via `ListToolsRequestSchema`.
+
+### 4. Response Mapping (`src/utils/`)
+
+1. **Define Schema**: Add the TypeScript interface in `src/utils/schemas.ts`.
+2. **Create Mapper**: Add the mapper function in `src/utils/response-mappers.ts`.
 
 ```typescript
 // src/utils/schemas.ts
@@ -881,43 +976,22 @@ export interface ExampleResponse {
 }
 
 // src/utils/response-mappers.ts
-export function mapExampleResponse(raw: any): ExampleResponse {
+export function mapExampleResponse(raw: unknown): ExampleResponse {
     if (!isValidObject(raw)) throw new ValidationError("Invalid response");
-
     return {
-        id: raw.id || "",
-        value: raw.val || raw.value || "0",
-        created_at: raw.createdAt || "",
+        id: String(raw["id"] ?? ""),
+        value: String(raw["val"] ?? raw["value"] ?? "0"),
+        created_at: String(raw["createdAt"] ?? ""),
     };
 }
 ```
 
-### 3. Registration (`src/index.ts`)
+### 5. Testing (`tests/`)
 
-1.  **Import**: Import the tools array and handler.
-2.  **List Tools**: Add `...exampleTools` to `ListToolsRequestSchema`.
-3.  **Handle Call**: Add the handler condition to `CallToolRequestSchema`.
-
-```typescript
-// src/index.ts
-import { exampleTools, handleExampleTool } from "./tools/example.js";
-
-// ... inside ListToolsRequestSchema
-tools: [
-    // ...
-    ...exampleTools,
-];
-
-// ... inside CallToolRequestSchema
-if (exampleTools.find((t) => t.name === name)) {
-    return await handleExampleTool(name, args);
-}
-```
-
-### 4. Testing (`tests/`)
-
-1.  **Mapper Tests**: Add test cases in `tests/mappers.test.ts`.
-2.  **Tool Tests**: Create `tests/tools/example.test.ts`.
+1. **Mapper Tests**: Add test cases in `tests/mappers.test.ts`.
+2. **Tool Tests**: Create `tests/tools/example.test.ts`.
+3. **Registry regression**: The zero-diff test in `tests/registry.test.ts` will automatically verify your new tool appears in the registry after you add it to `data/tools.json`. No changes needed there.
+4. **Concurrency**: If your tool stores per-request state, add a test in `tests/concurrency.test.ts` verifying that two concurrent invocations do not bleed state.
 
 ```typescript
 // tests/tools/example.test.ts
@@ -926,32 +1000,29 @@ import { handleExampleTool } from "../../src/tools/example.js";
 import { bit2meRequest } from "../../src/services/bit2me.js";
 
 vi.mock("../../src/services/bit2me.js");
+vi.mock("../../src/config.ts", () => ({ getConfig: () => ({ INCLUDE_RAW_RESPONSE: false }) }));
 
 describe("Example Tools", () => {
     it("should handle example_get_data", async () => {
         vi.mocked(bit2meRequest).mockResolvedValue({ id: "123", val: "test" });
-
         const result = await handleExampleTool("example_get_data", { id: "123" });
         const content = JSON.parse(result.content[0].text);
-
         expect(content.id).toBe("123");
     });
 });
 ```
 
-### 5. Documentation
+### 6. Documentation
 
-1.  **TOOLS_DOCUMENTATION.md**: Auto-generated from `data/tools.json` — just update the metadata and run `npm run build:docs`.
-2.  **README.md**: Update category counts or summaries if they change.
-3.  **Landing Page**: Update `landing/index.html` if it lists features/tools.
-4.  **Product Documentation**: Update `docs/PRODUCT.md` (if applicable).
-5.  **Schema Coverage**: Update `docs/TYPESCRIPT_SCHEMA_COVERAGE.md` to map the new tool to its TypeScript interface.
+1. **TOOLS_DOCUMENTATION.md**: Auto-generated from `data/tools.json` — run `npm run build:docs` after editing the metadata.
+2. **README.md**: Update category counts in "Available Tools & API Endpoints" if a new category is introduced or a count changes.
+3. **Landing Page**: `landing/` is updated by a separate agent — do not touch it here.
 
-### 6. Verification
+### 7. Verification
 
-1.  Run `npm test` to ensure all tests pass.
-2.  Run `npm run build` to verify TypeScript compilation.
-3.  (Optional) Run the server locally and test with a client.
+1. Run `npm test` — the zero-diff registry regression test will catch missing registry entries.
+2. Run `npm run build` — TypeScript strict mode (`exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`) will catch type errors in your mapper.
+3. (Optional) Run the server locally with `npm run dev` and test with MCP Inspector.
 
 ---
 
@@ -1008,6 +1079,12 @@ git commit -m "chore: update deps"     # No release
 ==================================================
 FILE: CHANGELOG.md (Changelog)
 ==================================================
+
+## [4.1.4](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.3...v4.1.4) (2026-01-24)
+
+### Bug Fixes
+
+- **ci:** remove registry-url to allow npm OIDC authentication ([1e636eb](https://github.com/bit2me-devs/bit2me-mcp/commit/1e636ebc449999f44b1c8953572e19415c2733cd))
 
 ## [4.1.3](https://github.com/bit2me-devs/bit2me-mcp/compare/v4.1.2...v4.1.3) (2026-01-24)
 

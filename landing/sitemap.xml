@@ -7,7 +7,7 @@
     <!-- Homepage -->
     <url>
         <loc>https://mcp.bit2me.com/</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>
@@ -15,42 +15,42 @@
     <!-- Main sections with anchors -->
     <url>
         <loc>https://mcp.bit2me.com/#overview</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.9</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#about</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#architecture</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#install</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.9</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#reference</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#faq</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
     </url>
@@ -58,35 +58,35 @@
     <!-- Tool categories -->
     <url>
         <loc>https://mcp.bit2me.com/#cat-market</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#cat-wallet</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#cat-pro</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#cat-earn</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/#cat-loans</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -94,14 +94,14 @@
     <!-- LLM documentation files -->
     <url>
         <loc>https://mcp.bit2me.com/llms.txt</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
     </url>
     
     <url>
         <loc>https://mcp.bit2me.com/llms-full.txt</loc>
-        <lastmod>2024-01-15</lastmod>
+        <lastmod>2026-05-09</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
     </url>
