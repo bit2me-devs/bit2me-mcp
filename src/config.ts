@@ -3,16 +3,39 @@ import { z } from "zod";
 import { logger } from "./utils/logger.js";
 
 const DEFAULT_GATEWAY_URL = "https://gateway.bit2me.com";
+const DEFAULT_SESSION_COOKIE_NAME = "b2m-atoken";
+
+/**
+ * Allow plain HTTP only when targeting localhost / loopback. Any other host
+ * must be HTTPS so that API keys, signatures and JWT cookies cannot be
+ * intercepted on the wire.
+ */
+function isAllowedGatewayUrl(value: string): boolean {
+    if (value.startsWith("https://")) return true;
+    if (value.startsWith("http://localhost")) return true;
+    if (value.startsWith("http://127.")) return true;
+    if (value.startsWith("http://[::1]")) return true;
+    return false;
+}
 
 const envSchema = z.object({
     BIT2ME_API_KEY: z.string().min(1, "BIT2ME_API_KEY is required"),
     BIT2ME_API_SECRET: z.string().min(1, "BIT2ME_API_SECRET is required"),
-    BIT2ME_GATEWAY_URL: z.string().url().optional().default(DEFAULT_GATEWAY_URL),
+    BIT2ME_GATEWAY_URL: z
+        .string()
+        .url()
+        .refine(isAllowedGatewayUrl, {
+            message:
+                "BIT2ME_GATEWAY_URL must use https:// (plain http:// is only allowed for localhost / loopback)",
+        })
+        .optional()
+        .default(DEFAULT_GATEWAY_URL),
     BIT2ME_REQUEST_TIMEOUT: z.string().optional().default("30000"),
     BIT2ME_LOG_LEVEL: z.string().optional().default("info"),
     BIT2ME_MAX_RETRIES: z.string().optional().default("3"),
     BIT2ME_RETRY_BASE_DELAY: z.string().optional().default("1000"),
     BIT2ME_INCLUDE_RAW_RESPONSE: z.string().optional().default("false"),
+    BIT2ME_SESSION_COOKIE_NAME: z.string().optional().default(DEFAULT_SESSION_COOKIE_NAME),
 });
 
 export type Config = z.infer<typeof envSchema> & {
@@ -22,6 +45,7 @@ export type Config = z.infer<typeof envSchema> & {
     MAX_RETRIES: number;
     RETRY_BASE_DELAY: number;
     INCLUDE_RAW_RESPONSE: boolean;
+    SESSION_COOKIE_NAME: string;
 };
 
 let cachedConfig: Config | null = null;
@@ -62,13 +86,14 @@ export function getConfig(): Config {
             MAX_RETRIES: parseInt(parsed.BIT2ME_MAX_RETRIES || "3", 10),
             RETRY_BASE_DELAY: parseInt(parsed.BIT2ME_RETRY_BASE_DELAY || "1000", 10),
             INCLUDE_RAW_RESPONSE: parsed.BIT2ME_INCLUDE_RAW_RESPONSE === "true",
+            SESSION_COOKIE_NAME: parsed.BIT2ME_SESSION_COOKIE_NAME || DEFAULT_SESSION_COOKIE_NAME,
         };
 
-        // Log gateway URL only if custom (for QA/staging awareness)
-        const isCustomGateway = gatewayUrl !== DEFAULT_GATEWAY_URL;
-        if (isCustomGateway) {
-            logger.info(`Using custom gateway: ${gatewayUrl}`);
-        }
+        // Register the cookie name as sensitive immediately so even error logs
+        // emitted later cannot leak it. We deliberately keep this side-effect
+        // here (instead of `logConfig`) because it is a security guard, not a
+        // diagnostic message.
+        logger.addSensitiveKey(cachedConfig.SESSION_COOKIE_NAME);
 
         logger.debug("Configuration validated successfully", {
             gateway: gatewayUrl,
@@ -89,7 +114,31 @@ export function getConfig(): Config {
     }
 }
 
-// For backward compatibility, export a getter
+/**
+ * Emit informational log messages about the resolved configuration.
+ *
+ * Previously these `logger.info` calls lived inside `getConfig()`, which
+ * meant that simply reading `config.X` produced log lines. That coupling
+ * made tests flaky and caused unrelated startup paths to spam the log. The
+ * caller (`src/index.ts`) now invokes this explicitly once after the
+ * logger has been initialised.
+ */
+export function logConfig(c: Config): void {
+    if (c.GATEWAY_URL !== DEFAULT_GATEWAY_URL) {
+        logger.info(`Using custom gateway: ${c.GATEWAY_URL}`);
+    }
+    if (c.SESSION_COOKIE_NAME !== DEFAULT_SESSION_COOKIE_NAME) {
+        logger.info(`Using custom session cookie name: ${c.SESSION_COOKIE_NAME}`);
+    }
+}
+
+/**
+ * @deprecated Prefer `getConfig()` (or, in Phase 2 onwards, the
+ * `ServerContext`). The proxy-based `config` export is kept for backwards
+ * compatibility with consumers that destructured `config.BIT2ME_*` at
+ * module load time. New code should call `getConfig()` directly so the
+ * dependency is explicit and side-effect-free.
+ */
 export const config = new Proxy({} as Config, {
     get(_target, prop) {
         return getConfig()[prop as keyof Config];

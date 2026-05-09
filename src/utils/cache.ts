@@ -185,7 +185,8 @@ export class CacheManager {
         // Remove 10% of oldest entries
         const toRemove = Math.max(1, Math.floor(entries.length * 0.1));
         for (let i = 0; i < toRemove; i++) {
-            this.cache.delete(entries[i][0]);
+            const entry = entries[i];
+            if (entry && entry[0]) this.cache.delete(entry[0]);
         }
 
         logger.debug(`Evicted ${toRemove} oldest cache entries`, {

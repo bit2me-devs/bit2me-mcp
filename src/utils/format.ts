@@ -227,6 +227,19 @@ export function validateFiat(fiat: string): void {
  * @param name - Name of the parameter for error messages
  * @throws ValidationError if format is invalid
  */
+/**
+ * Reasonable upper bound for any single trade / order / withdrawal /
+ * loan amount. Anything above this is far more likely to be a typo or
+ * misunderstanding from the LLM than a legitimate retail order, so we
+ * reject it on the client side rather than ship a 9-figure mistake to
+ * the upstream API.
+ *
+ * 1e12 is large enough to never be hit by realistic crypto amounts
+ * (12-digit base units) but small enough to catch obvious LLM hiccups
+ * like accidental scientific notation or extra zeros.
+ */
+export const MAX_AMOUNT = 1e12;
+
 export function validateAmount(amount: string | number, name: string = "amount"): void {
     if (amount === undefined || amount === null) {
         throw new ValidationError(`${name} is required`, name, amount);
@@ -238,6 +251,72 @@ export function validateAmount(amount: string | number, name: string = "amount")
     const numValue = parseFloat(amountStr);
     if (isNaN(numValue) || numValue < 0) {
         throw new ValidationError(`${name} must be a valid positive number`, name, amount);
+    }
+    if (numValue > MAX_AMOUNT) {
+        throw new ValidationError(
+            `${name} (${amountStr}) exceeds the maximum allowed value of ${MAX_AMOUNT}`,
+            name,
+            amount
+        );
+    }
+}
+
+/**
+ * Validate that two ISO-8601 dates form a sensible inclusive range.
+ *
+ * Constraints enforced:
+ *  - both inputs parse as valid Date instances
+ *  - `start <= end`
+ *  - the range doesn't exceed `maxRangeDays` (defaults to 366: one year)
+ *  - neither date is more than 5 years in the future (sanity check)
+ *
+ * Either bound may be `undefined`, in which case it's skipped.
+ */
+export function validateDateRange(
+    start: string | undefined,
+    end: string | undefined,
+    {
+        maxRangeDays = 366,
+        startName = "start_date",
+        endName = "end_date",
+    }: { maxRangeDays?: number; startName?: string; endName?: string } = {}
+): void {
+    const parse = (value: string | undefined, name: string): Date | undefined => {
+        if (value === undefined) return undefined;
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) {
+            throw new ValidationError(`${name} is not a valid ISO-8601 date`, name, value);
+        }
+        return d;
+    };
+
+    const startDate = parse(start, startName);
+    const endDate = parse(end, endName);
+
+    const fiveYearsFromNow = Date.now() + 5 * 365 * 24 * 60 * 60 * 1000;
+    if (startDate && startDate.getTime() > fiveYearsFromNow) {
+        throw new ValidationError(`${startName} is too far in the future`, startName, start);
+    }
+    if (endDate && endDate.getTime() > fiveYearsFromNow) {
+        throw new ValidationError(`${endName} is too far in the future`, endName, end);
+    }
+
+    if (startDate && endDate) {
+        if (startDate.getTime() > endDate.getTime()) {
+            throw new ValidationError(
+                `${startName} must be before or equal to ${endName}`,
+                startName,
+                { start, end }
+            );
+        }
+        const diffDays = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+        if (diffDays > maxRangeDays) {
+            throw new ValidationError(
+                `Date range (${diffDays.toFixed(0)} days) exceeds the maximum of ${maxRangeDays} days`,
+                "date_range",
+                { start, end }
+            );
+        }
     }
 }
 
