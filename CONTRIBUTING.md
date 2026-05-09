@@ -27,7 +27,7 @@ Please be respectful, inclusive, and constructive in all interactions. We are co
 
 ### Prerequisites
 
-- **Node.js**: v18 or higher
+- **Node.js**: v20 or higher
 - **npm**: v9 or higher
 - **Git**
 

@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/bit2me-devs/bit2me-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/bit2me-devs/bit2me-mcp)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server to interact with the [Bit2Me](https://bit2me.com/) ecosystem. This server allows AI assistants like Claude to access real-time market data, manage wallets, execute trading operations, and query products like Earn and Loans.
 
@@ -16,19 +16,25 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 
 ## 🚀 Features
 
-- **General**: Asset information, account details, and portfolio valuation.
+- **General**: Asset information, account details, portfolio valuation, and self-introspection (`general_describe_tool` returns description, schema, and examples for any tool — useful for LLMs encountering a tool for the first time).
 - **Wallet Management**: Query balances, transactions, and wallet (Pockets) details.
 - **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
 - **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
 - **Operations**: Execute trades, transfers, and withdrawals securely.
+- **Idempotency & Retries**: Every write tool auto-generates an idempotency key; failed POST/DELETE calls retry with exponential backoff + jitter, making operations safe to retry without duplicates.
+- **Decimal Precision**: Portfolio valuation uses `decimal.js` — no floating-point drift on large balances or high-precision assets.
+- **Expanded PII Redaction**: Logs automatically scrub email addresses, IBANs, phone numbers, KYC fields, JWT-shaped tokens, and long base64 blobs, in addition to API keys and signatures.
+- **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter, preventing replay attacks even under high concurrency.
+- **Audit Log**: Every write tool (order creation, withdrawals, earn deposits, loan operations, …) appends a tamper-evident JSON line on both success and failure. Set `AUDIT_LOG_PATH` to write to a dedicated file; otherwise audit lines are emitted via the logger with `audit: true`.
+- **Parametrized Prompts**: `analyze_portfolio` and `market_summary` accept arguments. Three new prompts ship out of the box: `tax_report`, `dca_plan`, and `loan_health_check`.
 
 ## 🛠️ Available Tools & API Endpoints
 
-The server currently exposes **47 tools** grouped as follows:
+The server currently exposes **48 tools** grouped as follows:
 
-- 3 General tools
-- 7 Broker (Simple Trading) tools
-- 5 Wallet tools
+- 4 General tools (including `general_describe_tool` for self-introspection)
+- 8 Broker (Simple Trading) tools
+- 4 Wallet tools
 - 14 Pro Trading tools
 - 11 Earn (Staking) tools
 - 7 Loan tools
@@ -46,7 +52,7 @@ All tool responses are normalised for LLM consumption (consistent naming, flatte
 
 ### Prerequisites
 
-- **Node.js**: v18 or higher.
+- **Node.js**: v20 or higher.
 - **Bit2Me Account**: You need a verified Bit2Me account.
 
 ### 🔑 Authentication Methods
@@ -73,7 +79,7 @@ When the `jwt` parameter is provided, the server will use cookie-based authentic
 // Example: Using JWT session token
 const result = await mcpClient.callTool("wallet_get_pockets", {
     symbol: "BTC",
-    jwt: "user_session_token_here"  // Optional - uses API keys if omitted
+    jwt: "user_session_token_here", // Optional - uses API keys if omitted
 });
 ```
 
@@ -108,11 +114,13 @@ const result = await mcpClient.callTool("wallet_get_pockets", {
     BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
 
     # Optional Configuration
-    BIT2ME_GATEWAY_URL=https://gateway.bit2me.com  # API Gateway URL (default: https://gateway.bit2me.com)
+    BIT2ME_GATEWAY_URL=https://gateway.bit2me.com  # Must be HTTPS (localhost/127.x are exempt)
     BIT2ME_REQUEST_TIMEOUT=30000     # Request timeout in ms (default: 30000)
     BIT2ME_MAX_RETRIES=3             # Max retries for rate limits (default: 3)
     BIT2ME_RETRY_BASE_DELAY=1000     # Base delay for backoff in ms (default: 1000)
     BIT2ME_LOG_LEVEL=info            # Log level: debug, info, warn, error (default: info)
+    LOG_FORMAT=json                  # Optional: "json" for log aggregators; default is human-readable
+    # AUDIT_LOG_PATH=/var/log/bit2me-mcp/audit.log  # Append-only write-tool audit log
     ```
 
     > **💡 QA/Staging:** Use `BIT2ME_GATEWAY_URL` to point to different environments (e.g., `https://qa-gateway.bit2me.com` for QA testing).
@@ -179,9 +187,12 @@ For detailed information about reporting vulnerabilities and our security policy
 
 ### Best Practices
 
-- **API Keys**: Never commit API keys to version control.
+- **API Keys**: Never commit API keys to version control. The pre-commit hook runs `gitleaks` (if installed) to block accidental secret commits.
 - **Permissions**: Use minimal permissions. Avoid "Withdrawal" permissions for MCP usage.
-- **Logging**: The server automatically sanitizes sensitive data in logs.
+- **HTTPS Gateway**: `BIT2ME_GATEWAY_URL` is validated at startup — only `https://` URLs are accepted. Plain `http://` is rejected except for `localhost` / `127.x` addresses (local development only).
+- **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter so concurrent requests cannot generate replay-vulnerable signatures.
+- **Expanded PII Redaction**: The logger scrubs API keys, signatures, JWTs, emails, IBANs, phone numbers, KYC fields, and long base64 blobs before writing any line to stderr.
+- **Audit Log**: Every write tool appends an append-only JSON entry (tool name, sanitised args, outcome, correlation ID, SHA-256 fingerprint of the session token — never the token itself). Set `AUDIT_LOG_PATH` to persist to a file.
 
 ## ⚠️ Rate Limits & Error Handling
 
@@ -347,7 +358,7 @@ npx @modelcontextprotocol/inspector node build/index.js
 The web interface provides:
 
 1. **Tools Tab:**
-    - View all 47 available tools
+    - View all 48 available tools
     - See input schemas for each tool
     - Test tools with custom parameters
     - View formatted responses
