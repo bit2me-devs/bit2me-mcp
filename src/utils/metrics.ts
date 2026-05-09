@@ -132,6 +132,36 @@ class MetricsCollector {
     }
 
     /**
+     * Render the in-memory metrics in Prometheus text exposition format.
+     *
+     * The output is intentionally minimal — three counters and a gauge
+     * per tool — but it's enough to plug straight into a Prometheus
+     * scrape endpoint or a Datadog / Grafana Agent collector.
+     */
+    toPrometheus(): string {
+        const lines: string[] = [];
+        lines.push("# HELP bit2me_mcp_tool_calls_total Total number of tool invocations");
+        lines.push("# TYPE bit2me_mcp_tool_calls_total counter");
+        for (const m of this.getAllMetrics()) {
+            const labels = `tool="${m.name}"`;
+            lines.push(`bit2me_mcp_tool_calls_total{${labels}} ${m.callCount}`);
+        }
+        lines.push("# HELP bit2me_mcp_tool_errors_total Total number of failed tool invocations");
+        lines.push("# TYPE bit2me_mcp_tool_errors_total counter");
+        for (const m of this.getAllMetrics()) {
+            const labels = `tool="${m.name}"`;
+            lines.push(`bit2me_mcp_tool_errors_total{${labels}} ${m.errorCount}`);
+        }
+        lines.push("# HELP bit2me_mcp_tool_duration_avg_ms Rolling average duration in milliseconds");
+        lines.push("# TYPE bit2me_mcp_tool_duration_avg_ms gauge");
+        for (const m of this.getAllMetrics()) {
+            const labels = `tool="${m.name}"`;
+            lines.push(`bit2me_mcp_tool_duration_avg_ms{${labels}} ${m.averageDuration.toFixed(2)}`);
+        }
+        return lines.join("\n") + "\n";
+    }
+
+    /**
      * Calculate percentile from durations
      */
     calculatePercentile(toolName: string, percentile: number): number {
