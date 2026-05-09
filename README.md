@@ -194,13 +194,56 @@ The Bit2Me API enforces rate limits to ensure stability.
 
 ## 📊 Logging
 
-The server implements a structured logging system that automatically sanitizes sensitive data (API keys, signatures).
+The server implements a structured logging system that automatically sanitizes sensitive data (API keys, signatures, JWTs, emails, IBANs, and other PII).
 You can control the verbosity using the `BIT2ME_LOG_LEVEL` environment variable:
 
 - `debug`: Detailed request/response logs (useful for development)
 - `info`: Startup and operational events (default)
 - `warn`: Rate limits and non-critical issues
 - `error`: API errors and failures
+
+Set `LOG_FORMAT=json` to switch the logger to a single-JSON-object-per-line format suitable for log aggregators (Loki, Datadog, CloudWatch, etc.). The default is human-readable.
+
+All logs are written to **stderr**; stdout is reserved for the MCP JSON-RPC frame.
+
+## 🧵 Concurrency Model
+
+Each incoming tool call runs inside its own [`AsyncLocalStorage`](https://nodejs.org/api/async_context.html#class-asynclocalstorage) boundary. The store carries:
+
+- `correlationId`: a UUID generated per request, included in every log line
+- `sessionToken` (`jwt`): the optional per-call session token, never logged in the clear
+- `toolName`, `startTime`: useful for metrics / audit
+
+Two requests that arrive concurrently — for example two different users hitting the HTTP transport with their own JWTs — never share state. The legacy global-context fallbacks remain for unit tests that run outside a `runWithContext` boundary, but production code paths always create a context. See `tests/concurrency.test.ts` and `tests/http-transport.test.ts` for the regression coverage.
+
+Per-request state stored via `memoizePerRequest()` (e.g. wallet pockets fetched multiple times during a single broker quote) is keyed by `correlationId` and cleared in the `finally` block of `executeTool()` so the cache cannot grow unbounded.
+
+## 🚢 Operating in Production
+
+Two binaries ship with this package:
+
+- `bit2me-mcp-server` — the original stdio transport, designed to be spawned by a single LLM client (Claude Desktop, Cursor, …).
+- `bit2me-mcp-http` — the multi-tenant HTTP/SSE transport (`src/index-http.ts`). Each request supplies its own credentials in headers (`X-Bit2Me-Api-Key` + `X-Bit2Me-Api-Secret` or `Authorization: Bearer <jwt>`). TLS termination is delegated to a reverse proxy.
+
+Recommended environment variables for the HTTP binary:
+
+- `MCP_HTTP_HOST` / `MCP_HTTP_PORT` (default `127.0.0.1:3000`)
+- `MCP_HTTP_AUTH_MODE`: `api_key` (default), `jwt`, or `both`
+- `LOG_FORMAT=json` for structured logs
+- `AUDIT_LOG_PATH=/var/log/bit2me-mcp/audit.log` to ship audit lines to a file
+
+Built-in observability endpoints (HTTP transport only):
+
+- `GET /health` — liveness + Bit2Me reachability + cache/circuit-breaker/rate-limiter snapshot. Cached for 30s.
+- `GET /metrics` — Prometheus text-format counters (`bit2me_mcp_tool_calls_total`, `bit2me_mcp_tool_errors_total`, `bit2me_mcp_tool_duration_avg_ms`).
+
+Reliability features active by default:
+
+- Circuit breaker on the upstream Bit2Me API (`src/utils/circuit-breaker.ts`).
+- Per-endpoint rate limiter with exponential backoff + jitter.
+- Idempotency keys on every write tool (`pro_create_order`, `loan_create`, `earn_deposit`, …) — the SDK auto-generates one if the caller doesn't supply `idempotency_key`.
+- Monotonic request nonces for API-key signing (replay-safe even under high concurrency).
+- Append-only audit log for every successful **and** failed write operation.
 
 ## ❓ Troubleshooting
 
