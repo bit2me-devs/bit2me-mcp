@@ -93,6 +93,13 @@ jobs:
             - name: Semantic Release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  # NPM_TOKEN is read by `npm publish` to authenticate against
+                  # https://registry.npmjs.org/. Create an Automation or
+                  # Granular-Access token at
+                  # https://www.npmjs.com/settings/<user>/tokens with publish
+                  # rights for @bit2me/mcp-server, then set it on this repo
+                  # via `gh secret set NPM_TOKEN`.
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_CONFIG_PROVENANCE: true
               run: pnpm dlx semantic-release
 
