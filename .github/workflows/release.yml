@@ -17,6 +17,13 @@ jobs:
             pull-requests: write
             id-token: write
             attestations: write
+        env:
+            # Skip Husky's git hooks in CI: they are developer-machine guard
+            # rails (lint-staged, publint, gitleaks) that the workflow already
+            # runs explicitly via `pnpm test` / `pnpm run build` and would
+            # otherwise fail when @semantic-release/git creates the release
+            # commit on a runner that has no `gitleaks` binary installed.
+            HUSKY: "0"
 
         steps:
             - name: Checkout
