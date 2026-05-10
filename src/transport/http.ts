@@ -296,7 +296,25 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
     // ------------------------------------------------------------------
     // Authenticated diagnostics: full snapshot + Prometheus scrape.
     // ------------------------------------------------------------------
-    app.get("/health", async (req, reply) => {
+    // Per-route rate-limit envelopes.
+    //
+    // We already register `@fastify/rate-limit` globally (~600 req/min)
+    // above, but we redeclare the config on each sensitive route so the
+    // intent is explicit at the call-site (and so static analysers that
+    // inspect the route definition — e.g. CodeQL's
+    // `js/missing-rate-limiting` query — see the protection rather than
+    // having to infer it from the plugin registration).
+    //
+    // The values are deliberately tighter than the global so a
+    // misbehaving caller cannot saturate diagnostics or the
+    // tool-invocation surface even if the global budget would still
+    // allow it.
+    const healthRouteCfg = { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } } as const;
+    const metricsRouteCfg = { config: { rateLimit: { max: 60, timeWindow: "1 minute" } } } as const;
+    const toolsRouteCfg = { config: { rateLimit: { max: 120, timeWindow: "1 minute" } } } as const;
+    const mcpRouteCfg = { config: { rateLimit: { max: 300, timeWindow: "1 minute" } } } as const;
+
+    app.get("/health", healthRouteCfg, async (req, reply) => {
         const creds = extractCredentials(req, authMode);
         if (!creds) {
             return rejectUnauthenticated(req, reply, { error: "Missing credentials" });
@@ -304,7 +322,7 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
         return performHealthCheck({ includeRuntime: true });
     });
 
-    app.get("/metrics", async (req, reply) => {
+    app.get("/metrics", metricsRouteCfg, async (req, reply) => {
         const creds = extractCredentials(req, authMode);
         if (!creds) {
             return rejectUnauthenticated(req, reply, { error: "Missing credentials" });
@@ -313,7 +331,7 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
         return metricsCollector.toPrometheus();
     });
 
-    app.get("/mcp/tools", async (req, reply) => {
+    app.get("/mcp/tools", toolsRouteCfg, async (req, reply) => {
         const creds = extractCredentials(req, authMode);
         if (!creds) {
             return rejectUnauthenticated(req, reply, { error: "Missing credentials" });
@@ -321,7 +339,7 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
         return { tools: getAllTools() };
     });
 
-    app.post("/mcp", async (req: FastifyRequest, reply: FastifyReply) => {
+    app.post("/mcp", mcpRouteCfg, async (req: FastifyRequest, reply: FastifyReply) => {
         const creds = extractCredentials(req, authMode);
         if (!creds) {
             return rejectUnauthenticated(req, reply, {

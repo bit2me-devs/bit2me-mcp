@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync, existsSync, statSync, readdirSync, rmSync, chmodSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readdirSync, rmSync, chmodSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -194,11 +194,13 @@ describe("recordAudit — sanity", () => {
             args: { foo: "bar" },
             idempotencyKey: "abc",
         });
-        const stats = statSync(target);
-        expect(stats.size).toBeGreaterThan(0);
-        // Quick parse to make sure the line is valid JSON.
+        // Single read serves as both the existence/non-empty check and
+        // the structural validation (avoids the stat→read TOCTOU
+        // pattern that triggers a CodeQL race-condition warning in a
+        // test that, by construction, owns the file exclusively).
         const fs = await import("node:fs");
         const contents = fs.readFileSync(target, "utf-8").trim();
+        expect(contents.length).toBeGreaterThan(0);
         const lines = contents.split("\n").filter(Boolean);
         const last = JSON.parse(lines[lines.length - 1]);
         expect(last.tool).toBe("wallet_buy_crypto");
