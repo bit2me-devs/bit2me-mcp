@@ -64,8 +64,26 @@ export class CacheManager {
      * removes the head — the least-recently-touched entry. Together
      * with `get()` (which moves a hit back to the tail) this gives a
      * proper O(1) LRU without scanning or sorting.
+     *
+     * **Contract**: cached values are treated as immutable. Callers
+     * MUST NOT mutate the value retrieved via {@link get}; doing so
+     * corrupts the entry for every subsequent reader inside the TTL
+     * window. Clone before mutating.
+     *
+     * `null` and `undefined` payloads are rejected: an empty response
+     * cached as `null` would later be indistinguishable from a miss
+     * (see {@link get}'s return type) and would consume an LRU slot
+     * for no benefit.
      */
     public set<T>(key: string, data: T, category: CacheCategory = CacheCategory.STATIC, ttlSeconds?: number): void {
+        if (data === null || data === undefined) {
+            logger.debug(`Cache set ignored: nullish value for key ${key}`, {
+                correlationId: getCorrelationId(),
+                category,
+            });
+            return;
+        }
+
         // If the key already exists, drop the old entry so the re-insertion
         // below appends a fresh entry at the tail of the iteration order.
         if (this.cache.has(key)) {
@@ -97,17 +115,28 @@ export class CacheManager {
      * Retrieve a value from the cache. On a hit the entry is moved to
      * the tail of the iteration order so subsequent eviction prefers
      * truly cold entries.
+     *
+     * **Contract**: the returned value is the live cache entry, NOT a
+     * clone. Callers MUST treat it as read-only. Mutating fields on the
+     * returned object will corrupt the cached entry for every
+     * subsequent reader within the TTL window. If you need to mutate,
+     * deep-clone first (`structuredClone(result)`).
+     *
+     * @param key      Tenant-scoped cache key.
+     * @param category Optional category hint used to label cache-miss
+     *                 metrics when the entry does not exist. Hits and
+     *                 expiries always use the recorded entry category.
      */
-    public get<T>(key: string): T | null {
+    public get<T>(key: string, category?: CacheCategory): T | null {
         const entry = this.cache.get(key);
         if (!entry) {
-            metricsCollector.recordCacheMiss("unknown");
+            metricsCollector.recordCacheMiss(category ?? "unknown");
             return null;
         }
 
         if (Date.now() > entry.expiry) {
             this.cache.delete(key);
-            metricsCollector.recordCacheMiss(entry.category ?? "unknown");
+            metricsCollector.recordCacheMiss(entry.category ?? category ?? "unknown");
             logger.debug(`Cache expired for key: ${key}`, {
                 correlationId: getCorrelationId(),
                 category: entry.category,

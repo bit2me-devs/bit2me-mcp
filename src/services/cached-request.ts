@@ -32,6 +32,11 @@ export interface CachedGetOptions {
  *  2. Cache miss → call the upstream, store the response with the
  *     category's default TTL, return it.
  *
+ * **Contract**: the value returned by this helper is the live cache
+ * entry. Callers MUST NOT mutate it; deep-clone first if they need a
+ * private copy. See {@link CacheManager.get} for the immutability
+ * contract.
+ *
  * Use this helper only for endpoints whose response is stable over the
  * cache TTL window. Mutating endpoints (POST/DELETE) and endpoints whose
  * freshness must be sub-second keep going through `bit2meRequest`.
@@ -43,7 +48,7 @@ export async function cachedGet<T = any>(
     options: CachedGetOptions = {}
 ): Promise<T> {
     const key = tenantScopedKey([endpoint, params ?? {}]);
-    const cached = cache.get<T>(key);
+    const cached = cache.get<T>(key, category);
     if (cached !== null) {
         return cached;
     }

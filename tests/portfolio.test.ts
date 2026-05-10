@@ -249,4 +249,36 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         expect(data.result.details[1].symbol).toBe("BTC");
         expect(data.result.details[2].symbol).toBe("ETH");
     });
+
+    it("counts loan guarantees when /v1/loan/orders returns a plain array", async () => {
+        // The upstream has historically returned `{ data: [...] }`, but
+        // some endpoints have shifted to plain arrays (the same drift
+        // that affected /v2/earn/wallets). The aggregator must tolerate
+        // both shapes; otherwise the loan guarantees would silently
+        // disappear from the portfolio total.
+        const { bit2meRequest, getMarketPrice } = await import("../src/services/bit2me.js");
+        const { handleGeneralTool } = await import("../src/tools/general.js");
+
+        vi.mocked(bit2meRequest).mockImplementation(async (_method: string, endpoint: string) => {
+            if (endpoint === "/v1/wallet/pocket") return [];
+            if (endpoint === "/v1/trading/wallet/balance") return [];
+            if (endpoint === "/v2/earn/wallets") return { data: [] };
+            if (endpoint === "/v1/loan/orders") {
+                return [{ guaranteeAmount: "0.5", guaranteeCurrency: "BTC" }];
+            }
+            return [];
+        });
+        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string) => {
+            if (crypto === "BTC") return 50000;
+            return 0;
+        });
+
+        const result = await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR" });
+        const data = JSON.parse(result.content[0].text);
+        expect(data.result.by_service.loan_guarantees_balance).toBeDefined();
+        const loanTotal = parseFloat(String(data.result.by_service.loan_guarantees_balance));
+        expect(loanTotal).toBeGreaterThan(0);
+        const btcDetail = data.result.details.find((d: any) => d.symbol === "BTC");
+        expect(btcDetail).toBeDefined();
+    });
 });

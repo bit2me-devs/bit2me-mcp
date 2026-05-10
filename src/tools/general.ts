@@ -102,7 +102,10 @@ export async function handleGeneralTool(name: string, args: any) {
             // `force_refresh: true` to skip the cache and recompute.
             const portfolioCacheKey = tenantScopedKey(["portfolio_get_valuation", { quote_symbol }]);
             if (!forceRefresh) {
-                const cached = cache.get<{ content: Array<{ type: string; text: string }> }>(portfolioCacheKey);
+                const cached = cache.get<{ content: Array<{ type: string; text: string }> }>(
+                    portfolioCacheKey,
+                    CacheCategory.BALANCE
+                );
                 if (cached) {
                     return cached;
                 }
@@ -184,13 +187,18 @@ export async function handleGeneralTool(name: string, args: any) {
                 });
 
             // Process Loans
-            if (loans?.data && Array.isArray(loans.data))
-                loans.data.forEach((l: any) => {
-                    const val = toDecimal(l.guaranteeAmount);
-                    if (val.gt(0)) {
-                        assets[l.guaranteeCurrency] = (assets[l.guaranteeCurrency] ?? new Decimal(0)).plus(val);
-                    }
-                });
+            // /v1/loan/orders historically returned `{ data: [...] }`, but the
+            // upstream has shifted some endpoints to a plain array (the same
+            // schema drift that affected `/v2/earn/wallets`). Tolerate both
+            // shapes so a future format change doesn't silently zero the
+            // loan guarantees in the portfolio total.
+            const loanItems: any[] = Array.isArray(loans) ? loans : Array.isArray(loans?.data) ? loans.data : [];
+            loanItems.forEach((l: any) => {
+                const val = toDecimal(l.guaranteeAmount);
+                if (val.gt(0)) {
+                    assets[l.guaranteeCurrency] = (assets[l.guaranteeCurrency] ?? new Decimal(0)).plus(val);
+                }
+            });
 
             // 2. Valuation
             const uniqueSymbols = Object.keys(assets);
@@ -256,12 +264,16 @@ export async function handleGeneralTool(name: string, args: any) {
                     if (val.gt(0)) earnTotal = earnTotal.plus(val.mul(price));
                 });
 
-            if (loans?.data && Array.isArray(loans.data))
-                loans.data.forEach((l: any) => {
-                    const val = toDecimal(l.guaranteeAmount);
-                    const price = priceMap[l.guaranteeCurrency] ?? new Decimal(0);
-                    if (val.gt(0)) loanGuaranteeTotal = loanGuaranteeTotal.plus(val.mul(price));
-                });
+            const loanItemsForTotal: any[] = Array.isArray(loans)
+                ? loans
+                : Array.isArray(loans?.data)
+                  ? loans.data
+                  : [];
+            loanItemsForTotal.forEach((l: any) => {
+                const val = toDecimal(l.guaranteeAmount);
+                const price = priceMap[l.guaranteeCurrency] ?? new Decimal(0);
+                if (val.gt(0)) loanGuaranteeTotal = loanGuaranteeTotal.plus(val.mul(price));
+            });
 
             const requestContext = {
                 quote_symbol: quote_symbol,

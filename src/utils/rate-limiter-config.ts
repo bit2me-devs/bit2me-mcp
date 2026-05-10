@@ -3,7 +3,7 @@
  * Different endpoints may have different rate limits
  */
 
-import { RateLimiter } from "./rate-limiter.js";
+import { RateLimiter, type RateLimiterStats } from "./rate-limiter.js";
 import { endpointGroup } from "./endpoint-groups.js";
 
 export interface EndpointRateLimit {
@@ -161,13 +161,16 @@ export class EndpointRateLimiterManager {
         this.limiters.clear();
     }
 
-    /** Get statistics for all rate limiters. */
-    getStats() {
-        const stats: Record<string, unknown> = {};
-        for (const [endpoint] of this.limiters.entries()) {
-            stats[endpoint] = {
-                configured: true,
-            };
+    /**
+     * Snapshot every active limiter. The key is `pattern` for stdio /
+     * single-tenant entries and `tenantId:pattern` for HTTP transport
+     * entries (matching the {@link getLimiter} key format), so
+     * dashboards can correlate per-tenant usage.
+     */
+    getStats(): Record<string, RateLimiterStats> {
+        const stats: Record<string, RateLimiterStats> = {};
+        for (const [key, limiter] of this.limiters.entries()) {
+            stats[key] = limiter.stats();
         }
         return stats;
     }
