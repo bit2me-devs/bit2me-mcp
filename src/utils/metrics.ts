@@ -5,6 +5,42 @@
 
 import { logger } from "./logger.js";
 import { getCorrelationId } from "./context.js";
+import { CircuitState, getGroupCircuitBreakerStats } from "./circuit-breaker.js";
+import { groupBulkhead, tenantBulkhead } from "./bulkhead.js";
+import type { EndpointGroup } from "./endpoint-groups.js";
+
+/**
+ * Bounded counter table for resilience metrics.
+ *
+ * Keys are static (group names, retry reasons, cache categories), so
+ * cardinality is small and the map never grows beyond a few dozen
+ * entries. We use a `Map` instead of an object literal for O(1)
+ * insertion ordering on `Object.keys`-style enumerations.
+ */
+class CounterMap {
+    private values = new Map<string, number>();
+    inc(label: string, by = 1): void {
+        this.values.set(label, (this.values.get(label) ?? 0) + by);
+    }
+    snapshot(): Record<string, number> {
+        const out: Record<string, number> = {};
+        for (const [k, v] of this.values) out[k] = v;
+        return out;
+    }
+    reset(): void {
+        this.values.clear();
+    }
+}
+
+/**
+ * Encode a circuit state as a numeric value suitable for a Prometheus
+ * gauge. Closed=0, half-open=1, open=2.
+ */
+function circuitStateToGauge(state: CircuitState): number {
+    if (state === CircuitState.CLOSED) return 0;
+    if (state === CircuitState.HALF_OPEN) return 1;
+    return 2;
+}
 
 export interface MetricData {
     name: string;
@@ -36,6 +72,13 @@ const MAX_DURATION_SAMPLES_PER_TOOL = 500;
 class MetricsCollector {
     private toolMetrics: Map<string, ToolMetrics> = new Map();
     private requestDurations: Map<string, number[]> = new Map();
+
+    // Resilience-pattern counters. Cardinality is bounded by the static
+    // group/category enums so unbounded label growth is impossible.
+    private circuitFailures = new CounterMap();
+    private retries = new CounterMap();
+    private cacheHits = new CounterMap();
+    private cacheMisses = new CounterMap();
 
     /**
      * Record a tool execution
@@ -145,6 +188,34 @@ class MetricsCollector {
     reset(): void {
         this.toolMetrics.clear();
         this.requestDurations.clear();
+        this.circuitFailures.reset();
+        this.retries.reset();
+        this.cacheHits.reset();
+        this.cacheMisses.reset();
+    }
+
+    /**
+     * Record a failure observed by the per-group circuit breaker.
+     * `group` is the {@link EndpointGroup} the failed call belonged to.
+     */
+    recordCircuitFailure(group: EndpointGroup): void {
+        this.circuitFailures.inc(group);
+    }
+
+    /**
+     * Record an outbound retry. `reason` is one of the discrete causes
+     * the retry loop in `bit2meRequest` may use.
+     */
+    recordRetry(reason: "rate_limit" | "server_error" | "network"): void {
+        this.retries.inc(reason);
+    }
+
+    /** Record a Cache-Aside hit/miss for the given category. */
+    recordCacheHit(category: string): void {
+        this.cacheHits.inc(category);
+    }
+    recordCacheMiss(category: string): void {
+        this.cacheMisses.inc(category);
     }
 
     /**
@@ -174,6 +245,62 @@ class MetricsCollector {
             const labels = `tool="${m.name}"`;
             lines.push(`bit2me_mcp_tool_duration_avg_ms{${labels}} ${m.averageDuration.toFixed(2)}`);
         }
+
+        // ── Resilience-pattern series. The dependency direction is
+        // metrics → circuit-breaker / bulkhead, never the reverse, so
+        // these imports do not create a cycle.
+        lines.push(
+            "# HELP bit2me_circuit_state Current state of the per-group circuit breaker (0=closed,1=half_open,2=open)"
+        );
+        lines.push("# TYPE bit2me_circuit_state gauge");
+        const cbStats = getGroupCircuitBreakerStats();
+        for (const [group, snap] of Object.entries(cbStats)) {
+            lines.push(`bit2me_circuit_state{group="${group}"} ${circuitStateToGauge(snap.state)}`);
+        }
+
+        lines.push("# HELP bit2me_circuit_failures_total Failures recorded by per-group circuit breakers");
+        lines.push("# TYPE bit2me_circuit_failures_total counter");
+        for (const [group, count] of Object.entries(this.circuitFailures.snapshot())) {
+            lines.push(`bit2me_circuit_failures_total{group="${group}"} ${count}`);
+        }
+
+        lines.push("# HELP bit2me_retries_total Outbound retries by reason");
+        lines.push("# TYPE bit2me_retries_total counter");
+        for (const [reason, count] of Object.entries(this.retries.snapshot())) {
+            lines.push(`bit2me_retries_total{reason="${reason}"} ${count}`);
+        }
+
+        lines.push("# HELP bit2me_cache_hits_total Cache hits per category");
+        lines.push("# TYPE bit2me_cache_hits_total counter");
+        for (const [category, count] of Object.entries(this.cacheHits.snapshot())) {
+            lines.push(`bit2me_cache_hits_total{category="${category}"} ${count}`);
+        }
+
+        lines.push("# HELP bit2me_cache_misses_total Cache misses per category");
+        lines.push("# TYPE bit2me_cache_misses_total counter");
+        for (const [category, count] of Object.entries(this.cacheMisses.snapshot())) {
+            lines.push(`bit2me_cache_misses_total{category="${category}"} ${count}`);
+        }
+
+        lines.push("# HELP bit2me_inflight Outbound calls currently held by the per-group bulkhead");
+        lines.push("# TYPE bit2me_inflight gauge");
+        const bhStats = groupBulkhead.stats();
+        for (const [group, snap] of Object.entries(bhStats)) {
+            lines.push(`bit2me_inflight{group="${group}"} ${snap.inFlight}`);
+        }
+        lines.push("# HELP bit2me_bulkhead_queued Outbound calls queued waiting for a bulkhead permit");
+        lines.push("# TYPE bit2me_bulkhead_queued gauge");
+        for (const [group, snap] of Object.entries(bhStats)) {
+            lines.push(`bit2me_bulkhead_queued{group="${group}"} ${snap.queued}`);
+        }
+        const tenantSnap = tenantBulkhead.aggregateStats();
+        lines.push("# HELP bit2me_inflight_tenant_total Outbound calls in flight aggregated across all tenants");
+        lines.push("# TYPE bit2me_inflight_tenant_total gauge");
+        lines.push(`bit2me_inflight_tenant_total ${tenantSnap.inFlight}`);
+        lines.push("# HELP bit2me_bulkhead_tenant_queued_total Tenant bulkhead waiters aggregated across all tenants");
+        lines.push("# TYPE bit2me_bulkhead_tenant_queued_total gauge");
+        lines.push(`bit2me_bulkhead_tenant_queued_total ${tenantSnap.queued}`);
+
         return lines.join("\n") + "\n";
     }
 
