@@ -240,18 +240,44 @@ export async function bit2meRequest<T = any>(
     sessionToken?: string,
     options?: Bit2MeRequestOptions
 ): Promise<T> {
-    const appConfig = getConfig();
     const opts: Bit2MeRequestOptions = options ?? {};
-
-    const effectiveRetries = retries ?? opts.retries ?? appConfig.MAX_RETRIES;
-    const baseDelay = appConfig.RETRY_BASE_DELAY;
-    const timeout = timeoutOverride ?? opts.timeoutOverride ?? appConfig.REQUEST_TIMEOUT;
     const effectiveSessionToken = sessionToken ?? opts.sessionToken;
     const idempotencyKey = opts.idempotencyKey;
     const attempt = opts.attempt ?? 0;
 
     // Resolve session token: explicit parameter takes priority, fallback to context
     const resolvedSessionToken = effectiveSessionToken ?? getSessionToken();
+
+    // --- INPUT VALIDATION (fail fast, before any I/O or config load) ---
+    //
+    // We validate caller-controlled input BEFORE invoking getConfig(),
+    // acquiring rate-limit tokens, or touching the circuit breaker, for
+    // two reasons:
+    //   1. Security: an attacker sending a malformed session token
+    //      should not be able to consume rate-limit tokens, flip
+    //      breaker state, or otherwise affect shared resilience
+    //      counters before being rejected. Bouncing the request at
+    //      the earliest stage closes that mini-amplification gap.
+    //   2. Determinism in environments without API credentials: tests
+    //      and the HTTP transport without fallback creds rely on the
+    //      function rejecting a bad session token even when
+    //      getConfig() would itself throw. Putting the cookie check
+    //      first decouples both error paths.
+    if (resolvedSessionToken !== undefined) {
+        assertSafeCookieValue(resolvedSessionToken);
+    }
+    let preflightFlatParams: Record<string, string> | undefined;
+    if (method === "GET" && params && Object.keys(params).length > 0) {
+        // We flatten here purely to surface ValidationError for nested
+        // shapes before any config load. The flattened map is reused
+        // below to avoid double work.
+        preflightFlatParams = flattenScalarParams(params);
+    }
+
+    const appConfig = getConfig();
+    const effectiveRetries = retries ?? opts.retries ?? appConfig.MAX_RETRIES;
+    const baseDelay = appConfig.RETRY_BASE_DELAY;
+    const timeout = timeoutOverride ?? opts.timeoutOverride ?? appConfig.REQUEST_TIMEOUT;
 
     // Resolve tenant id and endpoint group once and reuse them for the
     // breaker, the outbound rate limiter and the success/failure
@@ -310,9 +336,9 @@ export async function bit2meRequest<T = any>(
     let baseHeaders: Record<string, string>;
     if (useSessionAuth) {
         // Session mode: authenticate via JWT cookie (web-like). The
-        // token is rendered into a header value, so it MUST first be
-        // validated against CRLF / smuggling characters.
-        assertSafeCookieValue(resolvedSessionToken);
+        // token has already been validated against CRLF / smuggling
+        // characters at the top of the function (pre-flight check); we
+        // simply embed it here.
         baseHeaders = {
             Cookie: `${appConfig.SESSION_COOKIE_NAME}=${resolvedSessionToken}`,
             "User-Agent": USER_AGENT,
@@ -347,10 +373,10 @@ export async function bit2meRequest<T = any>(
 
     // 2. PARAMETER MANAGEMENT
     if (method === "GET" && params && Object.keys(params).length > 0) {
-        // GET CASE: Convert params to string: "?key=val&key2=val2"
-        // Reject nested values up front so we never serialise
-        // `[object Object]` into a URL by accident.
-        const flat = flattenScalarParams(params);
+        // GET CASE: Convert params to string: "?key=val&key2=val2".
+        // Nested values were already rejected by the pre-flight check;
+        // reuse the flattened map produced there.
+        const flat = preflightFlatParams ?? flattenScalarParams(params);
         const queryString = new URLSearchParams(flat).toString();
         urlToSign = `${endpoint}?${queryString}`;
 
