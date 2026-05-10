@@ -23,7 +23,8 @@ If the project acknowledges your report but does not provide any further respons
 When using the Bit2Me MCP server, please follow these security best practices:
 
 - **API Keys**: Never commit API keys to version control. Use environment variables or secure configuration files.
-- **Permissions**: Only grant the minimum necessary permissions to your API keys. Do not enable "Withdrawal" permissions unless absolutely necessary.
+- **Permissions**: Only grant the minimum necessary permissions to your API keys. Do not enable "Withdrawal" permissions — the MCP server intentionally does not support external blockchain withdrawals or transfers to other users, so granting that scope only widens the blast radius of a leak.
+- **HTTP transport (`bit2me-mcp-http`)**: when running the multi-tenant binary, choose the auth mode that matches your topology and place TLS in front of any non-loopback bind. The full threat model and decision matrix live in [`docs/adr/0001-valet-key-http-credentials.md`](./docs/adr/0001-valet-key-http-credentials.md); the same matrix is summarised in the README under "Choosing an auth mode (HTTP transport)". The server emits a startup `WARN` when the legacy `api_key` mode is exposed on a non-loopback interface so misconfigurations are visible early.
 - **Updates**: Keep the MCP server and its dependencies up to date to receive security patches.
 
 ## What We Consider Security Issues
