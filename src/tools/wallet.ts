@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest } from "../services/bit2me.js";
-import { cache, CacheCategory } from "../utils/cache.js";
+import { cachedGet } from "../services/cached-request.js";
+import { CacheCategory } from "../utils/cache.js";
 import { MAX_PAGINATION_LIMIT } from "../constants.js";
 import {
     normalizeSymbol,
@@ -129,12 +130,16 @@ export async function handleWalletTool(name: string, args: any) {
             const requestContext = {
                 symbol,
             };
-            const cacheKey = `wallet_networks:${symbol}`;
-            let data = cache.get<unknown>(cacheKey);
-            if (!data) {
-                data = await bit2meRequest("GET", `/v1/wallet/currency/${encodeURIComponent(symbol)}/network`);
-                cache.set(cacheKey, data, CacheCategory.STATIC);
-            }
+            // Network metadata is static catalog data; cache for 1 hour
+            // (STATIC). The previous implementation used a non-tenant
+            // cache key — `cachedGet` partitions by tenant id so two
+            // tenants asking for the same symbol can no longer observe
+            // a single shared entry.
+            const data = await cachedGet(
+                `/v1/wallet/currency/${encodeURIComponent(symbol)}/network`,
+                undefined,
+                CacheCategory.STATIC
+            );
             const optimized = mapWalletNetworksResponse(data);
             const contextual = buildFilteredContextualResponse(
                 requestContext,

@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest, getMarketPrice } from "../services/bit2me.js";
+import { cachedGet } from "../services/cached-request.js";
 import { mapAssetsResponse } from "../utils/response-mappers.js";
 import { buildSimpleContextualResponse, buildFilteredContextualResponse } from "../utils/contextual-response.js";
 import { executeTool } from "../utils/tool-wrapper.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
 import { normalizeSymbol, validateSymbol, smartRound } from "../utils/format.js";
-import { cache, CacheCategory } from "../utils/cache.js";
+import { CacheCategory, cache, tenantScopedKey } from "../utils/cache.js";
 import { MIN_DUST_VALUE, PORTFOLIO_REQUEST_TIMEOUT } from "../constants.js";
 import { PortfolioValuationArgs } from "../utils/args.js";
 import { performHealthCheck } from "../utils/health.js";
@@ -49,29 +50,29 @@ export async function handleGeneralTool(name: string, args: any) {
                 show_exchange: args.show_exchange ?? false,
             };
 
-            // If symbol is provided, get specific asset details
+            // If symbol is provided, get specific asset details. The
+            // result is tenant-agnostic catalog data so we cache it under
+            // a tenant-scoped key (tenantScopedKey adds the partition)
+            // with the STATIC TTL (1 hour).
             if (args.symbol) {
                 validateSymbol(args.symbol);
                 const symbol = normalizeSymbol(args.symbol);
                 requestContext.symbol = symbol;
-                const data = await bit2meRequest("GET", `/v2/currency/assets/${encodeURIComponent(symbol)}`, params);
+                const data = await cachedGet(
+                    `/v2/currency/assets/${encodeURIComponent(symbol)}`,
+                    params,
+                    CacheCategory.STATIC
+                );
                 // For single asset, wrap in object and extract first item
                 const asArray = mapAssetsResponse({ [symbol]: data });
                 const contextual = buildSimpleContextualResponse(requestContext, asArray[0], data);
                 return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
             }
 
-            // If no symbol, get all assets
-            const cacheKey = `general_assets:${JSON.stringify(params)}`;
-            const cachedData = cache.get(cacheKey);
-
-            let data;
-            if (cachedData) {
-                data = cachedData;
-            } else {
-                data = await bit2meRequest("GET", "/v2/currency/assets", params);
-                cache.set(cacheKey, data, CacheCategory.STATIC); // 1 hour cache
-            }
+            // Full directory listing — cached for 1h (STATIC) under a
+            // tenant-scoped key so two tenants asking for the same
+            // include_testnet/show_exchange flags share zero data.
+            const data = await cachedGet("/v2/currency/assets", params, CacheCategory.STATIC);
 
             const optimized = mapAssetsResponse(data);
             const contextual = buildFilteredContextualResponse(
@@ -91,6 +92,21 @@ export async function handleGeneralTool(name: string, args: any) {
                 validateSymbol(params.quote_symbol);
             }
             const quote_symbol = normalizeSymbol(params.quote_symbol || "EUR");
+            const forceRefresh = params.force_refresh === true;
+
+            // Materialized View: the portfolio aggregator fans out to
+            // four balance endpoints AND prices every position with
+            // `getMarketPrice`. That is expensive to recompute on every
+            // poll, so we cache the rendered MCP response under a
+            // tenant-scoped key with the BALANCE TTL (1 minute). Set
+            // `force_refresh: true` to skip the cache and recompute.
+            const portfolioCacheKey = tenantScopedKey(["portfolio_get_valuation", { quote_symbol }]);
+            if (!forceRefresh) {
+                const cached = cache.get<{ content: Array<{ type: string; text: string }> }>(portfolioCacheKey);
+                if (cached) {
+                    return cached;
+                }
+            }
 
             // 1. Parallel call to all balance services
             const results = await Promise.allSettled([
@@ -270,18 +286,23 @@ export async function handleGeneralTool(name: string, args: any) {
             };
 
             const contextual = buildSimpleContextualResponse(requestContext, result, { wallet, pro, earn, loans });
-            return {
+            const response = {
                 content: [
                     {
-                        type: "text",
+                        type: "text" as const,
                         text: JSON.stringify(contextual, null, 2),
                     },
                 ],
             };
+            // Materialize the rendered response in the shared cache so
+            // back-to-back valuation polls (the typical LLM behaviour)
+            // re-use the aggregation rather than recomputing it.
+            cache.set(portfolioCacheKey, response, CacheCategory.BALANCE);
+            return response;
         }
 
         if (name === "general_health") {
-            const health = await performHealthCheck();
+            const health = performHealthCheck();
 
             return {
                 content: [

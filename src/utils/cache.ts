@@ -1,5 +1,6 @@
 import { logger } from "./logger.js";
-import { getCorrelationId } from "./context.js";
+import { getCorrelationId, getTenantId } from "./context.js";
+import { metricsCollector } from "./metrics.js";
 
 interface CacheEntry<T> {
     data: T;
@@ -55,14 +56,23 @@ export class CacheManager {
     }
 
     /**
-     * Store a value in the cache with category-based TTL
-     * @param key - Unique cache key
-     * @param data - Data to store
-     * @param category - Cache category (determines TTL)
-     * @param ttlSeconds - Optional custom TTL override
+     * Store a value in the cache with category-based TTL.
+     *
+     * The implementation relies on the insertion order of the
+     * underlying `Map`: each call to `set()` appends the entry at the
+     * tail (or moves it to the tail when overwriting), and `evict()`
+     * removes the head — the least-recently-touched entry. Together
+     * with `get()` (which moves a hit back to the tail) this gives a
+     * proper O(1) LRU without scanning or sorting.
      */
     public set<T>(key: string, data: T, category: CacheCategory = CacheCategory.STATIC, ttlSeconds?: number): void {
-        // Evict oldest entries if cache is full
+        // If the key already exists, drop the old entry so the re-insertion
+        // below appends a fresh entry at the tail of the iteration order.
+        if (this.cache.has(key)) {
+            this.cache.delete(key);
+        }
+
+        // Evict oldest entries if cache is full.
         if (this.cache.size >= this.maxSize) {
             this.evictOldest();
         }
@@ -84,18 +94,20 @@ export class CacheManager {
     }
 
     /**
-     * Retrieve a value from the cache
-     * @param key - Cache key to retrieve
-     * @returns The cached data or null if not found/expired
+     * Retrieve a value from the cache. On a hit the entry is moved to
+     * the tail of the iteration order so subsequent eviction prefers
+     * truly cold entries.
      */
     public get<T>(key: string): T | null {
         const entry = this.cache.get(key);
         if (!entry) {
+            metricsCollector.recordCacheMiss("unknown");
             return null;
         }
 
         if (Date.now() > entry.expiry) {
             this.cache.delete(key);
+            metricsCollector.recordCacheMiss(entry.category ?? "unknown");
             logger.debug(`Cache expired for key: ${key}`, {
                 correlationId: getCorrelationId(),
                 category: entry.category,
@@ -107,6 +119,12 @@ export class CacheManager {
         entry.hits++;
         entry.lastAccessed = Date.now();
 
+        // Move to the tail: delete + reinsert. This is the single
+        // mutation that turns the underlying Map into an LRU index.
+        this.cache.delete(key);
+        this.cache.set(key, entry);
+
+        metricsCollector.recordCacheHit(entry.category ?? "unknown");
         logger.debug(`Cache hit for key: ${key}`, {
             correlationId: getCorrelationId(),
             category: entry.category,
@@ -175,24 +193,68 @@ export class CacheManager {
     }
 
     /**
-     * Evict oldest entries (LRU-like eviction)
+     * Evict the oldest entries in O(k) time where k is the number of
+     * entries removed (k = 10% of size, minimum 1).
+     *
+     * `Map` preserves insertion order, and {@link get}/{@link set}
+     * always move touched entries to the tail, so the head of the
+     * iteration order is the least-recently-used entry by definition.
+     * No sorting required.
      */
     private evictOldest(): void {
-        const entries = Array.from(this.cache.entries());
-        // Sort by last accessed time, oldest first
-        entries.sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
-
-        // Remove 10% of oldest entries
-        const toRemove = Math.max(1, Math.floor(entries.length * 0.1));
-        for (let i = 0; i < toRemove; i++) {
-            const entry = entries[i];
-            if (entry && entry[0]) this.cache.delete(entry[0]);
+        const toRemove = Math.max(1, Math.floor(this.cache.size * 0.1));
+        let removed = 0;
+        const it = this.cache.keys();
+        while (removed < toRemove) {
+            const next = it.next();
+            if (next.done) break;
+            this.cache.delete(next.value);
+            removed += 1;
         }
 
-        logger.debug(`Evicted ${toRemove} oldest cache entries`, {
+        logger.debug(`Evicted ${removed} oldest cache entries`, {
             correlationId: getCorrelationId(),
         });
     }
 }
 
 export const cache = CacheManager.getInstance();
+
+/**
+ * Build a cache key partitioned by the active tenant id.
+ *
+ * The shared `CacheManager` lives on the global heap, so any cached
+ * value that depends on credentials would otherwise leak across
+ * tenants in the multi-tenant HTTP transport. Always feed credentialed
+ * payloads through this helper so the key includes a tenant fingerprint
+ * and only that tenant ever observes the cached entry.
+ *
+ * Public market data (tickers, asset directories) are tenant-agnostic
+ * by definition and may use the legacy raw-key APIs directly.
+ *
+ * Stable string serialisation: numeric and boolean parts are coerced via
+ * `String()`; objects are JSON.stringified with sorted keys so the same
+ * logical request always hashes to the same key.
+ */
+export function tenantScopedKey(parts: ReadonlyArray<string | number | boolean | object>): string {
+    const tenant = getTenantId() ?? "global";
+    const serialised = parts.map((part) => {
+        if (part === null || part === undefined) return "";
+        if (typeof part === "object") return stableStringify(part);
+        return String(part);
+    });
+    return `${tenant}::${serialised.join("::")}`;
+}
+
+/**
+ * Deterministic JSON stringifier with sorted object keys. Avoids cache
+ * misses when the caller passes the same logical params with a
+ * different property order.
+ */
+function stableStringify(value: unknown): string {
+    if (value === null || typeof value !== "object") return JSON.stringify(value);
+    if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+    const obj = value as Record<string, unknown>;
+    const keys = Object.keys(obj).sort();
+    return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`).join(",")}}`;
+}

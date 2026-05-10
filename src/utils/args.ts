@@ -266,4 +266,11 @@ export interface ProTickerArgs {
 
 export interface PortfolioValuationArgs {
     quote_symbol?: string;
+    /**
+     * Bypass the materialized portfolio cache and force a fresh
+     * aggregation. Useful right after a significant deposit/withdraw
+     * when the user wants to see the new total without waiting for the
+     * cache TTL to expire.
+     */
+    force_refresh?: boolean;
 }

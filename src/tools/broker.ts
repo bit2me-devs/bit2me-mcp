@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest, getTicker, resolveIdempotencyKey } from "../services/bit2me.js";
+import { cachedGet } from "../services/cached-request.js";
+import { CacheCategory, cache, tenantScopedKey } from "../utils/cache.js";
 import { memoizePerRequest } from "../utils/request-cache.js";
 import {
     mapTickerResponse,
@@ -81,7 +83,10 @@ export async function handleBrokerTool(name: string, args: any) {
             if (args.date) {
                 requestContext.date = args.date;
             }
-            const data = await bit2meRequest("GET", "/v1/currency/rate", params);
+            // Cache exchange rates with the MARKET_DATA TTL (30s).
+            // Tenant scoping is harmless here (rates are public) but
+            // ensures uniform cache key handling across migrated GETs.
+            const data = await cachedGet("/v1/currency/rate", params, CacheCategory.MARKET_DATA);
             const optimized = mapCurrencyRateResponse(data, quote_symbol, base_symbol);
             const contextual = buildFilteredContextualResponse(
                 requestContext,
@@ -154,8 +159,21 @@ export async function handleBrokerTool(name: string, args: any) {
                 // Build query params
                 const queryString = `ticker=${encodeURIComponent(apiTicker).replace(/%2F/g, "/")}&temporality=${encodeURIComponent(apiTimeframe)}`;
 
-                // Use bit2meRequest with manually constructed query string in endpoint
-                const rawData = await bit2meRequest<any[]>("GET", `/v3/currency/chart?${queryString}`, undefined);
+                // Use bit2meRequest with manually constructed query string in endpoint.
+                // The chart endpoint requires the literal "/" character inside
+                // `ticker` (e.g. `BTC/EUR`), which `URLSearchParams` would
+                // percent-encode, so we cannot route through `cachedGet`. We
+                // still apply Cache-Aside manually with a tenant-scoped key
+                // and the MARKET_DATA TTL (30s).
+                const chartCacheKey = tenantScopedKey([
+                    "/v3/currency/chart",
+                    { ticker: apiTicker, temporality: apiTimeframe },
+                ]);
+                let rawData = cache.get<any[]>(chartCacheKey);
+                if (rawData === null) {
+                    rawData = await bit2meRequest<any[]>("GET", `/v3/currency/chart?${queryString}`, undefined);
+                    cache.set(chartCacheKey, rawData, CacheCategory.MARKET_DATA);
+                }
 
                 // Process chart data to make it more readable
                 // API Format: [timestamp, usdPerUnit, eurUsdRate]

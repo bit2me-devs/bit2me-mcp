@@ -32,8 +32,13 @@ vi.mock("../src/services/bit2me.js", () => ({
 }));
 
 describe("Meta-Tool: Portfolio Valuation", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
+        // The materialized-view cache survives across tests; clear it
+        // so each scenario starts from a known-cold state and asserts
+        // observe deterministic upstream call counts.
+        const { cache } = await import("../src/utils/cache.js");
+        cache.clear();
     });
 
     it("should aggregate wallet + pro + earn and convert to EUR", async () => {
@@ -165,6 +170,53 @@ describe("Meta-Tool: Portfolio Valuation", () => {
         // BTC should be present
         const btcDetail = data.result.details.find((d: any) => d.symbol === "BTC");
         expect(btcDetail).toBeDefined();
+    });
+
+    it("materializes the aggregation: a second call hits the cache", async () => {
+        const { bit2meRequest, getMarketPrice } = await import("../src/services/bit2me.js");
+        const { handleGeneralTool } = await import("../src/tools/general.js");
+
+        vi.mocked(bit2meRequest).mockImplementation(async (_method: string, endpoint: string) => {
+            if (endpoint === "/v1/wallet/pocket") return MOCK_WALLET_POCKETS;
+            if (endpoint === "/v1/trading/wallet/balance") return MOCK_PRO_WALLETS;
+            if (endpoint === "/v2/earn/wallets") return MOCK_EARN_WALLETS;
+            if (endpoint === "/v1/loan/orders") return { data: [] };
+            return [];
+        });
+        vi.mocked(getMarketPrice).mockImplementation(async (crypto: string) => {
+            if (crypto === "EUR") return 1;
+            if (crypto === "BTC") return 50000;
+            if (crypto === "ETH") return 3000;
+            if (crypto === "USDT") return 0.95;
+            return 0;
+        });
+
+        await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR" });
+        const callsAfterFirst = vi.mocked(bit2meRequest).mock.calls.length;
+        // Second call with the same inputs should be served from the
+        // materialized view; bit2meRequest must not be called again.
+        await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR" });
+        expect(vi.mocked(bit2meRequest).mock.calls.length).toBe(callsAfterFirst);
+    });
+
+    it("force_refresh bypasses the materialized view", async () => {
+        const { bit2meRequest, getMarketPrice } = await import("../src/services/bit2me.js");
+        const { handleGeneralTool } = await import("../src/tools/general.js");
+
+        vi.mocked(bit2meRequest).mockImplementation(async (_method: string, endpoint: string) => {
+            if (endpoint === "/v1/wallet/pocket") return MOCK_WALLET_POCKETS;
+            if (endpoint === "/v1/trading/wallet/balance") return MOCK_PRO_WALLETS;
+            if (endpoint === "/v2/earn/wallets") return MOCK_EARN_WALLETS;
+            if (endpoint === "/v1/loan/orders") return { data: [] };
+            return [];
+        });
+        vi.mocked(getMarketPrice).mockResolvedValue(1);
+
+        await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR" });
+        const baseline = vi.mocked(bit2meRequest).mock.calls.length;
+        await handleGeneralTool("portfolio_get_valuation", { quote_symbol: "EUR", force_refresh: true });
+        // Each fresh aggregation calls all four balance endpoints again.
+        expect(vi.mocked(bit2meRequest).mock.calls.length).toBeGreaterThan(baseline);
     });
 
     it("should sort assets by value (descending)", async () => {
