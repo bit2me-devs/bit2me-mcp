@@ -136,4 +136,42 @@ describe("Logger - Structured Logging", () => {
         expect(stderrSpy).toHaveBeenCalledTimes(1);
         expect(getCall(0)).toContain("INFO");
     });
+
+    it("should redact x-bit2me-api-key and x-bit2me-api-secret headers (ADR 0001)", () => {
+        initLogger("info");
+        stderrSpy.mockClear();
+
+        logger.info("Incoming request", {
+            headers: {
+                "x-bit2me-api-key": "pub-12345",
+                "x-bit2me-api-secret": "priv-abcdef-ghijkl",
+                "content-type": "application/json",
+            },
+        });
+
+        const logOutput = getCall(0);
+
+        expect(logOutput).toContain("***REDACTED***");
+        expect(logOutput).not.toContain("pub-12345");
+        expect(logOutput).not.toContain("priv-abcdef-ghijkl");
+        expect(logOutput).toContain("application/json");
+    });
+
+    it("should redact dashed api-key / api-secret variants", () => {
+        initLogger("info");
+        stderrSpy.mockClear();
+
+        logger.info("Outbound call", {
+            headers: {
+                "api-key": "kkk",
+                "api-secret": "sss",
+            },
+        });
+
+        const logOutput = getCall(0);
+
+        expect(logOutput).toContain("***REDACTED***");
+        expect(logOutput).not.toContain('"kkk"');
+        expect(logOutput).not.toContain('"sss"');
+    });
 });

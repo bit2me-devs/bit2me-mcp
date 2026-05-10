@@ -48,6 +48,10 @@ class Logger {
     private sensitiveKeys = [
         // Auth headers / credentials
         "x-api-key",
+        "x-bit2me-api-key",
+        "x-bit2me-api-secret",
+        "api-key",
+        "api-secret",
         "api-signature",
         "authorization",
         "bearer",
