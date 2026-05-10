@@ -126,6 +126,14 @@ const result = await mcpClient.callTool("wallet_get_pockets", {
 
     > **💡 QA/Staging:** Use `BIT2ME_GATEWAY_URL` to point to different environments (e.g., `https://qa-gateway.bit2me.com` for QA testing).
 
+    > **🔒 File permissions:** The `.env` file holds API credentials. Restrict it to the owner only:
+    >
+    > ```bash
+    > chmod 600 .env
+    > ```
+    >
+    > A pre-commit hook (`.husky/check-env-perms.sh`) prints a warning when the local `.env` mode is more permissive than `600`.
+
 4. **Build the project:**
     ```bash
     npm run build
@@ -243,6 +251,36 @@ Recommended environment variables for the HTTP binary:
 - `MCP_HTTP_AUTH_MODE`: `api_key` (default), `jwt`, or `both`
 - `LOG_FORMAT=json` for structured logs
 - `AUDIT_LOG_PATH=/var/log/bit2me-mcp/audit.log` to ship audit lines to a file
+
+### Choosing an auth mode (HTTP transport)
+
+The HTTP transport accepts API-key credentials and Bit2Me session JWTs. Both
+modes are first-class — the right choice depends on **where the server is
+bound and who is calling it**, not on a one-size-fits-all rule. The full
+threat model and rationale live in [`docs/adr/0001-valet-key-http-credentials.md`](./docs/adr/0001-valet-key-http-credentials.md).
+
+| Topology                                                               | Recommended `MCP_HTTP_AUTH_MODE`                           | Why                                                                                    |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| stdio (Cursor, Claude Desktop, local CLI)                              | n/a — use `BIT2ME_API_KEY` / `BIT2ME_API_SECRET` in `.env` | Single-process, no network hop; scopes are enforced by the Bit2Me dashboard.           |
+| HTTP bound to loopback (`127.0.0.1`, `::1`, `localhost`)               | `api_key`                                                  | Credentials never leave the host.                                                      |
+| HTTP on a private network / VPN behind a TLS-terminating reverse proxy | `api_key`                                                  | Encrypted hop; scopes enforced by the Bit2Me dashboard; operator owns the proxy chain. |
+| HTTP exposed on the public internet for a single operator              | `jwt`                                                      | Bit2Me JWTs auto-expire (~15 min); the leak window is shorter.                         |
+| HTTP shared by multiple third-party integrators                        | `jwt`                                                      | Independent revocation per integrator without rotating the master credentials.         |
+
+Hard rules that apply regardless of the mode you pick:
+
+- **Mint API keys with the smallest scope** that satisfies the caller's use
+  case. Read-only when possible. **Never enable Withdrawal scopes for MCP
+  usage** — the MCP server intentionally does not support external withdrawals,
+  so granting that permission only widens the blast radius of a leak.
+- **Always put the HTTP transport behind TLS** on any non-loopback bind.
+  Plain HTTP on `0.0.0.0` is a misconfiguration regardless of the auth mode.
+- The server emits a startup `WARN` log if `api_key`/`both` is active on a
+  non-loopback host so operators are nudged toward a TLS-terminating proxy or
+  the JWT mode.
+- Credential headers (`X-Bit2Me-Api-Key`, `X-Bit2Me-Api-Secret`,
+  `Authorization`) are scrubbed from every structured log line before it
+  reaches stderr.
 
 Built-in observability endpoints (HTTP transport only):
 
