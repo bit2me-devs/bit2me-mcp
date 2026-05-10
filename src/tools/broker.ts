@@ -32,6 +32,7 @@ import {
     validateSymbol,
     validateFiat,
     validateUUID,
+    validateAmount,
     convertBrokerTimeframe,
     validatePaginationLimit,
     validatePaginationOffset,
@@ -50,9 +51,7 @@ export const brokerTools: Tool[] = getCategoryTools("broker");
  * per call.
  */
 async function getAllPocketsForRequest(): Promise<unknown[]> {
-    const data = await memoizePerRequest("/v1/wallet/pocket", () =>
-        bit2meRequest("GET", "/v1/wallet/pocket", {})
-    );
+    const data = await memoizePerRequest("/v1/wallet/pocket", () => bit2meRequest("GET", "/v1/wallet/pocket", {}));
     return Array.isArray(data) ? (data as unknown[]) : [];
 }
 
@@ -235,6 +234,7 @@ export async function handleBrokerTool(name: string, args: any) {
             }
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
+            validateAmount(params.amount, "amount");
 
             const allPockets = await getAllPocketsForRequest();
             const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id) as any;
@@ -275,6 +275,7 @@ export async function handleBrokerTool(name: string, args: any) {
             }
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
+            validateAmount(params.amount, "amount");
 
             const allPockets = await getAllPocketsForRequest();
             const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id) as any;
@@ -315,6 +316,7 @@ export async function handleBrokerTool(name: string, args: any) {
             }
             validateUUID(params.origin_pocket_id, "origin_pocket_id");
             validateUUID(params.destination_pocket_id, "destination_pocket_id");
+            validateAmount(params.amount, "amount");
 
             const allPockets = await getAllPocketsForRequest();
             const originPocket = allPockets.find((p: any) => p.id === params.origin_pocket_id) as any;
@@ -351,15 +353,9 @@ export async function handleBrokerTool(name: string, args: any) {
             };
             const body = { proforma: params.proforma_id };
             const idempotencyKey = resolveIdempotencyKey(args);
-            const data = await bit2meRequest(
-                "POST",
-                "/v1/wallet/transaction",
-                body,
-                undefined,
-                undefined,
-                undefined,
-                { idempotencyKey }
-            );
+            const data = await bit2meRequest("POST", "/v1/wallet/transaction", body, undefined, undefined, undefined, {
+                idempotencyKey,
+            });
             const optimized = mapOperationConfirmationResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
