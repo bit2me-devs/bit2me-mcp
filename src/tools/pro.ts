@@ -47,6 +47,7 @@ import {
     validatePaginationOffset,
     validateUUID,
     validatePair,
+    validateSymbol,
     validateAmount,
     validateISO8601,
     convertProTimeframe,
@@ -85,6 +86,8 @@ export async function handleProTool(name: string, args: any) {
             // API max limit is 50 per documentation
             const limit = validatePaginationLimit(params.limit, 50, "pro_get_trades");
             const offset = validatePaginationOffset(params.offset);
+
+            if (params.pair) validatePair(params.pair);
 
             const queryParams: any = {
                 limit,
@@ -238,6 +241,12 @@ export async function handleProTool(name: string, args: any) {
             }
             validatePair(params.pair);
             validateAmount(params.amount, "amount");
+            if (params.price) {
+                validateAmount(params.price, "price");
+            }
+            if (params.stop_price) {
+                validateAmount(params.stop_price, "stop_price");
+            }
             const pair = normalizePair(params.pair);
             const body = {
                 symbol: pair,
@@ -300,9 +309,17 @@ export async function handleProTool(name: string, args: any) {
             }
             // Endpoint is DELETE /v1/trading/order (singular) with query params
             const cancelAllIdemKey = resolveIdempotencyKey(args);
-            const data = await bit2meRequest("DELETE", "/v1/trading/order", queryParams, undefined, undefined, undefined, {
-                idempotencyKey: cancelAllIdemKey,
-            });
+            const data = await bit2meRequest(
+                "DELETE",
+                "/v1/trading/order",
+                queryParams,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    idempotencyKey: cancelAllIdemKey,
+                }
+            );
             const optimized = mapProCancelAllOrdersResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -316,6 +333,7 @@ export async function handleProTool(name: string, args: any) {
             if (!params.amount) {
                 throw new ValidationError("amount is required", "amount");
             }
+            validateSymbol(params.symbol);
             validateAmount(params.amount, "amount");
             const symbol = normalizeSymbol(params.symbol);
             const requestContext = {
@@ -348,6 +366,7 @@ export async function handleProTool(name: string, args: any) {
             if (!params.amount) {
                 throw new ValidationError("amount is required", "amount");
             }
+            validateSymbol(params.symbol);
             validateAmount(params.amount, "amount");
             if (params.to_pocket_id) {
                 validateUUID(params.to_pocket_id, "to_pocket_id");
@@ -369,9 +388,17 @@ export async function handleProTool(name: string, args: any) {
                 requestContext.to_pocket_id = params.to_pocket_id;
             }
             const withdrawIdemKey = resolveIdempotencyKey(args);
-            const data = await bit2meRequest("POST", "/v1/trading/wallet/withdraw", body, undefined, undefined, undefined, {
-                idempotencyKey: withdrawIdemKey,
-            });
+            const data = await bit2meRequest(
+                "POST",
+                "/v1/trading/wallet/withdraw",
+                body,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    idempotencyKey: withdrawIdemKey,
+                }
+            );
             const optimized = mapProWithdrawResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -379,6 +406,7 @@ export async function handleProTool(name: string, args: any) {
 
         if (name === "pro_get_market_config") {
             const params = args as ProMarketConfigArgs;
+            if (params.pair) validatePair(params.pair);
             const queryParams: any = {};
             if (params.pair) queryParams.symbol = normalizePair(params.pair);
 
@@ -442,7 +470,14 @@ export async function handleProTool(name: string, args: any) {
 
             const queryParams: any = { symbol: apiSymbol };
             if (limit) queryParams.limit = limit;
-            if (params.sort) queryParams.sort = params.sort;
+            if (params.sort) {
+                const validSorts = ["ASC", "DESC"];
+                const normalizedSort = params.sort.toUpperCase();
+                if (!validSorts.includes(normalizedSort)) {
+                    throw new ValidationError(`sort must be one of: ${validSorts.join(", ")}`, "sort", params.sort);
+                }
+                queryParams.sort = normalizedSort;
+            }
             const data = await bit2meRequest("GET", "/v1/trading/trade/last", queryParams);
             const optimized = mapPublicTradesResponse(data);
 
@@ -509,6 +544,24 @@ export async function handleProTool(name: string, args: any) {
             // Calculate startTime and endTime if not provided (default: last 24 hours)
             const endTime = params.endTime || Date.now();
             const startTime = params.startTime || endTime - 24 * 60 * 60 * 1000; // 24 hours ago
+
+            if (!Number.isFinite(startTime) || startTime < 0) {
+                throw new ValidationError(
+                    "startTime must be a finite, non-negative epoch in milliseconds",
+                    "startTime",
+                    params.startTime
+                );
+            }
+            if (!Number.isFinite(endTime) || endTime < 0) {
+                throw new ValidationError(
+                    "endTime must be a finite, non-negative epoch in milliseconds",
+                    "endTime",
+                    params.endTime
+                );
+            }
+            if (startTime > endTime) {
+                throw new ValidationError("startTime must be <= endTime", "startTime", params.startTime);
+            }
 
             const queryParams: any = {
                 symbol: apiSymbol,

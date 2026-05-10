@@ -87,6 +87,9 @@ export async function handleGeneralTool(name: string, args: any) {
 
         if (name === "portfolio_get_valuation") {
             const params = args as PortfolioValuationArgs;
+            if (params.quote_symbol) {
+                validateSymbol(params.quote_symbol);
+            }
             const quote_symbol = normalizeSymbol(params.quote_symbol || "EUR");
 
             // 1. Parallel call to all balance services

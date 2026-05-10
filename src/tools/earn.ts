@@ -38,6 +38,7 @@ import {
     validateFiat,
     validateAmount,
     validateISO8601,
+    validateDateRange,
 } from "../utils/format.js";
 import { MAX_PAGINATION_LIMIT } from "../constants.js";
 import { ValidationError } from "../utils/errors.js";
@@ -149,12 +150,15 @@ export async function handleEarnTool(name: string, args: any) {
 
             // Add optional filters
             if (params.user_symbol) {
+                validateSymbol(params.user_symbol);
                 queryParams.userCurrency = normalizeSymbol(params.user_symbol);
             }
             if (params.symbol) {
+                validateSymbol(params.symbol);
                 queryParams.currency = normalizeSymbol(params.symbol);
             }
             if (params.related_symbol) {
+                validateSymbol(params.related_symbol);
                 queryParams.relatedCurrency = normalizeSymbol(params.related_symbol);
             }
             if (params.position_id) {
@@ -169,10 +173,39 @@ export async function handleEarnTool(name: string, args: any) {
                 validateISO8601(params.end_date);
                 queryParams.to = params.end_date;
             }
+            if (params.start_date || params.end_date) {
+                validateDateRange(params.start_date, params.end_date);
+            }
+            const VALID_EARN_MOVEMENT_TYPES = [
+                "deposit",
+                "withdraw",
+                "reward",
+                "exchange",
+                "increase_collateral",
+                "release_collateral",
+                "loan",
+                "payback",
+            ];
             if (params.type) {
-                queryParams.type = params.type;
+                const normalizedType = params.type.toLowerCase();
+                if (!VALID_EARN_MOVEMENT_TYPES.includes(normalizedType)) {
+                    throw new ValidationError(
+                        `type must be one of: ${VALID_EARN_MOVEMENT_TYPES.join(", ")}`,
+                        "type",
+                        params.type
+                    );
+                }
+                queryParams.type = normalizedType;
             }
             if (params.sort_by) {
+                const VALID_SORT_BY = ["date", "amount", "type", "currency"];
+                if (!VALID_SORT_BY.includes(params.sort_by)) {
+                    throw new ValidationError(
+                        `sort_by must be one of: ${VALID_SORT_BY.join(", ")}`,
+                        "sort_by",
+                        params.sort_by
+                    );
+                }
                 queryParams.sortBy = params.sort_by;
             }
 
@@ -213,10 +246,27 @@ export async function handleEarnTool(name: string, args: any) {
             }
             // Normalize type to lowercase for consistency
             const normalizedType = params.type.toLowerCase();
+            const VALID_SUMMARY_TYPES = [
+                "deposit",
+                "withdraw",
+                "reward",
+                "exchange",
+                "increase_collateral",
+                "release_collateral",
+                "loan",
+                "payback",
+            ];
+            if (!VALID_SUMMARY_TYPES.includes(normalizedType)) {
+                throw new ValidationError(
+                    `type must be one of: ${VALID_SUMMARY_TYPES.join(", ")}`,
+                    "type",
+                    params.type
+                );
+            }
             const requestContext = {
                 type: normalizedType,
             };
-            const data = await bit2meRequest("GET", `/v1/earn/movements/${normalizedType}/summary`);
+            const data = await bit2meRequest("GET", `/v1/earn/movements/${encodeURIComponent(normalizedType)}/summary`);
             const optimized = mapEarnMovementsSummaryResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };

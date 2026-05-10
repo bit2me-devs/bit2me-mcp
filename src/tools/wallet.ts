@@ -45,6 +45,10 @@ export async function handleWalletTool(name: string, args: any) {
                 requestContext.pocket_id = params.pocket_id;
             }
 
+            if (params.symbol) {
+                validateSymbol(params.symbol);
+            }
+
             const data = await bit2meRequest("GET", "/v1/wallet/pocket", {});
             let optimized = mapWalletPocketsResponse(data);
 
@@ -171,6 +175,10 @@ export async function handleWalletTool(name: string, args: any) {
             // Otherwise, get paginated list of movements
             const limit = validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT);
             const offset = validatePaginationOffset(params.offset);
+
+            if (params.symbol) {
+                validateSymbol(params.symbol);
+            }
 
             const queryParams: any = {};
             if (params.symbol) queryParams.currency = normalizeSymbol(params.symbol);
