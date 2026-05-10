@@ -1,11 +1,20 @@
 name: Deploy Landing Page
 
 on:
-    # Se ejecuta cuando haces push a la rama 'main'
+    # Push to main keeps the landing in sync with non-release changes
+    # (HTML tweaks, copy edits, llms.txt regeneration, etc.).
     push:
         branches: ["main"]
 
-    # Te permite ejecutarlo manualmente desde la pestaña Actions si lo necesitas
+    # `release: published` re-runs the deploy *after* semantic-release
+    # cuts a new GitHub Release. Without this hook the push-triggered
+    # deploy and the release run race, so the landing ends up
+    # advertising the previous tag for one cycle. Triggering on
+    # `published` instead of `created` ensures the tag is fully visible
+    # to `git describe` by the time the checkout runs.
+    release:
+        types: [published]
+
     workflow_dispatch:
 
 # Permisos necesarios para que el bot pueda escribir en GitHub Pages
