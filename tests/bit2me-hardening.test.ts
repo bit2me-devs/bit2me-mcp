@@ -9,11 +9,23 @@
  *   - Missing axios size limits.
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, beforeAll, vi } from "vitest";
 
 vi.mock("axios", () => {
     const mock = vi.fn();
     return { default: mock };
+});
+
+// The hardening tests exercise the request pipeline end-to-end (with axios
+// mocked at the boundary). bit2meRequest invokes getConfig() before
+// signing the outbound call, and getConfig() validates that the
+// BIT2ME_API_KEY / BIT2ME_API_SECRET env vars are present. We supply
+// placeholder credentials here so the tests do NOT depend on the
+// caller's .env file — otherwise the suite would silently rely on
+// having a local .env (passing on dev machines, failing in CI).
+beforeAll(() => {
+    if (!process.env.BIT2ME_API_KEY) process.env.BIT2ME_API_KEY = "test-api-key";
+    if (!process.env.BIT2ME_API_SECRET) process.env.BIT2ME_API_SECRET = "test-api-secret";
 });
 
 import axios from "axios";
