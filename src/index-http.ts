@@ -9,7 +9,10 @@
  *      to exist for tools that run without auth such as
  *      `general_health`.
  *   2. Initialise the logger.
- *   3. Build & start the Fastify server.
+ *   3. Validate `AUDIT_LOG_PATH` through `initAudit()` so the boot
+ *      aborts on misconfiguration instead of silently downgrading to
+ *      logger fallback the first time a write-tool runs.
+ *   4. Build & start the Fastify server.
  *
  * TLS is delegated to a reverse proxy. Operators are expected to deploy
  * this binary behind nginx / traefik / caddy with HTTPS termination.
@@ -17,27 +20,33 @@
 
 import { getConfig, logConfig } from "./config.js";
 import { initLogger, logger } from "./utils/logger.js";
+import { initAudit } from "./utils/audit.js";
 import { startHttpServer } from "./transport/http.js";
 
-let resolvedConfig: ReturnType<typeof getConfig>;
-try {
-    resolvedConfig = getConfig();
+async function bootstrap(): Promise<void> {
+    const resolvedConfig = getConfig();
     initLogger(resolvedConfig.LOG_LEVEL);
+    initAudit();
     logConfig(resolvedConfig);
     logger.info("Bit2Me MCP HTTP server starting...");
-} catch {
-    console.error("Server startup failed - invalid configuration");
-    process.exit(1);
+
+    await startHttpServer({
+        host: resolvedConfig.HTTP_HOST,
+        port: resolvedConfig.HTTP_PORT,
+        authMode: resolvedConfig.HTTP_AUTH_MODE,
+        trustProxy: resolvedConfig.HTTP_TRUST_PROXY,
+    });
 }
 
-startHttpServer({
-    host: resolvedConfig.HTTP_HOST,
-    port: resolvedConfig.HTTP_PORT,
-    authMode: resolvedConfig.HTTP_AUTH_MODE,
-    trustProxy: resolvedConfig.HTTP_TRUST_PROXY,
-}).catch((err: unknown) => {
-    logger.error("Fatal error starting HTTP server", {
-        error: err instanceof Error ? err.message : String(err),
-    });
+bootstrap().catch((err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    // The logger may not be initialised if `getConfig()` itself threw;
+    // fall back to stderr so the operator always sees the failure.
+    try {
+        logger.error("Fatal error during HTTP bootstrap", { error: message });
+    } catch {
+        // ignore secondary failure
+    }
+    console.error("Server startup failed:", message);
     process.exit(1);
 });

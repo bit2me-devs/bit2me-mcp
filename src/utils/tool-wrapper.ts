@@ -75,13 +75,16 @@ export async function executeTool<T>(
             tool: name,
         });
     }
+    // Resolve the session token in a single branch so the downstream
+    // context never falls back to a stale parent token when the
+    // tenant-confusion guard already rejected `args.jwt`.
     const sessionToken = httpAuthenticated ? parent?.sessionToken : argsJwt;
 
     const ctx: RequestContext = {
         correlationId: baseContext.correlationId,
         toolName: baseContext.toolName,
         startTime: baseContext.startTime,
-        sessionToken: sessionToken ?? parent?.sessionToken,
+        sessionToken,
         apiKey: parent?.apiKey,
         apiSecret: parent?.apiSecret,
         tenantId: parent?.tenantId,
@@ -107,11 +110,20 @@ export async function executeTool<T>(
 
             if (isWriteTool(name)) {
                 const idempotency = typeof args?.idempotency_key === "string" ? args.idempotency_key : undefined;
-                recordAudit({
+                // Fire-and-forget: persisting the audit record must not
+                // delay the tool response. `recordAudit` already absorbs
+                // I/O failures internally (falls back to logger), but we
+                // attach a `.catch` defensively in case future versions
+                // throw on misconfiguration.
+                void recordAudit({
                     tool: name,
                     outcome: "success",
                     args: sanitizeArgsForLogging(args),
                     ...(idempotency ? { idempotencyKey: idempotency } : {}),
+                }).catch((auditErr) => {
+                    logger.warn("Audit write failed", {
+                        error: auditErr instanceof Error ? auditErr.message : String(auditErr),
+                    });
                 });
             }
 
@@ -129,12 +141,16 @@ export async function executeTool<T>(
 
             if (isWriteTool(name)) {
                 const idempotency = typeof args?.idempotency_key === "string" ? args.idempotency_key : undefined;
-                recordAudit({
+                void recordAudit({
                     tool: name,
                     outcome: "error",
                     args: sanitizeArgsForLogging(args),
                     error: errorMessage,
                     ...(idempotency ? { idempotencyKey: idempotency } : {}),
+                }).catch((auditErr) => {
+                    logger.warn("Audit write failed", {
+                        error: auditErr instanceof Error ? auditErr.message : String(auditErr),
+                    });
                 });
             }
 

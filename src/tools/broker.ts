@@ -39,9 +39,11 @@ import {
     validatePaginationLimit,
     validatePaginationOffset,
 } from "../utils/format.js";
-import { NotFoundError, ValidationError } from "../utils/errors.js";
+import { Bit2MeAPIError, NotFoundError, ValidationError } from "../utils/errors.js";
 import { MAX_PAGINATION_LIMIT } from "../constants.js";
 import { getCategoryTools } from "../utils/tool-metadata.js";
+import { logger } from "../utils/logger.js";
+import { getCorrelationId } from "../utils/context.js";
 
 export const brokerTools: Tool[] = getCategoryTools("broker");
 
@@ -124,11 +126,20 @@ export async function handleBrokerTool(name: string, args: any) {
                     return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
                 }
                 throw new NotFoundError("/v3/currency/ticker", `Ticker for ${base_symbol}/${quote_symbol}`);
-            } catch (error: any) {
-                if (error instanceof NotFoundError) {
+            } catch (error: unknown) {
+                if (
+                    error instanceof Bit2MeAPIError ||
+                    error instanceof NotFoundError ||
+                    error instanceof ValidationError
+                ) {
                     throw error;
                 }
-                throw new Error(`Error fetching ticker: ${error.message}`);
+                const internal = error instanceof Error ? error.message : String(error);
+                logger.error("broker_get_asset_data processing failed", {
+                    error: internal,
+                    correlationId: getCorrelationId(),
+                });
+                throw new Bit2MeAPIError(500, internal, "/v3/currency/ticker");
             }
         }
 
@@ -169,7 +180,7 @@ export async function handleBrokerTool(name: string, args: any) {
                     "/v3/currency/chart",
                     { ticker: apiTicker, temporality: apiTimeframe },
                 ]);
-                let rawData = cache.get<any[]>(chartCacheKey);
+                let rawData = cache.get<any[]>(chartCacheKey, CacheCategory.MARKET_DATA);
                 if (rawData === null) {
                     rawData = await bit2meRequest<any[]>("GET", `/v3/currency/chart?${queryString}`, undefined);
                     cache.set(chartCacheKey, rawData, CacheCategory.MARKET_DATA);
@@ -232,10 +243,25 @@ export async function handleBrokerTool(name: string, args: any) {
                     rawData
                 );
                 return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
-            } catch (error: any) {
-                // If processing fails, return error with more context
-                const errorMsg = error.response?.data || error.message;
-                throw new Error(`Error in broker_get_asset_chart: ${JSON.stringify(errorMsg)}`);
+            } catch (error: unknown) {
+                if (
+                    error instanceof Bit2MeAPIError ||
+                    error instanceof NotFoundError ||
+                    error instanceof ValidationError
+                ) {
+                    throw error;
+                }
+                // Never echo `error.response?.data` (or any upstream payload) back
+                // to the caller: it may carry pocket ids, trade ids and other
+                // tenant-specific identifiers. The verbose detail stays in the
+                // server log; the client receives the generic public message
+                // produced by `Bit2MeAPIError`.
+                const internal = error instanceof Error ? error.message : String(error);
+                logger.error("broker_get_asset_chart processing failed", {
+                    error: internal,
+                    correlationId: getCorrelationId(),
+                });
+                throw new Bit2MeAPIError(500, internal, "/v3/currency/chart");
             }
         }
 

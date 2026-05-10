@@ -23,6 +23,7 @@ export const VERSION = packageJson.version;
 
 import { getConfig, logConfig } from "./config.js";
 import { initLogger, logger } from "./utils/logger.js";
+import { initAudit } from "./utils/audit.js";
 import { dispatchTool, getAllTools } from "./tools/registry.js";
 import { prompts, handleGetPrompt } from "./prompts/index.js";
 
@@ -34,6 +35,12 @@ try {
 
     // Initialize logger with configured level
     initLogger(config.LOG_LEVEL);
+
+    // Validate the audit log destination (if configured) before any tool
+    // dispatch can attempt to write to it. Failing here is preferable to
+    // silently downgrading to logger fallback when the operator expected
+    // a persistent file.
+    initAudit();
 
     // Emit informational config logs explicitly (previously a side-effect
     // of `getConfig()` itself). Doing it here avoids logging unrelated
@@ -49,7 +56,7 @@ try {
 } catch (error) {
     // Use console.error here because logger may not be initialized yet
     console.error("❌ Server startup failed - Invalid configuration");
-    console.error("Please check your .env file or environment variables");
+    console.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
 }
 
