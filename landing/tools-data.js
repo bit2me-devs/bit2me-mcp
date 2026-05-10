@@ -125,6 +125,11 @@ const toolsData = [
                         "desc": "Base fiat symbol (e.g., EUR, USD)",
                         "required": false
                     },
+                    "force_refresh": {
+                        "type": "boolean",
+                        "desc": "Bypass the materialized portfolio cache and force a fresh aggregation. Defaults to false.",
+                        "required": false
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
