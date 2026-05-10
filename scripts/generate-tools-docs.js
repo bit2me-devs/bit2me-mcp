@@ -9,6 +9,43 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { execFileSync } from 'child_process';
+
+/**
+ * Resolve the version we want to advertise on the landing page.
+ *
+ * `semantic-release` is configured to NOT push the version bump back to
+ * `main` (the branch ruleset only allows admin bypass, and the
+ * `github-actions[bot]` token isn't an admin), so `package.json.version`
+ * lags behind the actual published tag. The git tag is the source of
+ * truth: it is created by the same release run that pushes to npm and
+ * cuts the GitHub Release.
+ *
+ * Strategy:
+ *   1. Try `git describe --tags --abbrev=0` (latest reachable tag).
+ *   2. Fall back to `process.env.RELEASE_VERSION` (lets workflows pin
+ *      the version explicitly when git history is shallow).
+ *   3. Fall back to `package.json.version` so local invocations still
+ *      produce a usable artifact even without git or tags.
+ *
+ * The returned value never includes the leading `v` — the landing
+ * template re-adds it when rendering the badge.
+ */
+function resolveVersion(packageJsonVersion) {
+    try {
+        const out = execFileSync('git', ['describe', '--tags', '--abbrev=0'], {
+            encoding: 'utf-8',
+            stdio: ['ignore', 'pipe', 'ignore'],
+        }).trim();
+        if (out) return out.replace(/^v/, '');
+    } catch {
+        // git missing, not a repo, or no tags fetched — fall through.
+    }
+    if (process.env.RELEASE_VERSION) {
+        return process.env.RELEASE_VERSION.replace(/^v/, '');
+    }
+    return packageJsonVersion;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -312,12 +349,13 @@ function generateToolsDocumentation(metadata) {
 function main() {
     console.log('🔄 Generating documentation artifacts...');
 
-    // Load package.json to get version
+    // Load package.json (used as the version fallback only).
     const packageJsonPath = join(rootDir, 'package.json');
     const packageJson = JSON.parse(
         readFileSync(packageJsonPath, 'utf-8')
     );
-    const version = packageJson.version;
+    const version = resolveVersion(packageJson.version);
+    console.log(`📦 Using version: ${version}`);
 
     // Load metadata
     const metadataPath = join(rootDir, 'data', 'tools.json');

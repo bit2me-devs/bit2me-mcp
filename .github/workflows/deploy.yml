@@ -28,6 +28,16 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  # `generate-tools-docs.js` resolves the landing-page
+                  # version from `git describe --tags --abbrev=0`. The
+                  # default shallow checkout (`fetch-depth: 1`) doesn't
+                  # bring tags, so we either ask for tags explicitly or
+                  # do a full fetch. We pick `fetch-tags: true` because
+                  # it's the smallest extra payload that still gives us
+                  # the data the script needs.
+                  fetch-depth: 0
+                  fetch-tags: true
 
             - name: Setup pnpm
               uses: pnpm/action-setup@91ab88e2619ed1f46221f0ba42d1492c02baf788 # v6
@@ -49,6 +59,9 @@ jobs:
 
             - name: Build
               run: pnpm run build
+
+            - name: Generate landing tools data (embeds latest released version)
+              run: pnpm run build:docs
 
             - name: Generate LLM Docs
               run: pnpm run build:llms

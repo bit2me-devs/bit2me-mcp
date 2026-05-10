@@ -40,7 +40,24 @@ jobs:
               env:
                   BIT2ME_API_KEY: ${{ secrets.BIT2ME_API_KEY }}
                   BIT2ME_API_SECRET: ${{ secrets.BIT2ME_API_SECRET }}
-              run: pnpm run test:e2e
+                  GH_EVENT_NAME: ${{ github.event_name }}
+              # Real-API E2E tests need live credentials. Forks and the
+              # vast majority of PR triggers won't have the secrets,
+              # which is fine — we skip with a warning. The scheduled
+              # nightly run *must* succeed though, because that's the
+              # canary that detects breaking changes upstream; missing
+              # secrets there are a configuration regression and we
+              # fail loudly.
+              run: |
+                  if [ -z "$BIT2ME_API_KEY" ] || [ -z "$BIT2ME_API_SECRET" ]; then
+                      if [ "$GH_EVENT_NAME" = "schedule" ]; then
+                          echo "::error::BIT2ME_API_KEY / BIT2ME_API_SECRET missing in scheduled run; cannot probe real API."
+                          exit 1
+                      fi
+                      echo "::warning::BIT2ME_API_KEY / BIT2ME_API_SECRET not configured for this run; skipping real-API E2E tests."
+                      exit 0
+                  fi
+                  pnpm run test:e2e
 
             - name: Notify on Failure (Scheduled)
               if: failure() && github.event_name == 'schedule'
