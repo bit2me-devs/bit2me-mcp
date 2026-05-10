@@ -4,6 +4,8 @@ import { logger } from "./utils/logger.js";
 
 const DEFAULT_GATEWAY_URL = "https://gateway.bit2me.com";
 const DEFAULT_SESSION_COOKIE_NAME = "b2m-atoken";
+const DEFAULT_HTTP_HOST = "127.0.0.1";
+const DEFAULT_HTTP_PORT = 3000;
 
 /**
  * Allow plain HTTP only when targeting localhost / loopback. Any other host
@@ -18,6 +20,33 @@ function isAllowedGatewayUrl(value: string): boolean {
     return false;
 }
 
+/**
+ * Parse a `MCP_HTTP_TRUST_PROXY` string into a value that Fastify can
+ * consume. The intent is to make trust *opt-in*: by default we ignore
+ * `X-Forwarded-*` headers so an attacker on a directly-exposed
+ * deployment cannot spoof their IP.
+ *
+ *   - unset / `false` / `off` / `0`        → `false`
+ *   - `true` / `on` / `1`                  → `true` (only safe behind
+ *                                            a proxy you control)
+ *   - `loopback`, `linklocal`, `uniquelocal` → handled natively by
+ *                                            `proxy-addr`
+ *   - CIDR list (`10.0.0.0/8,192.168.0.0/16`) → trust those proxies
+ */
+function parseTrustProxy(input: string | undefined): boolean | string | string[] {
+    if (input === undefined) return false;
+    const v = input.trim();
+    if (v === "" || /^(false|off|0)$/i.test(v)) return false;
+    if (/^(true|on|1)$/i.test(v)) return true;
+    if (v.includes(",")) {
+        return v
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+    }
+    return v;
+}
+
 const envSchema = z.object({
     BIT2ME_API_KEY: z.string().min(1, "BIT2ME_API_KEY is required"),
     BIT2ME_API_SECRET: z.string().min(1, "BIT2ME_API_SECRET is required"),
@@ -25,8 +54,7 @@ const envSchema = z.object({
         .string()
         .url()
         .refine(isAllowedGatewayUrl, {
-            message:
-                "BIT2ME_GATEWAY_URL must use https:// (plain http:// is only allowed for localhost / loopback)",
+            message: "BIT2ME_GATEWAY_URL must use https:// (plain http:// is only allowed for localhost / loopback)",
         })
         .optional()
         .default(DEFAULT_GATEWAY_URL),
@@ -35,7 +63,26 @@ const envSchema = z.object({
     BIT2ME_MAX_RETRIES: z.string().optional().default("3"),
     BIT2ME_RETRY_BASE_DELAY: z.string().optional().default("1000"),
     BIT2ME_INCLUDE_RAW_RESPONSE: z.string().optional().default("false"),
-    BIT2ME_SESSION_COOKIE_NAME: z.string().optional().default(DEFAULT_SESSION_COOKIE_NAME),
+    // Cookie names are placed verbatim into a `Cookie:` header so they
+    // must be HTTP-token-safe (RFC 6265 cookie-name = token). Reject
+    // anything that could enable header injection / smuggling against
+    // the upstream gateway.
+    BIT2ME_SESSION_COOKIE_NAME: z
+        .string()
+        .regex(/^[A-Za-z0-9_-]{1,64}$/, "BIT2ME_SESSION_COOKIE_NAME must match /^[A-Za-z0-9_-]{1,64}$/")
+        .optional()
+        .default(DEFAULT_SESSION_COOKIE_NAME),
+    // ------------------------------------------------------------------
+    // HTTP transport — only consumed by `bit2me-mcp-http`.
+    // ------------------------------------------------------------------
+    MCP_HTTP_HOST: z.string().min(1).optional().default(DEFAULT_HTTP_HOST),
+    MCP_HTTP_PORT: z
+        .string()
+        .regex(/^\d{1,5}$/, "MCP_HTTP_PORT must be a port number")
+        .optional()
+        .default(String(DEFAULT_HTTP_PORT)),
+    MCP_HTTP_AUTH_MODE: z.enum(["api_key", "jwt", "both"]).optional().default("api_key"),
+    MCP_HTTP_TRUST_PROXY: z.string().optional(),
 });
 
 export type Config = z.infer<typeof envSchema> & {
@@ -46,6 +93,10 @@ export type Config = z.infer<typeof envSchema> & {
     RETRY_BASE_DELAY: number;
     INCLUDE_RAW_RESPONSE: boolean;
     SESSION_COOKIE_NAME: string;
+    HTTP_HOST: string;
+    HTTP_PORT: number;
+    HTTP_AUTH_MODE: "api_key" | "jwt" | "both";
+    HTTP_TRUST_PROXY: boolean | string | string[];
 };
 
 let cachedConfig: Config | null = null;
@@ -87,6 +138,10 @@ export function getConfig(): Config {
             RETRY_BASE_DELAY: parseInt(parsed.BIT2ME_RETRY_BASE_DELAY || "1000", 10),
             INCLUDE_RAW_RESPONSE: parsed.BIT2ME_INCLUDE_RAW_RESPONSE === "true",
             SESSION_COOKIE_NAME: parsed.BIT2ME_SESSION_COOKIE_NAME || DEFAULT_SESSION_COOKIE_NAME,
+            HTTP_HOST: parsed.MCP_HTTP_HOST || DEFAULT_HTTP_HOST,
+            HTTP_PORT: parseInt(parsed.MCP_HTTP_PORT || String(DEFAULT_HTTP_PORT), 10),
+            HTTP_AUTH_MODE: parsed.MCP_HTTP_AUTH_MODE,
+            HTTP_TRUST_PROXY: parseTrustProxy(parsed.MCP_HTTP_TRUST_PROXY),
         };
 
         // Register the cookie name as sensitive immediately so even error logs
