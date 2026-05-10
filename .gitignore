@@ -1,5 +1,6 @@
 # Node.js & TypeScript project
 node_modules/
+.pnpm-store/
 
 # Build output
 /dist/
@@ -12,6 +13,9 @@ node_modules/
 .env
 .env.*
 !.env.example
+.env.local
+.env.*.local
+.envrc
 
 # Logs
 npm-debug.log*
@@ -27,10 +31,14 @@ Thumbs.db
 # Editor directories
 .vscode/
 .idea/
-.cursor/
 *.sublime-workspace
 *.sublime-project
 *.iml
+
+# Cursor (cachés y locales; las reglas y skills SÍ se versionan)
+.cursor/cache/
+.cursor/logs/
+.cursor/tmp/
 
 # Test coverage
 coverage/
@@ -48,8 +56,13 @@ test-credentials.js
 tmp/
 *.tmp
 
-# Documentation
-docs/
+# Documentación interna y temporal (uso del equipo, no se versiona).
+# Excepciones: docs/stack/ (fuente de verdad de tooling/stack) y docs/adr/
+# (Architectural Decision Records) SÍ se versionan.
+# Nota: usamos docs/* (no docs/) para que git pueda re-incluir las excepciones.
+docs/*
+!docs/stack/
+!docs/adr/
 
-# Assets (temporary images)
+# Assets locales (imágenes temporales)
 assets/

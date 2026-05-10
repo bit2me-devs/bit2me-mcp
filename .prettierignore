@@ -1,0 +1,10 @@
+build/
+dist/
+coverage/
+node_modules/
+pnpm-lock.yaml
+data/tools.json
+TOOLS_DOCUMENTATION.md
+CHANGELOG.md
+landing/dist/
+*.tsbuildinfo

@@ -1,10 +1,13 @@
 # Gitleaks ignore file for Bit2Me MCP Server
-# This file excludes paths from secret scanning
-
-# Test files and fixtures
-tests/
-*.test.ts
-*.spec.ts
+# This file excludes paths from secret scanning.
+#
+# Policy:
+#  - Never exclude source/test/doc directories. Real secrets accidentally
+#    committed there MUST be detected. False positives in those areas
+#    must be handled with explicit regex entries in the [allowlist] block
+#    of `.gitleaks.toml`, not by excluding entire trees.
+#  - Only build artefacts and lock files (which contain dependency
+#    checksums that look like high-entropy blobs) are excluded here.
 
 # Build artifacts
 build/
@@ -12,17 +15,6 @@ coverage/
 dist/
 node_modules/
 
-# Documentation files (contain example placeholders)
-README.md
-landing/index.html
-docs/
-*.md
-
-# Example configuration files
-.env.example
-*.example
-
 # Lock files (may contain dependency checksums that look like secrets)
 package-lock.json
-yarn.lock
-
+pnpm-lock.yaml

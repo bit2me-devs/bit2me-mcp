@@ -1,2 +1,4 @@
+.husky/check-file-size.sh
+.husky/check-env-perms.sh
 npx lint-staged
 pnpm run publint

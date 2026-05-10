@@ -4,11 +4,20 @@ import globals from "globals";
 import security from "eslint-plugin-security";
 
 export default tseslint.config(
-  { ignores: ["build/", "node_modules/", "*.js"] },
+  {
+    ignores: [
+      "build/",
+      "node_modules/",
+      "coverage/",
+      "landing/dist/",
+      "data/",
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   security.configs.recommended,
   {
+    files: ["src/**/*.ts", "tests/**/*.ts"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
@@ -25,7 +34,7 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      
+
       // Security (customize as needed)
       "security/detect-object-injection": "off", // Too noisy for bracket notation
       "security/detect-non-literal-regexp": "warn",
@@ -35,6 +44,20 @@ export default tseslint.config(
       "security/detect-no-csrf-before-method-override": "error",
       "security/detect-possible-timing-attacks": "warn",
     },
-  }
+  },
+  {
+    files: ["scripts/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-console": "off",
+      "security/detect-object-injection": "off",
+      "security/detect-non-literal-fs-filename": "off",
+    },
+  },
 );
-
