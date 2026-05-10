@@ -115,7 +115,10 @@ export async function handleWalletTool(name: string, args: any) {
         if (name === "wallet_get_networks") {
             const params = args as WalletNetworksArgs;
             if (!params.symbol) {
-                throw new ValidationError("symbol is required", "symbol");
+                throw new ValidationError(
+                    'symbol is required. Pass the asset symbol you want to inspect (e.g. "BTC", "USDT"). Use general_get_assets_config to list every supported symbol.',
+                    "symbol"
+                );
             }
             validateSymbol(params.symbol);
             const symbol = normalizeSymbol(params.symbol);
@@ -125,10 +128,7 @@ export async function handleWalletTool(name: string, args: any) {
             const cacheKey = `wallet_networks:${symbol}`;
             let data = cache.get<unknown>(cacheKey);
             if (!data) {
-                data = await bit2meRequest(
-                    "GET",
-                    `/v1/wallet/currency/${encodeURIComponent(symbol)}/network`
-                );
+                data = await bit2meRequest("GET", `/v1/wallet/currency/${encodeURIComponent(symbol)}/network`);
                 cache.set(cacheKey, data, CacheCategory.STATIC);
             }
             const optimized = mapWalletNetworksResponse(data);
