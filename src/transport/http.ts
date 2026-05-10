@@ -26,6 +26,14 @@ import { runWithContext, type RequestContext } from "../utils/context.js";
 import { dispatchTool, getAllTools } from "../tools/registry.js";
 import { performHealthCheck } from "../utils/health.js";
 import { metricsCollector } from "../utils/metrics.js";
+import {
+    ValidationError,
+    AuthenticationError,
+    RateLimitError,
+    NotFoundError,
+    BadRequestError,
+    Bit2MeAPIError,
+} from "../utils/errors.js";
 
 export interface HttpTransportOptions {
     host?: string;
@@ -197,25 +205,64 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
                 return {
                     jsonrpc: "2.0",
                     id: body.id ?? null,
-                    error: { code: -32601, message: `Method not found: ${body.method}` },
+                    error: { code: -32601, message: "Method not found" },
                 };
             } catch (err: unknown) {
-                const message = err instanceof Error ? err.message : String(err);
+                const internalMessage = err instanceof Error ? err.message : String(err);
                 logger.error("HTTP MCP request failed", {
                     method: body.method,
                     tenantId: creds.tenantId,
-                    error: message,
+                    error: internalMessage,
+                    errorName: err instanceof Error ? err.name : "unknown",
                 });
+                // Map to JSON-RPC 2.0 error codes. Only echo back error
+                // text for client-induced failures (validation, auth,
+                // rate limit, not found) — every other path returns a
+                // generic "Internal error" so we don't accidentally
+                // leak upstream stack traces or response bodies.
+                const { code, message } = mapErrorToJsonRpc(err);
                 return {
                     jsonrpc: "2.0",
                     id: body.id ?? null,
-                    error: { code: -32000, message },
+                    error: { code, message },
                 };
             }
         });
     });
 
     return app;
+}
+
+/**
+ * Translate an internal error into a safe JSON-RPC 2.0 error payload.
+ *
+ * Client-induced errors (validation, auth, rate limit, not found, bad
+ * request) are echoed back verbatim because they carry actionable
+ * information for the caller. Every other error category collapses to
+ * a generic "Internal error" — the full message is still logged on the
+ * server so operators can correlate by `correlationId`/`tenantId`,
+ * but it never leaves the process.
+ */
+function mapErrorToJsonRpc(err: unknown): { code: number; message: string } {
+    if (err instanceof ValidationError) {
+        return { code: -32602, message: err.message };
+    }
+    if (err instanceof AuthenticationError) {
+        return { code: -32001, message: "Authentication failed" };
+    }
+    if (err instanceof RateLimitError) {
+        return { code: -32029, message: "Rate limit exceeded" };
+    }
+    if (err instanceof NotFoundError) {
+        return { code: -32004, message: "Resource not found" };
+    }
+    if (err instanceof BadRequestError) {
+        return { code: -32602, message: err.message };
+    }
+    if (err instanceof Bit2MeAPIError) {
+        return { code: -32000, message: "Upstream API error" };
+    }
+    return { code: -32000, message: "Internal error" };
 }
 
 /** Convenience: start the HTTP server. */

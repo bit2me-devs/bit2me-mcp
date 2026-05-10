@@ -25,6 +25,14 @@ export interface ToolMetrics {
     lastCallTime?: number;
 }
 
+/**
+ * Maximum number of recent durations kept per tool for percentile
+ * computations. Older samples are evicted in FIFO order so the collector's
+ * memory footprint stays bounded even on long-running multi-tenant
+ * deployments. With 48 tools this caps `requestDurations` at ~96 KB.
+ */
+const MAX_DURATION_SAMPLES_PER_TOOL = 500;
+
 class MetricsCollector {
     private toolMetrics: Map<string, ToolMetrics> = new Map();
     private requestDurations: Map<string, number[]> = new Map();
@@ -71,11 +79,19 @@ class MetricsCollector {
         // Calculate average
         metrics.averageDuration = metrics.totalDuration / metrics.callCount;
 
-        // Store duration for percentile calculations
+        // Store duration for percentile calculations using a bounded
+        // FIFO ring so the collector can run for weeks without growing
+        // unboundedly. We trade exactness for memory safety: percentiles
+        // are computed over the most recent MAX_DURATION_SAMPLES_PER_TOOL
+        // calls, which is plenty for p50/p95/p99 monitoring.
         if (!this.requestDurations.has(toolName)) {
             this.requestDurations.set(toolName, []);
         }
-        this.requestDurations.get(toolName)!.push(duration);
+        const buffer = this.requestDurations.get(toolName)!;
+        buffer.push(duration);
+        if (buffer.length > MAX_DURATION_SAMPLES_PER_TOOL) {
+            buffer.splice(0, buffer.length - MAX_DURATION_SAMPLES_PER_TOOL);
+        }
 
         // Log metric at debug level
         logger.debug("Tool metric recorded", {
