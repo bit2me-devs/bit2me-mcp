@@ -40,8 +40,14 @@ export function generateSignature(nonce: number, endpoint: string, data: any, se
 
 import { rateLimiter } from "../utils/rate-limiter.js";
 import { endpointRateLimiter } from "../utils/rate-limiter-config.js";
-import { apiCircuitBreaker } from "../utils/circuit-breaker.js";
-import { getCorrelationId, getSessionToken, getRequestApiKey, getRequestApiSecret } from "../utils/context.js";
+import { getTenantCircuitBreaker } from "../utils/circuit-breaker.js";
+import {
+    getCorrelationId,
+    getSessionToken,
+    getRequestApiKey,
+    getRequestApiSecret,
+    getTenantId,
+} from "../utils/context.js";
 
 // ============================================================================
 // API REQUEST HANDLING
@@ -145,12 +151,20 @@ export async function bit2meRequest<T = any>(
     // Resolve session token: explicit parameter takes priority, fallback to context
     const resolvedSessionToken = effectiveSessionToken ?? getSessionToken();
 
+    // Resolve the tenant id once and reuse it for the breaker, the
+    // outbound rate limiter and the success/failure recording calls.
+    // Stdio transport callers don't carry a tenant id and naturally
+    // share the global breaker / global limiter buckets.
+    const tenantId = getTenantId();
+    const circuitBreaker = getTenantCircuitBreaker(tenantId);
+
     // Circuit Breaker: Check if circuit allows request
-    if (!apiCircuitBreaker.canExecute()) {
-        const circuitState = apiCircuitBreaker.getState();
-        const stats = apiCircuitBreaker.getStats();
+    if (!circuitBreaker.canExecute()) {
+        const circuitState = circuitBreaker.getState();
+        const stats = circuitBreaker.getStats();
         logger.error("Circuit breaker is OPEN, request rejected", {
             correlationId: getCorrelationId(),
+            tenantId,
             endpoint,
             circuitState,
             stats,
@@ -162,10 +176,11 @@ export async function bit2meRequest<T = any>(
         );
     }
 
-    // Rate Limiting: Wait for token before making request (endpoint-specific)
-    // Use endpoint-specific rate limiter if available, fallback to global
+    // Rate Limiting: Wait for token before making request (endpoint-specific,
+    // partitioned per tenant when available so that one tenant's burst
+    // cannot starve another tenant's outbound traffic).
     try {
-        await endpointRateLimiter.waitForToken(endpoint);
+        await endpointRateLimiter.waitForToken(endpoint, tenantId);
     } catch {
         // Fallback to global rate limiter if endpoint-specific fails
         await rateLimiter.waitForToken();
@@ -253,8 +268,8 @@ export async function bit2meRequest<T = any>(
         const response = await axios(requestConfig);
         logger.debug(`API Response: ${method} ${urlToSign} - Status ${response.status}`);
 
-        // Record success in circuit breaker
-        apiCircuitBreaker.recordSuccess();
+        // Record success in circuit breaker (per-tenant when available)
+        circuitBreaker.recordSuccess();
 
         return response.data;
     } catch (error: unknown) {
@@ -287,7 +302,7 @@ export async function bit2meRequest<T = any>(
         const isServerError = !!status && status >= 500;
         const isConnectionError = !status; // No status = connection/timeout error
         if (isServerError || isConnectionError) {
-            apiCircuitBreaker.recordFailure();
+            circuitBreaker.recordFailure();
         }
 
         const remainingRetries = effectiveRetries - attempt;
@@ -301,8 +316,7 @@ export async function bit2meRequest<T = any>(
         const isMutating = method === "POST" || method === "DELETE";
         const canRetryNonRateLimit = !isMutating || !!idempotencyKey;
         const shouldRetry =
-            remainingRetries > 0 &&
-            (isRateLimited || ((isServerError || isConnectionError) && canRetryNonRateLimit));
+            remainingRetries > 0 && (isRateLimited || ((isServerError || isConnectionError) && canRetryNonRateLimit));
 
         if (shouldRetry) {
             const delay = calculateBackoffDelay(attempt, baseDelay);
@@ -352,7 +366,12 @@ export async function bit2meRequest<T = any>(
  * same logical action). Otherwise we synthesise a fresh UUID per call.
  */
 export function resolveIdempotencyKey(args: { idempotency_key?: unknown } | undefined | null): string {
-    if (args && typeof args === "object" && typeof args.idempotency_key === "string" && args.idempotency_key.length > 0) {
+    if (
+        args &&
+        typeof args === "object" &&
+        typeof args.idempotency_key === "string" &&
+        args.idempotency_key.length > 0
+    ) {
         return args.idempotency_key;
     }
     return crypto.randomUUID();

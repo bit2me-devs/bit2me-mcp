@@ -179,6 +179,7 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
             sessionToken: creds.sessionToken,
             apiKey: creds.apiKey,
             apiSecret: creds.apiSecret,
+            tenantId: creds.tenantId,
         };
 
         return runWithContext(ctx, async () => {

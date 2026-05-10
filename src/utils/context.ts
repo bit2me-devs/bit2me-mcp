@@ -34,6 +34,15 @@ export interface RequestContext {
      */
     apiKey?: string | undefined;
     apiSecret?: string | undefined;
+    /**
+     * Stable, opaque identifier for the calling tenant. Set by the HTTP
+     * transport (HMAC-SHA256 of the credential, never the credential
+     * itself). Consumers use it as the partitioning key for per-tenant
+     * resilience primitives (rate limiter, circuit breaker, cache
+     * namespaces) so that one tenant's traffic cannot starve or trip
+     * another's. Undefined for the stdio (single-tenant) transport.
+     */
+    tenantId?: string | undefined;
 }
 
 /** Read the per-request API key, if the call site is inside a context. */
@@ -44,6 +53,11 @@ export function getRequestApiKey(): string | undefined {
 /** Read the per-request API secret, if the call site is inside a context. */
 export function getRequestApiSecret(): string | undefined {
     return als.getStore()?.apiSecret;
+}
+
+/** Read the per-request tenant id, if the call site is inside a context. */
+export function getTenantId(): string | undefined {
+    return als.getStore()?.tenantId;
 }
 
 const als = new AsyncLocalStorage<RequestContext>();
