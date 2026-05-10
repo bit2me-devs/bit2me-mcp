@@ -55,12 +55,27 @@ export async function executeTool<T>(
     executor: () => Promise<T>
 ): Promise<T> {
     const baseContext = contextManager.createContext(name);
-    const sessionToken = typeof args?.jwt === "string" ? args.jwt : undefined;
 
     // If we're already inside a parent context (HTTP transport set it
     // up before dispatching), inherit the per-request API credentials
     // so this tool execution targets the right tenant.
     const parent = getContext();
+
+    // Tenant-confusion guard: when the HTTP transport has already
+    // authenticated the caller (via headers), an `args.jwt` smuggled
+    // through the JSON-RPC payload could otherwise force us to
+    // authenticate against Bit2Me with a *different* tenant's
+    // credentials. To prevent that, only honour `args.jwt` when there
+    // is no authenticated parent context (i.e. stdio transport).
+    const httpAuthenticated = !!parent?.apiKey || !!parent?.sessionToken || !!parent?.tenantId;
+    const argsJwt = typeof args?.jwt === "string" ? args.jwt : undefined;
+    if (httpAuthenticated && argsJwt) {
+        logger.warn("Ignoring args.jwt under authenticated HTTP context", {
+            correlationId: baseContext.correlationId,
+            tool: name,
+        });
+    }
+    const sessionToken = httpAuthenticated ? parent?.sessionToken : argsJwt;
 
     const ctx: RequestContext = {
         correlationId: baseContext.correlationId,
@@ -69,13 +84,14 @@ export async function executeTool<T>(
         sessionToken: sessionToken ?? parent?.sessionToken,
         apiKey: parent?.apiKey,
         apiSecret: parent?.apiSecret,
+        tenantId: parent?.tenantId,
     };
 
     return runWithContext(ctx, async () => {
         logger.debug(`Executing tool: ${name}`, {
             args: sanitizeArgsForLogging(args),
             correlationId: ctx.correlationId,
-            hasSession: !!sessionToken,
+            hasSession: !!ctx.sessionToken,
         });
         const startTime = Date.now();
 
