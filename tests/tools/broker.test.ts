@@ -75,8 +75,9 @@ describe("Broker Tools Handler", () => {
     it("should handle broker_get_asset_data not found", async () => {
         vi.mocked(bit2meService.getTicker).mockRejectedValue(new NotFoundError("/v1/ticker", "Ticker not found"));
 
+        // The public message is intentionally generic; the resource hint stays in `internalMessage`.
         await expect(handleBrokerTool("broker_get_asset_data", { base_symbol: "UNKNOWN" })).rejects.toThrow(
-            "Ticker not found"
+            "Bit2Me API Error (404): Resource not found"
         );
     });
 

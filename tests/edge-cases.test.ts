@@ -116,7 +116,7 @@ describe("Edge Cases", () => {
             expect(result).toBeNull();
         });
 
-        it("should propagate API errors correctly", async () => {
+        it("should propagate API errors with a generic public message and keep the upstream detail internal", async () => {
             const apiError = {
                 response: {
                     status: 400,
@@ -125,7 +125,18 @@ describe("Edge Cases", () => {
             };
             vi.mocked(axios).mockRejectedValueOnce(apiError);
 
-            await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Invalid parameter");
+            // Public message is generic by design — see src/utils/errors.ts.
+            await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Bit2Me API Error (400): Bad request");
+
+            // The upstream-supplied detail must still be reachable for server logs.
+            vi.mocked(axios).mockRejectedValueOnce(apiError);
+            try {
+                await bit2meRequest("GET", "/test");
+                throw new Error("should have thrown");
+            } catch (err) {
+                const e = err as { internalMessage?: string };
+                expect(e.internalMessage).toContain("Invalid parameter");
+            }
         });
     });
 });

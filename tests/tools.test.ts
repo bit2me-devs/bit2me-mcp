@@ -103,7 +103,7 @@ describe("Tools - Asset Management", () => {
         });
 
         await expect(bit2meRequest("GET", "/v1/wallet/pocket")).rejects.toThrow(
-            "Bit2Me API Error (401): API Key authentication failed"
+            "Bit2Me API Error (401): Authentication failed"
         );
     });
 
@@ -181,7 +181,7 @@ describe("Tools - Asset Management", () => {
             },
         });
 
-        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Rate limit exceeded");
+        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Bit2Me API Error (429): Rate limited");
         expect(axios).toHaveBeenCalledTimes(4); // Initial + 3 retries
     }, 10000);
 
@@ -249,7 +249,7 @@ describe("Tools - Error Handling", () => {
             response: { status: 401, data: { message: "Unauthorized" } },
         });
 
-        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("API Key authentication failed");
+        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Bit2Me API Error (401): Authentication failed");
     });
 
     it("should throw BadRequestError on 400", async () => {
@@ -259,7 +259,7 @@ describe("Tools - Error Handling", () => {
             response: { status: 400, data: { message: "Bad Request" } },
         });
 
-        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Bit2Me API Error (400): Bad Request");
+        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Bit2Me API Error (400): Bad request");
     });
 
     it("should throw NotFoundError on 404", async () => {
@@ -279,7 +279,9 @@ describe("Tools - Error Handling", () => {
             response: { status: 500, data: { message: "Server Error" } },
         });
 
-        await expect(bit2meRequest("GET", "/test")).rejects.toThrow("Bit2Me API Error (500): Server Error");
+        await expect(bit2meRequest("GET", "/test")).rejects.toThrow(
+            "Bit2Me API Error (500): Upstream temporarily unavailable"
+        );
     });
 
     it("should handle getMarketPrice success", async () => {

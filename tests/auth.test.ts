@@ -141,17 +141,32 @@ describe("Session Authentication - JWT Parameter", () => {
         expect(lastLog).toContain("visible");
     });
 
-    it("should provide specific error message for JWT authentication failure", async () => {
+    it("keeps the specific upstream message in `internalMessage` and exposes a generic public one", async () => {
         const { AuthenticationError } = await import("../src/utils/errors.js");
 
         const jwtError = new AuthenticationError("/test", "jwt");
-        expect(jwtError.message).toContain("JWT session authentication failed");
-        expect(jwtError.message).toContain("invalid, expired, or revoked");
+        // Public message (the one returned to the LLM/HTTP client) is generic by design.
+        expect(jwtError.message).toBe("Bit2Me API Error (401): Authentication failed");
+        expect(jwtError.message).not.toContain("JWT");
+        expect(jwtError.message).not.toContain("BIT2ME_API_KEY");
+        // The specific reason is preserved internally so server logs stay actionable.
+        expect(jwtError.internalMessage).toContain("JWT session authentication failed");
+        expect(jwtError.internalMessage).toContain("invalid, expired, or revoked");
         expect(jwtError.authMethod).toBe("jwt");
 
         const apiKeyError = new AuthenticationError("/test", "api_key");
-        expect(apiKeyError.message).toContain("API Key authentication failed");
-        expect(apiKeyError.message).toContain("BIT2ME_API_KEY");
+        expect(apiKeyError.message).toBe("Bit2Me API Error (401): Authentication failed");
+        expect(apiKeyError.message).not.toContain("BIT2ME_API_KEY");
+        expect(apiKeyError.internalMessage).toContain("API Key authentication failed");
+        expect(apiKeyError.internalMessage).toContain("BIT2ME_API_KEY");
         expect(apiKeyError.authMethod).toBe("api_key");
+    });
+
+    it("strips query strings from Bit2MeAPIError.endpoint to avoid leaking IDs", async () => {
+        const { Bit2MeAPIError } = await import("../src/utils/errors.js");
+        const err = new Bit2MeAPIError(404, "Position not found", "/v1/earn/wallets/abc-123?include=secret");
+        expect(err.endpoint).toBe("/v1/earn/wallets/abc-123");
+        expect(err.endpoint).not.toContain("?");
+        expect(err.endpoint).not.toContain("secret");
     });
 });
