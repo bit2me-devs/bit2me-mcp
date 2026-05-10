@@ -5,6 +5,7 @@
 
 import { logger } from "./logger.js";
 import { getCorrelationId } from "./context.js";
+import { allEndpointGroups, type EndpointGroup } from "./endpoint-groups.js";
 
 export enum CircuitState {
     CLOSED = "closed", // Normal operation
@@ -213,4 +214,94 @@ export function getTenantCircuitBreaker(tenantId: string | undefined): CircuitBr
 /** Drop all per-tenant breakers. Useful in tests. */
 export function resetTenantCircuitBreakers(): void {
     tenantBreakers.clear();
+}
+
+// ============================================================================
+// PER-GROUP / PER-TENANT-AND-GROUP CIRCUIT BREAKERS
+// ============================================================================
+//
+// A single global breaker is too coarse: a sustained outage of `/v1/loan/*`
+// would otherwise trip the breaker for `/v3/currency/ticker` and starve
+// every read. We segment by `EndpointGroup` (loan, trading, wallet, ...)
+// so a failure in one domain stays inside that domain.
+//
+// When a tenant id is in scope we also segment by tenant, giving full
+// (tenant x group) isolation. The fallback chain is:
+//
+//   tenantId + group  →  group  →  apiCircuitBreaker
+//
+// so callers without a tenant share the per-group breaker, and callers
+// without a group (which only happens for ad-hoc endpoints classified as
+// "default") still benefit from the legacy single-breaker behaviour.
+
+const GROUP_BREAKER_OPTIONS: CircuitBreakerOptions = {
+    failureThreshold: 5,
+    resetTimeout: 60000,
+    successThreshold: 2,
+    timeout: 30000,
+};
+
+const groupBreakers = new Map<EndpointGroup, CircuitBreaker>();
+const tenantGroupBreakers = new Map<string, CircuitBreaker>();
+const MAX_TENANT_GROUP_BREAKERS = 8192;
+
+/**
+ * Return the circuit breaker dedicated to a given endpoint group.
+ *
+ * When the group is `"default"` (no rule matched in the
+ * `endpoint-groups` table) we fall back to the legacy global breaker so
+ * historic stdio call sites keep their original behaviour.
+ */
+export function getGroupCircuitBreaker(group: EndpointGroup): CircuitBreaker {
+    if (group === "default") return apiCircuitBreaker;
+    let breaker = groupBreakers.get(group);
+    if (!breaker) {
+        breaker = new CircuitBreaker(GROUP_BREAKER_OPTIONS);
+        groupBreakers.set(group, breaker);
+    }
+    return breaker;
+}
+
+/**
+ * Resolve the breaker that should protect an outbound call, combining
+ * tenant and endpoint-group dimensions when both are available.
+ */
+export function getCircuitBreaker(group: EndpointGroup, tenantId: string | undefined): CircuitBreaker {
+    if (!tenantId) {
+        return getGroupCircuitBreaker(group);
+    }
+    const key = `${tenantId}::${group}`;
+    let breaker = tenantGroupBreakers.get(key);
+    if (!breaker) {
+        if (tenantGroupBreakers.size >= MAX_TENANT_GROUP_BREAKERS) {
+            const firstKey = tenantGroupBreakers.keys().next().value;
+            if (firstKey !== undefined) {
+                tenantGroupBreakers.delete(firstKey);
+            }
+        }
+        breaker = new CircuitBreaker(GROUP_BREAKER_OPTIONS);
+        tenantGroupBreakers.set(key, breaker);
+    }
+    return breaker;
+}
+
+/**
+ * Aggregate snapshot of every group breaker, plus the legacy global
+ * breaker. Consumed by `/health` to expose the resilience surface in a
+ * single payload without touching the per-tenant fan-out.
+ */
+export function getGroupCircuitBreakerStats(): Record<string, ReturnType<CircuitBreaker["getStats"]>> {
+    const out: Record<string, ReturnType<CircuitBreaker["getStats"]>> = {};
+    out["global"] = apiCircuitBreaker.getStats();
+    for (const group of allEndpointGroups()) {
+        if (group === "default") continue;
+        out[group] = getGroupCircuitBreaker(group).getStats();
+    }
+    return out;
+}
+
+/** Drop every per-group and per-(tenant,group) breaker. Tests only. */
+export function resetGroupCircuitBreakers(): void {
+    groupBreakers.clear();
+    tenantGroupBreakers.clear();
 }

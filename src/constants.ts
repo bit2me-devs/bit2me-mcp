@@ -49,7 +49,14 @@ export const DEFAULT_RETRY_BASE_DELAY = 1000;
 /** Maximum delay for exponential backoff in milliseconds */
 export const MAX_BACKOFF_DELAY = 10000;
 
-/** Random jitter range for backoff in milliseconds */
+/**
+ * Random jitter range for backoff in milliseconds.
+ *
+ * @deprecated Superseded by the full-jitter strategy in
+ * `bit2meRequest.calculateBackoffDelay` (delay ∈ [0, cappedDelay]).
+ * Kept exported for backwards compatibility with downstream code that
+ * may have imported it; new code MUST NOT depend on this value.
+ */
 export const BACKOFF_JITTER_MS = 100;
 
 /** Timeout for heavy aggregation operations (60s) */

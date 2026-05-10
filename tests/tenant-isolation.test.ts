@@ -16,7 +16,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
     apiCircuitBreaker,
+    getCircuitBreaker,
+    getGroupCircuitBreaker,
+    getGroupCircuitBreakerStats,
     getTenantCircuitBreaker,
+    resetGroupCircuitBreakers,
     resetTenantCircuitBreakers,
     CircuitState,
 } from "../src/utils/circuit-breaker.js";
@@ -92,5 +96,76 @@ describe("Per-tenant endpoint rate limiter isolation", () => {
         ).resolves.toBeUndefined();
         // Sanity: lA still exists and is its own instance.
         expect(lA).not.toBe(lB);
+    });
+});
+
+describe("Per-group circuit breaker isolation", () => {
+    beforeEach(() => {
+        apiCircuitBreaker.reset();
+        resetTenantCircuitBreakers();
+        resetGroupCircuitBreakers();
+    });
+
+    it("returns distinct breakers per group", () => {
+        const loan = getGroupCircuitBreaker("loan");
+        const market = getGroupCircuitBreaker("market_data");
+        expect(loan).not.toBe(market);
+    });
+
+    it("falls back to the global breaker when group is 'default'", () => {
+        expect(getGroupCircuitBreaker("default")).toBe(apiCircuitBreaker);
+    });
+
+    it("opens the loan breaker without affecting market_data", () => {
+        const loan = getGroupCircuitBreaker("loan");
+        const market = getGroupCircuitBreaker("market_data");
+
+        for (let i = 0; i < 5; i++) {
+            loan.recordFailure();
+        }
+
+        expect(loan.getState()).toBe(CircuitState.OPEN);
+        expect(market.getState()).toBe(CircuitState.CLOSED);
+        expect(market.canExecute()).toBe(true);
+    });
+
+    it("isolates breakers along both tenant and group axes", () => {
+        const tenantALoan = getCircuitBreaker("loan", "tenant-a");
+        const tenantBLoan = getCircuitBreaker("loan", "tenant-b");
+        const tenantAMarket = getCircuitBreaker("market_data", "tenant-a");
+
+        for (let i = 0; i < 5; i++) {
+            tenantALoan.recordFailure();
+        }
+
+        expect(tenantALoan.getState()).toBe(CircuitState.OPEN);
+        expect(tenantBLoan.getState()).toBe(CircuitState.CLOSED);
+        expect(tenantAMarket.getState()).toBe(CircuitState.CLOSED);
+    });
+
+    it("stable instance for the same (tenant, group) pair", () => {
+        const a1 = getCircuitBreaker("trading", "tenant-x");
+        const a2 = getCircuitBreaker("trading", "tenant-x");
+        expect(a1).toBe(a2);
+    });
+
+    it("getCircuitBreaker without tenant id reuses the per-group breaker", () => {
+        const noTenant = getCircuitBreaker("wallet", undefined);
+        const groupOnly = getGroupCircuitBreaker("wallet");
+        expect(noTenant).toBe(groupOnly);
+    });
+
+    it("getGroupCircuitBreakerStats exposes one entry per declared group plus global", () => {
+        // Touch a couple of groups so tenant traffic does not affect the
+        // assertion about how many keys appear in the snapshot.
+        getGroupCircuitBreaker("loan");
+        getGroupCircuitBreaker("trading");
+
+        const stats = getGroupCircuitBreakerStats();
+        expect(stats).toHaveProperty("global");
+        expect(stats).toHaveProperty("loan");
+        expect(stats).toHaveProperty("trading");
+        expect(stats).toHaveProperty("wallet");
+        expect(stats).toHaveProperty("market_data");
     });
 });

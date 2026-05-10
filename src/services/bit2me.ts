@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import crypto from "crypto";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as url from "node:url";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import { getGatewayUrl, getConfig } from "../config.js";
 import { logger } from "../utils/logger.js";
@@ -9,8 +12,95 @@ import {
     AuthenticationError,
     BadRequestError,
     NotFoundError,
+    ValidationError,
 } from "../utils/errors.js";
-import { MAX_BACKOFF_DELAY, BACKOFF_JITTER_MS } from "../constants.js";
+import { MAX_BACKOFF_DELAY } from "../constants.js";
+
+/**
+ * Identify outbound traffic with the project's User-Agent. The previous
+ * implementation impersonated a Chrome browser — that has TOS and
+ * fraud-detection implications and obscures legitimate traffic in
+ * upstream telemetry. We instead advertise the package name, version
+ * and homepage so Bit2Me can profile the integration accurately.
+ */
+const USER_AGENT = (() => {
+    try {
+        const here = path.dirname(url.fileURLToPath(import.meta.url));
+        const pkg = JSON.parse(fs.readFileSync(path.join(here, "..", "..", "package.json"), "utf-8")) as {
+            version?: string;
+        };
+        return `bit2me-mcp/${pkg.version ?? "unknown"} (+https://mcp.bit2me.com)`;
+    } catch {
+        return "bit2me-mcp/unknown (+https://mcp.bit2me.com)";
+    }
+})();
+
+/**
+ * Maximum size (bytes) of a single response from the Bit2Me API. We
+ * cap both the response and the outbound body to prevent a malicious
+ * or buggy upstream from forcing this process to allocate unbounded
+ * memory.
+ */
+const MAX_RESPONSE_BYTES = 10 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Whitelist of bytes allowed to appear inside the value of a session
+ * cookie. JWTs are base64url + dots (`.`); a few extra characters are
+ * tolerated to keep the validator forgiving across upstream cookie
+ * formats. Anything outside this set (`\r`, `\n`, `;`, spaces, ...)
+ * would enable HTTP header injection / smuggling against the gateway.
+ */
+const COOKIE_VALUE_ALLOWED = /^[A-Za-z0-9._\-+/=]+$/;
+const MAX_COOKIE_VALUE_BYTES = 4096;
+
+/**
+ * Throw `ValidationError` when a session token cannot be safely
+ * embedded in a `Cookie:` header. Called immediately before
+ * constructing the outgoing request.
+ */
+function assertSafeCookieValue(value: string): void {
+    if (!value || typeof value !== "string") {
+        throw new ValidationError("Session token must be a non-empty string", "sessionToken");
+    }
+    if (Buffer.byteLength(value, "utf8") > MAX_COOKIE_VALUE_BYTES) {
+        throw new ValidationError("Session token is too large", "sessionToken");
+    }
+    if (!COOKIE_VALUE_ALLOWED.test(value)) {
+        throw new ValidationError(
+            "Session token contains characters that are not safe inside a Cookie header",
+            "sessionToken"
+        );
+    }
+}
+
+/**
+ * Convert a free-form params object into a flat `Record<string, string>`
+ * suitable for `URLSearchParams`. Rejects nested objects/arrays
+ * because they would silently serialise as `[object Object]` and
+ * either break the upstream API or, worse, change the signature
+ * payload in ways the caller did not intend.
+ */
+function flattenScalarParams(params: Record<string, unknown>): Record<string, string> {
+    const flat: Record<string, string> = {};
+    for (const [key, value] of Object.entries(params)) {
+        if (value === undefined || value === null) continue;
+        if (typeof value === "string") {
+            flat[key] = value;
+            continue;
+        }
+        if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+            flat[key] = String(value);
+            continue;
+        }
+        throw new ValidationError(
+            `Query parameter "${key}" must be a string, number or boolean (got ${typeof value})`,
+            key,
+            value
+        );
+    }
+    return flat;
+}
 
 // Gateway URL is resolved lazily to support runtime configuration
 const getBaseUrl = () => getGatewayUrl();
@@ -40,7 +130,10 @@ export function generateSignature(nonce: number, endpoint: string, data: any, se
 
 import { rateLimiter } from "../utils/rate-limiter.js";
 import { endpointRateLimiter } from "../utils/rate-limiter-config.js";
-import { getTenantCircuitBreaker } from "../utils/circuit-breaker.js";
+import { getCircuitBreaker } from "../utils/circuit-breaker.js";
+import { endpointGroup } from "../utils/endpoint-groups.js";
+import { groupBulkhead, tenantBulkhead } from "../utils/bulkhead.js";
+import { metricsCollector } from "../utils/metrics.js";
 import {
     getCorrelationId,
     getSessionToken,
@@ -54,13 +147,22 @@ import {
 // ============================================================================
 
 /**
- * Calculate exponential backoff delay with jitter
+ * Calculate exponential backoff delay using the AWS "full jitter"
+ * recipe: pick a uniformly random value in `[0, cappedDelay]` instead
+ * of `cappedDelay + small_jitter`.
+ *
+ * Full jitter is provably better than additive jitter at preventing
+ * thundering-herd retry storms after a synchronous outage recovers
+ * (see "Exponential Backoff and Jitter" — AWS Architecture Blog).
+ *
+ * Trade-off: individual retries can land sooner than `cappedDelay`,
+ * but the *expected* delay is `cappedDelay / 2`, which is normally
+ * preferable for latency-sensitive workloads.
  */
 function calculateBackoffDelay(retryAttempt: number, baseDelay: number, maxDelay = MAX_BACKOFF_DELAY): number {
     const exponentialDelay = baseDelay * Math.pow(2, retryAttempt);
     const cappedDelay = Math.min(maxDelay, exponentialDelay);
-    const jitter = Math.random() * BACKOFF_JITTER_MS;
-    return cappedDelay + jitter;
+    return Math.random() * cappedDelay;
 }
 
 /**
@@ -151,12 +253,17 @@ export async function bit2meRequest<T = any>(
     // Resolve session token: explicit parameter takes priority, fallback to context
     const resolvedSessionToken = effectiveSessionToken ?? getSessionToken();
 
-    // Resolve the tenant id once and reuse it for the breaker, the
-    // outbound rate limiter and the success/failure recording calls.
-    // Stdio transport callers don't carry a tenant id and naturally
-    // share the global breaker / global limiter buckets.
+    // Resolve tenant id and endpoint group once and reuse them for the
+    // breaker, the outbound rate limiter and the success/failure
+    // recording calls. The breaker is segmented along two axes:
+    //  - by endpoint group (loan/trading/wallet/...) so a sustained
+    //    failure in one domain cannot trip every other domain.
+    //  - by tenant when one is in scope, so one noisy tenant cannot
+    //    open the breaker for the rest.
+    // Stdio callers (no tenant id) share the per-group breaker.
     const tenantId = getTenantId();
-    const circuitBreaker = getTenantCircuitBreaker(tenantId);
+    const group = endpointGroup(endpoint);
+    const circuitBreaker = getCircuitBreaker(group, tenantId);
 
     // Circuit Breaker: Check if circuit allows request
     if (!circuitBreaker.canExecute()) {
@@ -165,6 +272,7 @@ export async function bit2meRequest<T = any>(
         logger.error("Circuit breaker is OPEN, request rejected", {
             correlationId: getCorrelationId(),
             tenantId,
+            group,
             endpoint,
             circuitState,
             stats,
@@ -199,20 +307,26 @@ export async function bit2meRequest<T = any>(
     // Determine authentication mode: Session (cookie) or API Key (signature)
     const useSessionAuth = !!resolvedSessionToken;
 
-    const baseHeaders: Record<string, string> = useSessionAuth
-        ? {
-              // Session mode: authenticate via JWT cookie (web-like)
-              Cookie: `${getConfig().SESSION_COOKIE_NAME}=${resolvedSessionToken}`,
-              "User-Agent":
-                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-              "Content-Type": "application/json",
-          }
-        : {
-              // API Key mode: authenticate via signature
-              "x-api-key": apiKey,
-              "x-nonce": nonce.toString(),
-              "Content-Type": "application/json",
-          };
+    let baseHeaders: Record<string, string>;
+    if (useSessionAuth) {
+        // Session mode: authenticate via JWT cookie (web-like). The
+        // token is rendered into a header value, so it MUST first be
+        // validated against CRLF / smuggling characters.
+        assertSafeCookieValue(resolvedSessionToken);
+        baseHeaders = {
+            Cookie: `${appConfig.SESSION_COOKIE_NAME}=${resolvedSessionToken}`,
+            "User-Agent": USER_AGENT,
+            "Content-Type": "application/json",
+        };
+    } else {
+        // API Key mode: authenticate via signature
+        baseHeaders = {
+            "x-api-key": apiKey,
+            "x-nonce": nonce.toString(),
+            "Content-Type": "application/json",
+            "User-Agent": USER_AGENT,
+        };
+    }
 
     if (idempotencyKey) {
         baseHeaders["Idempotency-Key"] = idempotencyKey;
@@ -222,6 +336,11 @@ export async function bit2meRequest<T = any>(
         method,
         timeout,
         headers: baseHeaders,
+        // Cap the response body so a misbehaving upstream cannot
+        // exhaust the heap. Match the outbound limit so attackers
+        // cannot pivot via mirrored payloads either.
+        maxContentLength: MAX_RESPONSE_BYTES,
+        maxBodyLength: MAX_REQUEST_BYTES,
     };
 
     let signatureData = undefined; // For body in POST/DELETE
@@ -229,8 +348,10 @@ export async function bit2meRequest<T = any>(
     // 2. PARAMETER MANAGEMENT
     if (method === "GET" && params && Object.keys(params).length > 0) {
         // GET CASE: Convert params to string: "?key=val&key2=val2"
-        // Use URLSearchParams to ensure standard order and encoding
-        const queryString = new URLSearchParams(params).toString();
+        // Reject nested values up front so we never serialise
+        // `[object Object]` into a URL by accident.
+        const flat = flattenScalarParams(params);
+        const queryString = new URLSearchParams(flat).toString();
         urlToSign = `${endpoint}?${queryString}`;
 
         // We tell Axios to use the full URL we just built.
@@ -265,7 +386,10 @@ export async function bit2meRequest<T = any>(
         logger.debug(`API Request: ${method} ${urlToSign}`, {
             body: signatureData,
         });
-        const response = await axios(requestConfig);
+        // Bulkhead: cap concurrent outbound calls per endpoint group AND
+        // per tenant so that one noisy domain or tenant cannot exhaust
+        // the socket pool used by the rest of the workload.
+        const response = await tenantBulkhead.run(tenantId, () => groupBulkhead.run(group, () => axios(requestConfig)));
         logger.debug(`API Response: ${method} ${urlToSign} - Status ${response.status}`);
 
         // Record success in circuit breaker (per-tenant when available)
@@ -303,6 +427,7 @@ export async function bit2meRequest<T = any>(
         const isConnectionError = !status; // No status = connection/timeout error
         if (isServerError || isConnectionError) {
             circuitBreaker.recordFailure();
+            metricsCollector.recordCircuitFailure(group);
         }
 
         const remainingRetries = effectiveRetries - attempt;
@@ -321,6 +446,12 @@ export async function bit2meRequest<T = any>(
         if (shouldRetry) {
             const delay = calculateBackoffDelay(attempt, baseDelay);
             const reason = isRateLimited ? "rate limit" : isServerError ? `${status}` : "network";
+            const metricReason: "rate_limit" | "server_error" | "network" = isRateLimited
+                ? "rate_limit"
+                : isServerError
+                  ? "server_error"
+                  : "network";
+            metricsCollector.recordRetry(metricReason);
             logger.warn(
                 `Bit2Me request transient failure (${reason}). Retrying in ${Math.round(delay)}ms... (attempt ${attempt + 1}/${effectiveRetries})`
             );

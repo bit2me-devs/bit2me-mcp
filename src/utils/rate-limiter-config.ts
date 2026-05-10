@@ -4,6 +4,7 @@
  */
 
 import { RateLimiter } from "./rate-limiter.js";
+import { endpointGroup } from "./endpoint-groups.js";
 
 export interface EndpointRateLimit {
     requestsPerInterval: number;
@@ -51,25 +52,49 @@ const DEFAULT_RATE_LIMIT: EndpointRateLimit = {
 };
 
 /**
+ * Per-group fallback rate limits, applied when an endpoint does not have
+ * a specific entry in {@link ENDPOINT_RATE_LIMITS}. The values mirror the
+ * dominant per-endpoint setting for each group so the behaviour observed
+ * before this fallback was introduced does not change.
+ */
+const GROUP_RATE_LIMITS: Record<string, EndpointRateLimit> = {
+    market_data: { requestsPerInterval: 10, intervalMs: 1000 },
+    wallet: { requestsPerInterval: 5, intervalMs: 1000 },
+    trading: { requestsPerInterval: 5, intervalMs: 1000 },
+    earn: { requestsPerInterval: 5, intervalMs: 1000 },
+    loan: { requestsPerInterval: 5, intervalMs: 1000 },
+    account: { requestsPerInterval: 10, intervalMs: 1000 },
+    default: DEFAULT_RATE_LIMIT,
+};
+
+/**
  * Get rate limit configuration for an endpoint
  * @param endpoint - API endpoint path
  * @returns Rate limit configuration
+ *
+ * Resolution order:
+ *  1. Exact endpoint match in {@link ENDPOINT_RATE_LIMITS}.
+ *  2. Prefix match in {@link ENDPOINT_RATE_LIMITS}.
+ *  3. Group-level default keyed by {@link endpointGroup}.
+ *  4. Hard default {@link DEFAULT_RATE_LIMIT}.
+ *
+ * Steps 1-2 preserve the previous behaviour exactly. Step 3 ensures new
+ * endpoints inherit the same protection as their group siblings without
+ * having to extend the per-endpoint table.
  */
 export function getRateLimitForEndpoint(endpoint: string): EndpointRateLimit {
-    // Try exact match first
     if (ENDPOINT_RATE_LIMITS.has(endpoint)) {
         return ENDPOINT_RATE_LIMITS.get(endpoint)!;
     }
 
-    // Try pattern matching (check if endpoint starts with any pattern)
     for (const [pattern, config] of ENDPOINT_RATE_LIMITS.entries()) {
         if (endpoint.startsWith(pattern)) {
             return config;
         }
     }
 
-    // Return default
-    return DEFAULT_RATE_LIMIT;
+    const group = endpointGroup(endpoint);
+    return GROUP_RATE_LIMITS[group] ?? DEFAULT_RATE_LIMIT;
 }
 
 /**

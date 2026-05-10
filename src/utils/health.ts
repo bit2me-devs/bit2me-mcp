@@ -1,18 +1,38 @@
 /**
- * Health check utilities for monitoring server status
+ * Health check utilities for the Bit2Me MCP server.
+ *
+ * Scope: this server is **not** responsible for monitoring the upstream
+ * Bit2Me API. Health reporting is purely local and reflects the state
+ * of this process: configuration loaded, uptime, package version and
+ * the resilience surface (circuit breakers, rate limiter, cache).
+ *
+ * Rationale:
+ *  - Probing `${gateway}/alive` from the health endpoint amplifies any
+ *    public hit into outbound traffic against Bit2Me, which is a small
+ *    SSRF/abuse vector.
+ *  - Probing `/v1/account` from the health endpoint requires the global
+ *    process credentials and converts a public health probe into an
+ *    authenticated upstream call. Whether Bit2Me works is the
+ *    responsibility of the Bit2Me platform; if it fails, real tool
+ *    invocations will detect it through the circuit breaker.
+ *
+ * The shape exposed here is consumed by:
+ *  - The MCP `general_health` tool (returns the full snapshot to the
+ *    LLM/client).
+ *  - The HTTP transport, which exposes:
+ *      * `GET /livez` and `GET /readyz` (public, minimal, no runtime
+ *        details).
+ *      * `GET /health` (authenticated, full snapshot incl. `runtime`).
  */
 
 import { logger } from "./logger.js";
-import { getGatewayUrl } from "../config.js";
-import { apiCircuitBreaker, CircuitState } from "./circuit-breaker.js";
-import { bit2meRequest } from "../services/bit2me.js";
+import { apiCircuitBreaker, CircuitState, getGroupCircuitBreakerStats } from "./circuit-breaker.js";
 import { getCorrelationId } from "./context.js";
 import { cache } from "./cache.js";
 import { endpointRateLimiter } from "./rate-limiter-config.js";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import axios from "axios";
 
 /**
  * Resolve the package version once at module load. Reading
@@ -34,7 +54,7 @@ const PACKAGE_VERSION = (() => {
     }
 })();
 
-export type ServiceStatus = "online" | "degraded" | "offline";
+export type ServiceStatus = "ok" | "degraded";
 
 export interface HealthStatus {
     status: ServiceStatus;
@@ -42,186 +62,102 @@ export interface HealthStatus {
     version: string;
     uptime_seconds: number;
     components: {
-        bit2me_server: {
-            status: "online" | "offline";
-            response_time_ms: number;
-        };
-        mcp_server: {
-            status: "online" | "offline";
-            response_time_ms?: number | undefined;
-            details?: string | undefined;
+        circuit_breaker: {
+            state: CircuitState;
         };
     };
     /**
-     * Internal runtime stats — useful for ops dashboards but never
-     * surfaced to the LLM (the tools layer strips these).
+     * Internal runtime stats — only populated on the authenticated
+     * `/health` endpoint and on the `general_health` tool. Never
+     * exposed on `/livez` or `/readyz`.
      */
     runtime?: {
         cache: ReturnType<typeof cache.getStats>;
         circuit_breaker: ReturnType<typeof apiCircuitBreaker.getStats>;
+        circuit_breakers_by_group: ReturnType<typeof getGroupCircuitBreakerStats>;
         rate_limiter: ReturnType<typeof endpointRateLimiter.getStats>;
     };
 }
 
 const startTime = Date.now();
 
-// Cached health snapshot — stops hammering the upstream `/alive` and
-// `/v1/account` endpoints when health is polled by Kubernetes liveness
-// probes / load balancers / monitoring agents at high cadence.
-const HEALTH_CACHE_TTL_MS = 30_000;
-let cachedHealth: { snapshot: HealthStatus; expiresAt: number } | null = null;
-
 /**
- * Perform health check on the server
- * @returns Health status object
+ * Compute the local health status of this process.
+ *
+ * The check is synchronous in nature (no I/O, no network) and runs in
+ * O(1) — it only reads in-memory counters from the resilience layer.
+ * It is therefore safe to invoke from public liveness/readiness probes
+ * at high cadence without a cache.
+ *
+ * @param opts.includeRuntime - When `true`, attaches the `runtime`
+ *   block with cache/circuit breaker/rate limiter stats. Callers
+ *   exposing the result to unauthenticated clients (e.g. `/livez`,
+ *   `/readyz`) MUST pass `false` to avoid leaking operational data.
  */
-export async function performHealthCheck(opts: { force?: boolean } = {}): Promise<HealthStatus> {
+export function performHealthCheck(opts: { includeRuntime?: boolean } = {}): HealthStatus {
     const correlationId = getCorrelationId();
-    logger.debug("Performing health check", { correlationId });
+    const includeRuntime = opts.includeRuntime ?? true;
 
-    if (!opts.force && cachedHealth && cachedHealth.expiresAt > Date.now()) {
-        return cachedHealth.snapshot;
-    }
-
-    // 1. Check Bit2Me Server (Public Liveness)
-    const platformCheck = await checkBit2MePlatform();
-
-    // 2. Check MCP Server (Authenticated API + Circuit Breaker)
-    const integrationCheck = await checkMcpIntegration();
-
-    // 3. Determine Global Status
-    // "online" if both are online
-    // "degraded" if only one is online
-    // "offline" if both are offline
-    let globalStatus: ServiceStatus;
-
-    if (platformCheck.status === "online" && integrationCheck.status === "online") {
-        globalStatus = "online";
-    } else if (platformCheck.status === "online" || integrationCheck.status === "online") {
-        globalStatus = "degraded";
-    } else {
-        globalStatus = "offline";
-    }
+    const breakerState = apiCircuitBreaker.getState();
+    const status: ServiceStatus = breakerState === CircuitState.OPEN ? "degraded" : "ok";
 
     const health: HealthStatus = {
-        status: globalStatus,
+        status,
         timestamp: new Date().toISOString(),
         version: PACKAGE_VERSION,
         uptime_seconds: Math.floor((Date.now() - startTime) / 1000),
         components: {
-            bit2me_server: {
-                status: platformCheck.status,
-                response_time_ms: platformCheck.responseTime,
+            circuit_breaker: {
+                state: breakerState,
             },
-            mcp_server: {
-                status: integrationCheck.status,
-                response_time_ms: integrationCheck.responseTime,
-                details: integrationCheck.error,
-            },
-        },
-        runtime: {
-            cache: cache.getStats(),
-            circuit_breaker: apiCircuitBreaker.getStats(),
-            rate_limiter: endpointRateLimiter.getStats(),
         },
     };
 
-    cachedHealth = { snapshot: health, expiresAt: Date.now() + HEALTH_CACHE_TTL_MS };
+    if (includeRuntime) {
+        health.runtime = {
+            cache: cache.getStats(),
+            circuit_breaker: apiCircuitBreaker.getStats(),
+            circuit_breakers_by_group: getGroupCircuitBreakerStats(),
+            rate_limiter: endpointRateLimiter.getStats(),
+        };
+    }
 
-    logger.info("Health check completed", {
+    logger.debug("Health check computed", {
         correlationId,
-        status: globalStatus,
-        platform: platformCheck.status,
-        integration: integrationCheck.status,
+        status,
+        circuitBreaker: breakerState,
+        includeRuntime,
     });
 
     return health;
 }
 
 /**
- * Check Bit2Me Platform Liveness (Public /alive)
+ * Minimal liveness payload for `GET /livez`.
+ *
+ * Contract: returns 200 OK as long as the event loop is responsive.
+ * It does NOT check the circuit breaker — a degraded readiness state
+ * is still a live process — and never exposes `runtime` data.
  */
-async function checkBit2MePlatform(): Promise<{ status: "online" | "offline"; responseTime: number }> {
-    const startTime = Date.now();
-    try {
-        const response = await axios.get(`${getGatewayUrl()}/alive`, {
-            timeout: 5000,
-            validateStatus: () => true,
-        });
-
-        const responseTime = Date.now() - startTime;
-
-        if (response.status === 200) {
-            return { status: "online", responseTime };
-        }
-
-        return { status: "offline", responseTime };
-    } catch {
-        return {
-            status: "offline",
-            responseTime: Date.now() - startTime,
-        };
-    }
+export function getLivenessStatus(): { status: "ok"; timestamp: string } {
+    return {
+        status: "ok",
+        timestamp: new Date().toISOString(),
+    };
 }
 
 /**
- * Check MCP Integration (Authenticated /account + Circuit Breaker)
+ * Readiness payload for `GET /readyz`.
+ *
+ * Reports `degraded` when the global circuit breaker is open, which
+ * indicates outbound calls to Bit2Me are currently being short-
+ * circuited. Operators / load balancers can use this to take the
+ * instance out of rotation.
  */
-async function checkMcpIntegration(): Promise<{ status: "online" | "offline"; responseTime?: number | undefined; error?: string | undefined }> {
-    // Check Circuit Breaker first
-    const cbState = apiCircuitBreaker.getState();
-    if (cbState === CircuitState.OPEN) {
-        return {
-            status: "offline",
-            error: "Integration suspended for safety (Circuit Breaker Open)",
-        };
-    }
-
-    const startTime = Date.now();
-    try {
-        // Try a lightweight authenticated endpoint
-        await bit2meRequest("GET", "/v1/account", undefined, 0, 5000);
-        const responseTime = Date.now() - startTime;
-
-        return {
-            status: "online",
-            responseTime,
-        };
-    } catch (error: unknown) {
-        const responseTime = Date.now() - startTime;
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.warn("Integration health check failed", {
-            correlationId: getCorrelationId(),
-            error: errorMessage,
-            responseTime,
-        });
-        return {
-            status: "offline",
-            responseTime,
-            error: errorMessage,
-        };
-    }
-}
-
-/**
- * Get a simple health status (for quick checks)
- */
-export async function getSimpleHealthStatus(): Promise<{ status: string; timestamp: string }> {
-    try {
-        const health = await performHealthCheck();
-        return {
-            status: health.status,
-            timestamp: health.timestamp,
-        };
-    } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.error("Health check failed", {
-            correlationId: getCorrelationId(),
-            error: errorMessage,
-        });
-        return {
-            status: "offline",
-            timestamp: new Date().toISOString(),
-        };
-    }
+export function getReadinessStatus(): { status: ServiceStatus; timestamp: string } {
+    const breakerState = apiCircuitBreaker.getState();
+    return {
+        status: breakerState === CircuitState.OPEN ? "degraded" : "ok",
+        timestamp: new Date().toISOString(),
+    };
 }
