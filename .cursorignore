@@ -1,0 +1,30 @@
+# Dependencias y caches
+node_modules/
+.pnpm-store/
+
+# Builds y artefactos
+build/
+dist/
+landing/dist/
+*.tsbuildinfo
+
+# Tests y cobertura
+coverage/
+
+# Datos generados grandes
+data/tools.json
+
+# Lockfiles (no aportan contexto semántico)
+pnpm-lock.yaml
+
+# Assets binarios locales
+assets/
+
+# Documentación voluminosa autogenerada
+TOOLS_DOCUMENTATION.md
+CHANGELOG.md
+
+# Logs y temporales
+*.log
+tmp/
+*.tmp
