@@ -19,9 +19,7 @@ import {
     getCircuitBreaker,
     getGroupCircuitBreaker,
     getGroupCircuitBreakerStats,
-    getTenantCircuitBreaker,
     resetGroupCircuitBreakers,
-    resetTenantCircuitBreakers,
     CircuitState,
 } from "../src/utils/circuit-breaker.js";
 import { EndpointRateLimiterManager } from "../src/utils/rate-limiter-config.js";
@@ -29,14 +27,14 @@ import { EndpointRateLimiterManager } from "../src/utils/rate-limiter-config.js"
 describe("Per-tenant circuit breaker isolation", () => {
     beforeEach(() => {
         apiCircuitBreaker.reset();
-        resetTenantCircuitBreakers();
+        resetGroupCircuitBreakers();
     });
 
-    it("opens tenant A breaker without affecting tenant B", () => {
+    it("opens tenant A breaker without affecting tenant B (within the same group)", () => {
         const tenantA = "tenant-a-fingerprint";
         const tenantB = "tenant-b-fingerprint";
-        const a = getTenantCircuitBreaker(tenantA);
-        const b = getTenantCircuitBreaker(tenantB);
+        const a = getCircuitBreaker("wallet", tenantA);
+        const b = getCircuitBreaker("wallet", tenantB);
 
         // 5 consecutive failures trip tenant A's breaker.
         for (let i = 0; i < 5; i++) {
@@ -48,16 +46,16 @@ describe("Per-tenant circuit breaker isolation", () => {
         expect(b.canExecute()).toBe(true);
     });
 
-    it("falls back to the shared global breaker when tenantId is undefined", () => {
-        const first = getTenantCircuitBreaker(undefined);
-        const second = getTenantCircuitBreaker(undefined);
-        expect(first).toBe(apiCircuitBreaker);
-        expect(second).toBe(apiCircuitBreaker);
+    it("falls back to the per-group breaker when tenantId is undefined", () => {
+        const first = getCircuitBreaker("wallet", undefined);
+        const second = getCircuitBreaker("wallet", undefined);
+        expect(first).toBe(getGroupCircuitBreaker("wallet"));
+        expect(first).toBe(second);
     });
 
-    it("returns a stable breaker instance for the same tenant id", () => {
-        const a1 = getTenantCircuitBreaker("tenant-x");
-        const a2 = getTenantCircuitBreaker("tenant-x");
+    it("returns a stable breaker instance for the same (tenant, group) pair", () => {
+        const a1 = getCircuitBreaker("wallet", "tenant-x");
+        const a2 = getCircuitBreaker("wallet", "tenant-x");
         expect(a1).toBe(a2);
     });
 });
@@ -102,7 +100,6 @@ describe("Per-tenant endpoint rate limiter isolation", () => {
 describe("Per-group circuit breaker isolation", () => {
     beforeEach(() => {
         apiCircuitBreaker.reset();
-        resetTenantCircuitBreakers();
         resetGroupCircuitBreakers();
     });
 

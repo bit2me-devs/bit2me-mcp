@@ -358,16 +358,16 @@ export async function bit2meRequest<T = any>(
         // We do NOT use requestConfig.params to avoid Axios re-encoding differently than us.
         requestConfig.url = `${getBaseUrl()}${urlToSign}`;
     } else if ((method === "POST" || method === "DELETE") && params) {
-        // POST/DELETE CASE: Params go in the body
+        // POST/DELETE CASE: Params go in the body. We send the
+        // serialised JSON to axios and pass the raw object to
+        // `generateSignature`; `generateSignature` re-stringifies
+        // internally with the same Node `JSON.stringify` semantics, so
+        // the signed payload matches the bytes Bit2Me will see on the
+        // wire byte-for-byte.
         requestConfig.url = `${getBaseUrl()}${endpoint}`;
-
-        // Stringify to ensure consistency in signature and sending
         const jsonBody = JSON.stringify(params);
         requestConfig.data = jsonBody;
-        signatureData = params; // Pass original object or string depending on what generateSignature expects
-
-        // Note: Your current generateSignature does JSON.stringify internally if it receives an object.
-        // Ensure that if you pass 'params' (object), generateSignature stringifies it exactly as here.
+        signatureData = params;
     } else {
         // CASE WITHOUT PARAMETERS
         requestConfig.url = `${getBaseUrl()}${endpoint}`;

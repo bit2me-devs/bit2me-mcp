@@ -158,63 +158,17 @@ export class CircuitBreaker {
  * Global circuit breaker instance for Bit2Me API.
  *
  * Used directly by the stdio (single-tenant) transport and as the shared
- * default by the HTTP transport when no tenant id is in scope. For
- * multi-tenant HTTP traffic, prefer `getTenantCircuitBreaker(tenantId)`
- * so that one misbehaving tenant cannot trip the breaker for all
- * tenants on the same process.
+ * default by the HTTP transport when no tenant id and no endpoint group
+ * are in scope (rare; only for ad-hoc endpoints classified as
+ * `"default"`). Multi-tenant HTTP traffic goes through
+ * {@link getCircuitBreaker} which combines the tenant and the endpoint
+ * group axes.
  */
 export const apiCircuitBreaker = new CircuitBreaker({
     failureThreshold: 5,
     resetTimeout: 60000, // 1 minute
     successThreshold: 2,
 });
-
-const TENANT_BREAKER_OPTIONS: CircuitBreakerOptions = {
-    failureThreshold: 5,
-    resetTimeout: 60000,
-    successThreshold: 2,
-    timeout: 30000,
-};
-
-const tenantBreakers = new Map<string, CircuitBreaker>();
-
-/**
- * Bound on the number of distinct tenant breakers we keep around. With
- * 2048 entries and ~200 bytes per breaker we cap memory at ~400 KB,
- * which is plenty for any realistic tenant population. When the cap is
- * reached we evict the breaker with the oldest last-failure timestamp
- * (or fall back to insertion order via `Map` iteration), which is a
- * good proxy for "least recently active".
- */
-const MAX_TENANT_BREAKERS = 2048;
-
-/**
- * Return the circuit breaker that protects outbound calls for `tenantId`.
- * Falls back to the shared `apiCircuitBreaker` when the tenant id is
- * undefined (stdio transport, tests, internal callers).
- */
-export function getTenantCircuitBreaker(tenantId: string | undefined): CircuitBreaker {
-    if (!tenantId) return apiCircuitBreaker;
-    let breaker = tenantBreakers.get(tenantId);
-    if (!breaker) {
-        if (tenantBreakers.size >= MAX_TENANT_BREAKERS) {
-            // Evict the first inserted entry (FIFO). Map preserves
-            // insertion order, so the first key is the oldest.
-            const firstKey = tenantBreakers.keys().next().value;
-            if (firstKey !== undefined) {
-                tenantBreakers.delete(firstKey);
-            }
-        }
-        breaker = new CircuitBreaker(TENANT_BREAKER_OPTIONS);
-        tenantBreakers.set(tenantId, breaker);
-    }
-    return breaker;
-}
-
-/** Drop all per-tenant breakers. Useful in tests. */
-export function resetTenantCircuitBreakers(): void {
-    tenantBreakers.clear();
-}
 
 // ============================================================================
 // PER-GROUP / PER-TENANT-AND-GROUP CIRCUIT BREAKERS

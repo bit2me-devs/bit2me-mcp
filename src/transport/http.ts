@@ -259,8 +259,11 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
         const key = authFailureKey(req);
         if (authFailureLimiter.isLockedOut(key)) {
             logger.warn("Auth failure lockout hit", { key, url: req.url });
-            reply.code(429);
-            reply.send({ error: "Too many authentication failures, slow down." });
+            // `return reply.send(...)` is the Fastify-recommended pattern
+            // for short-circuiting an async hook: it both writes the
+            // response and signals the framework that no further hooks
+            // or the route handler should run.
+            return reply.code(429).send({ error: "Too many authentication failures, slow down." });
         }
     });
 
@@ -269,12 +272,15 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
      * per-identity failure counter. Subsequent requests from the same
      * identity will be short-circuited with 429 once the cap is hit
      * (handled by the `onRequest` lockout hook above).
+     *
+     * Returns the {@link FastifyReply} so callers can `return` it from
+     * an async route handler, following the Fastify-recommended pattern
+     * for short-circuiting a request once the response has been sent.
      */
-    function rejectUnauthenticated(req: FastifyRequest, reply: FastifyReply, body: object): void {
+    function rejectUnauthenticated(req: FastifyRequest, reply: FastifyReply, body: object): FastifyReply {
         const key = authFailureKey(req);
         authFailureLimiter.recordFailure(key);
-        reply.code(401);
-        reply.send(body);
+        return reply.code(401).send(body);
     }
 
     // ------------------------------------------------------------------
@@ -293,8 +299,7 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
     app.get("/health", async (req, reply) => {
         const creds = extractCredentials(req, authMode);
         if (!creds) {
-            rejectUnauthenticated(req, reply, { error: "Missing credentials" });
-            return;
+            return rejectUnauthenticated(req, reply, { error: "Missing credentials" });
         }
         return performHealthCheck({ includeRuntime: true });
     });
@@ -302,8 +307,7 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
     app.get("/metrics", async (req, reply) => {
         const creds = extractCredentials(req, authMode);
         if (!creds) {
-            rejectUnauthenticated(req, reply, { error: "Missing credentials" });
-            return;
+            return rejectUnauthenticated(req, reply, { error: "Missing credentials" });
         }
         reply.type("text/plain; version=0.0.4");
         return metricsCollector.toPrometheus();
@@ -312,8 +316,7 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
     app.get("/mcp/tools", async (req, reply) => {
         const creds = extractCredentials(req, authMode);
         if (!creds) {
-            rejectUnauthenticated(req, reply, { error: "Missing credentials" });
-            return;
+            return rejectUnauthenticated(req, reply, { error: "Missing credentials" });
         }
         return { tools: getAllTools() };
     });
@@ -321,12 +324,11 @@ export async function buildHttpServer(opts: HttpTransportOptions = {}): Promise<
     app.post("/mcp", async (req: FastifyRequest, reply: FastifyReply) => {
         const creds = extractCredentials(req, authMode);
         if (!creds) {
-            rejectUnauthenticated(req, reply, {
+            return rejectUnauthenticated(req, reply, {
                 jsonrpc: "2.0",
                 error: { code: -32001, message: "Missing credentials" },
                 id: null,
             });
-            return;
         }
 
         const body = req.body as
