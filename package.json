@@ -101,7 +101,7 @@
         "publint": "^0.3.20",
         "semantic-release": "^25.0.3",
         "ts-node": "^10.9.2",
-        "typescript": "^5.9.3",
+        "typescript": "^6.0.3",
         "typescript-eslint": "^8.59.2",
         "vite": "7.3.3",
         "vitest": "^4.1.5"
