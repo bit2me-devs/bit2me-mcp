@@ -13,6 +13,7 @@
     },
     "files": [
         "build",
+        "data",
         "README.md",
         "LICENSE"
     ],
