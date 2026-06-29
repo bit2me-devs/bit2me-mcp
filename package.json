@@ -71,7 +71,7 @@
     "author": "Bit2Me",
     "license": "MIT",
     "dependencies": {
-        "@fastify/rate-limit": "^10.3.0",
+        "@fastify/rate-limit": "^11.1.0",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "axios": "^1.16.0",
         "decimal.js": "^10.6.0",
