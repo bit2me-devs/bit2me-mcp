@@ -27,14 +27,14 @@ jobs:
 
         steps:
             - name: Checkout
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
               with:
                   fetch-depth: 0
                   persist-credentials: true
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6
+              uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
 
             - name: Setup Node.js
               # Node.js 24 ships with npm >= 11.5.1, which is the minimum
@@ -77,7 +77,7 @@ jobs:
                   cosign sign-blob --yes sbom.cdx.json   --output-signature sbom.cdx.json.sig    --output-certificate sbom.cdx.json.pem || true
 
             - name: Attest Build Provenance
-              uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+              uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
               with:
                   subject-path: |
                       build/index.js
