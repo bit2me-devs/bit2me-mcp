@@ -42,6 +42,10 @@ Tras merge en `main`, Semantic Release publicará un patch. Los PRs de Dependabo
 
 ## Change log
 
+### 2026-08-30 13:01 UTC — Documentación de desarrollo pasada a pnpm
+
+README, CONTRIBUTING, plantilla de PR y `scripts/README.md` dejan de indicar `npm install` / `npm run` para el flujo de desarrollo. Se mantiene `npx @bit2me/mcp-server` solo como forma de consumir el paquete publicado. Los hooks Husky ya usan `pnpm exec`.
+
 ### 2026-08-30 12:51 UTC — Parche de CVEs y consolidación de Dependabot
 
 Se aplican en `main` (rama `chore/security-deps-audit`) los bumps de producción, overrides transitivos y pins de Actions del PR #109. Los hooks de Husky pasan de `npx` a `pnpm exec` para no depender del `npx` corporativo bloqueado. Verificación local: audit prod high limpio, 424 tests, fuzz, typecheck y build OK.

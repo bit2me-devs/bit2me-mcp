@@ -6,7 +6,7 @@ This folder contains scripts for generating documentation and project artifacts.
 
 ### `generate-tools-docs.js`
 
-**Command:** `npm run build:docs`
+**Command:** `pnpm run build:docs`
 
 **Purpose:** Regenerates derived assets from the centralized tools metadata.
 
@@ -25,7 +25,7 @@ This folder contains scripts for generating documentation and project artifacts.
 
 ### `generate-llms.js`
 
-**Command:** `npm run build:llms`
+**Command:** `pnpm run build:llms`
 
 **Purpose:** Generates documentation files for LLMs from markdown.
 
@@ -69,18 +69,18 @@ NODE_ENV=production node scripts/minify-html.js
 2. **Regenerate documentation:**
 
     ```bash
-    npm run build:docs
+    pnpm run build:docs
     ```
 
 3. **Regenerate LLM documentation (if you change README/agents/CHANGELOG):**
 
     ```bash
-    npm run build:llms
+    pnpm run build:llms
     ```
 
 4. **Build the project:**
     ```bash
-    npm run build
+    pnpm run build
     ```
 
 ## Centralized Architecture

@@ -98,7 +98,7 @@ const result = await mcpClient.callTool("wallet_get_pockets", {
 2. **Install dependencies:**
 
     ```bash
-    npm install
+    pnpm install
     ```
 
 3. **Configure environment variables:**
@@ -136,7 +136,7 @@ const result = await mcpClient.callTool("wallet_get_pockets", {
 
 4. **Build the project:**
     ```bash
-    npm run build
+    pnpm run build
     ```
 
 ## 🖥️ Usage with Claude Desktop
@@ -342,7 +342,7 @@ Reliability features active by default:
 
 - Run the server manually to see logs:
     ```bash
-    npm run dev
+    pnpm dev
     ```
 - Set `BIT2ME_LOG_LEVEL=debug` for detailed logging.
 - Check Claude Desktop logs:
@@ -356,7 +356,7 @@ Reliability features active by default:
 ### Installation
 
 ```bash
-npm install -g @modelcontextprotocol/inspector
+pnpm add -g @modelcontextprotocol/inspector
 ```
 
 ### Running the Inspector
@@ -381,8 +381,8 @@ For development or testing unreleased changes:
 # 1. Clone and build the project
 git clone https://github.com/bit2me-devs/bit2me-mcp.git
 cd bit2me-mcp
-npm install
-npm run build
+pnpm install
+pnpm run build
 
 # 2. Run the inspector
 export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
@@ -460,7 +460,7 @@ Please read our **[Contributing Guidelines](./CONTRIBUTING.md)** for details on:
     ```
 2.  **Install Dependencies**:
     ```bash
-    npm install
+    pnpm install
     ```
 3.  **Create a Branch**:
     ```bash

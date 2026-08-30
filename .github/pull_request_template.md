@@ -35,7 +35,7 @@
 
 <!-- Describe the testing you've done -->
 
-- [ ] All existing tests pass (`npm test`)
+- [ ] All existing tests pass (`pnpm test`)
 - [ ] New tests added (if applicable)
 - [ ] Manual testing completed
 
@@ -43,10 +43,10 @@
 
 <!-- Mark completed items with an 'x' -->
 
-- [ ] ✅ Code builds successfully (`npm run build`)
-- [ ] ✅ All tests pass (`npm test`)
-- [ ] ✅ Lint passes (`npm run lint`)
-- [ ] ✅ Code formatted (`npm run lint:fix`)
+- [ ] ✅ Code builds successfully (`pnpm run build`)
+- [ ] ✅ All tests pass (`pnpm test`)
+- [ ] ✅ Lint passes (`pnpm lint`)
+- [ ] ✅ Code formatted (`pnpm run lint:fix`)
 - [ ] 📖 Documentation updated (if needed)
 - [ ] 🔒 No sensitive data exposed
 - [ ] ♿ Accessibility considered (if applicable)

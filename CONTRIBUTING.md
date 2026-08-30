@@ -28,7 +28,7 @@ Please be respectful, inclusive, and constructive in all interactions. We are co
 ### Prerequisites
 
 - **Node.js**: v20 or higher
-- **npm**: v9 or higher
+- **pnpm**: v10 or higher (`packageManager` in `package.json`)
 - **Git**
 
 ### Installation
@@ -44,13 +44,13 @@ Please be respectful, inclusive, and constructive in all interactions. We are co
 3.  **Install dependencies**:
 
     ```bash
-    npm install
+    pnpm install
     ```
 
 4.  **Install Husky hooks** (should happen automatically, but if not):
 
     ```bash
-    npm run prepare
+    pnpm run prepare
     ```
 
 ### Environment Setup
@@ -122,19 +122,19 @@ We use **Vitest** for testing. We aim for high test coverage (>95%).
 - **Run all tests:**
 
     ```bash
-    npm test
+    pnpm test
     ```
 
 - **Run tests in watch mode (TDD):**
 
     ```bash
-    npm run test:watch
+    pnpm test:watch
     ```
 
 - **Run with coverage report:**
 
     ```bash
-    npm run test:coverage
+    pnpm test:coverage
     ```
 
 **Note:** Please ensure all tests pass before pushing your changes.
@@ -146,14 +146,14 @@ Our strict pre-commit hooks will automatically run:
 1.  **Linting**: `ESLint` for code quality.
 2.  **Formatting**: `Prettier` for code style.
 3.  **Testing**: Run related unit tests.
-4.  **Security Audit**: `npm audit` (on package changes) to check for vulnerabilities.
+4.  **Security Audit**: `pnpm audit` (on package changes) to check for vulnerabilities.
 5.  **Secret Scanning**: `gitleaks` (if installed) to prevent committing API keys.
 
 **Manual Commands:**
 
-- Check for linting errors: `npm run lint`
-- Fix linting/formatting: `npm run lint:fix`
-- Build the project: `npm run build`
+- Check for linting errors: `pnpm lint`
+- Fix linting/formatting: `pnpm run lint:fix`
+- Build the project: `pnpm run build`
 
 ## Tool Metadata Management
 
@@ -168,20 +168,20 @@ This project uses a centralized metadata system for all tool definitions. The so
 
 1. **Edit `data/tools.json`**: Add or modify the tool definition in the appropriate category.
 2. **Update TypeScript handlers**: Modify the corresponding handler function in `src/tools/*.ts` if needed.
-3. **Regenerate derived assets**: Run `npm run build:docs` to regenerate:
+3. **Regenerate derived assets**: Run `pnpm run build:docs` to regenerate:
     - `landing/tools-data.js` (used by the landing page)
     - `TOOLS_DOCUMENTATION.md` (tool documentation with descriptions, endpoints and response schemas)
 4. **Update backend**: The backend automatically uses the metadata from `data/tools.json` via `src/utils/tool-metadata.ts`.
 
 ### Important Notes
 
-- **Never edit generated files manually**: `landing/tools-data.js` is auto-generated. Always edit `data/tools.json` and run `npm run build:docs`.
+- **Never edit generated files manually**: `landing/tools-data.js` is auto-generated. Always edit `data/tools.json` and run `pnpm run build:docs`.
 - **Keep examples up to date**: When modifying tool responses, update the `exampleResponse` in `data/tools.json`.
-- **Test your changes**: After modifying metadata, run `npm run build:docs` and verify the generated files are correct.
+- **Test your changes**: After modifying metadata, run `pnpm run build:docs` and verify the generated files are correct.
 
 ## Pull Request Process
 
-1.  **Update Documentation**: If your change affects how a tool works, update `data/tools.json` and run `npm run build:docs` to regenerate documentation.
+1.  **Update Documentation**: If your change affects how a tool works, update `data/tools.json` and run `pnpm run build:docs` to regenerate documentation.
 2.  **Update Changelog**: Significant changes should be noted.
 3.  **Push to your fork**:
 
