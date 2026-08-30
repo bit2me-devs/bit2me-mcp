@@ -1,0 +1,28 @@
+---
+description: Modelo de amenaza real del MCP Bit2Me (local, un usuario, proxy a Bit2Me)
+alwaysApply: true
+---
+
+# Modelo de amenaza — Bit2Me MCP
+
+Este servidor lo **ejecuta un usuario en su máquina local** (stdio o HTTP en loopback). No es un SaaS multi-tenant ni un API público.
+
+## Hechos (no reevaluar en cada auditoría)
+
+- **Un solo tenant**: las credenciales del proceso (`BIT2ME_API_KEY` / JWT) son las del usuario. El “fallback” a env no es confused deputy entre cuentas.
+- **Proxy hacia Bit2Me**: la autenticación efectiva la hace el **API gateway de Bit2Me**. Un gate HTTP que solo comprueba que existan cabeceras no es un hallazgo: Bit2Me rechaza keys/JWT inválidos en las tools que llaman al API.
+- **No hay atacante de red típico** contra el proceso. El bind por defecto es `127.0.0.1`. No priorizar lockout multi-IP, aislamiento entre tenants, `/metrics` cross-tenant ni DoS de stuffing remoto.
+- **Hono/Express del SDK** no es el surface HTTP de este binario (usa Fastify propio o stdio).
+
+## Qué SÍ importa
+
+1. **Diputado confuso del LLM**: prompt injection o un agente que dispare tools WRITE (órdenes, earn/pro withdraw, préstamos) con el dinero del usuario. Confirmación, scopes de la API key, `idempotency_key` estable en reintentos, `validateAmount` estricto.
+2. **Autolesión por config**: `BIT2ME_GATEWAY_URL` malicioso, `.env` legible, `INCLUDE_RAW_RESPONSE=true`, bind `0.0.0.0` sin TLS.
+3. **Endurecimiento del cliente Axios** (redirects, proxy de entorno) como defensa si el gateway o el `.env` se tuerce — no como si el MCP fuera un servidor expuesto.
+
+## Qué NO reportar como High/Critical
+
+- Auth HTTP “solo presencia de cabeceras” (el gateway valida).
+- Fugas “cross-tenant” o lockout que tumba a “otro” tenant.
+- SSRF a metadata cloud (169.254…) salvo que el usuario despliegue esto en un servidor cloud (no es el caso).
+- Multi-tenant ALS / HMAC de tenant como requisito de producto.

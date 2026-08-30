@@ -2,6 +2,10 @@
 node_modules/
 .pnpm-store/
 
+# Rama feat/go-migration — no indexar en main
+go/
+.claude/
+
 # Builds y artefactos
 build/
 dist/

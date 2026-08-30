@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 13:30 UTC] — Limpieza de restos de feat/go-migration en el working tree
+
+- Se quitan binarios `go/bin` y skills/rules de checkout que no están en GitHub `main`. La rama `feat/go-migration` sigue intacta. `.gitignore` ignora `/go/` y `.claude/` en main.
+
 ## [2026-08-30 13:27 UTC] — Segunda pasada: preview de confirm y confirm opcional
 
 - Sin `confirm` el WRITE devuelve preview (no error). `confirm` deja de ser required/ejemplo. Confirm por defecto en todo WRITE salvo quotes. See [WRITE_TOOL_SAFEGUARDS](done-tasks/WRITE_TOOL_SAFEGUARDS.md).

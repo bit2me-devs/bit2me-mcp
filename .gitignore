@@ -35,10 +35,18 @@ Thumbs.db
 *.sublime-project
 *.iml
 
-# Cursor (cachés y locales; las reglas y skills SÍ se versionan)
+# Cursor (cachés y locales; las reglas de este repo SÍ se versionan)
 .cursor/cache/
 .cursor/logs/
 .cursor/tmp/
+.cursor/skills/
+
+# Skills de otro repo (checkout) — no pertenecen a bit2me-mcp
+.claude/
+
+# Código / binarios de feat/go-migration. El árbol `go/` vive en esa rama;
+# en main solo quedarían artefactos sueltos (p. ej. go/bin/) al cambiar de rama.
+/go/
 
 # Test coverage
 coverage/
