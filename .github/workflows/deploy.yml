@@ -6,12 +6,10 @@ on:
     push:
         branches: ["main"]
 
-    # `release: published` re-runs the deploy *after* semantic-release
-    # cuts a new GitHub Release. Without this hook the push-triggered
-    # deploy and the release run race, so the landing ends up
-    # advertising the previous tag for one cycle. Triggering on
-    # `published` instead of `created` ensures the tag is fully visible
-    # to `git describe` by the time the checkout runs.
+    # `release: published` does NOT fire when semantic-release uses
+    # GITHUB_TOKEN (GitHub will not start a second workflow from that
+    # token). The post-tag Pages deploy lives in release.yml (`landing`
+    # job). This hook only helps if a human or a PAT publishes a release.
     release:
         types: [published]
 

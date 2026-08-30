@@ -119,3 +119,58 @@ jobs:
             # published npm tarball and on the GitHub Release page; the
             # in-tree CHANGELOG.md is regenerated periodically via a manual
             # PR by a maintainer.
+
+    # GITHUB_TOKEN events do not start other workflows, so deploy.yml's
+    # `on.release` never runs after semantic-release. Redeploy Pages here
+    # (same workflow) once the new tag exists.
+    landing:
+        name: Deploy landing after release
+        needs: release
+        if: success()
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pages: write
+            id-token: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 0
+                  fetch-tags: true
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+
+            - name: Setup Node
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: "20"
+                  cache: "pnpm"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Generate landing tools data
+              run: pnpm run build:docs
+
+            - name: Generate LLM Docs
+              run: pnpm run build:llms
+
+            - name: Minify HTML for production
+              run: MINIFY=true node scripts/minify-html.js
+
+            - name: Configurar GitHub Pages
+              uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+            - name: Subir los archivos de la carpeta landing
+              uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+              with:
+                  path: "./landing"
+
+            - name: Desplegar a GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

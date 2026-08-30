@@ -14,12 +14,13 @@ import { execFileSync } from 'child_process';
 /**
  * Resolve the version we want to advertise on the landing page.
  *
- * `semantic-release` is configured to NOT push the version bump back to
- * `main` (the branch ruleset only allows admin bypass, and the
- * `github-actions[bot]` token isn't an admin), so `package.json.version`
- * lags behind the actual published tag. The git tag is the source of
- * truth: it is created by the same release run that pushes to npm and
- * cuts the GitHub Release.
+ * `semantic-release` does NOT commit the version bump back to `main`
+ * (ruleset + github-actions[bot] is not an admin), so
+ * `package.json.version` lags npm and the git tag. The tag is created
+ * in the Release workflow; a follow-up job in that same workflow
+ * regenerates this file after the tag exists. The hero badge also
+ * reads the live npm `latest` version so a raced Pages deploy cannot
+ * advertise a stale snapshot.
  *
  * Strategy:
  *   1. Try `git describe --tags --abbrev=0` (latest reachable tag).

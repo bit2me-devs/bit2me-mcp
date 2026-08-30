@@ -5378,13 +5378,31 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                 }
             }
 
-            // Update version badge
-            function updateVersion() {
+            // Hero badge must match npm (shields.io). tools-data.js is a
+            // snapshot from `git describe` at Pages build time and lags
+            // when GITHUB_TOKEN cannot trigger a second deploy.
+            function applyVersion(version) {
                 const versionText = document.getElementById("version-text");
-                if (versionText && window.packageVersion) {
-                    versionText.textContent = `v${window.packageVersion} Stable`;
-                } else if (versionText) {
-                    // Fallback if version not loaded yet
+                if (versionText && version) {
+                    versionText.textContent = `v${String(version).replace(/^v/, "")} Stable`;
+                }
+            }
+            async function updateVersion() {
+                try {
+                    const res = await fetch("https://registry.npmjs.org/@bit2me/mcp-server/latest");
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.version) {
+                            applyVersion(data.version);
+                            return;
+                        }
+                    }
+                } catch {
+                    /* use baked snapshot */
+                }
+                if (window.packageVersion) {
+                    applyVersion(window.packageVersion);
+                } else {
                     setTimeout(updateVersion, 100);
                 }
             }
