@@ -1,5 +1,5 @@
 // Auto-generated from data/tools.json
-// Do not edit manually - run: npm run build:docs
+// Do not edit manually - run: pnpm run build:docs
 
 const toolsData = [
     {

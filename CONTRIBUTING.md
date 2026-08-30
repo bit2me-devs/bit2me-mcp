@@ -113,11 +113,12 @@ git commit -m "docs: update CONTRIBUTING.md"
 
 - **Commit Messages**: MUST be in **English**.
 - **Code Comments**: MUST be in **English**.
-- **Documentation**: MUST be in **English**.
+- **Public documentation** (README, CONTRIBUTING, SECURITY, AGENTS.md, ADRs, generated tool docs, root `CHANGELOG.md`): **English**.
+- **Internal initiative log** (`docs/done-tasks/`, `docs/CHANGELOG.md`): **Spanish**. See [docs/README.md](./docs/README.md).
 
 ## Testing
 
-We use **Vitest** for testing. We aim for high test coverage (>95%).
+We use **Vitest** for testing. Target coverage is **97%+** (pragmatic; do not drop it).
 
 - **Run all tests:**
 
@@ -175,14 +176,14 @@ This project uses a centralized metadata system for all tool definitions. The so
 
 ### Important Notes
 
-- **Never edit generated files manually**: `landing/tools-data.js` is auto-generated. Always edit `data/tools.json` and run `pnpm run build:docs`.
+- **Never edit generated files manually**: `landing/tools-data.js` and `TOOLS_DOCUMENTATION.md` are auto-generated. Always edit `data/tools.json` and run `pnpm run build:docs`.
 - **Keep examples up to date**: When modifying tool responses, update the `exampleResponse` in `data/tools.json`.
 - **Test your changes**: After modifying metadata, run `pnpm run build:docs` and verify the generated files are correct.
 
 ## Pull Request Process
 
 1.  **Update Documentation**: If your change affects how a tool works, update `data/tools.json` and run `pnpm run build:docs` to regenerate documentation.
-2.  **Update Changelog**: Significant changes should be noted.
+2.  **Changelogs**: Do not edit the root `CHANGELOG.md` (Semantic Release). Maintainers record initiatives in `docs/done-tasks/` and `docs/CHANGELOG.md` (see [docs/README.md](./docs/README.md)).
 3.  **Push to your fork**:
 
     ```bash

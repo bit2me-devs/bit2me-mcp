@@ -1,6 +1,8 @@
 # Agent Rules for Bit2Me MCP Server Repository
 
-This document contains all the rules, conventions, and practices learned for managing this repository.
+Canonical map of all docs (generated vs hand-edited, EN vs ES): [`docs/README.md`](./docs/README.md).
+
+This document contains conventions for implementing in this repository.
 
 ## 📋 Table of Contents
 
@@ -158,7 +160,7 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
 - `tests/tools/*.test.ts` - Tool handler tests
 - `tests/config.test.ts` - Configuration tests
 - `tests/auth.test.ts` - Authentication tests
-- `tests/registry.test.ts` - Zero-diff registry regression: verifies that every tool in `data/tools.json` has a registered handler and that the tool list hasn't changed unexpectedly.
+- `tests/regression.test.ts` - Zero-diff catalogue: every tool in `data/tools.json` matches the registry (modulo injected `jwt`).
 - `tests/concurrency.test.ts` - Verifies `AsyncLocalStorage` isolation: concurrent requests with different JWTs do not bleed state into each other.
 - `tests/http-transport.test.ts` - Integration tests for the HTTP/SSE binary.
 
@@ -505,23 +507,23 @@ export async function handleExampleTool(name: string, args: Record<string, unkno
 
 **Conventions for write tools:**
 
-- Accept and forward an optional `idempotency_key` argument. If the caller doesn't supply one, the tool wrapper auto-generates a UUID.
-- Use `decimal.js` for any monetary arithmetic (balances, amounts, valuations). Never use plain JS `number` for money.
-- Validate amount inputs with `validateAmount()` from `src/utils/format.ts` (enforces positive value and `MAX_AMOUNT = 1e12`). Validate date ranges with `validateDateRange()`.
+- Accept optional `idempotency_key`. The tool wrapper stamps a stable key (UUID if omitted) and audit uses the same value. Sanitize before sending `Idempotency-Key`.
+- Irreversible WRITE tools (not Broker quotes) must not put `confirm` in `required` or `exampleArgs`. Runtime returns `needs_confirmation` unless `confirm === true`.
+- Use `decimal.js` for monetary arithmetic. Validate amounts with `validateAmount()` from `src/utils/format.ts` (implemented in `src/utils/amount.ts`). Validate date ranges with `validateDateRange()`.
 
 ### 3. Registry (`src/tools/registry.ts`)
 
 Register the handler so the declarative registry can dispatch it:
 
-```typescript
-// src/tools/registry.ts
-import { handleExampleTool } from "./example.js";
+Existing categories (`general`, `broker`, `wallet`, `earn`, `loan`, `pro`) are registered once via `registerCategory(...)` in `src/tools/registry.ts`. A new tool in an **existing** category only needs its handler `if (name === "...")` branch — the JSON catalogue is listed automatically.
 
-// Add to the registry map:
-registry.set("example_get_data", handleExampleTool);
+If you add a **new category**, register it:
+
+```typescript
+registerCategory("example", exampleTools, handleExampleTool as ToolHandler);
 ```
 
-> **No manual list-tools wiring needed**: The registry reads tool definitions from `data/tools.json` at startup and exposes them automatically via `ListToolsRequestSchema`.
+Do not add an `if/else` chain in `index.ts`. `tests/regression.test.ts` checks that every `data/tools.json` name matches the registry (modulo injected `jwt`).
 
 ### 4. Response Mapping (`src/utils/`)
 
@@ -551,7 +553,7 @@ export function mapExampleResponse(raw: unknown): ExampleResponse {
 
 1. **Mapper Tests**: Add test cases in `tests/mappers.test.ts`.
 2. **Tool Tests**: Create `tests/tools/example.test.ts`.
-3. **Registry regression**: The zero-diff test in `tests/registry.test.ts` will automatically verify your new tool appears in the registry after you add it to `data/tools.json`. No changes needed there.
+3. **Registry regression**: `tests/regression.test.ts` verifies every `data/tools.json` name matches the in-memory registry. No edit needed there when you only add a tool to an existing category.
 4. **Concurrency**: If your tool stores per-request state, add a test in `tests/concurrency.test.ts` verifying that two concurrent invocations do not bleed state.
 
 ```typescript
@@ -577,7 +579,7 @@ describe("Example Tools", () => {
 
 1. **TOOLS_DOCUMENTATION.md**: Auto-generated from `data/tools.json` — run `pnpm build:docs` after editing the metadata.
 2. **README.md**: Update category counts in "Available Tools & API Endpoints" if a new category is introduced or a count changes.
-3. **Landing Page**: `landing/` is updated by a separate agent — do not touch it here.
+3. **Landing catalogue**: `pnpm build:docs` regenerates `landing/tools-data.js`. Do not edit that file by hand. HTML/CSS/`CNAME` in `landing/` are maintained separately.
 
 ### 7. Verification
 

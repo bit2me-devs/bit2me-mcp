@@ -64,6 +64,7 @@ tmp/
 # (Architectural Decision Records) SÍ se versionan.
 # Nota: usamos docs/* (no docs/) para que git pueda re-incluir las excepciones.
 docs/*
+!docs/README.md
 !docs/stack/
 !docs/adr/
 !docs/done-tasks/

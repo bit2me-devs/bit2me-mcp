@@ -1858,7 +1858,7 @@ _Note: Write operation tools are included in their respective categories._
 
 - **Source of truth**: [`data/tools.json`](./data/tools.json) contains all tool definitions, input schemas, response schemas and examples.
 - **Landing page**: The [landing site](./landing/index.html) is auto-generated from the same source.
-- **Regenerate docs**: Run `npm run build:docs` after modifying `data/tools.json`.
+- **Regenerate docs**: Run `pnpm run build:docs` after modifying `data/tools.json`.
 
 ---
 

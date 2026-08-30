@@ -31,14 +31,14 @@ This folder contains scripts for generating documentation and project artifacts.
 
 **Generates:**
 
-- `landing/llms-full.txt` - Complete documentation
-- `landing/llms.txt` - Lightweight version
+- `landing/llms-full.txt` — complete dump
+- `landing/llms.txt` — short index
 
 **Sources:**
 
 - `README.md`
-- `agents.md`
-- `CHANGELOG.md`
+- `AGENTS.md`
+- `CHANGELOG.md` (npm / Semantic Release)
 
 ---
 
@@ -72,7 +72,7 @@ NODE_ENV=production node scripts/minify-html.js
     pnpm run build:docs
     ```
 
-3. **Regenerate LLM documentation (if you change README/agents/CHANGELOG):**
+3. **Regenerate LLM documentation (if you change README / AGENTS.md / root CHANGELOG.md):**
 
     ```bash
     pnpm run build:llms

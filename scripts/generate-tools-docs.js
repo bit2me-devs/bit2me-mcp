@@ -198,7 +198,7 @@ function generateLandingToolsData(metadata, version) {
     }));
 
     return `// Auto-generated from data/tools.json
-// Do not edit manually - run: npm run build:docs
+// Do not edit manually - run: pnpm run build:docs
 
 const toolsData = ${JSON.stringify(categories, null, 4)};
 
@@ -337,7 +337,7 @@ function generateToolsDocumentation(metadata) {
     doc += '## Additional Resources\n\n';
     doc += '- **Source of truth**: [`data/tools.json`](./data/tools.json) contains all tool definitions, input schemas, response schemas and examples.\n';
     doc += '- **Landing page**: The [landing site](./landing/index.html) is auto-generated from the same source.\n';
-    doc += '- **Regenerate docs**: Run `npm run build:docs` after modifying `data/tools.json`.\n\n';
+    doc += '- **Regenerate docs**: Run `pnpm run build:docs` after modifying `data/tools.json`.\n\n';
     doc += `---\n\n_Auto-generated on ${new Date().toISOString().split('T')[0]}._\n`;
     
     return doc;

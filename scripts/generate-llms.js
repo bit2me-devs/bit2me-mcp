@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 // Configuration
 const SOURCE_FILES = [
     { path: 'README.md', title: 'README / Documentation' },
-    { path: 'agents.md', title: 'Agent Rules & Conventions' },
+    { path: 'AGENTS.md', title: 'Agent Rules & Conventions' },
     { path: 'CHANGELOG.md', title: 'Changelog' }
 ];
 const OUTPUT_DIR = 'landing';

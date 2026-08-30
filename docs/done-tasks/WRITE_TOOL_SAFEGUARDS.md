@@ -35,7 +35,7 @@ Alineado con el modelo de amenaza local: no es un hallazgo multi-tenant. Es defe
 
 ### Operations
 
-Tras publicar, los clientes MCP verán `confirm` en el schema. Las llamadas WRITE de Pro/Earn/Loan sin `confirm: true` fallan con `ValidationError` y no llegan a Bit2Me.
+Tras publicar, `confirm` es opcional en el schema. Sin `confirm === true`, Pro/Earn/Loan WRITE devuelven `needs_confirmation` (sin llamar a Bit2Me). El audit registra `needs_confirmation`.
 
 ## Change log
 

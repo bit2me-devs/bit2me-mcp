@@ -47,9 +47,9 @@
 - [ ] ✅ All tests pass (`pnpm test`)
 - [ ] ✅ Lint passes (`pnpm lint`)
 - [ ] ✅ Code formatted (`pnpm run lint:fix`)
-- [ ] 📖 Documentation updated (if needed)
+- [ ] 📖 Documentation updated (if needed). Tool changes: `data/tools.json` + `pnpm build:docs`
 - [ ] 🔒 No sensitive data exposed
-- [ ] ♿ Accessibility considered (if applicable)
+- [ ] ♿ Accessibility considered (landing HTML only; N/A for the MCP server)
 
 ## Screenshots (if applicable)
 

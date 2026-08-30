@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/bit2me-devs/bit2me-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/bit2me-devs/bit2me-mcp)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11511/badge)](https://www.bestpractices.dev/projects/11511)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server to interact with the [Bit2Me](https://bit2me.com/) ecosystem. This server allows AI assistants like Claude to access real-time market data, manage wallets, execute trading operations, and query products like Earn and Loans.
@@ -22,7 +22,7 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 - **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
 - **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
 - **Operations**: Execute trades, transfers, and withdrawals securely.
-- **Idempotency & Retries**: Every write tool auto-generates an idempotency key; failed POST/DELETE calls retry with exponential backoff + jitter, making operations safe to retry without duplicates.
+- **Write safeguards**: Irreversible writes (Pro / Earn / Loan) first return a `needs_confirmation` preview unless `confirm` is the boolean `true`. Every write tool forwards a stable `idempotency_key` (auto-generated if omitted). Failed POST/DELETE calls retry with exponential backoff + jitter when that key is present.
 - **Decimal Precision**: Portfolio valuation uses `decimal.js` — no floating-point drift on large balances or high-precision assets.
 - **Expanded PII Redaction**: Logs automatically scrub email addresses, IBANs, phone numbers, KYC fields, JWT-shaped tokens, and long base64 blobs, in addition to API keys and signatures.
 - **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter, preventing replay attacks even under high concurrency.
@@ -46,8 +46,9 @@ Full descriptions, response schemas, Bit2Me REST endpoints and usage notes live 
 
 All tool responses are normalised for LLM consumption (consistent naming, flattened payloads, concise metadata). Use the following references when developing new tooling:
 
-- **[`TOOLS_DOCUMENTATION.md`](./TOOLS_DOCUMENTATION.md)** – Auto-generated catalogue with descriptions, Bit2Me endpoints and response schemas for each tool.
-- **[`data/tools.json`](./data/tools.json)** – Source metadata powering the landing page (includes request/response schemas and examples for each tool).
+- **[`docs/README.md`](./docs/README.md)** – Map of every canonical doc (what to edit vs what is generated).
+- **[`TOOLS_DOCUMENTATION.md`](./TOOLS_DOCUMENTATION.md)** – Auto-generated catalogue (`pnpm build:docs` from `data/tools.json`).
+- **[`data/tools.json`](./data/tools.json)** – Source of truth for tool metadata, schemas and examples.
 
 ## ⚙️ Installation and Configuration
 
@@ -69,22 +70,22 @@ The recommended way to authenticate is using API Keys. This method is secure, gr
 
 #### JWT Session Token (Alternative)
 
-All tools support an optional `jwt` parameter for session-based authentication. This is useful for:
+All tools accept an optional `jwt` argument (session cookie toward Bit2Me). Typical local use does **not** need it.
 
-- **Multi-tenant applications**: Where each request is made on behalf of a different user.
-- **Web integrations**: Where users are already authenticated via the Bit2Me web interface.
+- **stdio / Claude Desktop**: prefer API keys in `.env`. `jwt` is only for a one-off session token.
+- **HTTP binary**: send `Authorization: Bearer <jwt>` (or API-key headers) per request — see ADR 0001.
 
-When the `jwt` parameter is provided, the server will use cookie-based authentication instead of API Keys.
+When `jwt` is provided on a **stdio** call (and HTTP has not already authenticated the request), the server uses session-cookie auth toward Bit2Me instead of the process API keys.
 
 ```typescript
-// Example: Using JWT session token
+// Example: optional session token on a tool call
 const result = await mcpClient.callTool("wallet_get_pockets", {
     symbol: "BTC",
-    jwt: "user_session_token_here", // Optional - uses API keys if omitted
+    jwt: "user_session_token_here", // omitted → API keys from the environment
 });
 ```
 
-> **📝 Note:** API Keys are recommended for most use cases. The `jwt` parameter should only be used when building multi-tenant applications or web integrations where users have existing Bit2Me sessions.
+> **Note:** For local Claude Desktop / Cursor, API keys in `.env` are enough. Per-request JWT or API-key headers belong to the **HTTP** binary (`bit2me-mcp-http`). See [docs/adr/0001-valet-key-http-credentials.md](./docs/adr/0001-valet-key-http-credentials.md) and the [documentation map](./docs/README.md).
 
 ### Steps
 
@@ -434,9 +435,9 @@ Deployment is automated using GitHub Actions.
 
 **How to update the website:**
 
-1. Edit the HTML/CSS files in `/landing`.
-2. Push your changes to the `main` branch.
-3. The `.github/workflows/deploy.yml` action will automatically publish the changes.
+1. Tool catalogue: edit `data/tools.json`, then `pnpm build:docs` (updates `landing/tools-data.js`). Do not edit `tools-data.js` by hand.
+2. Page chrome: edit HTML/CSS/`CNAME` in `/landing` if needed.
+3. Push to `main`. `.github/workflows/deploy.yml` publishes GitHub Pages.
 
 **Domain:**
 The `/landing/CNAME` file manages the custom domain configuration.
