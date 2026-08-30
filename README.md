@@ -384,7 +384,13 @@ pnpm dlx @modelcontextprotocol/inspector node build/index.js
 
 Or after install: `pnpm dev` (same inspector against `build/index.js`).
 
-**Note:** The inspector will automatically open at `http://localhost:5173`
+CLI (no browser) — list tools against the local build:
+
+```bash
+pnpm dlx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list
+```
+
+**Note:** The web inspector opens at `http://localhost:5173`.
 
 ### Using the Inspector
 
@@ -428,9 +434,10 @@ Deployment is automated using GitHub Actions.
 
 **How to update the website:**
 
-1. Tool catalogue: edit `data/tools.json`, then `pnpm build:docs` (updates `landing/tools-data.js`). Do not edit `tools-data.js` by hand.
+1. Tool catalogue: edit `data/tools.json` (Python/shell), then `pnpm build:docs`. Do not edit `tools-data.js` by hand.
 2. Page chrome: edit HTML/CSS/`CNAME` in `/landing` if needed.
-3. Push to `main`. `.github/workflows/deploy.yml` publishes GitHub Pages.
+3. Push to `main`. Pages deploy on push; after a SemVer release the `landing` job in `release.yml` runs again so the catalogue snapshot can see the new git tag.
+4. The hero **Stable** badge reads **live npm**, not `package.json` on `main`. Same source as the shields.io npm badge. See [docs/stack/release.md](./docs/stack/release.md).
 
 **Domain:**
 The `/landing/CNAME` file manages the custom domain configuration.

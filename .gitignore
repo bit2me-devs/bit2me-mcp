@@ -66,6 +66,7 @@ docs/*
 !docs/stack/
 !docs/stack/**
 !docs/adr/
+!docs/adr/**
 !docs/done-tasks/
 !docs/done-tasks/**
 !docs/CHANGELOG.md

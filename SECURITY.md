@@ -18,6 +18,12 @@ If you do not receive an acknowledgement of your report within 6 business days, 
 
 If the project acknowledges your report but does not provide any further response or engagement within 14 days, escalation is also appropriate.
 
+## Threat model (this repository)
+
+The server is a **local, single-user proxy** (stdio or HTTP on `127.0.0.1`). Bit2Me’s gateway authenticates keys/JWTs. The findings that matter are LLM confused-deputy on WRITE tools and self-inflicted config — not multi-tenant SaaS issues.
+
+Canonical write-up: [`docs/adr/0003-local-single-user-threat-model.md`](./docs/adr/0003-local-single-user-threat-model.md).
+
 ## Security Best Practices
 
 When using the Bit2Me MCP server, please follow these security best practices:

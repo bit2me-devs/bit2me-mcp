@@ -71,7 +71,7 @@ NODE_ENV=production node scripts/minify-html.js
 1. **Modify tools metadata:**
 
     ```bash
-    # Edit data/tools.json
+    # Edit data/tools.json with python3 or the shell (file is huge)
     ```
 
 2. **Regenerate documentation:**

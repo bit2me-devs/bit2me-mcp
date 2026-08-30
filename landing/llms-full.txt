@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2026-08-30T13:39:48.120Z
+> Generated on 2026-08-30T19:39:15.519Z
 
 
 ==================================================
@@ -22,7 +22,7 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 - **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
 - **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
 - **Operations**: Execute trades, transfers, and withdrawals securely.
-- **Write safeguards**: Irreversible writes (Pro / Earn / Loan) first return a `needs_confirmation` preview unless `confirm` is the boolean `true`. Every write tool forwards a stable `idempotency_key` (auto-generated if omitted). Failed POST/DELETE calls retry with exponential backoff + jitter when that key is present.
+- **Write safeguards**: Irreversible writes (Pro / Earn / Loan / `broker_confirm_quote`) first return a `needs_confirmation` preview unless `confirm` is the boolean `true`. The preview includes the stamped `idempotency_key` so a retry reuses it. Failed POST/DELETE calls retry with exponential backoff + jitter when that key is present.
 - **Decimal Precision**: Portfolio valuation uses `decimal.js` — no floating-point drift on large balances or high-precision assets.
 - **Expanded PII Redaction**: Logs automatically scrub email addresses, IBANs, phone numbers, KYC fields, JWT-shaped tokens, and long base64 blobs, in addition to API keys and signatures.
 - **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter, preventing replay attacks even under high concurrency.
@@ -293,7 +293,7 @@ Reliability features active by default:
 - Circuit breaker on the upstream Bit2Me API (`src/utils/circuit-breaker.ts`).
 - Per-endpoint rate limiter with exponential backoff + jitter.
 - Idempotency keys on every write tool (`pro_create_order`, `loan_create`, `earn_deposit`, …) — the wrapper stamps a stable key if the caller omits `idempotency_key`.
-- Irreversible writes (Pro / Earn / Loan, not Broker quotes) return a `needs_confirmation` preview unless `confirm` is the boolean `true`.
+- Irreversible writes (Pro / Earn / Loan / `broker_confirm_quote`; not `broker_quote_*`) return a `needs_confirmation` preview unless `confirm` is the boolean `true`. The preview repeats the stamped `idempotency_key`.
 - Monotonic request nonces for API-key signing (replay-safe even under high concurrency).
 - Append-only audit log for every successful **and** failed write operation.
 
@@ -384,7 +384,13 @@ pnpm dlx @modelcontextprotocol/inspector node build/index.js
 
 Or after install: `pnpm dev` (same inspector against `build/index.js`).
 
-**Note:** The inspector will automatically open at `http://localhost:5173`
+CLI (no browser) — list tools against the local build:
+
+```bash
+pnpm dlx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list
+```
+
+**Note:** The web inspector opens at `http://localhost:5173`.
 
 ### Using the Inspector
 
@@ -428,9 +434,10 @@ Deployment is automated using GitHub Actions.
 
 **How to update the website:**
 
-1. Tool catalogue: edit `data/tools.json`, then `pnpm build:docs` (updates `landing/tools-data.js`). Do not edit `tools-data.js` by hand.
+1. Tool catalogue: edit `data/tools.json` (Python/shell), then `pnpm build:docs`. Do not edit `tools-data.js` by hand.
 2. Page chrome: edit HTML/CSS/`CNAME` in `/landing` if needed.
-3. Push to `main`. `.github/workflows/deploy.yml` publishes GitHub Pages.
+3. Push to `main`. Pages deploy on push; after a SemVer release the `landing` job in `release.yml` runs again so the catalogue snapshot can see the new git tag.
+4. The hero **Stable** badge reads **live npm**, not `package.json` on `main`. Same source as the shields.io npm badge. See [docs/stack/release.md](./docs/stack/release.md).
 
 **Domain:**
 The `/landing/CNAME` file manages the custom domain configuration.
@@ -541,17 +548,16 @@ chore(deps): bump zod from 4.1.12 to 4.1.13
 - **Configuration file**: `.releaserc.json`
 - **Release rules**: Defined in `releaseRules` array
 - **Branches**: Only `main` branch triggers releases
-- **Node.js version**: Requires Node.js 22+ (Semantic Release requirement)
+- **Node.js version**: Release CI uses Node 24 (OIDC). Runtime is Node 20+.
 
 ### Release Process
 
-1. Push commits with `feat:` or `fix:` to `main`
-2. Semantic Release analyzes commits since last tag
-3. Generates new version based on commit types
-4. Updates `CHANGELOG.md` and `package.json`
-5. Creates Git tag (e.g., `v1.2.0`)
-6. Publishes to NPM
-7. Creates GitHub release
+Canonical playbook: [`docs/stack/release.md`](./docs/stack/release.md).
+
+1. Push `feat:` / `fix:` / `perf:` to `main` (maintainers). Contributors use a PR.
+2. Semantic Release analyzes commits since the last **git tag**
+3. Publishes `@bit2me/mcp-server`, creates tag `vX.Y.Z` and a GitHub Release
+4. It does **not** commit `package.json` or root `CHANGELOG.md` back to `main` (bot is not a ruleset admin). Trust **npm + the git tag**, not `package.json` on `main`.
 
 ### Version Bump Rules
 
@@ -631,7 +637,7 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
 - **Framework**: Vitest
 - **Location**: `tests/` directory
 - **Pattern**: Mirror `src/` structure
-- **Coverage target**: 97%+ (pragmatic approach)
+- **Coverage gate** (Vitest): lines/functions/statements 70%, branches 60% (`vitest.config.ts`). Do not lower the gate. Aspirational line coverage is higher; CI does not require 97%.
 
 ### Test Files
 
@@ -679,11 +685,10 @@ pnpm test:coverage    # Generate coverage report
 
 2. **Release** (`.github/workflows/release.yml`)
     - Runs on: Push to `main`
-    - Steps: Build, Test, Semantic Release
-    - Node.js: 22 (required for Semantic Release)
-    - **Critical**: Requires `NPM_TOKEN` secret
-    - Generates SBOM (CycloneDX format) and signs the release artifact with cosign keyless signing.
-    - `prepublishOnly` runs the full validate pipeline before any npm publish.
+    - Steps: Build, Test, Semantic Release, then Pages (`landing` job)
+    - Node.js: **24** (OIDC trusted publishing)
+    - Auth to npm: OIDC (no `NPM_TOKEN` in the current workflow)
+    - Generates SBOM (CycloneDX) and signs artifacts with cosign keyless signing.
 
 3. **Deploy** (`.github/workflows/deploy.yml`)
     - Runs on: Push to `main`
@@ -697,17 +702,16 @@ pnpm test:coverage    # Generate coverage report
 ### Release Workflow Steps
 
 1. Checkout with `fetch-depth: 0` (needed for Semantic Release)
-2. Setup Node.js 22 with pnpm cache
+2. Setup Node.js 24 with pnpm cache
 3. Install dependencies (`pnpm install --frozen-lockfile`)
 4. Build (`pnpm build`)
 5. Test (`pnpm test`)
-6. Configure npm authentication (`.npmrc`)
-7. Run Semantic Release
+6. Semantic Release (OIDC to npm)
+7. Redeploy GitHub Pages so the landing sees the new tag
 
 ### Required Secrets
 
-- **`NPM_TOKEN`**: NPM automation token (type: Automation or Publish)
-- **`GITHUB_TOKEN`**: Auto-provided by GitHub Actions
+- **`GITHUB_TOKEN`**: Auto-provided. npm uses OIDC trusted publishing, not `NPM_TOKEN`.
 
 ---
 
@@ -720,33 +724,23 @@ pnpm test:coverage    # Generate coverage report
 - **Provenance**: Enabled (`publishConfig.provenance: true`)
 - **Registry**: `https://registry.npmjs.org`
 
-### NPM Token Requirements
+### Trusted publishing (OIDC)
 
-- **Type**: Must be "Automation" or "Publish" (NOT "Read-only")
-- **Scope access**: Must have access to `@bit2me` scope
-- **Location**: GitHub Secrets → `NPM_TOKEN`
-- **Expiration**: Set appropriate expiration (default: 90 days)
+- npm authenticates the **Release** workflow via OIDC (`id-token: write`).
+- There is no `NPM_TOKEN` secret in the current `release.yml`.
+- `@bit2me/mcp-server` must list that workflow as trusted publisher.
 
 ### Publishing Process
 
-1. Semantic Release detects release-worthy commits
-2. Updates version in `package.json`
-3. Builds package (`prepublishOnly` hook)
-4. Publishes to NPM registry
-5. Creates Git tag
-6. Creates GitHub release
+See [`docs/stack/release.md`](./docs/stack/release.md). Semantic Release publishes and tags; it does **not** push a version bump commit to `main`.
 
 ### Troubleshooting NPM Publishing
 
-- **Error: Invalid npm token**
-    - Verify token type is "Automation" or "Publish"
-    - Check token has `@bit2me` scope access
-    - Verify token is not expired
-    - Ensure `.npmrc` is configured in workflow
-
+- **Error: OIDC / trusted publisher**
+    - The Release workflow must stay the trusted publisher for `@bit2me/mcp-server`
+    - Job needs `id-token: write`
 - **Error: Node version**
-    - Semantic Release requires Node.js 22+
-    - Update `node-version` in workflow to "22"
+    - Release workflow uses Node.js 24 (not 22)
 
 ---
 
@@ -905,11 +899,12 @@ Set `AUDIT_LOG_PATH` to persist to a dedicated file. If unset, the line is emitt
 
 ### Semantic Release Not Publishing
 
-1. **Check Node.js version**: Must be 22+
-2. **Verify NPM_TOKEN**: Type must be "Automation" or "Publish"
-3. **Check commit types**: Only `feat:` and `fix:` trigger releases
+1. **Check Node.js version**: Release workflow must stay on Node 24
+2. **Check OIDC / trusted publisher** for `@bit2me/mcp-server` (not `NPM_TOKEN`)
+3. **Check commit types**: Only `feat:` / `fix:` / `perf:` trigger releases
 4. **Verify last tag**: Semantic Release analyzes commits since last tag
 5. **Check workflow logs**: Look for authentication errors
+6. **`package.json` on `main` looking old is expected** — see [`docs/stack/release.md`](./docs/stack/release.md)
 
 ### Tests Failing
 
@@ -924,12 +919,12 @@ Set `AUDIT_LOG_PATH` to persist to a dedicated file. If unset, the line is emitt
 2. **Missing types**: Install `@types/*` packages
 3. **Import errors**: Verify `.js` extensions in imports
 
-### NPM Token Issues
+### npm publish / OIDC Issues
 
-1. **Token type**: Must be "Automation" or "Publish"
-2. **Scope access**: Verify `@bit2me` scope permissions
-3. **Expiration**: Check token hasn't expired
-4. **Secret name**: Must be exactly `NPM_TOKEN` in GitHub Secrets
+1. Confirm the Release job has `id-token: write` and `contents: write`
+2. Confirm npm trusted publisher matches `.github/workflows/release.yml`
+3. Confirm Node 24 in that workflow (OIDC)
+4. Do not add `NPM_TOKEN` unless trusted publishing is retired on purpose
 
 ### Git Hook Failures
 
@@ -944,6 +939,8 @@ Set `AUDIT_LOG_PATH` to persist to a dedicated file. If unset, the line is emitt
 To add a new tool to the MCP server, follow this comprehensive checklist to ensure consistency, quality, and proper documentation.
 
 ### 1. Metadata (`data/tools.json`)
+
+`data/tools.json` is the catalogue and is **too large for the Cursor Read/StrReplace tools** (often ignored). Edit it with `python3` or the shell, then `pnpm build:docs`. Never re-indent the whole file.
 
 Add the tool definition to the appropriate category in `data/tools.json`:
 
@@ -988,7 +985,7 @@ export async function handleExampleTool(name: string, args: Record<string, unkno
 **Conventions for write tools:**
 
 - Accept optional `idempotency_key`. The tool wrapper stamps a stable key (UUID if omitted) and audit uses the same value. Sanitize before sending `Idempotency-Key`.
-- Irreversible WRITE tools (not Broker quotes) must not put `confirm` in `required` or `exampleArgs`. Runtime returns `needs_confirmation` unless `confirm === true`.
+- Irreversible WRITE tools (not `broker_quote_*` proforma creation) must not put `confirm` in `required` or `exampleArgs`. Runtime returns `needs_confirmation` unless `confirm === true`. `broker_confirm_quote` is irreversible and follows the same preview.
 - Use `decimal.js` for monetary arithmetic. Validate amounts with `validateAmount()` from `src/utils/format.ts` (implemented in `src/utils/amount.ts`). Validate date ranges with `validateDateRange()`.
 
 ### 3. Registry (`src/tools/registry.ts`)
@@ -1065,7 +1062,8 @@ describe("Example Tools", () => {
 
 1. Run `pnpm test` — the zero-diff registry regression test will catch missing registry entries.
 2. Run `pnpm build` — TypeScript strict mode (`exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`) will catch type errors in your mapper.
-3. (Optional) Run the server locally with `pnpm dev` and test with MCP Inspector.
+3. (Optional) Inspector: `pnpm dev` (web UI) or
+   `pnpm dlx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list`.
 
 ---
 
@@ -1105,7 +1103,9 @@ git commit -m "chore: update deps"     # No release
 - `src/utils/amount.ts` - `validateAmount()` (re-exported from `format.ts`)
 - `src/utils/format.ts` - Shared validators (validateDateRange, re-exports amount)
 - `docs/README.md` - Canonical documentation map
-- `src/utils/response-mappers.ts` - API response mappers
+- `docs/stack/release.md` - How we publish (npm + tag, not package.json on main)
+- `docs/adr/0003-local-single-user-threat-model.md` - Threat model
+- `src/utils/response-mappers.ts` - API response mappers (do **not** grow this file)
 - `src/utils/schemas.ts` - TypeScript interfaces
 - `package.json` - Dependencies and scripts
 - `.commitlintrc.json` - Commit message validation
@@ -1113,11 +1113,11 @@ git commit -m "chore: update deps"     # No release
 ### Critical Rules Summary
 
 1. ✅ **Always use Conventional Commits**
-2. ✅ **Only `feat:` and `fix:` trigger releases**
+2. ✅ **Only `feat:` / `fix:` / `perf:` trigger releases**
 3. ✅ **Map all API responses** to optimized schemas
 4. ✅ **Mock `getConfig()` in tests**
-5. ✅ **Node.js 20+ required** to run the server; Node.js 22+ for Semantic Release
-6. ✅ **NPM_TOKEN must be Automation/Publish type**
+5. ✅ **Node.js 20+** to run the server; Release CI uses **Node 24** (OIDC)
+6. ✅ **Published version** = npm + git tag — not `package.json` on `main`
 7. ✅ **Always commit `pnpm-lock.yaml`**
 8. ✅ **Use snake_case** for API response fields
 9. ✅ **Provide defaults** for all mapper fields
@@ -1127,6 +1127,8 @@ git commit -m "chore: update deps"     # No release
 13. ✅ **Write tools**: stable `idempotency_key` (wrapper stamps if omitted); irreversible WRITE returns `needs_confirmation` unless `confirm === true`
 14. ✅ **Register via `registerCategory`** in `src/tools/registry.ts` — do not add `if/else` dispatch in `index.ts`
 15. ✅ **TypeScript strict** — `exactOptionalPropertyTypes` globally; `noUncheckedIndexedAccess` in production builds
+16. ✅ **File size**: new files in `src/` / `tests/` / `scripts/` ≤200 lines. Do not grow `pro.ts`, `broker.ts`, `format.ts`, `bit2me.ts`, `response-mappers.ts`, `http.ts` — extract a sibling.
+17. ✅ **`data/tools.json`**: Python/shell only, then `pnpm build:docs`. Initiative logs (`docs/done-tasks/`) are history, not the spec.
 
 ---
 

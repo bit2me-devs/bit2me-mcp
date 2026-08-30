@@ -72,7 +72,9 @@ Please be respectful, inclusive, and constructive in all interactions. We are co
 
 ### Branching Strategy
 
-- **`main`**: The production-ready code. Do not push directly to `main`.
+- **`main`**: Production. **Contributors** never push it — open a PR.
+  **Maintainers** may push `main` to cut a release (`feat`/`fix`/`perf` publish
+  npm). Playbook: [docs/stack/release.md](./docs/stack/release.md).
 - **Feature Branches**: Create a new branch for each feature or fix.
 - **Local-only** (Husky `pre-push` refuses these names): `feat/go-migration`,
   `fix/audit-batch-hardening`. List: `scripts/push-deny-branches.txt`.
@@ -120,7 +122,7 @@ git commit -m "docs: update CONTRIBUTING.md"
 
 ## Testing
 
-We use **Vitest** for testing. Target coverage is **97%+** (pragmatic; do not drop it).
+We use **Vitest**. Coverage **gate** (do not lower): 70% lines/functions/statements, 60% branches (`vitest.config.ts`).
 
 - **Run all tests:**
 
@@ -169,7 +171,7 @@ This project uses a centralized metadata system for all tool definitions. The so
 
 ### Adding or Modifying Tools
 
-1. **Edit `data/tools.json`**: Add or modify the tool definition in the appropriate category.
+1. **Edit `data/tools.json`** with `python3` or the shell (the file is huge; do not re-indent it all). Add or modify the tool in the appropriate category.
 2. **Update TypeScript handlers**: Modify the corresponding handler function in `src/tools/*.ts` if needed.
 3. **Regenerate derived assets**: Run `pnpm run build:docs` to regenerate:
     - `landing/tools-data.js` (used by the landing page)
@@ -196,7 +198,7 @@ This project uses a centralized metadata system for all tool definitions. The so
     - Target the `main` branch.
     - Fill out the PR template completely.
     - Link related issues (e.g., `Closes #123`).
-5.  **Code Review**: A maintainer will review your code. Be open to feedback!
-6.  **Merge**: Once approved and CI passes, your code will be merged.
+5.  **Code Review**: A maintainer listed in [`.github/CODEOWNERS`](./.github/CODEOWNERS) must approve. The last push after review needs a fresh approval (`require_last_push_approval`). Admins cannot bypass these rules.
+6.  **Merge**: Once approved and required status checks pass, your code will be merged.
 
 Thank you for contributing! 🚀

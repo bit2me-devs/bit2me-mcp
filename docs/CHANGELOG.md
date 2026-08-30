@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 19:38 UTC] — Docs de release y modelo de amenaza
+
+- Playbook `stack/release.md`, ADR 0003, y alineación de AGENTS/CONTRIBUTING/SECURITY/README (versión = npm+tag, OIDC, cobertura del gate Vitest, PR vs maintainer). See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).
+
 ## [2026-08-30 19:19 UTC] — Drift de versión en la landing
 
 - El hero leía un snapshot de `git describe`; npm ya era 4.4.0. See [VERSION_DRIFT](done-tasks/VERSION_DRIFT.md).
