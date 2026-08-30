@@ -22,7 +22,7 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 - **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
 - **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
 - **Operations**: Execute trades, transfers, and withdrawals securely.
-- **Write safeguards**: Irreversible writes (Pro / Earn / Loan) first return a `needs_confirmation` preview unless `confirm` is the boolean `true`. Every write tool forwards a stable `idempotency_key` (auto-generated if omitted). Failed POST/DELETE calls retry with exponential backoff + jitter when that key is present.
+- **Write safeguards**: Irreversible writes (Pro / Earn / Loan / `broker_confirm_quote`) first return a `needs_confirmation` preview unless `confirm` is the boolean `true`. The preview includes the stamped `idempotency_key` so a retry reuses it. Failed POST/DELETE calls retry with exponential backoff + jitter when that key is present.
 - **Decimal Precision**: Portfolio valuation uses `decimal.js` — no floating-point drift on large balances or high-precision assets.
 - **Expanded PII Redaction**: Logs automatically scrub email addresses, IBANs, phone numbers, KYC fields, JWT-shaped tokens, and long base64 blobs, in addition to API keys and signatures.
 - **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter, preventing replay attacks even under high concurrency.
@@ -293,7 +293,7 @@ Reliability features active by default:
 - Circuit breaker on the upstream Bit2Me API (`src/utils/circuit-breaker.ts`).
 - Per-endpoint rate limiter with exponential backoff + jitter.
 - Idempotency keys on every write tool (`pro_create_order`, `loan_create`, `earn_deposit`, …) — the wrapper stamps a stable key if the caller omits `idempotency_key`.
-- Irreversible writes (Pro / Earn / Loan, not Broker quotes) return a `needs_confirmation` preview unless `confirm` is the boolean `true`.
+- Irreversible writes (Pro / Earn / Loan / `broker_confirm_quote`; not `broker_quote_*`) return a `needs_confirmation` preview unless `confirm` is the boolean `true`. The preview repeats the stamped `idempotency_key`.
 - Monotonic request nonces for API-key signing (replay-safe even under high concurrency).
 - Append-only audit log for every successful **and** failed write operation.
 

@@ -3,15 +3,10 @@ import { ValidationError } from "./errors.js";
 import { getToolMetadata } from "./tool-metadata.js";
 
 /**
- * Broker quotes are already two-step (proforma → confirm). Every other
- * WRITE tool requires an explicit confirm after the user agrees.
+ * Creating a Broker proforma is reversible until confirm. Executing the
+ * proforma (`broker_confirm_quote`) is irreversible and needs confirm.
  */
-const CONFIRM_EXEMPT_WRITE = new Set([
-    "broker_quote_buy",
-    "broker_quote_sell",
-    "broker_quote_swap",
-    "broker_confirm_quote",
-]);
+const CONFIRM_EXEMPT_WRITE = new Set(["broker_quote_buy", "broker_quote_sell", "broker_quote_swap"]);
 
 export function writeRequiresConfirm(name: string): boolean {
     if (CONFIRM_EXEMPT_WRITE.has(name)) return false;
@@ -28,7 +23,7 @@ export function requireConfirm(args: Record<string, unknown> | undefined | null)
     }
 }
 
-const PREVIEW_OMIT = new Set(["confirm", "jwt", "idempotency_key"]);
+const PREVIEW_OMIT = new Set(["confirm", "jwt"]);
 
 /** Successful MCP result: no upstream call. The model should show this and wait. */
 export function buildNeedsConfirmationResult(name: string, args: Record<string, unknown>) {
@@ -46,7 +41,7 @@ export function buildNeedsConfirmationResult(name: string, args: Record<string, 
                         tool: name,
                         proposed_args,
                         next_step:
-                            "Show this preview to the user. If they approve, call again with the same arguments and confirm=true. Do not set confirm=true unless the user agreed.",
+                            "Show this preview to the user. If they approve, call again with the same arguments, the same idempotency_key, and confirm=true. Do not set confirm=true unless the user agreed.",
                     },
                     null,
                     2

@@ -948,7 +948,7 @@ const toolsData = [
             {
                 "name": "broker_confirm_quote",
                 "type": "WRITE",
-                "desc": "STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action. [PRIVATE]",
+                "desc": "STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action. [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.",
                 "args": {
                     "proforma_id": {
                         "type": "string",
@@ -958,6 +958,11 @@ const toolsData = [
                     "idempotency_key": {
                         "type": "string",
                         "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
                         "required": false
                     },
                     "jwt": {

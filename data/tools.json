@@ -964,7 +964,7 @@
         },
         {
           "name": "broker_confirm_quote",
-          "description": "STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action. [PRIVATE]",
+          "description": "STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action. [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.",
           "type": "WRITE",
           "attributes": {
             "requires_auth": true,
@@ -982,6 +982,10 @@
               "idempotency_key": {
                 "type": "string",
                 "description": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted."
+              },
+              "confirm": {
+                "type": "boolean",
+                "description": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM."
               }
             },
             "required": [

@@ -14,12 +14,12 @@ Un agente puede llamar `pro_create_order` o `earn_withdraw` en un solo paso. Sin
 
 ### Architecture
 
-- `src/utils/write-guards.ts` — `writeRequiresConfirm` (todo WRITE salvo quotes de Broker), preview `needs_confirmation`, `resolveIdempotencyKey`.
+- `src/utils/write-guards.ts` — `writeRequiresConfirm` (todo WRITE salvo `broker_quote_*`), preview `needs_confirmation` con `idempotency_key`, `resolveIdempotencyKey`.
 - `src/utils/tool-wrapper.ts` — estampa la clave efectiva en `args` (handler y audit comparten la misma) y exige `confirm` antes del executor.
 - `src/utils/amount.ts` — `validateAmount` con `decimal.js`; `format.ts` reexporta.
 - `data/tools.json` — `confirm` requerido en las 10 tools irreversibles; `idempotency_key` opcional en las 14 WRITE.
 
-Broker quotes no piden `confirm` (ya son quote → `broker_confirm_quote`). `broker_confirm_quote` valida UUID de `proforma_id`.
+`broker_quote_*` no piden `confirm` (solo crean proforma). `broker_confirm_quote` sí: preview y luego `confirm=true`. Valida UUID de `proforma_id`.
 
 ### Technology
 
@@ -38,6 +38,10 @@ Alineado con el modelo de amenaza local: no es un hallazgo multi-tenant. Es defe
 Tras publicar, `confirm` es opcional en el schema. Sin `confirm === true`, Pro/Earn/Loan WRITE devuelven `needs_confirmation` (sin llamar a Bit2Me). El audit registra `needs_confirmation`.
 
 ## Change log
+
+### 2026-08-30 14:26 UTC — Preview con clave, confirm en quote y par Pro
+
+El preview incluye `idempotency_key` estampada. `broker_confirm_quote` exige `confirm`. `pro_get_ticker` envía `BTC/EUR` al API. Tests de preview en Earn/Loan/Pro/Broker.
 
 ### 2026-08-30 13:27 UTC — Segunda pasada (preview, schema, default-secure)
 

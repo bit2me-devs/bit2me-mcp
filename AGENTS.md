@@ -510,7 +510,7 @@ export async function handleExampleTool(name: string, args: Record<string, unkno
 **Conventions for write tools:**
 
 - Accept optional `idempotency_key`. The tool wrapper stamps a stable key (UUID if omitted) and audit uses the same value. Sanitize before sending `Idempotency-Key`.
-- Irreversible WRITE tools (not Broker quotes) must not put `confirm` in `required` or `exampleArgs`. Runtime returns `needs_confirmation` unless `confirm === true`.
+- Irreversible WRITE tools (not `broker_quote_*` proforma creation) must not put `confirm` in `required` or `exampleArgs`. Runtime returns `needs_confirmation` unless `confirm === true`. `broker_confirm_quote` is irreversible and follows the same preview.
 - Use `decimal.js` for monetary arithmetic. Validate amounts with `validateAmount()` from `src/utils/format.ts` (implemented in `src/utils/amount.ts`). Validate date ranges with `validateDateRange()`.
 
 ### 3. Registry (`src/tools/registry.ts`)

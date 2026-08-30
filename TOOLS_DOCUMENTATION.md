@@ -405,7 +405,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### broker_confirm_quote
 
-> STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action. [PRIVATE]
+> STEP 2: Confirms and executes a previously created proforma from broker_quote_buy, broker_quote_sell, or broker_quote_swap. Final action. [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 

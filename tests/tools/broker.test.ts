@@ -216,7 +216,7 @@ describe("Broker Tools Handler", () => {
         const mockConfirm = { status: "confirmed" };
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockConfirm);
 
-        await handleBrokerTool("broker_confirm_quote", { proforma_id: VALID_UUID });
+        await handleBrokerTool("broker_confirm_quote", { proforma_id: VALID_UUID, confirm: true });
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "POST",

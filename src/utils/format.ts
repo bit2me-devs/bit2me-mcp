@@ -115,6 +115,8 @@ export function normalizePair(pair: string): string {
  * @param pair - The pair to normalize
  * @returns Normalized pair with - separator in uppercase (e.g., "BTC-USD")
  */
+export { toProApiPair } from "./pair-api.js";
+
 export function normalizePairResponse(pair: string): string {
     if (!pair) return "";
     return pair

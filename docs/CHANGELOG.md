@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 14:26 UTC] — Cierre de residuales WRITE y ticker Pro
+
+- Preview con `idempotency_key`; `broker_confirm_quote` pide confirm; `pro_get_ticker` usa `BASE/QUOTE`. See [WRITE_TOOL_SAFEGUARDS](done-tasks/WRITE_TOOL_SAFEGUARDS.md).
+
 ## [2026-08-30 13:42 UTC] — Bloqueo de push de ramas solo locales
 
 - Husky `pre-push` rechaza `feat/go-migration` y `fix/audit-batch-hardening` (`scripts/push-deny-branches.txt`).

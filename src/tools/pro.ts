@@ -51,6 +51,7 @@ import {
     validateAmount,
     validateISO8601,
     convertProTimeframe,
+    toProApiPair,
 } from "../utils/format.js";
 import { ValidationError } from "../utils/errors.js";
 import { cache, CacheCategory } from "../utils/cache.js";
@@ -601,7 +602,7 @@ export async function handleProTool(name: string, args: any) {
             const queryParams: any = {};
             if (params.pair) {
                 validatePair(params.pair);
-                queryParams.symbol = normalizePair(params.pair);
+                queryParams.symbol = toProApiPair(params.pair);
             }
 
             const data = await bit2meRequest("GET", "/v2/trading/tickers", queryParams);
