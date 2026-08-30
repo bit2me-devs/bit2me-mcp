@@ -59,13 +59,12 @@ test-credentials.js
 tmp/
 *.tmp
 
-# Documentación interna y temporal (uso del equipo, no se versiona).
-# Excepciones: docs/stack/ (fuente de verdad de tooling/stack) y docs/adr/
-# (Architectural Decision Records) SÍ se versionan.
-# Nota: usamos docs/* (no docs/) para que git pueda re-incluir las excepciones.
+# Scratch under docs/ is gitignored. Tracked exceptions:
+# docs/README.md (map), docs/stack/, docs/adr/, docs/done-tasks/, docs/CHANGELOG.md
 docs/*
 !docs/README.md
 !docs/stack/
+!docs/stack/**
 !docs/adr/
 !docs/done-tasks/
 !docs/done-tasks/**

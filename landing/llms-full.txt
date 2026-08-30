@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2026-05-09T15:47:10.870Z
+> Generated on 2026-08-30T13:39:48.120Z
 
 
 ==================================================
@@ -22,7 +22,7 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 - **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
 - **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
 - **Operations**: Execute trades, transfers, and withdrawals securely.
-- **Idempotency & Retries**: Every write tool auto-generates an idempotency key; failed POST/DELETE calls retry with exponential backoff + jitter, making operations safe to retry without duplicates.
+- **Write safeguards**: Irreversible writes (Pro / Earn / Loan) first return a `needs_confirmation` preview unless `confirm` is the boolean `true`. Every write tool forwards a stable `idempotency_key` (auto-generated if omitted). Failed POST/DELETE calls retry with exponential backoff + jitter when that key is present.
 - **Decimal Precision**: Portfolio valuation uses `decimal.js` — no floating-point drift on large balances or high-precision assets.
 - **Expanded PII Redaction**: Logs automatically scrub email addresses, IBANs, phone numbers, KYC fields, JWT-shaped tokens, and long base64 blobs, in addition to API keys and signatures.
 - **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter, preventing replay attacks even under high concurrency.
@@ -46,8 +46,9 @@ Full descriptions, response schemas, Bit2Me REST endpoints and usage notes live 
 
 All tool responses are normalised for LLM consumption (consistent naming, flattened payloads, concise metadata). Use the following references when developing new tooling:
 
-- **[`TOOLS_DOCUMENTATION.md`](./TOOLS_DOCUMENTATION.md)** – Auto-generated catalogue with descriptions, Bit2Me endpoints and response schemas for each tool.
-- **[`data/tools.json`](./data/tools.json)** – Source metadata powering the landing page (includes request/response schemas and examples for each tool).
+- **[`docs/README.md`](./docs/README.md)** – Map of every canonical doc (what to edit vs what is generated).
+- **[`TOOLS_DOCUMENTATION.md`](./TOOLS_DOCUMENTATION.md)** – Auto-generated catalogue (`pnpm build:docs` from `data/tools.json`).
+- **[`data/tools.json`](./data/tools.json)** – Source of truth for tool metadata, schemas and examples.
 
 ## ⚙️ Installation and Configuration
 
@@ -69,22 +70,22 @@ The recommended way to authenticate is using API Keys. This method is secure, gr
 
 #### JWT Session Token (Alternative)
 
-All tools support an optional `jwt` parameter for session-based authentication. This is useful for:
+All tools accept an optional `jwt` argument (session cookie toward Bit2Me). Typical local use does **not** need it.
 
-- **Multi-tenant applications**: Where each request is made on behalf of a different user.
-- **Web integrations**: Where users are already authenticated via the Bit2Me web interface.
+- **stdio / Claude Desktop**: prefer API keys in `.env`. `jwt` is only for a one-off session token.
+- **HTTP binary**: send `Authorization: Bearer <jwt>` (or API-key headers) per request — see ADR 0001.
 
-When the `jwt` parameter is provided, the server will use cookie-based authentication instead of API Keys.
+When `jwt` is provided on a **stdio** call (and HTTP has not already authenticated the request), the server uses session-cookie auth toward Bit2Me instead of the process API keys.
 
 ```typescript
-// Example: Using JWT session token
+// Example: optional session token on a tool call
 const result = await mcpClient.callTool("wallet_get_pockets", {
     symbol: "BTC",
-    jwt: "user_session_token_here"  // Optional - uses API keys if omitted
+    jwt: "user_session_token_here", // omitted → API keys from the environment
 });
 ```
 
-> **📝 Note:** API Keys are recommended for most use cases. The `jwt` parameter should only be used when building multi-tenant applications or web integrations where users have existing Bit2Me sessions.
+> **Note:** For local Claude Desktop / Cursor, API keys in `.env` are enough. Per-request JWT or API-key headers belong to the **HTTP** binary (`bit2me-mcp-http`). See [docs/adr/0001-valet-key-http-credentials.md](./docs/adr/0001-valet-key-http-credentials.md) and the [documentation map](./docs/README.md).
 
 ### Steps
 
@@ -98,7 +99,7 @@ const result = await mcpClient.callTool("wallet_get_pockets", {
 2. **Install dependencies:**
 
     ```bash
-    npm install
+    pnpm install
     ```
 
 3. **Configure environment variables:**
@@ -126,9 +127,17 @@ const result = await mcpClient.callTool("wallet_get_pockets", {
 
     > **💡 QA/Staging:** Use `BIT2ME_GATEWAY_URL` to point to different environments (e.g., `https://qa-gateway.bit2me.com` for QA testing).
 
+    > **🔒 File permissions:** The `.env` file holds API credentials. Restrict it to the owner only:
+    >
+    > ```bash
+    > chmod 600 .env
+    > ```
+    >
+    > A pre-commit hook (`.husky/check-env-perms.sh`) prints a warning when the local `.env` mode is more permissive than `600`.
+
 4. **Build the project:**
     ```bash
-    npm run build
+    pnpm run build
     ```
 
 ## 🖥️ Usage with Claude Desktop
@@ -244,6 +253,36 @@ Recommended environment variables for the HTTP binary:
 - `LOG_FORMAT=json` for structured logs
 - `AUDIT_LOG_PATH=/var/log/bit2me-mcp/audit.log` to ship audit lines to a file
 
+### Choosing an auth mode (HTTP transport)
+
+The HTTP transport accepts API-key credentials and Bit2Me session JWTs. Both
+modes are first-class — the right choice depends on **where the server is
+bound and who is calling it**, not on a one-size-fits-all rule. The full
+threat model and rationale live in [`docs/adr/0001-valet-key-http-credentials.md`](./docs/adr/0001-valet-key-http-credentials.md).
+
+| Topology                                                               | Recommended `MCP_HTTP_AUTH_MODE`                           | Why                                                                                    |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| stdio (Cursor, Claude Desktop, local CLI)                              | n/a — use `BIT2ME_API_KEY` / `BIT2ME_API_SECRET` in `.env` | Single-process, no network hop; scopes are enforced by the Bit2Me dashboard.           |
+| HTTP bound to loopback (`127.0.0.1`, `::1`, `localhost`)               | `api_key`                                                  | Credentials never leave the host.                                                      |
+| HTTP on a private network / VPN behind a TLS-terminating reverse proxy | `api_key`                                                  | Encrypted hop; scopes enforced by the Bit2Me dashboard; operator owns the proxy chain. |
+| HTTP exposed on the public internet for a single operator              | `jwt`                                                      | Bit2Me JWTs auto-expire (~15 min); the leak window is shorter.                         |
+| HTTP shared by multiple third-party integrators                        | `jwt`                                                      | Independent revocation per integrator without rotating the master credentials.         |
+
+Hard rules that apply regardless of the mode you pick:
+
+- **Mint API keys with the smallest scope** that satisfies the caller's use
+  case. Read-only when possible. **Never enable Withdrawal scopes for MCP
+  usage** — the MCP server intentionally does not support external withdrawals,
+  so granting that permission only widens the blast radius of a leak.
+- **Always put the HTTP transport behind TLS** on any non-loopback bind.
+  Plain HTTP on `0.0.0.0` is a misconfiguration regardless of the auth mode.
+- The server emits a startup `WARN` log if `api_key`/`both` is active on a
+  non-loopback host so operators are nudged toward a TLS-terminating proxy or
+  the JWT mode.
+- Credential headers (`X-Bit2Me-Api-Key`, `X-Bit2Me-Api-Secret`,
+  `Authorization`) are scrubbed from every structured log line before it
+  reaches stderr.
+
 Built-in observability endpoints (HTTP transport only):
 
 - `GET /health` — liveness + Bit2Me reachability + cache/circuit-breaker/rate-limiter snapshot. Cached for 30s.
@@ -253,7 +292,8 @@ Reliability features active by default:
 
 - Circuit breaker on the upstream Bit2Me API (`src/utils/circuit-breaker.ts`).
 - Per-endpoint rate limiter with exponential backoff + jitter.
-- Idempotency keys on every write tool (`pro_create_order`, `loan_create`, `earn_deposit`, …) — the SDK auto-generates one if the caller doesn't supply `idempotency_key`.
+- Idempotency keys on every write tool (`pro_create_order`, `loan_create`, `earn_deposit`, …) — the wrapper stamps a stable key if the caller omits `idempotency_key`.
+- Irreversible writes (Pro / Earn / Loan, not Broker quotes) return a `needs_confirmation` preview unless `confirm` is the boolean `true`.
 - Monotonic request nonces for API-key signing (replay-safe even under high concurrency).
 - Append-only audit log for every successful **and** failed write operation.
 
@@ -304,7 +344,7 @@ Reliability features active by default:
 
 - Run the server manually to see logs:
     ```bash
-    npm run dev
+    pnpm dev
     ```
 - Set `BIT2ME_LOG_LEVEL=debug` for detailed logging.
 - Check Claude Desktop logs:
@@ -317,17 +357,11 @@ Reliability features active by default:
 
 ### Installation
 
-```bash
-npm install -g @modelcontextprotocol/inspector
-```
+This repo uses `pnpm dlx` (see `pnpm dev` / `make dev`). Consumers of the published package can use `npx`.
 
 ### Running the Inspector
 
-You have two options to run the inspector:
-
-#### Option A: Using NPM Package (Recommended)
-
-Use the published package from npm - no build required:
+#### Option A: Published package (no clone)
 
 ```bash
 export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
@@ -335,22 +369,20 @@ export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
 npx -y @modelcontextprotocol/inspector npx @bit2me/mcp-server
 ```
 
-#### Option B: Using Local Repository
-
-For development or testing unreleased changes:
+#### Option B: Local repository
 
 ```bash
-# 1. Clone and build the project
 git clone https://github.com/bit2me-devs/bit2me-mcp.git
 cd bit2me-mcp
-npm install
-npm run build
+pnpm install
+pnpm run build
 
-# 2. Run the inspector
 export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
 export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
-npx @modelcontextprotocol/inspector node build/index.js
+pnpm dlx @modelcontextprotocol/inspector node build/index.js
 ```
+
+Or after install: `pnpm dev` (same inspector against `build/index.js`).
 
 **Note:** The inspector will automatically open at `http://localhost:5173`
 
@@ -396,9 +428,9 @@ Deployment is automated using GitHub Actions.
 
 **How to update the website:**
 
-1. Edit the HTML/CSS files in `/landing`.
-2. Push your changes to the `main` branch.
-3. The `.github/workflows/deploy.yml` action will automatically publish the changes.
+1. Tool catalogue: edit `data/tools.json`, then `pnpm build:docs` (updates `landing/tools-data.js`). Do not edit `tools-data.js` by hand.
+2. Page chrome: edit HTML/CSS/`CNAME` in `/landing` if needed.
+3. Push to `main`. `.github/workflows/deploy.yml` publishes GitHub Pages.
 
 **Domain:**
 The `/landing/CNAME` file manages the custom domain configuration.
@@ -422,7 +454,7 @@ Please read our **[Contributing Guidelines](./CONTRIBUTING.md)** for details on:
     ```
 2.  **Install Dependencies**:
     ```bash
-    npm install
+    pnpm install
     ```
 3.  **Create a Branch**:
     ```bash
@@ -441,12 +473,14 @@ Be respectful, inclusive, and constructive. We're all here to learn and build to
 
 
 ==================================================
-FILE: agents.md (Agent Rules & Conventions)
+FILE: AGENTS.md (Agent Rules & Conventions)
 ==================================================
 
 # Agent Rules for Bit2Me MCP Server Repository
 
-This document contains all the rules, conventions, and practices learned for managing this repository.
+Canonical map of all docs (generated vs hand-edited, EN vs ES): [`docs/README.md`](./docs/README.md).
+
+This document contains conventions for implementing in this repository.
 
 ## 📋 Table of Contents
 
@@ -460,6 +494,7 @@ This document contains all the rules, conventions, and practices learned for man
 8. [Dependencies Management](#dependencies-management)
 9. [Git Hooks](#git-hooks)
 10. [Troubleshooting](#troubleshooting)
+11. [Adding a New Tool](#adding-a-new-tool)
 
 ---
 
@@ -557,7 +592,7 @@ chore(deps): bump zod from 4.1.12 to 4.1.13
 - **Default**: `false` (raw responses excluded)
 - **Usage**: Wrap mapped responses with `wrapResponseWithRaw()`
 - **Purpose**: Debugging and completeness verification
-- **Documentation**: See `docs/RAW_RESPONSE_GUIDE.md`
+- **Do not** add a separate guide under `docs/` — this section and `.env.example` are enough
 
 ### Example Mapper Pattern
 
@@ -604,9 +639,10 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
 - `tests/tools/*.test.ts` - Tool handler tests
 - `tests/config.test.ts` - Configuration tests
 - `tests/auth.test.ts` - Authentication tests
-- `tests/registry.test.ts` - Zero-diff registry regression: verifies that every tool in `data/tools.json` has a registered handler and that the tool list hasn't changed unexpectedly.
+- `tests/regression.test.ts` - Zero-diff catalogue: every tool in `data/tools.json` matches the registry (modulo injected `jwt`).
 - `tests/concurrency.test.ts` - Verifies `AsyncLocalStorage` isolation: concurrent requests with different JWTs do not bleed state into each other.
 - `tests/http-transport.test.ts` - Integration tests for the HTTP/SSE binary.
+- `tests/write-safeguards.test.ts` - Confirm preview, idempotency stamp, amount validation.
 
 ### Mocking Rules
 
@@ -618,9 +654,9 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
 ### Running Tests
 
 ```bash
-npm test              # Run all tests
-npm run test:watch    # Watch mode
-npm run test:coverage # Generate coverage report
+pnpm test             # Run all tests
+pnpm test:watch       # Watch mode
+pnpm test:coverage    # Generate coverage report
 ```
 
 ### Test Requirements
@@ -639,26 +675,32 @@ npm run test:coverage # Generate coverage report
 1. **CI** (`.github/workflows/ci.yml`)
     - Runs on: Push to any branch, PRs
     - Steps: Lint, Test, Build
-    - Node.js: 20
+    - Node.js: ≥20 (Node 18 is no longer supported)
 
 2. **Release** (`.github/workflows/release.yml`)
     - Runs on: Push to `main`
     - Steps: Build, Test, Semantic Release
     - Node.js: 22 (required for Semantic Release)
     - **Critical**: Requires `NPM_TOKEN` secret
+    - Generates SBOM (CycloneDX format) and signs the release artifact with cosign keyless signing.
+    - `prepublishOnly` runs the full validate pipeline before any npm publish.
 
 3. **Deploy** (`.github/workflows/deploy.yml`)
     - Runs on: Push to `main`
     - Deploys landing page to GitHub Pages
     - Node.js: 20
 
+4. **Security Audit** (`.github/workflows/audit.yml`)
+    - Runs: Weekly schedule (cron)
+    - Executes `pnpm audit` to surface new CVEs in the dependency tree.
+
 ### Release Workflow Steps
 
 1. Checkout with `fetch-depth: 0` (needed for Semantic Release)
-2. Setup Node.js 22 with npm cache
-3. Install dependencies (`npm ci`)
-4. Build (`npm run build`)
-5. Test (`npm test`)
+2. Setup Node.js 22 with pnpm cache
+3. Install dependencies (`pnpm install --frozen-lockfile`)
+4. Build (`pnpm build`)
+5. Test (`pnpm test`)
 6. Configure npm authentication (`.npmrc`)
 7. Run Semantic Release
 
@@ -785,6 +827,7 @@ Two concurrent requests — for example two different users in the HTTP transpor
 #### 4. Audit Log (`src/utils/audit.ts`)
 
 Audit entries are newline-delimited JSON objects written append-only. Each entry contains:
+
 - `tool`, `args` (sanitised — no credentials), `outcome` (`success` / `error`), `correlationId`
 - `sessionFingerprint`: SHA-256 of the session token (never the token itself)
 
@@ -830,9 +873,9 @@ Set `AUDIT_LOG_PATH` to persist to a dedicated file. If unset, the line is emitt
 
 ### Lock File
 
-- **`package-lock.json`**: Always commit changes
+- **`pnpm-lock.yaml`**: Always commit changes
 - **Never ignore** lock file
-- **Use `npm ci`** in CI (not `npm install`)
+- **Use `pnpm install --frozen-lockfile`** in CI (not `pnpm install`)
 
 ---
 
@@ -873,7 +916,7 @@ Set `AUDIT_LOG_PATH` to persist to a dedicated file. If unset, the line is emitt
 1. **Mock `getConfig()`**: Required in all test files
 2. **Set `INCLUDE_RAW_RESPONSE: false`** in test mocks
 3. **Check fixtures**: Ensure test data matches expected format
-4. **Run locally**: `npm test` to debug
+4. **Run locally**: `pnpm test` to debug
 
 ### Build Errors
 
@@ -890,7 +933,7 @@ Set `AUDIT_LOG_PATH` to persist to a dedicated file. If unset, the line is emitt
 
 ### Git Hook Failures
 
-1. **Husky not installed**: Run `npm install` (triggers `prepare` script)
+1. **Husky not installed**: Run `pnpm install` (triggers `prepare` script)
 2. **Commitlint error**: Fix commit message format
 3. **Lint-staged error**: Fix linting/formatting issues
 
@@ -906,18 +949,18 @@ Add the tool definition to the appropriate category in `data/tools.json`:
 
 ```json
 {
-  "name": "example_get_data",
-  "description": "Get example data from the Bit2Me API",
-  "type": "READ",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "id": { "type": "string", "description": "Resource ID" }
+    "name": "example_get_data",
+    "description": "Get example data from the Bit2Me API",
+    "type": "READ",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "id": { "type": "string", "description": "Resource ID" }
+        },
+        "required": ["id"]
     },
-    "required": ["id"]
-  },
-  "exampleArgs": { "id": "abc123" },
-  "exampleResponse": { "id": "abc123", "value": "42" }
+    "exampleArgs": { "id": "abc123" },
+    "exampleResponse": { "id": "abc123", "value": "42" }
 }
 ```
 
@@ -944,23 +987,23 @@ export async function handleExampleTool(name: string, args: Record<string, unkno
 
 **Conventions for write tools:**
 
-- Accept and forward an optional `idempotency_key` argument. If the caller doesn't supply one, the tool wrapper auto-generates a UUID.
-- Use `decimal.js` for any monetary arithmetic (balances, amounts, valuations). Never use plain JS `number` for money.
-- Validate amount inputs with `validateAmount()` from `src/utils/format.ts` (enforces positive value and `MAX_AMOUNT = 1e12`). Validate date ranges with `validateDateRange()`.
+- Accept optional `idempotency_key`. The tool wrapper stamps a stable key (UUID if omitted) and audit uses the same value. Sanitize before sending `Idempotency-Key`.
+- Irreversible WRITE tools (not Broker quotes) must not put `confirm` in `required` or `exampleArgs`. Runtime returns `needs_confirmation` unless `confirm === true`.
+- Use `decimal.js` for monetary arithmetic. Validate amounts with `validateAmount()` from `src/utils/format.ts` (implemented in `src/utils/amount.ts`). Validate date ranges with `validateDateRange()`.
 
 ### 3. Registry (`src/tools/registry.ts`)
 
 Register the handler so the declarative registry can dispatch it:
 
-```typescript
-// src/tools/registry.ts
-import { handleExampleTool } from "./example.js";
+Existing categories (`general`, `broker`, `wallet`, `earn`, `loan`, `pro`) are registered once via `registerCategory(...)` in `src/tools/registry.ts`. A new tool in an **existing** category only needs its handler `if (name === "...")` branch — the JSON catalogue is listed automatically.
 
-// Add to the registry map:
-registry.set("example_get_data", handleExampleTool);
+If you add a **new category**, register it:
+
+```typescript
+registerCategory("example", exampleTools, handleExampleTool as ToolHandler);
 ```
 
-> **No manual list-tools wiring needed**: The registry reads tool definitions from `data/tools.json` at startup and exposes them automatically via `ListToolsRequestSchema`.
+Do not add an `if/else` chain in `index.ts`. `tests/regression.test.ts` checks that every `data/tools.json` name matches the registry (modulo injected `jwt`).
 
 ### 4. Response Mapping (`src/utils/`)
 
@@ -990,7 +1033,7 @@ export function mapExampleResponse(raw: unknown): ExampleResponse {
 
 1. **Mapper Tests**: Add test cases in `tests/mappers.test.ts`.
 2. **Tool Tests**: Create `tests/tools/example.test.ts`.
-3. **Registry regression**: The zero-diff test in `tests/registry.test.ts` will automatically verify your new tool appears in the registry after you add it to `data/tools.json`. No changes needed there.
+3. **Registry regression**: `tests/regression.test.ts` verifies every `data/tools.json` name matches the in-memory registry. No edit needed there when you only add a tool to an existing category.
 4. **Concurrency**: If your tool stores per-request state, add a test in `tests/concurrency.test.ts` verifying that two concurrent invocations do not bleed state.
 
 ```typescript
@@ -1000,7 +1043,7 @@ import { handleExampleTool } from "../../src/tools/example.js";
 import { bit2meRequest } from "../../src/services/bit2me.js";
 
 vi.mock("../../src/services/bit2me.js");
-vi.mock("../../src/config.ts", () => ({ getConfig: () => ({ INCLUDE_RAW_RESPONSE: false }) }));
+vi.mock("../../src/config.js", () => ({ getConfig: () => ({ INCLUDE_RAW_RESPONSE: false }) }));
 
 describe("Example Tools", () => {
     it("should handle example_get_data", async () => {
@@ -1014,15 +1057,15 @@ describe("Example Tools", () => {
 
 ### 6. Documentation
 
-1. **TOOLS_DOCUMENTATION.md**: Auto-generated from `data/tools.json` — run `npm run build:docs` after editing the metadata.
+1. **TOOLS_DOCUMENTATION.md**: Auto-generated from `data/tools.json` — run `pnpm build:docs` after editing the metadata.
 2. **README.md**: Update category counts in "Available Tools & API Endpoints" if a new category is introduced or a count changes.
-3. **Landing Page**: `landing/` is updated by a separate agent — do not touch it here.
+3. **Landing catalogue**: `pnpm build:docs` regenerates `landing/tools-data.js`. Do not edit that file by hand. HTML/CSS/`CNAME` in `landing/` are maintained separately.
 
 ### 7. Verification
 
-1. Run `npm test` — the zero-diff registry regression test will catch missing registry entries.
-2. Run `npm run build` — TypeScript strict mode (`exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`) will catch type errors in your mapper.
-3. (Optional) Run the server locally with `npm run dev` and test with MCP Inspector.
+1. Run `pnpm test` — the zero-diff registry regression test will catch missing registry entries.
+2. Run `pnpm build` — TypeScript strict mode (`exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`) will catch type errors in your mapper.
+3. (Optional) Run the server locally with `pnpm dev` and test with MCP Inspector.
 
 ---
 
@@ -1032,12 +1075,14 @@ describe("Example Tools", () => {
 
 ```bash
 # Development
-npm run build          # Build TypeScript
-npm run dev            # Run server
-npm test               # Run tests
-npm run test:watch     # Watch mode
-npm run lint           # Lint code
-npm run eslint:fix     # Fix linting issues
+pnpm build          # Build TypeScript
+pnpm dev            # Run server (stdio transport)
+pnpm test          # Run all tests
+pnpm test:watch    # Watch mode
+pnpm lint           # Lint code
+pnpm eslint:fix     # Fix linting issues
+pnpm build:docs     # Regenerate TOOLS_DOCUMENTATION.md + landing/tools-data.js from data/tools.json
+pnpm typecheck      # TypeScript type-check without emitting (uses strict tsconfig)
 
 # Git
 git commit -m "feat: add new feature"  # Triggers release
@@ -1052,6 +1097,14 @@ git commit -m "chore: update deps"     # No release
 
 - `.releaserc.json` - Semantic Release configuration
 - `.github/workflows/release.yml` - Release workflow
+- `data/tools.json` - **Source of truth** for all tool definitions (metadata, schemas, examples)
+- `src/tools/registry.ts` - Declarative tool registry (O(1) dispatch)
+- `src/utils/context.ts` - AsyncLocalStorage request context
+- `src/utils/tool-wrapper.ts` - executeTool() wrapper with audit hook
+- `src/utils/write-guards.ts` - confirm preview + writeRequiresConfirm
+- `src/utils/amount.ts` - `validateAmount()` (re-exported from `format.ts`)
+- `src/utils/format.ts` - Shared validators (validateDateRange, re-exports amount)
+- `docs/README.md` - Canonical documentation map
 - `src/utils/response-mappers.ts` - API response mappers
 - `src/utils/schemas.ts` - TypeScript interfaces
 - `package.json` - Dependencies and scripts
@@ -1063,12 +1116,17 @@ git commit -m "chore: update deps"     # No release
 2. ✅ **Only `feat:` and `fix:` trigger releases**
 3. ✅ **Map all API responses** to optimized schemas
 4. ✅ **Mock `getConfig()` in tests**
-5. ✅ **Node.js 22+ required** for Semantic Release
+5. ✅ **Node.js 20+ required** to run the server; Node.js 22+ for Semantic Release
 6. ✅ **NPM_TOKEN must be Automation/Publish type**
-7. ✅ **Always commit `package-lock.json`**
+7. ✅ **Always commit `pnpm-lock.yaml`**
 8. ✅ **Use snake_case** for API response fields
 9. ✅ **Provide defaults** for all mapper fields
 10. ✅ **Test before committing** (hooks run automatically)
+11. ✅ **Use `decimal.js`** for all monetary arithmetic — no plain JS `number` for money
+12. ✅ **Validate amounts** with `validateAmount()` (`src/utils/amount.ts`, re-exported from `format.ts`)
+13. ✅ **Write tools**: stable `idempotency_key` (wrapper stamps if omitted); irreversible WRITE returns `needs_confirmation` unless `confirm === true`
+14. ✅ **Register via `registerCategory`** in `src/tools/registry.ts` — do not add `if/else` dispatch in `index.ts`
+15. ✅ **TypeScript strict** — `exactOptionalPropertyTypes` globally; `noUncheckedIndexedAccess` in production builds
 
 ---
 

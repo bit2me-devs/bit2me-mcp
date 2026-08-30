@@ -292,7 +292,8 @@ Reliability features active by default:
 
 - Circuit breaker on the upstream Bit2Me API (`src/utils/circuit-breaker.ts`).
 - Per-endpoint rate limiter with exponential backoff + jitter.
-- Idempotency keys on every write tool (`pro_create_order`, `loan_create`, `earn_deposit`, …) — the SDK auto-generates one if the caller doesn't supply `idempotency_key`.
+- Idempotency keys on every write tool (`pro_create_order`, `loan_create`, `earn_deposit`, …) — the wrapper stamps a stable key if the caller omits `idempotency_key`.
+- Irreversible writes (Pro / Earn / Loan, not Broker quotes) return a `needs_confirmation` preview unless `confirm` is the boolean `true`.
 - Monotonic request nonces for API-key signing (replay-safe even under high concurrency).
 - Append-only audit log for every successful **and** failed write operation.
 
@@ -356,17 +357,11 @@ Reliability features active by default:
 
 ### Installation
 
-```bash
-pnpm add -g @modelcontextprotocol/inspector
-```
+This repo uses `pnpm dlx` (see `pnpm dev` / `make dev`). Consumers of the published package can use `npx`.
 
 ### Running the Inspector
 
-You have two options to run the inspector:
-
-#### Option A: Using NPM Package (Recommended)
-
-Use the published package from npm - no build required:
+#### Option A: Published package (no clone)
 
 ```bash
 export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
@@ -374,22 +369,20 @@ export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
 npx -y @modelcontextprotocol/inspector npx @bit2me/mcp-server
 ```
 
-#### Option B: Using Local Repository
-
-For development or testing unreleased changes:
+#### Option B: Local repository
 
 ```bash
-# 1. Clone and build the project
 git clone https://github.com/bit2me-devs/bit2me-mcp.git
 cd bit2me-mcp
 pnpm install
 pnpm run build
 
-# 2. Run the inspector
 export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
 export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
-npx @modelcontextprotocol/inspector node build/index.js
+pnpm dlx @modelcontextprotocol/inspector node build/index.js
 ```
+
+Or after install: `pnpm dev` (same inspector against `build/index.js`).
 
 **Note:** The inspector will automatically open at `http://localhost:5173`
 

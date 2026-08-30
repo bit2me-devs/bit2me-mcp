@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to the Bit2Me MCP Server! We welcome contributions from the community to make this project better.
 
-This document provides guidelines and instructions for contributing to the project.
+This document covers PRs, pnpm, hooks, and language. Canonical doc map: [docs/README.md](./docs/README.md). Full add-tool checklist: [AGENTS.md](./AGENTS.md).
 
 ## 📋 Table of Contents
 
@@ -172,7 +172,7 @@ This project uses a centralized metadata system for all tool definitions. The so
 3. **Regenerate derived assets**: Run `pnpm run build:docs` to regenerate:
     - `landing/tools-data.js` (used by the landing page)
     - `TOOLS_DOCUMENTATION.md` (tool documentation with descriptions, endpoints and response schemas)
-4. **Update backend**: The backend automatically uses the metadata from `data/tools.json` via `src/utils/tool-metadata.ts`.
+4. **Follow [AGENTS.md — Adding a New Tool](./AGENTS.md#adding-a-new-tool)** for handlers, registry (`registerCategory`), mappers, tests, and WRITE rules (`confirm` preview + `idempotency_key`).
 
 ### Important Notes
 

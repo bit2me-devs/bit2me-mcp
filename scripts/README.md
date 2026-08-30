@@ -1,6 +1,6 @@
 # Documentation Generation Scripts
 
-This folder contains scripts for generating documentation and project artifacts.
+Canonical map: [`docs/README.md`](../docs/README.md). This folder only documents the generators.
 
 ## Available Scripts
 

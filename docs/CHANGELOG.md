@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 13:40 UTC] — Segunda pasada del mapa de documentación
+
+- `docs/stack/tooling.md`, ADR 0002 deferred, sin enlace a RAW_RESPONSE_GUIDE, AGENTS/CONTRIBUTING/SECURITY/README alineados. See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).
+
 ## [2026-08-30 13:36 UTC] — Mapa de documentación y homogeneización
 
 - Índice en `docs/README.md`; se alinean README, AGENTS, CONTRIBUTING y generadores (pnpm, registry, idiomas). See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).

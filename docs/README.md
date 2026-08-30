@@ -24,9 +24,12 @@ Commit messages are always **English** (Conventional Commits).
 | Vulnerability reporting                   | [`SECURITY.md`](../SECURITY.md)                                                          |                                                         |
 | npm release history                       | [`CHANGELOG.md`](../CHANGELOG.md)                                                        | Semantic Release only — do not edit                     |
 | Internal change log                       | [`CHANGELOG.md`](./CHANGELOG.md)                                                         | Spanish; links to done-tasks                            |
-| HTTP credentials                          | [`adr/0001-valet-key-http-credentials.md`](./adr/0001-valet-key-http-credentials.md)     |                                                         |
-| External config                           | [`adr/0002-external-configuration-store.md`](./adr/0002-external-configuration-store.md) |                                                         |
-| Doc-generation scripts                    | [`scripts/README.md`](../scripts/README.md)                                              |                                                         |
+| HTTP credentials                          | [`adr/0001-valet-key-http-credentials.md`](./adr/0001-valet-key-http-credentials.md)     | Accepted                                                |
+| External config store                     | [`adr/0002-external-configuration-store.md`](./adr/0002-external-configuration-store.md) | **Deferred** — not implemented                          |
+| Tooling / commands                        | [`stack/tooling.md`](./stack/tooling.md)                                                 | pnpm, Makefile, Node versions                           |
+| Doc-generation scripts                    | [`scripts/README.md`](../scripts/README.md)                                              | `build:docs` / `build:llms`                             |
+| Write-tool confirm / idempotency          | [`done-tasks/WRITE_TOOL_SAFEGUARDS.md`](./done-tasks/WRITE_TOOL_SAFEGUARDS.md)           | Spanish initiative log                                  |
+| Raw API payload in MCP responses          | [`AGENTS.md`](../AGENTS.md) (Raw Response Support) + `.env.example`                      | Env `BIT2ME_INCLUDE_RAW_RESPONSE`. No separate guide    |
 
 ## Two runtimes (do not mix)
 
@@ -48,3 +51,5 @@ These may exist on a developer disk under `docs/` (gitignored except the paths a
 `PRODUCT.md`, `IMPROVEMENTS_*.md`, `CONSISTENCY_*.md`, `RADICAL_CONSISTENCY_PLAN.md`, `CLEANUP_ANALYSIS.md`, `MIGRATION_GUIDE.md`, `tool_documentation.md`, swagger JSON dumps, video prompts, etc.
 
 `docs/TODO.md` is the maintainer’s private list. Agents must not read or edit it.
+
+A leftover `docs/RAW_RESPONSE_GUIDE.md` may exist on disk from 2025. It is **gitignored** and not canonical — use AGENTS + `.env.example`.

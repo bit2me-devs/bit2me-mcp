@@ -34,6 +34,10 @@ Tras cambiar `data/tools.json`, `pnpm build:docs`. Tras README/AGENTS/CHANGELOG 
 
 ## Change log
 
+### 2026-08-30 13:40 UTC — Segunda pasada: mapa, stack y enlaces
+
+Se añade `docs/stack/tooling.md` (pnpm/Makefile). ADR 0002 queda marcado como deferred. Se quita el enlace roto a `docs/RAW_RESPONSE_GUIDE.md` (gitignored). TOC de AGENTS incluye «Adding a New Tool»; reglas WRITE (confirm + idempotency); mocks `config.js`. CONTRIBUTING apunta al checklist de AGENTS. README inspector usa `pnpm dlx`; SECURITY deja de llamar «multi-tenant SaaS» al binario HTTP. `.gitignore` re-incluye `docs/stack/**`.
+
 ### 2026-08-30 13:36 UTC — Índice y contradicciones
 
 Se añade `docs/README.md` (y excepción en `.gitignore`). Se corrigen AGENTS (registry, confirm, landing), CONTRIBUTING (idioma y cobertura 97%+), README (TypeScript 6, confirm, JWT, landing), scripts/README, generadores (`pnpm`, `AGENTS.md`), plantilla de PR y cheatsheet OpenSSF. `WRITE_TOOL_SAFEGUARDS` deja de decir que falta de confirm lanza `ValidationError`.

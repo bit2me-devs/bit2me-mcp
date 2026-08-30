@@ -16,6 +16,7 @@ This document contains conventions for implementing in this repository.
 8. [Dependencies Management](#dependencies-management)
 9. [Git Hooks](#git-hooks)
 10. [Troubleshooting](#troubleshooting)
+11. [Adding a New Tool](#adding-a-new-tool)
 
 ---
 
@@ -113,7 +114,7 @@ chore(deps): bump zod from 4.1.12 to 4.1.13
 - **Default**: `false` (raw responses excluded)
 - **Usage**: Wrap mapped responses with `wrapResponseWithRaw()`
 - **Purpose**: Debugging and completeness verification
-- **Documentation**: See `docs/RAW_RESPONSE_GUIDE.md`
+- **Do not** add a separate guide under `docs/` — this section and `.env.example` are enough
 
 ### Example Mapper Pattern
 
@@ -163,6 +164,7 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
 - `tests/regression.test.ts` - Zero-diff catalogue: every tool in `data/tools.json` matches the registry (modulo injected `jwt`).
 - `tests/concurrency.test.ts` - Verifies `AsyncLocalStorage` isolation: concurrent requests with different JWTs do not bleed state into each other.
 - `tests/http-transport.test.ts` - Integration tests for the HTTP/SSE binary.
+- `tests/write-safeguards.test.ts` - Confirm preview, idempotency stamp, amount validation.
 
 ### Mocking Rules
 
@@ -563,7 +565,7 @@ import { handleExampleTool } from "../../src/tools/example.js";
 import { bit2meRequest } from "../../src/services/bit2me.js";
 
 vi.mock("../../src/services/bit2me.js");
-vi.mock("../../src/config.ts", () => ({ getConfig: () => ({ INCLUDE_RAW_RESPONSE: false }) }));
+vi.mock("../../src/config.js", () => ({ getConfig: () => ({ INCLUDE_RAW_RESPONSE: false }) }));
 
 describe("Example Tools", () => {
     it("should handle example_get_data", async () => {
@@ -621,7 +623,10 @@ git commit -m "chore: update deps"     # No release
 - `src/tools/registry.ts` - Declarative tool registry (O(1) dispatch)
 - `src/utils/context.ts` - AsyncLocalStorage request context
 - `src/utils/tool-wrapper.ts` - executeTool() wrapper with audit hook
-- `src/utils/format.ts` - Shared validators (validateAmount, validateDateRange)
+- `src/utils/write-guards.ts` - confirm preview + writeRequiresConfirm
+- `src/utils/amount.ts` - `validateAmount()` (re-exported from `format.ts`)
+- `src/utils/format.ts` - Shared validators (validateDateRange, re-exports amount)
+- `docs/README.md` - Canonical documentation map
 - `src/utils/response-mappers.ts` - API response mappers
 - `src/utils/schemas.ts` - TypeScript interfaces
 - `package.json` - Dependencies and scripts
@@ -640,9 +645,9 @@ git commit -m "chore: update deps"     # No release
 9. ✅ **Provide defaults** for all mapper fields
 10. ✅ **Test before committing** (hooks run automatically)
 11. ✅ **Use `decimal.js`** for all monetary arithmetic — no plain JS `number` for money
-12. ✅ **Validate amounts** with `validateAmount()` from `src/utils/format.ts`
-13. ✅ **Add idempotency support** on write tools (`idempotency_key` arg; auto-generated if absent)
-14. ✅ **Register in `src/tools/registry.ts`** — do not add manual `if/else` dispatch in `index.ts`
+12. ✅ **Validate amounts** with `validateAmount()` (`src/utils/amount.ts`, re-exported from `format.ts`)
+13. ✅ **Write tools**: stable `idempotency_key` (wrapper stamps if omitted); irreversible WRITE returns `needs_confirmation` unless `confirm === true`
+14. ✅ **Register via `registerCategory`** in `src/tools/registry.ts` — do not add `if/else` dispatch in `index.ts`
 15. ✅ **TypeScript strict** — `exactOptionalPropertyTypes` globally; `noUncheckedIndexedAccess` in production builds
 
 ---
