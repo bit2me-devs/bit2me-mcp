@@ -37,3 +37,9 @@ Canonical stack for this repo. Commands go through **pnpm**; `Makefile` is a thi
 - Agent rules: [`../../AGENTS.md`](../../AGENTS.md)
 
 There is **no** `make check-file-size` in this repo. Keep new source files ≤200 lines by convention.
+
+## Local-only branches
+
+Husky `pre-push` runs `scripts/check-push-deny.sh` first. Names in
+`scripts/push-deny-branches.txt` cannot be pushed (`git push`, `git push --all`,
+or `main:feat/go-migration`). Today: `feat/go-migration`, `fix/audit-batch-hardening`.

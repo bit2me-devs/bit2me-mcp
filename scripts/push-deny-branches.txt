@@ -1,0 +1,4 @@
+# Local-only branches. Never push these names (any remote).
+# One branch per line. Lines starting with # are ignored.
+feat/go-migration
+fix/audit-batch-hardening

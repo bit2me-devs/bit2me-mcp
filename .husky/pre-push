@@ -1,6 +1,9 @@
 # Pre-push hook: Run heavier checks before pushing to remote
 # These checks take longer but ensure code quality before sharing
 
+# Block local-only branches (reads git pre-push refs on stdin).
+sh scripts/check-push-deny.sh || exit 1
+
 echo "🔨 Running pre-push checks..."
 
 # 1. Verify TypeScript types (without emitting)

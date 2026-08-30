@@ -74,6 +74,8 @@ Please be respectful, inclusive, and constructive in all interactions. We are co
 
 - **`main`**: The production-ready code. Do not push directly to `main`.
 - **Feature Branches**: Create a new branch for each feature or fix.
+- **Local-only** (Husky `pre-push` refuses these names): `feat/go-migration`,
+  `fix/audit-batch-hardening`. List: `scripts/push-deny-branches.txt`.
 
     ```bash
     # For new features

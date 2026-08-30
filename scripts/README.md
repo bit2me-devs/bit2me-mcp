@@ -42,6 +42,14 @@ Canonical map: [`docs/README.md`](../docs/README.md). This folder only documents
 
 ---
 
+### `check-push-deny.sh`
+
+**Command:** run by Husky `pre-push` (also `sh scripts/check-push-deny.sh`)
+
+**Purpose:** Rejects a push if a local or remote ref is listed in `scripts/push-deny-branches.txt`.
+
+---
+
 ### `minify-html.js`
 
 **Command:** Not in package.json (run manually if needed)
