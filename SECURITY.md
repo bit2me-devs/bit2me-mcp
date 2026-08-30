@@ -35,23 +35,21 @@ When using the Bit2Me MCP server, please follow these security best practices:
 
 ## What We Consider Security Issues
 
-- Authentication bypasses or weaknesses
-- Authorization flaws that allow unauthorized access
-- Sensitive data exposure (API keys, secrets, credentials)
-- Injection vulnerabilities (code, command, SQL)
-- Cross-Site Scripting (XSS) vulnerabilities
-- Remote Code Execution (RCE) vulnerabilities
-- Cryptographic weaknesses or misconfigurations
-- Denial of Service (DoS) vulnerabilities
+- LLM confused-deputy on WRITE tools (missing `needs_confirmation` preview, unstable `idempotency_key`, loose amount parsing)
+- Self-inflicted config that leaks or redirects credentials (`BIT2ME_GATEWAY_URL`, world-readable `.env`, bind `0.0.0.0` without TLS)
+- Sensitive data exposure (API keys, secrets, credentials) in logs, audit, or responses
+- Injection or RCE in this process
+- Cryptographic weaknesses in request signing
 
 ## What We Don't Consider Security Issues
 
-- Issues that require physical access to the device
-- Issues that require social engineering
-- Issues that require already compromised accounts
-- Self-XSS vulnerabilities
-- Missing security headers without demonstrated impact
-- Issues in third-party dependencies without a working exploit
+- HTTP gate that only checks that credential headers **exist** (Bit2Me’s gateway authenticates)
+- Cross-tenant isolation, lockout of “another” tenant, or `/metrics` tenancy (this is a local one-user proxy)
+- Missing HMAC-of-tenant / multi-tenant ALS as a **product** requirement
+- Cloud metadata SSRF unless the operator deploys this as a cloud service
+- Issues that require physical access, social engineering, or an already compromised account
+- Self-XSS; missing security headers without demonstrated impact
+- Issues in third-party **dev** dependencies without a working exploit in the published package
 
 ## Recognition
 

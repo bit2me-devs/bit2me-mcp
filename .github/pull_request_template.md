@@ -47,7 +47,8 @@
 - [ ] ✅ All tests pass (`pnpm test`)
 - [ ] ✅ Lint passes (`pnpm lint`)
 - [ ] ✅ Code formatted (`pnpm run lint:fix`)
-- [ ] 📖 Documentation updated (if needed). Tool changes: `data/tools.json` + `pnpm build:docs`
+- [ ] 📖 Documentation updated (if needed). Tool changes: `data/tools.json` (Python/shell) + `pnpm build:docs`
+- [ ] 🚫 Did not bump `package.json` or edit generated files / root `CHANGELOG.md`
 - [ ] 🔒 No sensitive data exposed
 - [ ] ♿ Accessibility considered (landing HTML only; N/A for the MCP server)
 

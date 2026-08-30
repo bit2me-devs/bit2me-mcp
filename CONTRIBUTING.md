@@ -144,6 +144,13 @@ We use **Vitest**. Coverage **gate** (do not lower): 70% lines/functions/stateme
 
 **Note:** Please ensure all tests pass before pushing your changes.
 
+## House rules (do not skip)
+
+- **Do not bump** `package.json` or edit the root `CHANGELOG.md`. Version = npm + git tag. See [docs/stack/release.md](./docs/stack/release.md).
+- **Do not edit** `TOOLS_DOCUMENTATION.md`, `landing/tools-data.js`, or `landing/llms*.txt` by hand.
+- **New files** in `src/`, `tests/`, `scripts/`: ≤200 lines. Do not grow `pro.ts`, `broker.ts`, `format.ts`, `bit2me.ts`, `response-mappers.ts`, or `http.ts` — extract a sibling.
+- Reviewers: [`.github/CODEOWNERS`](./.github/CODEOWNERS).
+
 ## Code Quality & Security
 
 Our strict pre-commit hooks will automatically run:

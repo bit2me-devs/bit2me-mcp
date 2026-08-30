@@ -5,11 +5,13 @@
 - Deciders: Backend / SRE
 - Supersedes: —
 - Related: `src/transport/http.ts`, `src/utils/context.ts`, `src/utils/logger.ts`,
-  `src/services/bit2me.ts`
+  `src/services/bit2me.ts`, ADR 0003 (product threat model)
 
 ## Context
 
-The HTTP transport (`src/transport/http.ts`) is multi-tenant by design.
+The HTTP transport (`src/transport/http.ts`) isolates **per request**
+(`AsyncLocalStorage`). That is not a hosted multi-tenant SaaS — the
+product threat model is ADR 0003 (local one-user proxy).
 Each request must carry the credentials needed to talk to the upstream
 Bit2Me API. Two authentication modes are accepted:
 

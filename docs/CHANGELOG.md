@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 19:40 UTC] — Segunda pasada de docs (agentes y HTTP)
+
+- Mapa «For agents», README/ADR 0001/SECURITY sin SaaS multi-tenant, OpenSSF y plantillas al día, `llms` incluye el mapa, CODEOWNERS. See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).
+
 ## [2026-08-30 19:38 UTC] — Docs de release y modelo de amenaza
 
 - Playbook `stack/release.md`, ADR 0003, y alineación de AGENTS/CONTRIBUTING/SECURITY/README (versión = npm+tag, OIDC, cobertura del gate Vitest, PR vs maintainer). See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).

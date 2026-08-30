@@ -114,11 +114,10 @@ jobs:
             # NOTE: Auto-pushes back to main are intentionally NOT performed
             # here. The "main" ruleset only allows admin users to bypass and
             # the GITHUB_TOKEN we hold in this workflow runs as the
-            # `github-actions[bot]`, which is not an admin. CHANGELOG.md and
-            # version bumps in package.json are sourced of truth on the
-            # published npm tarball and on the GitHub Release page; the
-            # in-tree CHANGELOG.md is regenerated periodically via a manual
-            # PR by a maintainer.
+            # `github-actions[bot]`, which is not an admin. The published
+            # version is npm + the git tag. Root CHANGELOG.md and
+            # package.json on main may lag; do not treat them as the
+            # published version. See docs/stack/release.md.
 
     # GITHUB_TOKEN events do not start other workflows, so deploy.yml's
     # `on.release` never runs after semantic-release. Redeploy Pages here

@@ -34,6 +34,10 @@ Tras cambiar `data/tools.json`, `pnpm build:docs`. Tras README/AGENTS/CHANGELOG 
 
 ## Change log
 
+### 2026-08-30 19:40 UTC — Segunda pasada: agentes, HTTP y OpenSSF
+
+`docs/README.md` añade «For agents». README/ADR 0001 dejan de vender HTTP como SaaS multi-tenant. SECURITY lista hallazgos reales vs ruido. Cheatsheet OpenSSF, plantilla de PR, bug report (Node 20) y comentario de `release.yml` alineados. `generate-llms.js` incluye el mapa. CODEOWNERS versionado.
+
 ### 2026-08-30 19:38 UTC — Release, amenaza y contradicciones
 
 Playbook `docs/stack/release.md` (npm + tag; no bump a mano). ADR 0003 (proxy local, un usuario). AGENTS/CONTRIBUTING/SECURITY/README/tooling dejan de decir que SemVer actualiza `package.json`, que hace falta `NPM_TOKEN`/Node 22, cobertura 97%+ o que nadie puede pushear `main`. El spec WRITE es AGENTS + código; `done-tasks/` es diario. Inspector CLI documentado. `.gitignore` re-incluye `docs/adr/**`.

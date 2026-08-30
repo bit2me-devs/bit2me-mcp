@@ -17,7 +17,7 @@ Un agente puede llamar `pro_create_order` o `earn_withdraw` en un solo paso. Sin
 - `src/utils/write-guards.ts` — `writeRequiresConfirm` (todo WRITE salvo `broker_quote_*`), preview `needs_confirmation` con `idempotency_key`, `resolveIdempotencyKey`.
 - `src/utils/tool-wrapper.ts` — estampa la clave efectiva en `args` (handler y audit comparten la misma) y exige `confirm` antes del executor.
 - `src/utils/amount.ts` — `validateAmount` con `decimal.js`; `format.ts` reexporta.
-- `data/tools.json` — `confirm` requerido en las 10 tools irreversibles; `idempotency_key` opcional en las 14 WRITE.
+- `data/tools.json` — `confirm` **opcional** (nunca en `required` ni `exampleArgs`); `idempotency_key` opcional en las WRITE. Sin `confirm === true` el runtime devuelve preview.
 
 `broker_quote_*` no piden `confirm` (solo crean proforma). `broker_confirm_quote` sí: preview y luego `confirm=true`. Valida UUID de `proforma_id`.
 
@@ -38,6 +38,10 @@ Alineado con el modelo de amenaza local: no es un hallazgo multi-tenant. Es defe
 Tras publicar, `confirm` es opcional en el schema. Sin `confirm === true`, Pro/Earn/Loan WRITE devuelven `needs_confirmation` (sin llamar a Bit2Me). El audit registra `needs_confirmation`.
 
 ## Change log
+
+### 2026-08-30 19:40 UTC — Diario: confirm no es required
+
+Se corrige el párrafo de Architecture: `confirm` no va en `required` ni en ejemplos. El spec sigue en AGENTS + `write-guards.ts`.
 
 ### 2026-08-30 14:26 UTC — Preview con clave, confirm en quote y par Pro
 

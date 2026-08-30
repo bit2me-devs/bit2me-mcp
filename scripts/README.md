@@ -36,6 +36,7 @@ Canonical map: [`docs/README.md`](../docs/README.md). This folder only documents
 
 **Sources:**
 
+- `docs/README.md` (canonical map)
 - `README.md`
 - `AGENTS.md`
 - `CHANGELOG.md` (npm / Semantic Release)
@@ -80,7 +81,7 @@ NODE_ENV=production node scripts/minify-html.js
     pnpm run build:docs
     ```
 
-3. **Regenerate LLM documentation (if you change README / AGENTS.md / root CHANGELOG.md):**
+3. **Regenerate LLM documentation (if you change `docs/README.md` / README / AGENTS.md / root CHANGELOG.md):**
 
     ```bash
     pnpm run build:llms

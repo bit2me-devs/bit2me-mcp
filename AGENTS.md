@@ -1,6 +1,6 @@
 # Agent Rules for Bit2Me MCP Server Repository
 
-Canonical map of all docs (generated vs hand-edited, EN vs ES): [`docs/README.md`](./docs/README.md).
+Canonical map of all docs (generated vs hand-edited, EN vs ES): [`docs/README.md`](./docs/README.md). If this file disagrees with that map, **the map wins**.
 
 This document contains conventions for implementing in this repository.
 
@@ -647,5 +647,5 @@ git commit -m "chore: update deps"     # No release
 
 ---
 
-**Last Updated**: Based on repository state as of latest changes
+**Last Updated**: 2026-08-30
 **Maintainer**: Follow these rules to ensure consistent repository management

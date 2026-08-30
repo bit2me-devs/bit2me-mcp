@@ -11,6 +11,17 @@ Canonical index for this repository. If two documents disagree, **this table and
 
 Commit messages are always **English** (Conventional Commits).
 
+## For agents
+
+If another file disagrees with this map, **this map wins**.
+
+1. Edit `data/tools.json` with `python3` or the shell; then `pnpm build:docs`. Do not re-indent the whole file.
+2. Do not edit generated files or the root `CHANGELOG.md`.
+3. Do not bump `package.json`. Published version = npm + git tag `v*`. See [`stack/release.md`](./stack/release.md).
+4. Threat model: [`adr/0003-local-single-user-threat-model.md`](./adr/0003-local-single-user-threat-model.md). This is a local one-user proxy, not a multi-tenant SaaS.
+5. `docs/done-tasks/` is a Spanish diary, not the WRITE spec (that is AGENTS + `src/utils/write-guards.ts`).
+6. Do not read or edit `docs/TODO.md`.
+
 ## Source of truth
 
 | Topic                                     | File                                                                                         | Notes                                                    |
@@ -21,6 +32,7 @@ Commit messages are always **English** (Conventional Commits).
 | Agent / contributor implementation rules  | [`AGENTS.md`](../AGENTS.md)                                                                  | How to add tools, test, release                          |
 | User install & operations                 | [`README.md`](../README.md)                                                                  | stdio + HTTP                                             |
 | How to contribute                         | [`CONTRIBUTING.md`](../CONTRIBUTING.md)                                                      | PRs, pnpm, hooks                                         |
+| Required reviewers                        | [`.github/CODEOWNERS`](../.github/CODEOWNERS)                                                | Either listed maintainer                                 |
 | Vulnerability reporting                   | [`SECURITY.md`](../SECURITY.md)                                                              |                                                          |
 | npm release history                       | [`CHANGELOG.md`](../CHANGELOG.md)                                                            | Semantic Release only — do not edit                      |
 | Published package version                 | npm `@bit2me/mcp-server` + git tag `v*`                                                      | **Not** `package.json` (that file is not bumped on main) |

@@ -244,7 +244,7 @@ Per-request state stored via `memoizePerRequest()` (e.g. wallet pockets fetched 
 Two binaries ship with this package:
 
 - `bit2me-mcp-server` — the original stdio transport, designed to be spawned by a single LLM client (Claude Desktop, Cursor, …).
-- `bit2me-mcp-http` — the multi-tenant HTTP/SSE transport (`src/index-http.ts`). Each request supplies its own credentials in headers (`X-Bit2Me-Api-Key` + `X-Bit2Me-Api-Secret` or `Authorization: Bearer <jwt>`). TLS termination is delegated to a reverse proxy.
+- `bit2me-mcp-http` — HTTP/SSE (`src/index-http.ts`). Each request may send its own credentials (`X-Bit2Me-Api-Key` + `X-Bit2Me-Api-Secret` or `Authorization: Bearer <jwt>`). Default bind is loopback (`127.0.0.1`). This is not a hosted multi-tenant SaaS; see [ADR 0003](./docs/adr/0003-local-single-user-threat-model.md). Put TLS in front of any non-loopback bind.
 
 Recommended environment variables for the HTTP binary:
 
