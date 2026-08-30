@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 19:42 UTC] — AGENTS más corto, release canónico
+
+- AGENTS deja de copiar CI/npm/árbol de `src/`. Publish y OIDC viven en `stack/release.md`. See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).
+
 ## [2026-08-30 19:40 UTC] — Segunda pasada de docs (agentes y HTTP)
 
 - Mapa «For agents», README/ADR 0001/SECURITY sin SaaS multi-tenant, OpenSSF y plantillas al día, `llms` incluye el mapa, CODEOWNERS. See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).

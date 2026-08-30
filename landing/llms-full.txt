@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2026-08-30T19:41:14.802Z
+> Generated on 2026-08-30T19:42:41.693Z
 
 
 ==================================================
@@ -38,7 +38,7 @@ If another file disagrees with this map, **this map wins**.
 | Tool catalogue (names, schemas, examples) | [`data/tools.json`](../data/tools.json)                                                      | Edit this; then `pnpm build:docs`                        |
 | Generated tool docs                       | [`TOOLS_DOCUMENTATION.md`](../TOOLS_DOCUMENTATION.md)                                        | Do **not** edit by hand                                  |
 | Landing catalogue JS                      | [`landing/tools-data.js`](../landing/tools-data.js)                                          | Generated. HTML/CSS/CNAME in `landing/` are hand-edited  |
-| Agent / contributor implementation rules  | [`AGENTS.md`](../AGENTS.md)                                                                  | How to add tools, test, release                          |
+| Agent / contributor implementation rules  | [`AGENTS.md`](../AGENTS.md)                                                                  | Add-tool + mappers + WRITE. Release facts → `stack/release.md` |
 | User install & operations                 | [`README.md`](../README.md)                                                                  | stdio + HTTP                                             |
 | How to contribute                         | [`CONTRIBUTING.md`](../CONTRIBUTING.md)                                                      | PRs, pnpm, hooks                                         |
 | Required reviewers                        | [`.github/CODEOWNERS`](../.github/CODEOWNERS)                                                | Either listed maintainer                                 |
@@ -571,13 +571,10 @@ This document contains conventions for implementing in this repository.
 2. [Versioning & Releases](#versioning--releases)
 3. [API Response Mapping](#api-response-mapping)
 4. [Testing](#testing)
-5. [CI/CD Workflows](#cicd-workflows)
-6. [NPM Publishing](#npm-publishing)
-7. [Code Structure](#code-structure)
-8. [Dependencies Management](#dependencies-management)
-9. [Git Hooks](#git-hooks)
-10. [Troubleshooting](#troubleshooting)
-11. [Adding a New Tool](#adding-a-new-tool)
+5. [Code Structure](#code-structure)
+6. [Adding a New Tool](#adding-a-new-tool)
+7. [Also see](#also-see)
+8. [Quick Reference](#quick-reference)
 
 ---
 
@@ -618,35 +615,12 @@ chore(deps): bump zod from 4.1.12 to 4.1.13
 
 ## Versioning & Releases
 
-### Semantic Release Configuration
+Canonical playbook: [`docs/stack/release.md`](./docs/stack/release.md). If this section disagrees, **that file wins**.
 
-- **Automated versioning** via Semantic Release
-- **Configuration file**: `.releaserc.json`
-- **Release rules**: Defined in `releaseRules` array
-- **Branches**: Only `main` branch triggers releases
-- **Node.js version**: Release CI uses Node 24 (OIDC). Runtime is Node 20+.
-
-### Release Process
-
-Canonical playbook: [`docs/stack/release.md`](./docs/stack/release.md).
-
-1. Push `feat:` / `fix:` / `perf:` to `main` (maintainers). Contributors use a PR.
-2. Semantic Release analyzes commits since the last **git tag**
-3. Publishes `@bit2me/mcp-server`, creates tag `vX.Y.Z` and a GitHub Release
-4. It does **not** commit `package.json` or root `CHANGELOG.md` back to `main` (bot is not a ruleset admin). Trust **npm + the git tag**, not `package.json` on `main`.
-
-### Version Bump Rules
-
-- **Major** (1.0.0 → 2.0.0): Breaking changes (requires `BREAKING CHANGE:` in commit body)
-- **Minor** (1.1.0 → 1.2.0): New features (`feat:`)
-- **Patch** (1.1.0 → 1.1.1): Bug fixes (`fix:`, `perf:`)
-
-### Important Notes
-
-- Commits `chore:`, `ci:`, `docs:` do NOT trigger releases
-- Semantic Release only runs on `main` branch
-- Last tag determines which commits are analyzed
-- If no release-worthy commits, workflow completes without error
+- **Publish:** `feat:` / `fix:` / `perf:` on `main` (maintainers push; contributors open a PR).
+- **Do not** bump `package.json`, `pnpm publish`, or `git tag` by hand.
+- **Version** = npm `@bit2me/mcp-server` + git tag `v*`. `package.json` on `main` may lag.
+- **Major** needs `BREAKING CHANGE:` in the commit body. `docs:` / `chore:` / `ci:` do not publish.
 
 ---
 
@@ -713,7 +687,7 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
 - **Framework**: Vitest
 - **Location**: `tests/` directory
 - **Pattern**: Mirror `src/` structure
-- **Coverage gate** (Vitest): lines/functions/statements 70%, branches 60% (`vitest.config.ts`). Do not lower the gate. Aspirational line coverage is higher; CI does not require 97%.
+- **Coverage gate** (Vitest): 70% lines/functions/statements, 60% branches (`vitest.config.ts`). Do not lower it.
 
 ### Test Files
 
@@ -750,118 +724,13 @@ pnpm test:coverage    # Generate coverage report
 
 ---
 
-## CI/CD Workflows
-
-### Workflows
-
-1. **CI** (`.github/workflows/ci.yml`)
-    - Runs on: Push to any branch, PRs
-    - Steps: Lint, Test, Build
-    - Node.js: ≥20 (Node 18 is no longer supported)
-
-2. **Release** (`.github/workflows/release.yml`)
-    - Runs on: Push to `main`
-    - Steps: Build, Test, Semantic Release, then Pages (`landing` job)
-    - Node.js: **24** (OIDC trusted publishing)
-    - Auth to npm: OIDC (no `NPM_TOKEN` in the current workflow)
-    - Generates SBOM (CycloneDX) and signs artifacts with cosign keyless signing.
-
-3. **Deploy** (`.github/workflows/deploy.yml`)
-    - Runs on: Push to `main`
-    - Deploys landing page to GitHub Pages
-    - Node.js: 20
-
-4. **Security Audit** (`.github/workflows/audit.yml`)
-    - Runs: Weekly schedule (cron)
-    - Executes `pnpm audit` to surface new CVEs in the dependency tree.
-
-### Release Workflow Steps
-
-1. Checkout with `fetch-depth: 0` (needed for Semantic Release)
-2. Setup Node.js 24 with pnpm cache
-3. Install dependencies (`pnpm install --frozen-lockfile`)
-4. Build (`pnpm build`)
-5. Test (`pnpm test`)
-6. Semantic Release (OIDC to npm)
-7. Redeploy GitHub Pages so the landing sees the new tag
-
-### Required Secrets
-
-- **`GITHUB_TOKEN`**: Auto-provided. npm uses OIDC trusted publishing, not `NPM_TOKEN`.
-
----
-
-## NPM Publishing
-
-### Configuration
-
-- **Package name**: `@bit2me/mcp-server`
-- **Access**: Public (`publishConfig.access: "public"`)
-- **Provenance**: Enabled (`publishConfig.provenance: true`)
-- **Registry**: `https://registry.npmjs.org`
-
-### Trusted publishing (OIDC)
-
-- npm authenticates the **Release** workflow via OIDC (`id-token: write`).
-- There is no `NPM_TOKEN` secret in the current `release.yml`.
-- `@bit2me/mcp-server` must list that workflow as trusted publisher.
-
-### Publishing Process
-
-See [`docs/stack/release.md`](./docs/stack/release.md). Semantic Release publishes and tags; it does **not** push a version bump commit to `main`.
-
-### Troubleshooting NPM Publishing
-
-- **Error: OIDC / trusted publisher**
-    - The Release workflow must stay the trusted publisher for `@bit2me/mcp-server`
-    - Job needs `id-token: write`
-- **Error: Node version**
-    - Release workflow uses Node.js 24 (not 22)
-
----
-
 ## Code Structure
 
-### Directory Layout
+### Do not grow these files
 
-```
-src/
-├── config.ts              # Environment configuration (validates HTTPS gateway, etc.)
-├── constants.ts           # Constants and enums
-├── index.ts               # Stdio entry point — registers tools via registry
-├── index-http.ts          # HTTP/SSE entry point (`bit2me-mcp-http` binary)
-├── prompts/
-│   └── index.ts           # Parametrized prompts (analyze_portfolio, market_summary,
-│                          #   tax_report, dca_plan, loan_health_check)
-├── services/
-│   └── bit2me.ts          # Bit2Me API client (nonce, signing, retry, circuit breaker)
-├── tools/                 # MCP tool handlers
-│   ├── broker.ts
-│   ├── earn.ts
-│   ├── general.ts
-│   ├── loan.ts
-│   ├── pro.ts
-│   ├── registry.ts        # Declarative tool registry — O(1) dispatch, audit hook
-│   └── wallet.ts
-├── transport/             # HTTP/SSE transport layer
-└── utils/
-    ├── args.ts            # Argument parsing and validation helpers
-    ├── audit.ts           # Append-only audit log writer
-    ├── cache.ts           # In-memory cache (keyed by correlationId via memoizePerRequest)
-    ├── circuit-breaker.ts # Circuit breaker for upstream Bit2Me API
-    ├── context.ts         # AsyncLocalStorage request context (correlationId, jwt, toolName)
-    ├── errors.ts          # Custom error classes (ValidationError, ApiError, …)
-    ├── format.ts          # Shared validators: validateAmount(), validateDateRange(), etc.
-    ├── health.ts          # Rich /health snapshot (cache, circuit-breaker, rate-limiter)
-    ├── logger.ts          # Structured logger — stderr only, LOG_FORMAT=json support
-    ├── metrics.ts         # Prometheus counters for /metrics endpoint
-    ├── rate-limiter.ts    # Per-endpoint rate limiter with exponential backoff + jitter
-    ├── response-mappers.ts# API response mappers (raw → typed schemas)
-    ├── schemas.ts         # TypeScript interfaces for all tool responses
-    ├── tool-metadata.ts   # Reads data/tools.json at startup; drives registry + docs
-    ├── tool-wrapper.ts    # executeTool(): context init, audit emission, error handling
-    └── request-cache.ts   # Per-request memoization (cleared in finally block)
-```
+New files in `src/`, `tests/`, `scripts/`: **≤200 lines**. Extract a sibling in the same task (examples already in tree: `amount.ts`, `write-guards.ts`, `pair-api.ts`, `broker-proforma.ts`).
+
+Do **not** add lines to: `pro.ts`, `broker.ts`, `format.ts`, `bit2me.ts`, `response-mappers.ts`, `http.ts`.
 
 ### Architecture: Key Patterns
 
@@ -883,16 +752,17 @@ Every tool invocation runs inside an `AsyncLocalStorage` boundary (`runWithConte
 - `sessionToken` (`jwt`): the optional per-call session token, never logged in the clear.
 - `toolName`, `startTime`: used for metrics and audit.
 
-Two concurrent requests — for example two different users in the HTTP transport — never share state. Tests that run outside a `runWithContext` boundary fall back to a safe default.
+Two concurrent HTTP requests (different JWTs) never share state. That is ALS isolation, **not** a hosted SaaS — see ADR 0003. Tests outside `runWithContext` fall back to a safe default.
 
 #### 3. Tool Wrapper & Audit Hook (`src/utils/tool-wrapper.ts`)
 
 `executeTool()` wraps every handler call:
 
 1. Initialises the `AsyncLocalStorage` context.
-2. Calls the handler.
-3. On completion (success **or** failure), emits an audit log entry if `type === "WRITE"`.
-4. Clears per-request cache in the `finally` block so memory cannot grow unbounded.
+2. For WRITE: stamps a stable `idempotency_key` on `args` (handler and audit share it).
+3. If `writeRequiresConfirm` and `confirm !== true`, returns `needs_confirmation` (no Bit2Me call) and audits that outcome.
+4. Otherwise runs the handler; audits WRITE on success or failure.
+5. Clears per-request cache in `finally`.
 
 #### 4. Audit Log (`src/utils/audit.ts`)
 
@@ -914,99 +784,6 @@ Set `AUDIT_LOG_PATH` to persist to a dedicated file. If unset, the line is emitt
 - **Add `.js` extension** to imports (TypeScript requirement)
 - **Group imports**: External → Internal → Types
 - **Use type imports** when importing only types (`import type`)
-
----
-
-## Dependencies Management
-
-### Dependencies
-
-- **Production**: Minimal, only runtime requirements
-- **Dev**: Testing, linting, building tools
-- **Update strategy**: Dependabot (weekly, grouped)
-
-### Dependabot Configuration
-
-- **Location**: `.github/dependabot.yml`
-- **Schedule**: Weekly (Monday 09:00 Europe/Madrid)
-- **Grouping**:
-    - `dev-dependencies`: All dev deps together
-    - `production-patches`: Production patches only
-- **Commit prefix**: `chore(deps):` (doesn't trigger releases)
-
-### Dependency Updates
-
-- **Dependabot PRs**: Review and merge manually
-- **Test locally** after merging dependency updates
-- **Commit format**: `chore(deps): bump <package> from <old> to <new>`
-- **No release** triggered by dependency updates
-
-### Lock File
-
-- **`pnpm-lock.yaml`**: Always commit changes
-- **Never ignore** lock file
-- **Use `pnpm install --frozen-lockfile`** in CI (not `pnpm install`)
-
----
-
-## Git Hooks
-
-### Husky Configuration
-
-- **Location**: `.husky/` directory
-- **Pre-commit**: Runs lint-staged
-- **Commit-msg**: Validates commit format (commitlint)
-
-### Lint-Staged Rules
-
-- **`*.ts`**: ESLint fix → Prettier → Vitest related tests
-- **`*.{css,html,json,md}`**: Prettier only
-- **Runs automatically** on `git commit`
-
-### Commitlint
-
-- **Config**: `.commitlintrc.json`
-- **Enforces**: Conventional Commits format
-- **Blocks commits** that don't follow convention
-
----
-
-## Troubleshooting
-
-### Semantic Release Not Publishing
-
-1. **Check Node.js version**: Release workflow must stay on Node 24
-2. **Check OIDC / trusted publisher** for `@bit2me/mcp-server` (not `NPM_TOKEN`)
-3. **Check commit types**: Only `feat:` / `fix:` / `perf:` trigger releases
-4. **Verify last tag**: Semantic Release analyzes commits since last tag
-5. **Check workflow logs**: Look for authentication errors
-6. **`package.json` on `main` looking old is expected** — see [`docs/stack/release.md`](./docs/stack/release.md)
-
-### Tests Failing
-
-1. **Mock `getConfig()`**: Required in all test files
-2. **Set `INCLUDE_RAW_RESPONSE: false`** in test mocks
-3. **Check fixtures**: Ensure test data matches expected format
-4. **Run locally**: `pnpm test` to debug
-
-### Build Errors
-
-1. **TypeScript errors**: Check `tsconfig.json` configuration
-2. **Missing types**: Install `@types/*` packages
-3. **Import errors**: Verify `.js` extensions in imports
-
-### npm publish / OIDC Issues
-
-1. Confirm the Release job has `id-token: write` and `contents: write`
-2. Confirm npm trusted publisher matches `.github/workflows/release.yml`
-3. Confirm Node 24 in that workflow (OIDC)
-4. Do not add `NPM_TOKEN` unless trusted publishing is retired on purpose
-
-### Git Hook Failures
-
-1. **Husky not installed**: Run `pnpm install` (triggers `prepare` script)
-2. **Commitlint error**: Fix commit message format
-3. **Lint-staged error**: Fix linting/formatting issues
 
 ---
 
@@ -1143,29 +920,16 @@ describe("Example Tools", () => {
 
 ---
 
+## Also see
+
+- Commands, coverage gate, local-only branches: [`docs/stack/tooling.md`](./docs/stack/tooling.md)
+- How we publish / OIDC / landing after release: [`docs/stack/release.md`](./docs/stack/release.md)
+- Threat model: [`docs/adr/0003-local-single-user-threat-model.md`](./docs/adr/0003-local-single-user-threat-model.md)
+- Dependabot: `.github/dependabot.yml` (`chore(deps):` — no npm publish). Always commit `pnpm-lock.yaml`.
+- Hooks: Husky + lint-staged + commitlint. `pnpm install` runs `prepare`.
+- Tests fail? Mock `getConfig()`, set `INCLUDE_RAW_RESPONSE: false`, run `pnpm test`.
+
 ## Quick Reference
-
-### Common Commands
-
-```bash
-# Development
-pnpm build          # Build TypeScript
-pnpm dev            # Run server (stdio transport)
-pnpm test          # Run all tests
-pnpm test:watch    # Watch mode
-pnpm lint           # Lint code
-pnpm eslint:fix     # Fix linting issues
-pnpm build:docs     # Regenerate TOOLS_DOCUMENTATION.md + landing/tools-data.js from data/tools.json
-pnpm typecheck      # TypeScript type-check without emitting (uses strict tsconfig)
-
-# Git
-git commit -m "feat: add new feature"  # Triggers release
-git commit -m "fix: fix bug"            # Triggers patch release
-git commit -m "chore: update deps"     # No release
-
-# Release
-# Automatic via Semantic Release on push to main
-```
 
 ### Important Files
 

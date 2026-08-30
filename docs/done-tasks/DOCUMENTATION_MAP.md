@@ -34,6 +34,10 @@ Tras cambiar `data/tools.json`, `pnpm build:docs`. Tras README/AGENTS/CHANGELOG 
 
 ## Change log
 
+### 2026-08-30 19:42 UTC — AGENTS deja de duplicar release/CI
+
+CI, npm, Dependabot y el árbol desfasado de `src/` salen de AGENTS. Quedan commits, mappers, tests, patrones y el checklist de tools. Troubleshooting de publish vive en `stack/release.md`. El wrapper documenta confirm + `idempotency_key`.
+
 ### 2026-08-30 19:40 UTC — Segunda pasada: agentes, HTTP y OpenSSF
 
 `docs/README.md` añade «For agents». README/ADR 0001 dejan de vender HTTP como SaaS multi-tenant. SECURITY lista hallazgos reales vs ruido. Cheatsheet OpenSSF, plantilla de PR, bug report (Node 20) y comentario de `release.yml` alineados. `generate-llms.js` incluye el mapa. CODEOWNERS versionado.

@@ -35,3 +35,10 @@ Canonical playbook. If `AGENTS.md` or a comment disagrees, **this file wins**.
 - **Maintainers cutting a release:** push `main` knowing `feat`/`fix`/`perf` publish npm.
 
 CI Release uses **Node 24** (OIDC trusted publishing). No `NPM_TOKEN` in the current workflow.
+
+## Troubleshooting
+
+- **Nothing published:** only `feat:` / `fix:` / `perf:` since the last **git tag** cut a release. `docs:` / `chore:` / `ci:` do not.
+- **OIDC / 401 on npm:** the Release job needs `id-token: write`. `@bit2me/mcp-server` must list `.github/workflows/release.yml` as trusted publisher. Do not add `NPM_TOKEN` unless trusted publishing is retired on purpose.
+- **`package.json` on `main` looks old:** expected. Trust npm + the git tag.
+- **Landing still shows an old tag:** the `landing` job in `release.yml` must run after Semantic Release (same workflow). `GITHUB_TOKEN` cannot start `deploy.yml` via `on.release`.
