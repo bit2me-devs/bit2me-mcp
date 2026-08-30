@@ -7,11 +7,11 @@ import { ValidationError } from "../utils/errors.js";
 
 export type JsonRpcId = string | number | null;
 
-export function jsonRpcResult(id: JsonRpcId, result: unknown) {
+function jsonRpcResult(id: JsonRpcId, result: unknown) {
     return { jsonrpc: "2.0" as const, id, result };
 }
 
-export function jsonRpcError(id: JsonRpcId, code: number, message: string) {
+function jsonRpcError(id: JsonRpcId, code: number, message: string) {
     return { jsonrpc: "2.0" as const, id, error: { code, message } };
 }
 

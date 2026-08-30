@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 import { getConfig } from "../config.js";
 import { logger } from "../utils/logger.js";
@@ -58,10 +57,10 @@ export interface Bit2MeRequestOptions {
  * - 5xx and connection errors: retried with exponential backoff for GETs;
  *   for POST/DELETE, only retried when an `idempotencyKey` was provided.
  */
-export async function bit2meRequest<T = any>(
+export async function bit2meRequest<T = unknown>(
     method: "GET" | "POST" | "DELETE",
     endpoint: string,
-    params?: any,
+    params?: Record<string, unknown>,
     retries?: number,
     timeoutOverride?: number,
     sessionToken?: string,

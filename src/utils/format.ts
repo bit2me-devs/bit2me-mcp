@@ -15,7 +15,7 @@ export {
 } from "./format-ids.js";
 export { validatePaginationLimit, validatePaginationOffset } from "./format-pagination.js";
 export { validateISO8601, validateDateRange } from "./format-dates.js";
-export { MAX_AMOUNT, validateAmount } from "./amount.js";
+export { validateAmount } from "./amount.js";
 export {
     normalizeStatus,
     normalizeOrderStatus,

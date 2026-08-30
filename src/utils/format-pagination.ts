@@ -1,3 +1,4 @@
+import { DEFAULT_PAGINATION_LIMIT, MAX_PAGINATION_LIMIT } from "../constants.js";
 import { ValidationError } from "./errors.js";
 
 /**
@@ -9,10 +10,10 @@ import { ValidationError } from "./errors.js";
  */
 export function validatePaginationLimit(
     limit: number | undefined,
-    maxLimit: number = 100,
+    maxLimit: number = MAX_PAGINATION_LIMIT,
     endpointName?: string
 ): number {
-    if (limit === undefined) return 10; // Default limit
+    if (limit === undefined) return DEFAULT_PAGINATION_LIMIT;
     if (limit > maxLimit) {
         const context = endpointName ? ` for ${endpointName}` : "";
         throw new ValidationError(

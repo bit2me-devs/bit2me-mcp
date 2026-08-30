@@ -9,7 +9,7 @@ import { beforeAll, describe } from "vitest";
 
 // E2E tests ONLY run when RUN_E2E is explicitly set to "true"
 // This prevents accidental E2E execution in CI or local development
-export const isE2E = process.env.RUN_E2E === "true";
+const isE2E = process.env.RUN_E2E === "true";
 
 beforeAll(() => {
     if (isE2E) {
@@ -17,7 +17,7 @@ beforeAll(() => {
             throw new Error(
                 "E2E tests require BIT2ME_API_KEY and BIT2ME_API_SECRET environment variables.\n" +
                     "Set them in your .env file or pass them when running tests:\n" +
-                    "RUN_E2E=true BIT2ME_API_KEY=xxx BIT2ME_API_SECRET=yyy npm run test:e2e"
+                    "RUN_E2E=true BIT2ME_API_KEY=xxx BIT2ME_API_SECRET=yyy pnpm test:e2e"
             );
         }
         // eslint-disable-next-line no-console

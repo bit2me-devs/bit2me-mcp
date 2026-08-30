@@ -124,36 +124,6 @@ export function getCorrelationId(): string | undefined {
     return fallback.correlationId;
 }
 
-/**
- * @deprecated Use `runWithContext()` instead. Kept for tests.
- *
- * If called inside an `runWithContext` boundary, mutates the active store.
- * Otherwise stores into a process-wide fallback (NOT safe under concurrency).
- */
-export function setCorrelationId(correlationId: string): void {
-    const store = als.getStore();
-    if (store) {
-        store.correlationId = correlationId;
-        return;
-    }
-    fallback.correlationId = correlationId;
-}
-
-/**
- * @deprecated kept for tests.
- */
-export function clearCorrelationId(): void {
-    const store = als.getStore();
-    if (store) {
-        // We cannot truly delete a required field from the active store; the
-        // store will be discarded automatically once `runWithContext` exits.
-        // Best-effort: blank it out.
-        store.correlationId = "";
-        return;
-    }
-    fallback.correlationId = undefined;
-}
-
 // ============================================================================
 // SESSION TOKEN MANAGEMENT (for web-like authentication)
 // ============================================================================

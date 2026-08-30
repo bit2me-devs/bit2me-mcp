@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { parseEnabledCategories, VALID_CATEGORY_IDS } from "./utils/enabled-categories.js";
 import { logger } from "./utils/logger.js";
+import { DEFAULT_MAX_RETRIES, DEFAULT_REQUEST_TIMEOUT, DEFAULT_RETRY_BASE_DELAY } from "./constants.js";
 import {
     DEFAULT_GATEWAY_URL,
     DEFAULT_HTTP_HOST,
@@ -22,10 +23,10 @@ const envSchema = z.object({
         })
         .optional()
         .default(DEFAULT_GATEWAY_URL),
-    BIT2ME_REQUEST_TIMEOUT: z.string().optional().default("30000"),
+    BIT2ME_REQUEST_TIMEOUT: z.string().optional().default(String(DEFAULT_REQUEST_TIMEOUT)),
     BIT2ME_LOG_LEVEL: z.string().optional().default("info"),
-    BIT2ME_MAX_RETRIES: z.string().optional().default("3"),
-    BIT2ME_RETRY_BASE_DELAY: z.string().optional().default("1000"),
+    BIT2ME_MAX_RETRIES: z.string().optional().default(String(DEFAULT_MAX_RETRIES)),
+    BIT2ME_RETRY_BASE_DELAY: z.string().optional().default(String(DEFAULT_RETRY_BASE_DELAY)),
     BIT2ME_INCLUDE_RAW_RESPONSE: z.string().optional().default("false"),
     // Cookie names are placed verbatim into a `Cookie:` header so they
     // must be HTTP-token-safe (RFC 6265 cookie-name = token). Reject
@@ -103,10 +104,10 @@ export function getConfig(): Config {
         cachedConfig = {
             ...parsed,
             GATEWAY_URL: gatewayUrl,
-            REQUEST_TIMEOUT: parseInt(parsed.BIT2ME_REQUEST_TIMEOUT || "30000", 10),
+            REQUEST_TIMEOUT: parseInt(parsed.BIT2ME_REQUEST_TIMEOUT || String(DEFAULT_REQUEST_TIMEOUT), 10),
             LOG_LEVEL: parsed.BIT2ME_LOG_LEVEL || "info",
-            MAX_RETRIES: parseInt(parsed.BIT2ME_MAX_RETRIES || "3", 10),
-            RETRY_BASE_DELAY: parseInt(parsed.BIT2ME_RETRY_BASE_DELAY || "1000", 10),
+            MAX_RETRIES: parseInt(parsed.BIT2ME_MAX_RETRIES || String(DEFAULT_MAX_RETRIES), 10),
+            RETRY_BASE_DELAY: parseInt(parsed.BIT2ME_RETRY_BASE_DELAY || String(DEFAULT_RETRY_BASE_DELAY), 10),
             INCLUDE_RAW_RESPONSE: parsed.BIT2ME_INCLUDE_RAW_RESPONSE === "true",
             SESSION_COOKIE_NAME: parsed.BIT2ME_SESSION_COOKIE_NAME || DEFAULT_SESSION_COOKIE_NAME,
             HTTP_HOST: parsed.MCP_HTTP_HOST || DEFAULT_HTTP_HOST,

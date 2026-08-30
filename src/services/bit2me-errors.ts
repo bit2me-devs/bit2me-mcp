@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AxiosError } from "axios";
 import { logger } from "../utils/logger.js";
 import {
@@ -23,6 +22,19 @@ export interface Bit2MeErrorContext {
     baseDelay: number;
     idempotencyKey: string | undefined;
     useSessionAuth: boolean;
+}
+
+function axiosErrorMessage(data: unknown, fallback: string): string {
+    if (data && typeof data === "object" && "message" in data) {
+        const message = (data as { message?: unknown }).message;
+        if (typeof message === "string" && message) return message;
+    }
+    if (data === undefined || data === null) return fallback;
+    try {
+        return JSON.stringify(data) || fallback;
+    } catch {
+        return fallback;
+    }
 }
 
 function throwMappedError(
@@ -58,8 +70,7 @@ export async function handleBit2MeAxiosError<T>(
 
     const axiosError = error as AxiosError;
     const status = axiosError.response?.status;
-    const data = axiosError.response?.data as any;
-    const errorMsg = data?.message || JSON.stringify(data) || axiosError.message;
+    const errorMsg = axiosErrorMessage(axiosError.response?.data, axiosError.message);
 
     logger.error(`Bit2Me API Error: ${method} ${urlToSign}`, {
         status,

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Cache-Aside helper for idempotent GETs.
  *
@@ -40,7 +39,7 @@ export interface CachedGetOptions {
  * cache TTL window. Mutating endpoints (POST/DELETE) and endpoints whose
  * freshness must be sub-second keep going through `bit2meRequest`.
  */
-export async function cachedGet<T = any>(
+export async function cachedGet<T = unknown>(
     endpoint: string,
     params: Record<string, unknown> | undefined,
     category: CacheCategory,

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import crypto from "crypto";
 import { ValidationError } from "../utils/errors.js";
 
@@ -81,9 +80,14 @@ export function flattenScalarParams(params: Record<string, unknown>): Record<str
 /**
  * Bit2Me HMAC-SHA512(SHA256(message)). Message: nonce:url[:body].
  */
-export function generateSignature(nonce: number, endpoint: string, data: any, secret: string): string {
-    const hasBody = !!data && Object.keys(data).length > 0;
-    const bodyString = hasBody ? (typeof data === "string" ? data : JSON.stringify(data)) : "";
+export function generateSignature(nonce: number, endpoint: string, data: unknown, secret: string): string {
+    let bodyString = "";
+    if (typeof data === "string") {
+        bodyString = data;
+    } else if (data && typeof data === "object") {
+        bodyString = Object.keys(data).length > 0 ? JSON.stringify(data) : "";
+    }
+    const hasBody = bodyString.length > 0;
     const message = hasBody ? `${nonce}:${endpoint}:${bodyString}` : `${nonce}:${endpoint}`;
     const hash = crypto.createHash("sha256").update(message).digest("binary");
     return crypto.createHmac("sha512", secret).update(hash, "binary").digest("base64");

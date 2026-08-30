@@ -2,7 +2,6 @@
  * Response mapping utilities — barrel re-exports.
  * Implementations live in ./mappers/*.ts
  */
-export { wrapResponseWithRaw } from "./mappers/raw.js";
 export { mapTickerResponse, mapAssetsResponse, mapOrderBookResponse } from "./mappers/market.js";
 export { mapPublicTradesResponse, mapCandlesResponse, mapCurrencyRateResponse } from "./mappers/market-trades.js";
 export { mapProMarketConfigResponse, mapProTickerResponse } from "./mappers/pro-market.js";

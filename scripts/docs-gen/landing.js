@@ -7,7 +7,7 @@ const JWT_PARAMETER = {
  * Convert inputSchema to simplified args for landing.
  * Excludes `_internal` properties. Injects jwt only when the tool requires auth.
  */
-export function convertInputSchemaToArgs(inputSchema, requiresAuth = false) {
+function convertInputSchemaToArgs(inputSchema, requiresAuth = false) {
     const args = {};
 
     if (inputSchema.properties) {

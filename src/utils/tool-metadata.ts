@@ -83,7 +83,7 @@ export function getAllToolsMetadata(): ToolMetadata[] {
 /**
  * Get tools metadata for a specific category
  */
-export function getCategoryToolsMetadata(categoryId: string): ToolMetadata[] {
+function getCategoryToolsMetadata(categoryId: string): ToolMetadata[] {
     const metadata = loadToolsMetadata();
     const category = metadata.categories.find((cat) => cat.id === categoryId);
     return category?.tools || [];
@@ -161,24 +161,9 @@ export function toolRequiresAuth(toolName: string): boolean {
 }
 
 /**
- * Get tool attributes
- */
-export function getToolAttributes(toolName: string): ToolAttributes | undefined {
-    const metadata = getToolMetadata(toolName);
-    return metadata?.attributes;
-}
-
-/**
  * Get all tools in MCP Tool format for a category
  */
 export function getCategoryTools(categoryId: string): Tool[] {
     const toolsMetadata = getCategoryToolsMetadata(categoryId);
     return toolsMetadata.map(metadataToTool);
-}
-
-/**
- * Clear the metadata cache (useful for testing or hot-reloading)
- */
-export function clearMetadataCache(): void {
-    cachedMetadata = null;
 }

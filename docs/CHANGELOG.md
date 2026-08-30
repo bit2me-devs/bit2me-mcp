@@ -2,6 +2,14 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 23:08 UTC] — Higiene: constantes y exports muertos
+
+- Se poda `constants.ts` y se dejan internos los helpers de un solo fichero. See [TEST_HYGIENE](done-tasks/TEST_HYGIENE.md).
+
+## [2026-08-30 23:02 UTC] — Higiene: services sin any
+
+- Cliente Bit2Me y contextual tipados; e2e y ADRs alineados. See [TEST_HYGIENE](done-tasks/TEST_HYGIENE.md).
+
 ## [2026-08-30 22:52 UTC] — Mappers sin any y ADR 0002
 
 - Guards a `unknown`; ADR 0002 cita los tests de config actuales. See [TEST_HYGIENE](done-tasks/TEST_HYGIENE.md).

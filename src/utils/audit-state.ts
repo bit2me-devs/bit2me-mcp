@@ -1,4 +1,4 @@
-export const DEFAULT_AUDIT_MAX_BYTES = 50 * 1024 * 1024;
+const DEFAULT_AUDIT_MAX_BYTES = 50 * 1024 * 1024;
 export const AUDIT_HISTORY_DEPTH = 4;
 
 let auditPathValidated: string | null = null;

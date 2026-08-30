@@ -2527,13 +2527,13 @@ npx @modelcontextprotocol/inspector npx -y @bit2me/mcp-server</code></pre>
                                 ><code class="language-bash"># 1. Clone and build
 git clone https://github.com/bit2me-devs/bit2me-mcp.git
 cd bit2me-mcp
-npm install
-npm run build
+pnpm install
+pnpm run build
 
 # 2. Run inspector
 export BIT2ME_API_KEY=YOUR_BIT2ME_ACCOUNT_API_KEY
 export BIT2ME_API_SECRET=YOUR_BIT2ME_ACCOUNT_API_SECRET
-npx @modelcontextprotocol/inspector node build/index.js</code></pre>
+pnpm dlx @modelcontextprotocol/inspector node build/index.js</code></pre>
                             </div>
 
                             <p class="text-slate-600 dark:text-slate-400 text-sm mt-4">
@@ -4752,7 +4752,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
 
             // === TOOLS DATA LOADED FROM GENERATED FILE ===
             // Tools data is loaded from tools-data.js (generated from data/tools.json)
-            // Run: npm run build:docs to regenerate
+            // Run: pnpm run build:docs to regenerate
             // toolsData variable is available from the external script loaded above
 
             // Helper to create dummy values for JSON example

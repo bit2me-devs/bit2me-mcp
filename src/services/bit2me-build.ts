@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AxiosRequestConfig } from "axios";
 import { getGatewayUrl } from "../config.js";
 import { PACKAGE_VERSION } from "../package-version.js";
@@ -17,7 +16,7 @@ const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
 export interface Bit2MeBuildInput {
     method: "GET" | "POST" | "DELETE";
     endpoint: string;
-    params: any;
+    params: Record<string, unknown> | undefined;
     timeout: number;
     apiKey: string;
     apiSecret: string;

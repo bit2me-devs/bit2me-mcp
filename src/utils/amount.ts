@@ -5,7 +5,7 @@ import { ValidationError } from "./errors.js";
  * Upper bound for a single trade / withdraw / loan amount. Larger values
  * are almost always an LLM typo (extra zeros, scientific notation).
  */
-export const MAX_AMOUNT = 1e12;
+const MAX_AMOUNT = 1e12;
 
 const DIGITS_ONLY = /^\d+$/;
 const MAX_AMOUNT_DEC = new Decimal(MAX_AMOUNT);

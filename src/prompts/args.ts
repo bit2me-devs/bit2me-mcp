@@ -14,7 +14,7 @@
  *  - `horizon_weeks`   1-3 digit positive integer.
  *  - `tool`            snake_case MCP tool name (optional confirm_write).
  */
-export const PROMPT_ARG_RULES: Record<string, RegExp> = {
+const PROMPT_ARG_RULES: Record<string, RegExp> = {
     fiat: /^[A-Za-z]{3}$/,
     // eslint-disable-next-line security/detect-unsafe-regex -- Safe: bounded {1,10} and {0,15}, no nested quantifiers, no backtracking risk.
     symbols: /^[A-Za-z0-9]{1,10}(,[A-Za-z0-9]{1,10}){0,15}$/,
@@ -31,7 +31,7 @@ export const PROMPT_ARG_RULES: Record<string, RegExp> = {
  * a `RangeError` so the MCP runtime can surface a clean error to the
  * client instead of silently injecting tainted text into the prompt.
  */
-export function validatePromptArg(key: string, value: string): string {
+function validatePromptArg(key: string, value: string): string {
     const trimmed = value.trim();
     const rule = PROMPT_ARG_RULES[key];
     if (!rule) {

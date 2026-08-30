@@ -22,6 +22,14 @@ Los `writeFileSync`/`chmodSync` de audit van por helpers del harness con disable
 
 ## Change log
 
+### 2026-08-30 23:08 UTC — constantes muertas y exports internos
+
+Se borran constantes sin caller (`PRICE_CACHE_TTL_MS`, `BACKOFF_JITTER_MS`, `TESTNET_MARKER`, …). Paginación y timeouts de config leen `src/constants.ts`. Dejan de exportarse helpers de un solo módulo (`jsonRpc*`, `sanitizeString`, `validatePromptArg`, …). Fuera: `getToolAttributes`, `clearMetadataCache`, `_resetRequestCacheForTests`, `set/clearCorrelationId`. Landing: `pnpm` en vez de `npm`/`npx`.
+
+### 2026-08-30 23:02 UTC — any de services y restos P2
+
+Se quitan los `any` de `bit2meRequest`, firma HMAC, axios errors, `cachedGet` y contextual echo. `buildContextualResponse` deja de ser API pública; `wrapResponseWithRaw` no se reexporta en el barrel. ADR 0001 apunta a `http-transport-auth`/`probes`. E2E: `isE2E` interno y `pnpm test:e2e`. Se parte `handlers-earn.test.ts` (>200L).
+
 ### 2026-08-30 22:52 UTC — ADR 0002 y any de mappers
 
 El ADR 0002 apunta a `tests/config-defaults.test.ts` y `config-http.test.ts` (el monolito `config.test.ts` ya no existe). Los guards de payload pasan a `unknown` (`asRecord`, `asString`, `firstDefined`). Se quitan los `eslint-disable no-explicit-any` de `src/utils/mappers/`. `WalletMovementResponse.created_at`/`type` admiten `undefined` como en los tests; `CandleResponse.volume` admite número si el raw lo trae así.

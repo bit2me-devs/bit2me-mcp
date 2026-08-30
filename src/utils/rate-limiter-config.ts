@@ -82,7 +82,7 @@ const GROUP_RATE_LIMITS: Record<string, EndpointRateLimit> = {
  * endpoints inherit the same protection as their group siblings without
  * having to extend the per-endpoint table.
  */
-export function getRateLimitForEndpoint(endpoint: string): EndpointRateLimit {
+function getRateLimitForEndpoint(endpoint: string): EndpointRateLimit {
     if (ENDPOINT_RATE_LIMITS.has(endpoint)) {
         return ENDPOINT_RATE_LIMITS.get(endpoint)!;
     }

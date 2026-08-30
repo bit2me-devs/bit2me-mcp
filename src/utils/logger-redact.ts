@@ -39,7 +39,7 @@ export const DEFAULT_SENSITIVE_KEYS = [
 
 export const EXACT_SENSITIVE_KEYS = ["jwt"];
 
-export function sanitizeString(value: string, truncateAt: number): string {
+function sanitizeString(value: string, truncateAt: number): string {
     if (JWT_VALUE_REGEX.test(value) || LONG_OPAQUE_VALUE_REGEX.test(value)) {
         return "***REDACTED***";
     }

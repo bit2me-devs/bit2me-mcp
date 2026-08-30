@@ -179,13 +179,13 @@ Hard rules that apply regardless of mode:
 
 ## Implementation outline
 
-| #   | File                                                   | Change                                                                                                                      | Status                                    |
-| --- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| 1   | `src/transport/http.ts`                                | Default `authMode` to `"jwt"` in `buildHttpServer`.                                                                         | **Rejected** — see Decision § (Option A). |
-| 2   | `src/transport/http.ts`                                | Emit `logger.warn` (`warnIfApiKeyOnNonLoopback` + `isLoopbackHost`) when `api_key`/`both` is active on a non-loopback host. | **Done.**                                 |
-| 3   | `src/utils/logger.ts`                                  | Append `x-bit2me-api-key`, `x-bit2me-api-secret`, `api-key`, `api-secret` to `sensitiveKeys`.                               | **Done.**                                 |
-| 4   | `README.md`                                            | Operational guidance: auth-mode decision matrix + scopes guidance + TLS rule.                                               | **Done.**                                 |
-| 5   | `tests/http-transport.test.ts`, `tests/logger.test.ts` | Cover the loopback × auth-mode matrix and the new redactions.                                                               | **Done.**                                 |
+| #   | File                                                                                               | Change                                                                                                                      | Status                                    |
+| --- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| 1   | `src/transport/http.ts`                                                                            | Default `authMode` to `"jwt"` in `buildHttpServer`.                                                                         | **Rejected** — see Decision § (Option A). |
+| 2   | `src/transport/http.ts`                                                                            | Emit `logger.warn` (`warnIfApiKeyOnNonLoopback` + `isLoopbackHost`) when `api_key`/`both` is active on a non-loopback host. | **Done.**                                 |
+| 3   | `src/utils/logger.ts`                                                                              | Append `x-bit2me-api-key`, `x-bit2me-api-secret`, `api-key`, `api-secret` to `sensitiveKeys`.                               | **Done.**                                 |
+| 4   | `README.md`                                                                                        | Operational guidance: auth-mode decision matrix + scopes guidance + TLS rule.                                               | **Done.**                                 |
+| 5   | `tests/http-transport-auth.test.ts`, `tests/http-transport-probes.test.ts`, `tests/logger.test.ts` | Cover the loopback × auth-mode matrix and the new redactions.                                                               | **Done.**                                 |
 
 ## References
 

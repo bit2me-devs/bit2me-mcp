@@ -68,10 +68,3 @@ export function clearRequestCache(correlationId: string | undefined): void {
         }
     }
 }
-
-/**
- * Test-only helper that wipes the entire store.
- */
-export function _resetRequestCacheForTests(): void {
-    store.clear();
-}

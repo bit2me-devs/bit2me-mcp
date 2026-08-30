@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
  * Single read of package.json. `src/` and `build/` both sit one level
  * above the repo root's package.json.
  */
-export function readPackageVersion(): string {
+function readPackageVersion(): string {
     if (process.env.npm_package_version) return process.env.npm_package_version;
     try {
         const here = dirname(fileURLToPath(import.meta.url));

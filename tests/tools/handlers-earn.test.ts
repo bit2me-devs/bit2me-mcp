@@ -14,7 +14,7 @@ vi.mock("../../src/config.js", () => ({
     getConfig: vi.fn(() => ({ API_KEY: "test-key", API_SECRET: "test-secret", INCLUDE_RAW_RESPONSE: false })),
 }));
 
-describe("Earn Tools", () => {
+describe("Earn Tools — read", () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -26,7 +26,6 @@ describe("Earn Tools", () => {
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/earn/summary");
         const parsed = JSON.parse(result.content[0].text);
         expect(parsed).toHaveProperty("request");
-        expect(parsed).toHaveProperty("result");
         expect(parsed.result).toEqual([{ symbol: "EUR", total_balance: "100", total_rewards: "1" }]);
     });
 
@@ -39,8 +38,6 @@ describe("Earn Tools", () => {
         const result = await handleEarnTool("earn_get_positions", {});
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/wallets");
         const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveProperty("request");
-        expect(parsed).toHaveProperty("result");
         expect(parsed.result).toHaveLength(1);
         expect(parsed.result[0]).toEqual(
             expect.objectContaining({ position_id: VALID_UUID, symbol: "EUR", balance: "100" })
@@ -52,8 +49,6 @@ describe("Earn Tools", () => {
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockResponse);
         const result = await handleEarnTool("earn_get_positions", {});
         const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveProperty("request");
-        expect(parsed).toHaveProperty("result");
         expect(parsed.result).toHaveLength(1);
         expect(parsed.result[0]).toEqual(expect.objectContaining({ position_id: VALID_UUID_2, symbol: "BTC" }));
     });
@@ -115,113 +110,5 @@ describe("Earn Tools", () => {
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
         await handleEarnTool("earn_get_movements_summary", { type: "DEPOSIT" });
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/earn/movements/deposit/summary");
-    });
-
-    it("should handle earn_deposit", async () => {
-        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({ id: VALID_UUID });
-        await handleEarnTool("earn_deposit", { pocket_id: VALID_UUID, symbol: "BTC", amount: "1", confirm: true });
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
-            "POST",
-            `/v1/earn/wallets/${VALID_UUID}/movements`,
-            expect.any(Object),
-            undefined,
-            undefined,
-            undefined,
-            expect.objectContaining({ idempotencyKey: expect.any(String) })
-        );
-    });
-
-    it("should handle earn_withdraw", async () => {
-        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({ id: VALID_UUID });
-        await handleEarnTool("earn_withdraw", { pocket_id: VALID_UUID, symbol: "BTC", amount: "1", confirm: true });
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
-            "POST",
-            `/v1/earn/wallets/${VALID_UUID}/movements`,
-            expect.any(Object),
-            undefined,
-            undefined,
-            undefined,
-            expect.objectContaining({ idempotencyKey: expect.any(String) })
-        );
-    });
-
-    it("should handle earn_get_assets with object structure", async () => {
-        vi.mocked(bit2meService.bit2meRequest).mockImplementation(async (method, url) => {
-            if (url.includes("/v2/earn/assets"))
-                return {
-                    assets: [
-                        { currency: "BTC", name: "Bitcoin", disabled: false, depositDisabled: false },
-                        { currency: "EUR", disabled: true },
-                    ],
-                };
-            if (url.includes("/v2/earn/apy")) return { BTC: { daily: 0.1 } };
-            return {};
-        });
-        const result = await handleEarnTool("earn_get_assets", {});
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/earn/assets");
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveProperty("request");
-        expect(parsed).toHaveProperty("result");
-        expect(parsed.result.assets[0]).toMatchObject({
-            symbol: "BTC",
-            name: "Bitcoin",
-            disabled: false,
-            deposit_disabled: false,
-        });
-        expect(parsed.result.assets[1]).toMatchObject({ symbol: "EUR", disabled: true });
-    });
-
-    it("should handle earn_get_assets with array structure", async () => {
-        vi.mocked(bit2meService.bit2meRequest).mockImplementation(async (method, url) => {
-            if (url.includes("/v2/earn/assets")) return ["BTC", "EUR"];
-            if (url.includes("/v2/earn/apy")) return {};
-            return {};
-        });
-        const result = await handleEarnTool("earn_get_assets", {});
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveProperty("request");
-        expect(parsed).toHaveProperty("result");
-        expect(parsed.result.assets[0]).toMatchObject({
-            symbol: "BTC",
-            disabled: false,
-            deposit_disabled: false,
-            withdrawal_disabled: false,
-            is_new: false,
-        });
-    });
-
-    it("should handle earn_get_rewards_config", async () => {
-        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue([{ currency: "B2M", walletId: VALID_UUID }]);
-        const result = await handleEarnTool("earn_get_rewards_config", {});
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v1/earn/wallets/rewards/config");
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveProperty("request");
-        expect(parsed).toHaveProperty("result");
-        expect(Array.isArray(parsed.result) ? parsed.result[0] : parsed.result).toEqual(
-            expect.objectContaining({ symbol: "B2M", position_id: VALID_UUID })
-        );
-    });
-
-    it("should handle earn_get_position_rewards_config", async () => {
-        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-        await handleEarnTool("earn_get_position_rewards_config", { position_id: VALID_UUID });
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
-            "GET",
-            `/v1/earn/wallets/${VALID_UUID}/rewards/config`
-        );
-    });
-
-    it("should handle earn_get_position_rewards_summary", async () => {
-        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-        await handleEarnTool("earn_get_position_rewards_summary", { position_id: VALID_UUID });
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
-            "GET",
-            `/v1/earn/wallets/${VALID_UUID}/rewards/summary`,
-            expect.any(Object)
-        );
-    });
-
-    it("should throw for unknown earn tool", async () => {
-        await expect(handleEarnTool("unknown", {})).rejects.toThrow("Unknown earn tool");
     });
 });
