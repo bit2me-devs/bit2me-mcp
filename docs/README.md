@@ -4,10 +4,10 @@ Canonical index for this repository. If two documents disagree, **this table and
 
 ## Language
 
-| Audience                    | Language    | Examples                                                                                                        |
-| --------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------- |
-| Public / contributors / npm | **English** | `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, ADRs, `TOOLS_DOCUMENTATION.md`, root `CHANGELOG.md` |
-| Internal initiative log     | **Spanish** | `docs/done-tasks/`, `docs/CHANGELOG.md`                                                                         |
+| Audience                    | Language    | Examples                                                                                                                              |
+| --------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Public / contributors / npm | **English** | `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, `CODE_OF_CONDUCT.md`, ADRs, `TOOLS_DOCUMENTATION.md`, root `CHANGELOG.md` |
+| Internal initiative log     | **Spanish** | `docs/done-tasks/`, `docs/CHANGELOG.md`                                                                                               |
 
 Commit messages are always **English** (Conventional Commits).
 
@@ -32,6 +32,7 @@ If another file disagrees with this map, **this map wins**.
 | Agent / contributor implementation rules  | [`AGENTS.md`](../AGENTS.md)                                                                  | Add-tool + mappers + WRITE. Release facts → `stack/release.md` |
 | User install & operations                 | [`README.md`](../README.md)                                                                  | stdio + HTTP                                                   |
 | How to contribute                         | [`CONTRIBUTING.md`](../CONTRIBUTING.md)                                                      | PRs, pnpm, hooks                                               |
+| Code of conduct                           | [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md)                                                | Contributor Covenant 2.1 (English)                             |
 | Required reviewers                        | [`.github/CODEOWNERS`](../.github/CODEOWNERS)                                                | Either listed maintainer                                       |
 | Vulnerability reporting                   | [`SECURITY.md`](../SECURITY.md)                                                              |                                                                |
 | npm release history                       | [`CHANGELOG.md`](../CHANGELOG.md)                                                            | Semantic Release only — do not edit                            |

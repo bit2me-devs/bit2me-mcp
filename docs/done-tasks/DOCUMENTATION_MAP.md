@@ -34,6 +34,10 @@ Tras cambiar `data/tools.json`, `pnpm build:docs`. Tras README/AGENTS/CHANGELOG 
 
 ## Change log
 
+### 2026-08-30 19:45 UTC — CoC en inglés; CONTRIBUTING sin tipos de commit
+
+`CODE_OF_CONDUCT.md` pasa a Contributor Covenant 2.1 en inglés (contacto: Support + CODEOWNERS). CONTRIBUTING apunta a AGENTS para Conventional Commits.
+
 ### 2026-08-30 19:42 UTC — AGENTS deja de duplicar release/CI
 
 CI, npm, Dependabot y el árbol desfasado de `src/` salen de AGENTS. Quedan commits, mappers, tests, patrones y el checklist de tools. Troubleshooting de publish vive en `stack/release.md`. El wrapper documenta confirm + `idempotency_key`.

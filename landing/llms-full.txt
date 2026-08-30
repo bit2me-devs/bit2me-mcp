@@ -1,6 +1,6 @@
 # Bit2Me MCP Server - Technical Documentation
 
-> Generated on 2026-08-30T19:42:41.693Z
+> Generated on 2026-08-30T19:45:29.135Z
 
 
 ==================================================
@@ -15,7 +15,7 @@ Canonical index for this repository. If two documents disagree, **this table and
 
 | Audience                    | Language    | Examples                                                                                                        |
 | --------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------- |
-| Public / contributors / npm | **English** | `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, ADRs, `TOOLS_DOCUMENTATION.md`, root `CHANGELOG.md` |
+| Public / contributors / npm | **English** | `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AGENTS.md`, `CODE_OF_CONDUCT.md`, ADRs, `TOOLS_DOCUMENTATION.md`, root `CHANGELOG.md` |
 | Internal initiative log     | **Spanish** | `docs/done-tasks/`, `docs/CHANGELOG.md`                                                                         |
 
 Commit messages are always **English** (Conventional Commits).
@@ -33,27 +33,28 @@ If another file disagrees with this map, **this map wins**.
 
 ## Source of truth
 
-| Topic                                     | File                                                                                         | Notes                                                    |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Tool catalogue (names, schemas, examples) | [`data/tools.json`](../data/tools.json)                                                      | Edit this; then `pnpm build:docs`                        |
-| Generated tool docs                       | [`TOOLS_DOCUMENTATION.md`](../TOOLS_DOCUMENTATION.md)                                        | Do **not** edit by hand                                  |
-| Landing catalogue JS                      | [`landing/tools-data.js`](../landing/tools-data.js)                                          | Generated. HTML/CSS/CNAME in `landing/` are hand-edited  |
+| Topic                                     | File                                                                                         | Notes                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Tool catalogue (names, schemas, examples) | [`data/tools.json`](../data/tools.json)                                                      | Edit this; then `pnpm build:docs`                              |
+| Generated tool docs                       | [`TOOLS_DOCUMENTATION.md`](../TOOLS_DOCUMENTATION.md)                                        | Do **not** edit by hand                                        |
+| Landing catalogue JS                      | [`landing/tools-data.js`](../landing/tools-data.js)                                          | Generated. HTML/CSS/CNAME in `landing/` are hand-edited        |
 | Agent / contributor implementation rules  | [`AGENTS.md`](../AGENTS.md)                                                                  | Add-tool + mappers + WRITE. Release facts → `stack/release.md` |
-| User install & operations                 | [`README.md`](../README.md)                                                                  | stdio + HTTP                                             |
-| How to contribute                         | [`CONTRIBUTING.md`](../CONTRIBUTING.md)                                                      | PRs, pnpm, hooks                                         |
-| Required reviewers                        | [`.github/CODEOWNERS`](../.github/CODEOWNERS)                                                | Either listed maintainer                                 |
-| Vulnerability reporting                   | [`SECURITY.md`](../SECURITY.md)                                                              |                                                          |
-| npm release history                       | [`CHANGELOG.md`](../CHANGELOG.md)                                                            | Semantic Release only — do not edit                      |
-| Published package version                 | npm `@bit2me/mcp-server` + git tag `v*`                                                      | **Not** `package.json` (that file is not bumped on main) |
-| How we release                            | [`stack/release.md`](./stack/release.md)                                                     | Push `main` publishes; do not bump versions by hand      |
-| Threat model                              | [`adr/0003-local-single-user-threat-model.md`](./adr/0003-local-single-user-threat-model.md) | Local one-user proxy; LLM confused deputy                |
-| Internal change log                       | [`CHANGELOG.md`](./CHANGELOG.md)                                                             | Spanish; links to done-tasks                             |
-| HTTP credentials                          | [`adr/0001-valet-key-http-credentials.md`](./adr/0001-valet-key-http-credentials.md)         | Accepted                                                 |
-| External config store                     | [`adr/0002-external-configuration-store.md`](./adr/0002-external-configuration-store.md)     | **Deferred** — not implemented                           |
-| Tooling / commands                        | [`stack/tooling.md`](./stack/tooling.md)                                                     | pnpm, Makefile, Node versions                            |
-| Doc-generation scripts                    | [`scripts/README.md`](../scripts/README.md)                                                  | `build:docs` / `build:llms`                              |
-| Write-tool confirm / idempotency          | [`AGENTS.md`](../AGENTS.md) (Adding a New Tool) + `src/utils/write-guards.ts`                | `docs/done-tasks/` is a diary, not the spec              |
-| Raw API payload in MCP responses          | [`AGENTS.md`](../AGENTS.md) (Raw Response Support) + `.env.example`                          | Env `BIT2ME_INCLUDE_RAW_RESPONSE`. No separate guide     |
+| User install & operations                 | [`README.md`](../README.md)                                                                  | stdio + HTTP                                                   |
+| How to contribute                         | [`CONTRIBUTING.md`](../CONTRIBUTING.md)                                                      | PRs, pnpm, hooks                                               |
+| Code of conduct                           | [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md)                                                | Contributor Covenant 2.1 (English)                             |
+| Required reviewers                        | [`.github/CODEOWNERS`](../.github/CODEOWNERS)                                                | Either listed maintainer                                       |
+| Vulnerability reporting                   | [`SECURITY.md`](../SECURITY.md)                                                              |                                                                |
+| npm release history                       | [`CHANGELOG.md`](../CHANGELOG.md)                                                            | Semantic Release only — do not edit                            |
+| Published package version                 | npm `@bit2me/mcp-server` + git tag `v*`                                                      | **Not** `package.json` (that file is not bumped on main)       |
+| How we release                            | [`stack/release.md`](./stack/release.md)                                                     | Push `main` publishes; do not bump versions by hand            |
+| Threat model                              | [`adr/0003-local-single-user-threat-model.md`](./adr/0003-local-single-user-threat-model.md) | Local one-user proxy; LLM confused deputy                      |
+| Internal change log                       | [`CHANGELOG.md`](./CHANGELOG.md)                                                             | Spanish; links to done-tasks                                   |
+| HTTP credentials                          | [`adr/0001-valet-key-http-credentials.md`](./adr/0001-valet-key-http-credentials.md)         | Accepted                                                       |
+| External config store                     | [`adr/0002-external-configuration-store.md`](./adr/0002-external-configuration-store.md)     | **Deferred** — not implemented                                 |
+| Tooling / commands                        | [`stack/tooling.md`](./stack/tooling.md)                                                     | pnpm, Makefile, Node versions                                  |
+| Doc-generation scripts                    | [`scripts/README.md`](../scripts/README.md)                                                  | `build:docs` / `build:llms`                                    |
+| Write-tool confirm / idempotency          | [`AGENTS.md`](../AGENTS.md) (Adding a New Tool) + `src/utils/write-guards.ts`                | `docs/done-tasks/` is a diary, not the spec                    |
+| Raw API payload in MCP responses          | [`AGENTS.md`](../AGENTS.md) (Raw Response Support) + `.env.example`                          | Env `BIT2ME_INCLUDE_RAW_RESPONSE`. No separate guide           |
 
 ## Two runtimes (do not mix)
 
@@ -548,7 +549,8 @@ For full details, check the [CONTRIBUTING.md](./CONTRIBUTING.md) file.
 
 ### Code of Conduct
 
-Be respectful, inclusive, and constructive. We're all here to learn and build together.
+Be respectful, inclusive, and constructive. Full text:
+[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
 ## 📄 License
 

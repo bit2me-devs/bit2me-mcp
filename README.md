@@ -472,7 +472,8 @@ For full details, check the [CONTRIBUTING.md](./CONTRIBUTING.md) file.
 
 ### Code of Conduct
 
-Be respectful, inclusive, and constructive. We're all here to learn and build together.
+Be respectful, inclusive, and constructive. Full text:
+[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 
 ## 📄 License
 

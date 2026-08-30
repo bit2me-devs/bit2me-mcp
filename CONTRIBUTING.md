@@ -21,7 +21,8 @@ This document covers PRs, pnpm, hooks, and language. Canonical doc map: [docs/RE
 
 ## Code of Conduct
 
-Please be respectful, inclusive, and constructive in all interactions. We are committed to providing a welcoming experience for everyone.
+Please be respectful, inclusive, and constructive. The full text is
+[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) (Contributor Covenant 2.1, English).
 
 ## Getting Started
 
@@ -89,35 +90,17 @@ Please be respectful, inclusive, and constructive in all interactions. We are co
 
 ### Commit Conventions
 
-We strictly follow the **[Conventional Commits](https://www.conventionalcommits.org/)** specification. This is enforced by `commitlint` hooks.
-
-**Format:** `<type>(<scope>): <subject>`
-
-**Types:**
-
-- `feat`: A new feature (triggers MINOR version bump)
-- `fix`: A bug fix (triggers PATCH version bump)
-- `docs`: Documentation only changes
-- `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc)
-- `refactor`: A code change that neither fixes a bug nor adds a feature
-- `perf`: A code change that improves performance
-- `test`: Adding missing tests or correcting existing tests
-- `chore`: Changes to the build process or auxiliary tools and libraries such as documentation generation
-- `ci`: Changes to our CI configuration files and scripts
-
-**Examples:**
-
-```bash
-git commit -m "feat(wallet): add new balance check tool"
-git commit -m "fix(api): handle rate limit errors correctly"
-git commit -m "docs: update CONTRIBUTING.md"
-```
+[Conventional Commits](https://www.conventionalcommits.org/) in **English**,
+enforced by commitlint. Types, release rules, and examples:
+[AGENTS.md — Commit Conventions](./AGENTS.md#commit-conventions).
+`feat` / `fix` / `perf` on `main` publish npm; `docs` / `chore` / `ci` do not.
+See [docs/stack/release.md](./docs/stack/release.md).
 
 ### Language Policy
 
 - **Commit Messages**: MUST be in **English**.
 - **Code Comments**: MUST be in **English**.
-- **Public documentation** (README, CONTRIBUTING, SECURITY, AGENTS.md, ADRs, generated tool docs, root `CHANGELOG.md`): **English**.
+- **Public documentation** (README, CONTRIBUTING, SECURITY, AGENTS.md, `CODE_OF_CONDUCT.md`, ADRs, generated tool docs, root `CHANGELOG.md`): **English**.
 - **Internal initiative log** (`docs/done-tasks/`, `docs/CHANGELOG.md`): **Spanish**. See [docs/README.md](./docs/README.md).
 
 ## Testing

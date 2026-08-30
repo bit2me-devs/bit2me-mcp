@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 19:45 UTC] — Código de conducta en inglés
+
+- Contributor Covenant 2.1 en `CODE_OF_CONDUCT.md`. CONTRIBUTING deja de listar tipos de commit. See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).
+
 ## [2026-08-30 19:42 UTC] — AGENTS más corto, release canónico
 
 - AGENTS deja de copiar CI/npm/árbol de `src/`. Publish y OIDC viven en `stack/release.md`. See [DOCUMENTATION_MAP](done-tasks/DOCUMENTATION_MAP.md).
