@@ -1,0 +1,58 @@
+/**
+ * Maps tool names to their Bit2Me API endpoints (docs only).
+ */
+export const ENDPOINT_MAPPINGS = {
+    general_get_assets_config: "GET /v2/currency/assets\nGET /v2/currency/assets/:symbol",
+    general_health: "Internal health aggregation",
+    general_describe_tool: "Local catalogue introspection (no Bit2Me I/O)",
+    portfolio_get_valuation: "Aggregates Wallet, Pro, Earn & Loan services",
+
+    broker_get_asset_price: "GET /v1/currency/rate",
+    broker_get_asset_data: "GET /v3/currency/ticker/:symbol",
+    broker_get_asset_chart: "GET /v3/currency/chart",
+    broker_quote_buy: "POST /v1/wallet/transaction/proforma",
+    broker_quote_sell: "POST /v1/wallet/transaction/proforma",
+    broker_quote_swap: "POST /v1/wallet/transaction/proforma",
+    broker_confirm_quote: "POST /v1/wallet/transaction",
+
+    wallet_get_cards: "GET /v1/teller/card",
+    wallet_get_pockets: "GET /v1/wallet/pocket",
+    wallet_get_pocket_addresses: "GET /v2/wallet/pocket/:pocket_id/:network/address",
+    wallet_get_networks: "GET /v1/wallet/currency/:symbol/network",
+    wallet_get_movements: "GET /v1/wallet/transaction\nGET /v1/wallet/transaction/:movement_id",
+
+    pro_get_balance: "GET /v1/trading/wallet/balance",
+    pro_get_open_orders: "GET /v1/trading/order",
+    pro_get_trades: "GET /v1/trading/trade",
+    pro_get_order_trades: "GET /v1/trading/order/:id/trades",
+    pro_get_market_config: "GET /v1/trading/market-config",
+    pro_get_order_book: "GET /v2/trading/order-book",
+    pro_get_public_trades: "GET /v1/trading/trade/last",
+    pro_get_candles: "GET /v1/trading/candle",
+    pro_get_ticker: "GET /v2/trading/tickers",
+    pro_create_order: "POST /v1/trading/order",
+    pro_cancel_order: "DELETE /v1/trading/order/:id",
+    pro_cancel_all_orders: "DELETE /v1/trading/order",
+    pro_deposit: "POST /v1/trading/wallet/deposit",
+    pro_withdraw: "POST /v1/trading/wallet/withdraw",
+
+    earn_get_summary: "GET /v1/earn/summary",
+    earn_get_positions: "GET /v2/earn/wallets",
+    earn_get_position_movements: "GET /v1/earn/wallets/:id/movements",
+    earn_get_movements: "GET /v2/earn/movements",
+    earn_get_movements_summary: "GET /v1/earn/movements/:type/summary",
+    earn_get_rewards_config: "GET /v1/earn/wallets/rewards/config",
+    earn_get_position_rewards_config: "GET /v1/earn/wallets/:id/rewards/config",
+    earn_get_position_rewards_summary: "GET /v1/earn/wallets/:id/rewards/summary",
+    earn_get_assets: "GET /v2/earn/assets",
+    earn_deposit: "POST /v1/earn/wallets/:id/movements",
+    earn_withdraw: "POST /v1/earn/wallets/:id/movements",
+
+    loan_get_simulation: "GET /v1/loan/ltv",
+    loan_get_config: "GET /v1/loan/currency/configuration",
+    loan_get_movements: "GET /v1/loan/movements",
+    loan_get_orders: "GET /v1/loan/orders",
+    loan_create: "POST /v1/loan",
+    loan_increase_guarantee: "POST /v1/loan/orders/:id/guarantee/increase",
+    loan_payback: "POST /v1/loan/orders/:id/payback",
+};

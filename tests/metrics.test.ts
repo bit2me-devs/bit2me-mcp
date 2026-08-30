@@ -66,6 +66,6 @@ describe("metrics — resilience patterns", () => {
         const text = metricsCollector.toPrometheus();
         expect(text).toContain("bit2me_inflight{");
         expect(text).toContain("bit2me_bulkhead_queued{");
-        expect(text).toContain("bit2me_inflight_tenant_total");
+        expect(text).not.toContain("bit2me_inflight_tenant_total");
     });
 });

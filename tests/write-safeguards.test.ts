@@ -20,7 +20,6 @@ vi.mock("../src/services/bit2me.js", async (importOriginal) => {
 });
 vi.mock("axios");
 vi.mock("../src/config.js", () => ({
-    BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
     getConfig: vi.fn(() => ({
         API_KEY: "test-key",
         API_SECRET: "test-secret",

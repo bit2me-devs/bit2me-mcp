@@ -73,3 +73,8 @@ docs/*
 
 # Assets locales (imágenes temporales)
 assets/
+
+# Landing catalogue / LLM dumps — generated in Pages (build:docs / build:llms)
+landing/tools-data.js
+landing/llms.txt
+landing/llms-full.txt

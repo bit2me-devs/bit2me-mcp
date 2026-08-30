@@ -17,19 +17,19 @@ Canonical stack for this repo. Commands go through **pnpm**; `Makefile` is a thi
 
 ## Day-to-day commands
 
-| Goal                          | Command                                                                                  |
-| ----------------------------- | ---------------------------------------------------------------------------------------- |
-| Install                       | `pnpm install --frozen-lockfile`                                                         |
-| Typecheck                     | `pnpm typecheck`                                                                         |
-| Unit tests                    | `pnpm test`                                                                              |
-| Coverage                      | `pnpm test:coverage`                                                                     |
-| E2E (opt-in)                  | `pnpm test:e2e`                                                                          |
-| Full gate                     | `pnpm validate`                                                                          |
-| Build                         | `pnpm build`                                                                             |
-| Tool docs + landing catalogue | `pnpm build:docs`                                                                        |
-| LLM landing dumps             | `pnpm build:llms`                                                                        |
-| Inspector vs local build      | `pnpm dev` (`pnpm dlx` inspector)                                                        |
-| Inspector CLI                 | `pnpm dlx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list` |
+| Goal                                 | Command                                                                                  |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Install                              | `pnpm install --frozen-lockfile`                                                         |
+| Typecheck                            | `pnpm typecheck`                                                                         |
+| Unit tests                           | `pnpm test`                                                                              |
+| Coverage                             | `pnpm test:coverage`                                                                     |
+| E2E (opt-in)                         | `pnpm test:e2e`                                                                          |
+| Full gate                            | `pnpm validate`                                                                          |
+| Build                                | `pnpm build`                                                                             |
+| Tool docs (`TOOLS_DOCUMENTATION.md`) | `pnpm build:docs` (also writes gitignored `landing/tools-data.js`)                       |
+| LLM landing dumps                    | `pnpm build:llms` (gitignored; Pages runs this)                                          |
+| Inspector vs local build             | `pnpm dev` (`pnpm dlx` inspector)                                                        |
+| Inspector CLI                        | `pnpm dlx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list` |
 
 ## Sources of truth (do not invent others)
 
@@ -39,7 +39,7 @@ Canonical stack for this repo. Commands go through **pnpm**; `Makefile` is a thi
 - Release: [`release.md`](./release.md)
 - Threat model: [`../adr/0003-local-single-user-threat-model.md`](../adr/0003-local-single-user-threat-model.md)
 
-There is **no** `make check-file-size` in this repo. Keep new source files ≤200 lines by convention.
+Source files in `src/`, `tests/`, `scripts/` are **≤200 lines**. `make check-file-size` (report) and `make check-file-size-strict` (gate). See `.cursor/rules/file-size-limit.mdc`.
 
 ## Local-only branches
 

@@ -159,14 +159,14 @@ Rationale:
 
 ## Implementation outline (deferred — execute when a reopen criterion is met)
 
-| Step | File                                  | Change                                                                    | Status   |
-| ---- | ------------------------------------- | ------------------------------------------------------------------------- | -------- |
-| 1    | `src/config.ts`                       | Extract `RawConfig` type, add `ConfigResolver` interface.                 | Deferred |
-| 2    | `src/config/env-resolver.ts` (new)    | Wrap the current `dotenv` + env logic.                                    | Deferred |
-| 3    | `src/config/remote-resolver.ts` (new) | Implement URL + shell-command bridges.                                    | Deferred |
-| 4    | `src/config.ts`                       | Replace `getConfig()` body with the chained resolver pipeline.            | Deferred |
-| 5    | `tests/config.test.ts`                | Cover happy-path, last-known-good cache, and explicit-error path.         | Deferred |
-| 6    | `README.md`                           | Document `CONFIG_PROVIDER`, `CONFIG_PROVIDER_URL`, `CONFIG_PROVIDER_CMD`. | Deferred |
+| Step | File                                                         | Change                                                                    | Status   |
+| ---- | ------------------------------------------------------------ | ------------------------------------------------------------------------- | -------- |
+| 1    | `src/config.ts`                                              | Extract `RawConfig` type, add `ConfigResolver` interface.                 | Deferred |
+| 2    | `src/config/env-resolver.ts` (new)                           | Wrap the current `dotenv` + env logic.                                    | Deferred |
+| 3    | `src/config/remote-resolver.ts` (new)                        | Implement URL + shell-command bridges.                                    | Deferred |
+| 4    | `src/config.ts`                                              | Replace `getConfig()` body with the chained resolver pipeline.            | Deferred |
+| 5    | `tests/config-defaults.test.ts`, `tests/config-http.test.ts` | Cover happy-path, last-known-good cache, and explicit-error path.         | Deferred |
+| 6    | `README.md`                                                  | Document `CONFIG_PROVIDER`, `CONFIG_PROVIDER_URL`, `CONFIG_PROVIDER_CMD`. | Deferred |
 
 ## References
 

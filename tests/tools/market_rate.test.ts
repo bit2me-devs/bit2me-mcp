@@ -5,7 +5,6 @@ import * as bit2meService from "../../src/services/bit2me.js";
 vi.mock("axios");
 vi.mock("../../src/services/bit2me.js");
 vi.mock("../../src/config.js", () => ({
-    BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
     getConfig: () => ({
         INCLUDE_RAW_RESPONSE: false,
     }),

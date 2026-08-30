@@ -1,16 +1,8 @@
 /**
  * Cache-Aside helper tests.
  *
- * The `tenantScopedKey` helper is the security boundary that prevents
- * one tenant's cached payload from leaking into another tenant's
- * request when the multi-tenant HTTP transport is used. This suite
- * proves that:
- *
- *  1. The same logical key resolves to *different* underlying cache
- *     entries when the active tenant id changes.
- *  2. Property order in object payloads does not affect the key.
- *  3. The `cachedGet` wrapper round-trips a value through the cache
- *     and reuses it on the second call.
+ * `cacheKey` is a stable serialiser: property order in object payloads
+ * does not affect the key. One process, one operator (ADR 0003).
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -27,36 +19,22 @@ vi.mock("../src/utils/logger.js", () => ({
     initLogger: vi.fn(),
 }));
 
-import { cache, CacheCategory, tenantScopedKey } from "../src/utils/cache.js";
-import { runWithContext } from "../src/utils/context.js";
+import { cache, CacheCategory, cacheKey } from "../src/utils/cache.js";
 
-describe("tenantScopedKey", () => {
+describe("cacheKey", () => {
     beforeEach(() => {
         cache.clear();
     });
 
-    it("uses 'global' as fallback when no tenant id is in scope", () => {
-        const key = tenantScopedKey(["/v2/currency/assets", { foo: 1 }]);
-        expect(key.startsWith("global::")).toBe(true);
-    });
-
-    it("derives a different key per tenant for the same logical request", async () => {
-        let keyA = "";
-        let keyB = "";
-        await runWithContext({ correlationId: "c1", startTime: Date.now(), tenantId: "tenant-a" }, async () => {
-            keyA = tenantScopedKey(["/v1/currency/rate", { base: "BTC", quote: "EUR" }]);
-        });
-        await runWithContext({ correlationId: "c2", startTime: Date.now(), tenantId: "tenant-b" }, async () => {
-            keyB = tenantScopedKey(["/v1/currency/rate", { base: "BTC", quote: "EUR" }]);
-        });
-        expect(keyA).not.toBe(keyB);
-        expect(keyA).toContain("tenant-a");
-        expect(keyB).toContain("tenant-b");
+    it("joins endpoint and params into a stable key", () => {
+        const key = cacheKey(["/v2/currency/assets", { foo: 1 }]);
+        expect(key).toContain("/v2/currency/assets");
+        expect(key).toContain("foo");
     });
 
     it("is stable under property reordering", () => {
-        const k1 = tenantScopedKey(["/v1/currency/rate", { a: 1, b: 2 }]);
-        const k2 = tenantScopedKey(["/v1/currency/rate", { b: 2, a: 1 }]);
+        const k1 = cacheKey(["/v1/currency/rate", { a: 1, b: 2 }]);
+        const k2 = cacheKey(["/v1/currency/rate", { b: 2, a: 1 }]);
         expect(k1).toBe(k2);
     });
 
@@ -106,19 +84,10 @@ describe("tenantScopedKey", () => {
         expect(stats.totalEntries).toBeLessThanOrEqual(1000);
     });
 
-    it("isolates cache entries between tenants for the same key parts", async () => {
-        await runWithContext({ correlationId: "c1", startTime: Date.now(), tenantId: "tenant-a" }, async () => {
-            const k = tenantScopedKey(["/v2/currency/assets", {}]);
-            cache.set(k, { who: "tenantA" }, CacheCategory.STATIC);
-        });
-
-        let observed: unknown = null;
-        await runWithContext({ correlationId: "c2", startTime: Date.now(), tenantId: "tenant-b" }, async () => {
-            const k = tenantScopedKey(["/v2/currency/assets", {}]);
-            observed = cache.get(k);
-        });
-
-        expect(observed).toBeNull();
+    it("same parts produce the same key", () => {
+        const k1 = cacheKey(["/v2/currency/assets", {}]);
+        const k2 = cacheKey(["/v2/currency/assets", {}]);
+        expect(k1).toBe(k2);
     });
 });
 

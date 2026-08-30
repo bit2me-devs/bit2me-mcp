@@ -1,4 +1,6 @@
 .husky/check-file-size.sh
+# Line count ≤200 (not the 500KB byte guard above).
+bash scripts/check-file-size.sh --strict --staged
 .husky/check-env-perms.sh
 pnpm exec lint-staged
 pnpm run publint

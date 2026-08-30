@@ -1,21 +1,23 @@
 #!/usr/bin/env node
 /**
- * Entry point for the HTTP/SSE multi-tenant variant of the server.
+ * Entry point for the HTTP/SSE binary (`bit2me-mcp-http`).
+ *
+ * Local one-user proxy (ADR 0003): bind defaults to loopback. Each
+ * request may carry credentials (API-key headers or Bearer JWT).
+ * Bit2Me’s gateway authenticates keys. This is not a hosted product.
  *
  * Boot sequence:
- *   1. Validate fallback env credentials and the HTTP-transport
- *      settings (`MCP_HTTP_*`) through `getConfig()`. The HTTP
- *      transport accepts per-request creds, but a baseline still has
- *      to exist for tools that run without auth such as
- *      `general_health`.
+ *   1. Validate env credentials and `MCP_HTTP_*` through `getConfig()`.
+ *      Per-request headers can override env; env is still required so
+ *      tools like `general_health` can boot.
  *   2. Initialise the logger.
  *   3. Validate `AUDIT_LOG_PATH` through `initAudit()` so the boot
  *      aborts on misconfiguration instead of silently downgrading to
  *      logger fallback the first time a write-tool runs.
  *   4. Build & start the Fastify server.
  *
- * TLS is delegated to a reverse proxy. Operators are expected to deploy
- * this binary behind nginx / traefik / caddy with HTTPS termination.
+ * Plain HTTP on 127.0.0.1 is the usual case. Put TLS in front only if
+ * you bind a non-loopback interface.
  */
 
 import { getConfig, logConfig } from "./config.js";

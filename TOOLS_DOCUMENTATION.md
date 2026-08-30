@@ -88,7 +88,7 @@ _Note: Write operation tools are included in their respective categories._
 ```json
 {
     "request": {
-        "fiat_symbol": "EUR"
+        "quote_symbol": "EUR"
     },
     "result": {
         "quote_symbol": "EUR",
@@ -115,7 +115,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### general_health
 
-> Check the system health. Returns global status (online/degraded/offline), Bit2Me server reachability, and MCP server status.
+> Local process health of this MCP server: status, version, uptime, and circuit-breaker/cache/rate-limiter stats. Does not call Bit2Me.
 
 #### Response Fields
 
@@ -159,7 +159,7 @@ _Note: Write operation tools are included in their respective categories._
 }
 ```
 
-**Bit2Me API:** `N/A`
+**Bit2Me API:** `Internal health aggregation`
 
 ### general_describe_tool
 
@@ -184,7 +184,7 @@ _Note: Write operation tools are included in their respective categories._
 }
 ```
 
-**Bit2Me API:** `N/A`
+**Bit2Me API:** `Local catalogue introspection (no Bit2Me I/O)`
 
 ---
 

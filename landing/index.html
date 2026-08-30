@@ -1024,7 +1024,7 @@
                     "Earn & Loans: Manage Earn (Staking) strategies and collateralized loans",
                     "Portfolio Aggregation: Total portfolio valuation unifying all products",
                     "48 Tools Available: Complete API coverage for Bit2Me ecosystem",
-                    "6 Ready-to-use AI Prompts: tax_report, dca_plan, loan_health_check and more",
+                    "7 Ready-to-use AI Prompts: tax_report, dca_plan, confirm_write and more",
                     "Self-introspection via general_describe_tool — any LLM can discover tools on the fly",
                     "Idempotency keys on every write tool — safe to retry orders and withdrawals",
                     "PII redaction in logs — defence-in-depth for email, IBAN, and KYC data"
@@ -1091,7 +1091,7 @@
                         "name": "How many tools does Bit2Me MCP Server provide?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "The Bit2Me MCP Server provides 48 tools organized into categories: 4 General Tools, 8 Broker (Simple Trading) Tools, 4 Wallet Tools, 14 Pro (Advanced Trading) Tools, 11 Earn (Staking) Tools, and 7 Loan Tools. It also ships 6 ready-to-use AI prompts including tax_report, dca_plan, and loan_health_check."
+                            "text": "The Bit2Me MCP Server provides 48 tools organized into categories: 4 General Tools, 8 Broker (Simple Trading) Tools, 4 Wallet Tools, 14 Pro (Advanced Trading) Tools, 11 Earn (Staking) Tools, and 7 Loan Tools. It also ships 7 ready-to-use AI prompts including tax_report, dca_plan, and confirm_write."
                         }
                     },
                     {
@@ -3273,7 +3273,7 @@ npx @modelcontextprotocol/inspector node build/index.js</code></pre>
                                                 class="inline-block bg-purple-500/20 border border-purple-500/30 rounded-2xl rounded-tl-md px-4 py-2.5"
                                             >
                                                 <code class="text-xs text-purple-300 font-mono"
-                                                    >portfolio_get_valuation({ fiat_symbol: "EUR" })</code
+                                                    >portfolio_get_valuation({ quote_symbol: "EUR" })</code
                                                 >
                                             </div>
                                         </div>

@@ -4,8 +4,8 @@
  * Implementation: backed by `AsyncLocalStorage` so that concurrent requests
  * never share state. Setting a session token in one in-flight request can no
  * longer leak into another in-flight request, which is critical when the
- * server is used in a multi-tenant scenario (HTTP transport with per-request
- * JWTs).
+ * HTTP transport carries per-request JWTs or API keys (ADR 0003: local
+ * one-user proxy, not a hosted SaaS).
  *
  * Legacy global setters are kept as a fallback for callers that run outside
  * an `runWithContext()` boundary (mostly older tests). They are marked as
@@ -28,21 +28,11 @@ export interface RequestContext {
     /**
      * Per-request API credentials. When present, take precedence over the
      * global `BIT2ME_API_KEY` / `BIT2ME_API_SECRET` environment variables.
-     * This is what enables the HTTP transport to be genuinely multi-tenant:
-     * each incoming request carries its own credentials in headers, and
+     * HTTP requests may send credentials in headers;
      * `bit2meRequest()` reads them from here instead of the process env.
      */
     apiKey?: string | undefined;
     apiSecret?: string | undefined;
-    /**
-     * Stable, opaque identifier for the calling tenant. Set by the HTTP
-     * transport (HMAC-SHA256 of the credential, never the credential
-     * itself). Consumers use it as the partitioning key for per-tenant
-     * resilience primitives (rate limiter, circuit breaker, cache
-     * namespaces) so that one tenant's traffic cannot starve or trip
-     * another's. Undefined for the stdio (single-tenant) transport.
-     */
-    tenantId?: string | undefined;
 }
 
 /** Read the per-request API key, if the call site is inside a context. */
@@ -53,11 +43,6 @@ export function getRequestApiKey(): string | undefined {
 /** Read the per-request API secret, if the call site is inside a context. */
 export function getRequestApiSecret(): string | undefined {
     return als.getStore()?.apiSecret;
-}
-
-/** Read the per-request tenant id, if the call site is inside a context. */
-export function getTenantId(): string | undefined {
-    return als.getStore()?.tenantId;
 }
 
 const als = new AsyncLocalStorage<RequestContext>();

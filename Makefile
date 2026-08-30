@@ -7,7 +7,8 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 .PHONY: help install dev build test test-coverage test-e2e test-fuzz \
-        lint typecheck validate clean secret-scan audit publint
+        lint typecheck validate clean secret-scan audit publint \
+        check-file-size check-file-size-strict
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?##' $(MAKEFILE_LIST) | \
@@ -43,8 +44,14 @@ typecheck: ## TypeScript type check (no emit)
 publint: ## Validate package.json publish metadata
 	pnpm run publint
 
-validate: ## Full validation: typecheck + lint + publint + test
+validate: ## Full validation: typecheck + lint + publint + test + file-size strict
 	pnpm run validate
+
+check-file-size: ## Informe de ficheros >200L (exit 0)
+	@bash scripts/check-file-size.sh
+
+check-file-size-strict: ## Falla si algún fichero supera 200 líneas
+	@bash scripts/check-file-size.sh --strict
 
 secret-scan: ## Scan staged changes for secrets (gitleaks)
 	pnpm run secret-scan

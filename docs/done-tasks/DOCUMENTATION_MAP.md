@@ -30,9 +30,25 @@ Se aclara stdio (un usuario, `.env`) vs HTTP (credenciales por request, ADR 0001
 
 ### Operations
 
-Tras cambiar `data/tools.json`, `pnpm build:docs`. Tras README/AGENTS/CHANGELOG raíz, `pnpm build:llms` si se quieren actualizar `landing/llms*.txt`.
+Tras cambiar `data/tools.json`, `pnpm build:docs` y commitear `TOOLS_DOCUMENTATION.md`. Los `llms*.txt` y `tools-data.js` no van a git (Pages los genera). Diario: [GENERATED_LANDING](./GENERATED_LANDING.md).
 
 ## Change log
+
+### 2026-08-30 22:47 UTC — Landing generada fuera de git
+
+Puntero a [GENERATED_LANDING](./GENERATED_LANDING.md): `tools-data.js` y `llms*.txt` gitignored. El mapa distingue artefactos commiteados vs Pages.
+
+### 2026-08-30 20:36 UTC — Límite ≤200 líneas en el mapa
+
+`docs/README.md` añade la fila de file-size (`check-file-size.sh`, validate, CI). Diario: [FILE_SIZE_200L](./FILE_SIZE_200L.md).
+
+### 2026-08-30 20:12 UTC — Sin tenantId
+
+Puntero a [NO_TENANT](./NO_TENANT.md): se quita `tenantId` del runtime. El mapa no cambia (ADR 0003 sigue siendo la amenaza).
+
+### 2026-08-30 19:50 UTC — Protocolo MCP: allow-list y copy ADR 0003
+
+Puntero a [MCP_PROTOCOL_HARDENING](./MCP_PROTOCOL_HARDENING.md): `BIT2ME_ENABLED_CATEGORIES`, anotaciones, `structuredContent`, resources y `confirm_write`. El mapa añade una fila de allow-list (fuente: AGENTS + `.env.example`).
 
 ### 2026-08-30 19:45 UTC — CoC en inglés; CONTRIBUTING sin tipos de commit
 

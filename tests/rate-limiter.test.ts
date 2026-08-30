@@ -60,13 +60,11 @@ describe("EndpointRateLimiterManager.getStats()", () => {
         }
     });
 
-    it("partitions tenant entries with the `tenantId:pattern` key format", async () => {
+    it("uses one bucket per endpoint pattern", async () => {
         const mgr = new EndpointRateLimiterManager();
-        await mgr.waitForToken("/v3/currency/ticker/BTC", "tenant-A");
-        await mgr.waitForToken("/v3/currency/ticker/BTC", "tenant-B");
+        await mgr.waitForToken("/v3/currency/ticker/BTC");
+        await mgr.waitForToken("/v3/currency/ticker/ETH");
         const stats = mgr.getStats();
-        const keys = Object.keys(stats);
-        expect(keys.some((k) => k.startsWith("tenant-A:"))).toBe(true);
-        expect(keys.some((k) => k.startsWith("tenant-B:"))).toBe(true);
+        expect(Object.keys(stats).length).toBe(1);
     });
 });

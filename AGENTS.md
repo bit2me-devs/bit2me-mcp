@@ -75,7 +75,7 @@ Canonical playbook: [`docs/stack/release.md`](./docs/stack/release.md). If this 
 
 ### Mapper Functions
 
-- **Location**: `src/utils/response-mappers.ts`
+- **Location**: `src/utils/mappers/*.ts` (barrel: `src/utils/response-mappers.ts` — do **not** grow the barrel)
 - **Pattern**: `map<Entity>Response(raw: unknown): <Entity>Response`
 - **Always validate** input with type guards (`isValidObject`, `isValidArray`)
 - **Throw `ValidationError`** for invalid structures
@@ -85,27 +85,27 @@ Canonical playbook: [`docs/stack/release.md`](./docs/stack/release.md). If this 
 
 - **Optional feature** via `BIT2ME_INCLUDE_RAW_RESPONSE` env var
 - **Default**: `false` (raw responses excluded)
-- **Usage**: Wrap mapped responses with `wrapResponseWithRaw()`
+- **Usage**: `wrapResponseWithRaw()` — called by `build*ContextualResponse` when the handler passes the upstream payload. Do not add `raw_response` in individual mappers.
 - **Purpose**: Debugging and completeness verification
 - **Do not** add a separate guide under `docs/` — this section and `.env.example` are enough
 
 ### Example Mapper Pattern
 
 ```typescript
-export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetailsResponse {
-    if (!isValidObject(raw)) {
-        throw new ValidationError("Invalid wallet pocket details response structure");
+export function mapWalletPocketsResponse(raw: unknown): WalletPocketResponse[] {
+    if (!isValidArray(raw)) {
+        throw new ValidationError("Invalid wallet pockets response structure");
     }
 
-    return {
-        id: raw.id || "",
-        currency: raw.currency || "",
-        balance: raw.balance || "0",
-        available: raw.available || "0",
-        blocked: raw.blocked || raw.blockedBalance || "0",
-        name: raw.name,
-        created_at: raw.createdAt || raw.created_at || "",
-    };
+    return raw.map((p) => ({
+        id: String(p["id"] ?? ""),
+        symbol: String(p["currency"] ?? "").toUpperCase(),
+        balance: String(p["balance"] ?? "0"),
+        available: String(p["available"] ?? "0"),
+        blocked: String(p["blocked"] ?? p["blockedBalance"] ?? "0"),
+        name: typeof p["name"] === "string" ? p["name"] : undefined,
+        created_at: String(p["createdAt"] ?? p["created_at"] ?? ""),
+    }));
 }
 ```
 
@@ -130,13 +130,14 @@ export function mapWalletPocketDetailsResponse(raw: unknown): WalletPocketDetail
 
 ### Test Files
 
-- `tests/mappers.test.ts` - Response mapper tests
+- `tests/mappers/*.test.ts` - Response mapper tests
 - `tests/tools/*.test.ts` - Tool handler tests
-- `tests/config.test.ts` - Configuration tests
+- `tests/config-defaults.test.ts` / `tests/config-http.test.ts` - Configuration tests
 - `tests/auth.test.ts` - Authentication tests
 - `tests/regression.test.ts` - Zero-diff catalogue: every tool in `data/tools.json` matches the registry (modulo injected `jwt`).
 - `tests/concurrency.test.ts` - Verifies `AsyncLocalStorage` isolation: concurrent requests with different JWTs do not bleed state into each other.
-- `tests/http-transport.test.ts` - Integration tests for the HTTP/SSE binary.
+- `tests/tool-wrapper-http-jwt.test.ts` - HTTP already authenticated: ignore `args.jwt` (no session swap).
+- `tests/http-transport-*.test.ts` / `tests/http-mcp-*.test.ts` - HTTP JSON-RPC (`POST /mcp`). Notification without `id` → `202`.
 - `tests/write-safeguards.test.ts` - Confirm preview, idempotency stamp, amount validation.
 
 ### Mocking Rules
@@ -165,11 +166,22 @@ pnpm test:coverage    # Generate coverage report
 
 ## Code Structure
 
-### Do not grow these files
+### File size (≤200 lines)
 
-New files in `src/`, `tests/`, `scripts/`: **≤200 lines**. Extract a sibling in the same task (examples already in tree: `amount.ts`, `write-guards.ts`, `pair-api.ts`, `broker-proforma.ts`).
+No source file in `src/`, `tests/`, or `scripts/` may exceed **200 lines** (same rule as checkout). If a change would grow a file past the limit, extract a cohesive sibling in the **same** task. Barrels (`format.ts`, `http.ts`, `response-mappers.ts`, `schemas.ts`) only re-export. `bit2me.ts` orchestrates `bit2meRequest` and re-exports siblings — do not treat it as an empty barrel.
 
-Do **not** add lines to: `pro.ts`, `broker.ts`, `format.ts`, `bit2me.ts`, `response-mappers.ts`, `http.ts`.
+```bash
+make check-file-size          # report
+make check-file-size-strict   # CI / gate
+```
+
+Do not invent one-line helpers just to lower the count. Opt-out (rare): `// file-size: exempt reason=...` in the first 5 lines.
+
+Husky `pre-commit` runs `scripts/check-file-size.sh --strict --staged` (line count). Distinct from `.husky/check-file-size.sh` (500KB per staged file).
+
+### MCP resources
+
+`src/resources/`: `bit2me://health`, `bit2me://server`, `bit2me://catalog` (enabled tools; no Bit2Me I/O). Same catalogue on stdio and HTTP `resources/*`.
 
 ### Architecture: Key Patterns
 
@@ -181,7 +193,9 @@ Tools are registered once at startup using metadata from `data/tools.json`. The 
 2. Export a handler function from the appropriate `src/tools/<category>.ts`.
 3. Register the handler in `src/tools/registry.ts`.
 
-The registry reads `type` from `data/tools.json` to determine whether a tool is a write operation (required for the audit hook).
+The registry reads `type` from `data/tools.json` to determine whether a tool is a write operation (required for the audit hook). `metadataToTool` maps that `type` to MCP annotations (`readOnlyHint` for READ/META; `destructiveHint` for WRITE except `broker_quote_*`; `idempotentHint` on cancel-order tools).
+
+`BIT2ME_ENABLED_CATEGORIES` (comma-separated category ids: `general`, `broker`, `wallet`, `pro`, `earn`, `loan`) filters `tools/list`, dispatch, `general_describe_tool`, and Earn/Loan prompts. Unset = all categories. An unknown id is a startup/parse error. Disabled tools throw `ValidationError` so HTTP JSON-RPC echoes the message.
 
 #### 2. Per-Request Context Isolation (`src/utils/context.ts`)
 
@@ -257,21 +271,22 @@ Add the tool definition to the appropriate category in `data/tools.json`:
 
 ### 2. Implementation (`src/tools/`)
 
-1. **Identify the category**: Choose an existing file (e.g., `wallet.ts`, `earn.ts`) or create a new one.
-2. **Create/Update handler file**: Edit `src/tools/<category>.ts`.
-3. **Implement the handler function**:
+1. **Identify the category**: Existing barrels (`wallet.ts`, `pro.ts`, …) only register a `Map`. Put the handler in a cohesive sibling (`wallet-pockets.ts`, `pro-read.ts`).
+2. **Implement the handler** and register it on that category `Map`. The barrel wraps every call with `executeTool` + `lookupHandler` — do not add `if (name === "...")` chains.
 
 ```typescript
-// src/tools/example.ts
-export async function handleExampleTool(name: string, args: Record<string, unknown>) {
-    if (name === "example_get_data") {
-        const id = String(args.id ?? "");
-        const data = await bit2meRequest("GET", `/v1/example/${id}`);
-        const optimized = mapExampleResponse(data);
-        return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
-    }
-    throw new Error(`Unknown tool: ${name}`);
+// src/tools/example-read.ts
+export async function handleExampleGetData(args: Record<string, unknown>) {
+    const id = String(args.id ?? "");
+    const data = await bit2meRequest("GET", `/v1/example/${id}`);
+    const optimized = mapExampleResponse(data);
+    return { content: [{ type: "text", text: JSON.stringify(optimized, null, 2) }] };
 }
+```
+
+```typescript
+// src/tools/example.ts (barrel)
+const exampleHandlers = new Map<string, NamedToolHandler>([["example_get_data", handleExampleGetData]]);
 ```
 
 **Conventions for write tools:**
@@ -284,7 +299,7 @@ export async function handleExampleTool(name: string, args: Record<string, unkno
 
 Register the handler so the declarative registry can dispatch it:
 
-Existing categories (`general`, `broker`, `wallet`, `earn`, `loan`, `pro`) are registered once via `registerCategory(...)` in `src/tools/registry.ts`. A new tool in an **existing** category only needs its handler `if (name === "...")` branch — the JSON catalogue is listed automatically.
+Existing categories (`general`, `broker`, `wallet`, `earn`, `loan`, `pro`) are registered once via `registerCategory(...)` in `src/tools/registry.ts`. A new tool in an **existing** category only needs its handler on the category `Map` — the JSON catalogue is listed automatically.
 
 If you add a **new category**, register it:
 
@@ -292,22 +307,22 @@ If you add a **new category**, register it:
 registerCategory("example", exampleTools, handleExampleTool as ToolHandler);
 ```
 
-Do not add an `if/else` chain in `index.ts`. `tests/regression.test.ts` checks that every `data/tools.json` name matches the registry (modulo injected `jwt`).
+Do not add an `if/else` chain in `index.ts`. `tests/regression.test.ts` checks that every `data/tools.json` name matches the registry (modulo injected `jwt`). `tests/sync-chains-runtime.test.ts` checks each category `Map` 1:1 against the catalogue.
 
 ### 4. Response Mapping (`src/utils/`)
 
-1. **Define Schema**: Add the TypeScript interface in `src/utils/schemas.ts`.
-2. **Create Mapper**: Add the mapper function in `src/utils/response-mappers.ts`.
+1. **Define Schema**: Add the TypeScript interface in `src/utils/schemas/<domain>.ts` and re-export from the `schemas.ts` barrel.
+2. **Create Mapper**: Add the mapper in `src/utils/mappers/<domain>.ts` and re-export from `response-mappers.ts`. Do **not** grow the barrels.
 
 ```typescript
-// src/utils/schemas.ts
+// src/utils/schemas/example.ts
 export interface ExampleResponse {
     id: string;
     value: string;
     created_at: string;
 }
 
-// src/utils/response-mappers.ts
+// src/utils/mappers/example.ts
 export function mapExampleResponse(raw: unknown): ExampleResponse {
     if (!isValidObject(raw)) throw new ValidationError("Invalid response");
     return {
@@ -320,7 +335,7 @@ export function mapExampleResponse(raw: unknown): ExampleResponse {
 
 ### 5. Testing (`tests/`)
 
-1. **Mapper Tests**: Add test cases in `tests/mappers.test.ts`.
+1. **Mapper Tests**: Add test cases in `tests/mappers/*.test.ts`.
 2. **Tool Tests**: Create `tests/tools/example.test.ts`.
 3. **Registry regression**: `tests/regression.test.ts` verifies every `data/tools.json` name matches the in-memory registry. No edit needed there when you only add a tool to an existing category.
 4. **Concurrency**: If your tool stores per-request state, add a test in `tests/concurrency.test.ts` verifying that two concurrent invocations do not bleed state.
@@ -347,8 +362,9 @@ describe("Example Tools", () => {
 ### 6. Documentation
 
 1. **TOOLS_DOCUMENTATION.md**: Auto-generated from `data/tools.json` — run `pnpm build:docs` after editing the metadata.
-2. **README.md**: Update category counts in "Available Tools & API Endpoints" if a new category is introduced or a count changes.
-3. **Landing catalogue**: `pnpm build:docs` regenerates `landing/tools-data.js`. Do not edit that file by hand. HTML/CSS/`CNAME` in `landing/` are maintained separately.
+2. **`scripts/docs-gen/endpoints.js`**: one key per tool (REST path, or a local-only note). `tests/sync-chains.test.ts` enforces a 1:1 match.
+3. **README.md**: Update category counts in "Available Tools & API Endpoints" if a new category is introduced or a count changes.
+4. **Landing**: `pnpm build:docs` writes gitignored `landing/tools-data.js` (Pages regenerates it). Update hand-edited counts in `landing/index.html` (meta, FAQ, JSON-LD). Commit `TOOLS_DOCUMENTATION.md` after `build:docs`.
 
 ### 7. Verification
 
@@ -384,8 +400,8 @@ describe("Example Tools", () => {
 - `docs/README.md` - Canonical documentation map
 - `docs/stack/release.md` - How we publish (npm + tag, not package.json on main)
 - `docs/adr/0003-local-single-user-threat-model.md` - Threat model
-- `src/utils/response-mappers.ts` - API response mappers (do **not** grow this file)
-- `src/utils/schemas.ts` - TypeScript interfaces
+- `src/utils/response-mappers.ts` - Mapper barrel (implement in `src/utils/mappers/`)
+- `src/utils/schemas.ts` - Schema barrel (interfaces in `src/utils/schemas/`)
 - `package.json` - Dependencies and scripts
 - `.commitlintrc.json` - Commit message validation
 
@@ -406,7 +422,7 @@ describe("Example Tools", () => {
 13. ✅ **Write tools**: stable `idempotency_key` (wrapper stamps if omitted); irreversible WRITE returns `needs_confirmation` unless `confirm === true`
 14. ✅ **Register via `registerCategory`** in `src/tools/registry.ts` — do not add `if/else` dispatch in `index.ts`
 15. ✅ **TypeScript strict** — `exactOptionalPropertyTypes` globally; `noUncheckedIndexedAccess` in production builds
-16. ✅ **File size**: new files in `src/` / `tests/` / `scripts/` ≤200 lines. Do not grow `pro.ts`, `broker.ts`, `format.ts`, `bit2me.ts`, `response-mappers.ts`, `http.ts` — extract a sibling.
+16. ✅ **File size**: every source file in `src/` / `tests/` / `scripts/` ≤200 lines. `make check-file-size-strict`. Extract a sibling in the same task.
 17. ✅ **`data/tools.json`**: Python/shell only, then `pnpm build:docs`. Initiative logs (`docs/done-tasks/`) are history, not the spec.
 
 ---

@@ -4,6 +4,7 @@ import { contextManager, runWithContext, getContext, type RequestContext } from 
 import { clearRequestCache } from "./request-cache.js";
 import { recordAudit } from "./audit.js";
 import { getToolMetadata } from "./tool-metadata.js";
+import { attachStructuredContent } from "./structured-content.js";
 import { buildNeedsConfirmationResult, resolveIdempotencyKey, writeRequiresConfirm } from "./write-guards.js";
 
 /**
@@ -58,17 +59,13 @@ export async function executeTool<T>(
     const baseContext = contextManager.createContext(name);
 
     // If we're already inside a parent context (HTTP transport set it
-    // up before dispatching), inherit the per-request API credentials
-    // so this tool execution targets the right tenant.
+    // up before dispatching), inherit the per-request API credentials.
     const parent = getContext();
 
-    // Tenant-confusion guard: when the HTTP transport has already
-    // authenticated the caller (via headers), an `args.jwt` smuggled
-    // through the JSON-RPC payload could otherwise force us to
-    // authenticate against Bit2Me with a *different* tenant's
-    // credentials. To prevent that, only honour `args.jwt` when there
-    // is no authenticated parent context (i.e. stdio transport).
-    const httpAuthenticated = !!parent?.apiKey || !!parent?.sessionToken || !!parent?.tenantId;
+    // When HTTP already authenticated the caller via headers, ignore
+    // `args.jwt` so the JSON-RPC payload cannot swap the session.
+    // stdio still honours `args.jwt` (no parent credentials).
+    const httpAuthenticated = !!parent?.apiKey || !!parent?.sessionToken;
     const argsJwt = typeof args?.jwt === "string" ? args.jwt : undefined;
     if (httpAuthenticated && argsJwt) {
         logger.warn("Ignoring args.jwt under authenticated HTTP context", {
@@ -76,9 +73,6 @@ export async function executeTool<T>(
             tool: name,
         });
     }
-    // Resolve the session token in a single branch so the downstream
-    // context never falls back to a stale parent token when the
-    // tenant-confusion guard already rejected `args.jwt`.
     const sessionToken = httpAuthenticated ? parent?.sessionToken : argsJwt;
 
     const ctx: RequestContext = {
@@ -88,7 +82,6 @@ export async function executeTool<T>(
         sessionToken,
         apiKey: parent?.apiKey,
         apiSecret: parent?.apiSecret,
-        tenantId: parent?.tenantId,
     };
 
     return runWithContext(ctx, async () => {
@@ -113,7 +106,7 @@ export async function executeTool<T>(
                         error: auditErr instanceof Error ? auditErr.message : String(auditErr),
                     });
                 });
-                return buildNeedsConfirmationResult(name, args) as T;
+                return attachStructuredContent(buildNeedsConfirmationResult(name, args)) as T;
             }
 
             logger.debug(`Executing tool: ${name}`, {
@@ -150,7 +143,7 @@ export async function executeTool<T>(
                 });
             }
 
-            return result;
+            return attachStructuredContent(result);
         } catch (error: unknown) {
             const duration = Date.now() - startTime;
             const errorMessage = error instanceof Error ? error.message : String(error);

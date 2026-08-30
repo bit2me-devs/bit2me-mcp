@@ -17,24 +17,28 @@ For more information, visit: **[https://mcp.bit2me.com](https://mcp.bit2me.com)*
 
 ## 🚀 Features
 
-- **General**: Asset information, account details, portfolio valuation, and self-introspection (`general_describe_tool` returns description, schema, and examples for any tool — useful for LLMs encountering a tool for the first time).
+- **General**: Asset information, account details, portfolio valuation, and self-introspection (`general_describe_tool` returns description, schema, and examples for an **enabled** tool — useful for LLMs encountering a tool for the first time).
 - **Wallet Management**: Query balances, transactions, and wallet (Pockets) details.
 - **Pro Trading**: Manage orders (Limit, Market, Stop), query open orders, and transfer funds between Wallet and Pro.
 - **Earn & Loans**: Manage Earn (Staking) strategies and collateralized loans.
 - **Operations**: Execute trades, transfers, and withdrawals securely.
-- **Write safeguards**: Irreversible writes (Pro / Earn / Loan / `broker_confirm_quote`) first return a `needs_confirmation` preview unless `confirm` is the boolean `true`. The preview includes the stamped `idempotency_key` so a retry reuses it. Failed POST/DELETE calls retry with exponential backoff + jitter when that key is present.
+- **Write safeguards**: Irreversible writes (Pro / Earn / Loan / `broker_confirm_quote`) first return a `needs_confirmation` preview unless `confirm` is the boolean `true`. Broker quote tools (`broker_quote_*`) do not require confirm. The preview includes the stamped `idempotency_key` so a retry reuses it. Failed POST/DELETE calls retry with exponential backoff + jitter when that key is present.
+- **Category allow-list**: Optional `BIT2ME_ENABLED_CATEGORIES` (comma-separated: `general`, `broker`, `wallet`, `pro`, `earn`, `loan`) filters `tools/list` and dispatch. Unset = all. An unknown id is a startup/parse error.
+- **MCP tool annotations**: `tools/list` exposes hints from `type` in `data/tools.json` — `readOnlyHint` on READ/META, `destructiveHint` on irreversible WRITE (not `broker_quote_*`), `idempotentHint` on cancel-order tools.
+- **structuredContent**: Tool results include a `structuredContent` object alongside the existing text JSON (the text payload is unchanged).
+- **Resources**: `bit2me://health`, `bit2me://server`, and `bit2me://catalog` (enabled tools; no Bit2Me I/O). Same catalogue on stdio and HTTP `resources/list` / `resources/read`.
 - **Decimal Precision**: Portfolio valuation uses `decimal.js` — no floating-point drift on large balances or high-precision assets.
 - **Expanded PII Redaction**: Logs automatically scrub email addresses, IBANs, phone numbers, KYC fields, JWT-shaped tokens, and long base64 blobs, in addition to API keys and signatures.
 - **Monotonic Nonces**: API-key signing uses a strictly-increasing nonce counter, preventing replay attacks even under high concurrency.
 - **Audit Log**: Every write tool (order creation, withdrawals, earn deposits, loan operations, …) appends a tamper-evident JSON line on both success and failure. Set `AUDIT_LOG_PATH` to write to a dedicated file; otherwise audit lines are emitted via the logger with `audit: true`.
-- **Parametrized Prompts**: `analyze_portfolio` and `market_summary` accept arguments. Three new prompts ship out of the box: `tax_report`, `dca_plan`, and `loan_health_check`.
+- **Parametrized Prompts**: `analyze_portfolio` and `market_summary` accept arguments. Extra prompts: `tax_report`, `dca_plan`, `loan_health_check`, and `confirm_write` (optional `tool` argument) for irreversible writes.
 
 ## 🛠️ Available Tools & API Endpoints
 
 The server currently exposes **48 tools** grouped as follows:
 
 - 4 General tools (including `general_describe_tool` for self-introspection)
-- 8 Broker (Simple Trading) tools
+- 8 Broker (Simple Trading) tools — includes `wallet_get_cards` (Bit2Me Teller). It stays in `broker` so the allow-list id does not change.
 - 4 Wallet tools
 - 14 Pro Trading tools
 - 11 Earn (Staking) tools
@@ -123,6 +127,7 @@ const result = await mcpClient.callTool("wallet_get_pockets", {
     BIT2ME_LOG_LEVEL=info            # Log level: debug, info, warn, error (default: info)
     LOG_FORMAT=json                  # Optional: "json" for log aggregators; default is human-readable
     # AUDIT_LOG_PATH=/var/log/bit2me-mcp/audit.log  # Append-only write-tool audit log
+    # BIT2ME_ENABLED_CATEGORIES=wallet,broker,general  # Optional allow-list; unset = all
     ```
 
     > **💡 QA/Staging:** Use `BIT2ME_GATEWAY_URL` to point to different environments (e.g., `https://qa-gateway.bit2me.com` for QA testing).
@@ -208,10 +213,9 @@ For detailed information about reporting vulnerabilities and our security policy
 
 The Bit2Me API enforces rate limits to ensure stability.
 
-- **429 Too Many Requests**: If the server hits a rate limit, it will **automatically retry** the request after a 1-second delay (up to 3 retries).
+- **429 Too Many Requests**: The client retries with exponential backoff and **full jitter** (`BIT2ME_RETRY_BASE_DELAY`, default 1000 ms, up to `BIT2ME_MAX_RETRIES`).
 - **Console Warnings**: You may see warnings in the logs if rate limits are hit.
 - **Best Practice**: Avoid asking for massive amounts of data in a very short loop.
-- **Exponential Backoff**: The server now uses exponential backoff with jitter for retries to handle rate limits more gracefully.
 
 ## 📊 Logging
 
@@ -235,7 +239,7 @@ Each incoming tool call runs inside its own [`AsyncLocalStorage`](https://nodejs
 - `sessionToken` (`jwt`): the optional per-call session token, never logged in the clear
 - `toolName`, `startTime`: useful for metrics / audit
 
-Two requests that arrive concurrently — for example two different users hitting the HTTP transport with their own JWTs — never share state. The legacy global-context fallbacks remain for unit tests that run outside a `runWithContext` boundary, but production code paths always create a context. See `tests/concurrency.test.ts` and `tests/http-transport.test.ts` for the regression coverage.
+Two concurrent HTTP requests (for example two JWTs in flight on the same local process) never share ALS state. That is request isolation, not a multi-user product — see [ADR 0003](./docs/adr/0003-local-single-user-threat-model.md). Tests outside `runWithContext` fall back to a safe default. See `tests/concurrency.test.ts` and `tests/http-transport-*.test.ts`.
 
 Per-request state stored via `memoizePerRequest()` (e.g. wallet pockets fetched multiple times during a single broker quote) is keyed by `correlationId` and cleared in the `finally` block of `executeTool()` so the cache cannot grow unbounded.
 
@@ -244,7 +248,7 @@ Per-request state stored via `memoizePerRequest()` (e.g. wallet pockets fetched 
 Two binaries ship with this package:
 
 - `bit2me-mcp-server` — the original stdio transport, designed to be spawned by a single LLM client (Claude Desktop, Cursor, …).
-- `bit2me-mcp-http` — HTTP/SSE (`src/index-http.ts`). Each request may send its own credentials (`X-Bit2Me-Api-Key` + `X-Bit2Me-Api-Secret` or `Authorization: Bearer <jwt>`). Default bind is loopback (`127.0.0.1`). This is not a hosted multi-tenant SaaS; see [ADR 0003](./docs/adr/0003-local-single-user-threat-model.md). Put TLS in front of any non-loopback bind.
+- `bit2me-mcp-http` — HTTP JSON-RPC (`src/index-http.ts`). Each request may send its own credentials (`X-Bit2Me-Api-Key` + `X-Bit2Me-Api-Secret` or `Authorization: Bearer <jwt>`). `POST /mcp` handles `initialize`, `tools/*`, `prompts/*`, `resources/*`. A notification (no `id`) returns `202` with an empty body. `GET /mcp` (SSE) is reserved, not implemented. Default bind is loopback (`127.0.0.1`). This is not a hosted multi-tenant SaaS; see [ADR 0003](./docs/adr/0003-local-single-user-threat-model.md). Put TLS in front of any non-loopback bind.
 
 Recommended environment variables for the HTTP binary:
 
@@ -403,7 +407,7 @@ The web interface provides:
     - View formatted responses
 
 2. **Resources Tab:**
-    - Explore available resources (if any)
+    - Explore `bit2me://health`, `bit2me://server`, and `bit2me://catalog`
 
 3. **Prompts Tab:**
     - Test prompt templates (if configured)
@@ -416,12 +420,11 @@ The web interface provides:
 ### Example: Testing a Tool
 
 1. Navigate to the **Tools** tab
-2. Select a tool (e.g., `market_get_ticker`)
+2. Select a tool (e.g., `pro_get_ticker`)
 3. Fill in the required parameters:
     ```json
     {
-        "base_symbol": "BTC",
-        "quote_symbol": "EUR"
+        "pair": "BTC-EUR"
     }
     ```
 4. Click **Run** to execute the tool
@@ -434,7 +437,7 @@ Deployment is automated using GitHub Actions.
 
 **How to update the website:**
 
-1. Tool catalogue: edit `data/tools.json` (Python/shell), then `pnpm build:docs`. Do not edit `tools-data.js` by hand.
+1. Tool catalogue: edit `data/tools.json` (Python/shell), then `pnpm build:docs` and commit `TOOLS_DOCUMENTATION.md`. `landing/tools-data.js` is gitignored (Pages / `pnpm build:docs` for local preview).
 2. Page chrome: edit HTML/CSS/`CNAME` in `/landing` if needed.
 3. Push to `main`. Pages deploy on push; after a SemVer release the `landing` job in `release.yml` runs again so the catalogue snapshot can see the new git tag.
 4. The hero **Stable** badge reads **live npm**, not `package.json` on `main`. Same source as the shields.io npm badge. See [docs/stack/release.md](./docs/stack/release.md).

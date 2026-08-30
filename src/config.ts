@@ -1,51 +1,15 @@
 import dotenv from "dotenv";
 import { z } from "zod";
+import { parseEnabledCategories, VALID_CATEGORY_IDS } from "./utils/enabled-categories.js";
 import { logger } from "./utils/logger.js";
-
-const DEFAULT_GATEWAY_URL = "https://gateway.bit2me.com";
-const DEFAULT_SESSION_COOKIE_NAME = "b2m-atoken";
-const DEFAULT_HTTP_HOST = "127.0.0.1";
-const DEFAULT_HTTP_PORT = 3000;
-
-/**
- * Allow plain HTTP only when targeting localhost / loopback. Any other host
- * must be HTTPS so that API keys, signatures and JWT cookies cannot be
- * intercepted on the wire.
- */
-function isAllowedGatewayUrl(value: string): boolean {
-    if (value.startsWith("https://")) return true;
-    if (value.startsWith("http://localhost")) return true;
-    if (value.startsWith("http://127.")) return true;
-    if (value.startsWith("http://[::1]")) return true;
-    return false;
-}
-
-/**
- * Parse a `MCP_HTTP_TRUST_PROXY` string into a value that Fastify can
- * consume. The intent is to make trust *opt-in*: by default we ignore
- * `X-Forwarded-*` headers so an attacker on a directly-exposed
- * deployment cannot spoof their IP.
- *
- *   - unset / `false` / `off` / `0`        → `false`
- *   - `true` / `on` / `1`                  → `true` (only safe behind
- *                                            a proxy you control)
- *   - `loopback`, `linklocal`, `uniquelocal` → handled natively by
- *                                            `proxy-addr`
- *   - CIDR list (`10.0.0.0/8,192.168.0.0/16`) → trust those proxies
- */
-function parseTrustProxy(input: string | undefined): boolean | string | string[] {
-    if (input === undefined) return false;
-    const v = input.trim();
-    if (v === "" || /^(false|off|0)$/i.test(v)) return false;
-    if (/^(true|on|1)$/i.test(v)) return true;
-    if (v.includes(",")) {
-        return v
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-    }
-    return v;
-}
+import {
+    DEFAULT_GATEWAY_URL,
+    DEFAULT_HTTP_HOST,
+    DEFAULT_HTTP_PORT,
+    DEFAULT_SESSION_COOKIE_NAME,
+    isAllowedGatewayUrl,
+    parseTrustProxy,
+} from "./config-parse.js";
 
 const envSchema = z.object({
     BIT2ME_API_KEY: z.string().min(1, "BIT2ME_API_KEY is required"),
@@ -83,6 +47,7 @@ const envSchema = z.object({
         .default(String(DEFAULT_HTTP_PORT)),
     MCP_HTTP_AUTH_MODE: z.enum(["api_key", "jwt", "both"]).optional().default("api_key"),
     MCP_HTTP_TRUST_PROXY: z.string().optional(),
+    BIT2ME_ENABLED_CATEGORIES: z.string().optional(),
 });
 
 export type Config = z.infer<typeof envSchema> & {
@@ -97,9 +62,15 @@ export type Config = z.infer<typeof envSchema> & {
     HTTP_PORT: number;
     HTTP_AUTH_MODE: "api_key" | "jwt" | "both";
     HTTP_TRUST_PROXY: boolean | string | string[];
+    ENABLED_CATEGORIES?: string[];
 };
 
 let cachedConfig: Config | null = null;
+
+/** Test-only: drop the memo so the next `getConfig()` re-reads `process.env`. */
+export function resetConfigForTesting(): void {
+    cachedConfig = null;
+}
 
 /**
  * Get configuration with lazy loading.
@@ -113,7 +84,7 @@ export function getConfig(): Config {
     // Only load .env if credentials are not already in process.env (from mcp_config.json)
     if (!process.env.BIT2ME_API_KEY || !process.env.BIT2ME_API_SECRET) {
         logger.debug("Loading credentials from .env file");
-        dotenv.config({ quiet: true } as any);
+        dotenv.config({ quiet: true });
     } else {
         logger.debug("Using credentials from environment (mcp_config.json)");
     }
@@ -142,6 +113,7 @@ export function getConfig(): Config {
             HTTP_PORT: parseInt(parsed.MCP_HTTP_PORT || String(DEFAULT_HTTP_PORT), 10),
             HTTP_AUTH_MODE: parsed.MCP_HTTP_AUTH_MODE,
             HTTP_TRUST_PROXY: parseTrustProxy(parsed.MCP_HTTP_TRUST_PROXY),
+            ENABLED_CATEGORIES: [...parseEnabledCategories(parsed.BIT2ME_ENABLED_CATEGORIES)].sort(),
         };
 
         // Register the cookie name as sensitive immediately so even error logs
@@ -159,7 +131,7 @@ export function getConfig(): Config {
         return cachedConfig;
     } catch (error) {
         if (error instanceof z.ZodError) {
-            const missing = error.issues.map((e: any) => e.path.join(".")).join(", ");
+            const missing = error.issues.map((e) => e.path.join(".")).join(", ");
             logger.error("Missing required credentials", { missing });
             logger.error("Please set BIT2ME_API_KEY and BIT2ME_API_SECRET in your .env file or environment");
         } else {
@@ -185,32 +157,20 @@ export function logConfig(c: Config): void {
     if (c.SESSION_COOKIE_NAME !== DEFAULT_SESSION_COOKIE_NAME) {
         logger.info(`Using custom session cookie name: ${c.SESSION_COOKIE_NAME}`);
     }
+    if (c.ENABLED_CATEGORIES && c.ENABLED_CATEGORIES.length < VALID_CATEGORY_IDS.length) {
+        logger.info(`Enabled tool categories: ${c.ENABLED_CATEGORIES.join(", ")}`);
+    }
+    if (c.INCLUDE_RAW_RESPONSE) {
+        logger.warn(
+            "BIT2ME_INCLUDE_RAW_RESPONSE=true attaches raw gateway payloads to MCP responses (ADR 0003 self-inflicted leak)"
+        );
+    }
 }
 
 /**
- * @deprecated Prefer `getConfig()` (or, in Phase 2 onwards, the
- * `ServerContext`). The proxy-based `config` export is kept for backwards
- * compatibility with consumers that destructured `config.BIT2ME_*` at
- * module load time. New code should call `getConfig()` directly so the
- * dependency is explicit and side-effect-free.
- */
-export const config = new Proxy({} as Config, {
-    get(_target, prop) {
-        return getConfig()[prop as keyof Config];
-    },
-});
-
-/**
- * Get the Bit2Me Gateway URL (configurable via BIT2ME_GATEWAY_URL env var)
- * Default: https://gateway.bit2me.com
- *
- * @example
- * // In .env or environment:
- * BIT2ME_GATEWAY_URL=https://qa-gateway.bit2me.com
+ * Gateway URL after `getConfig()` (env `BIT2ME_GATEWAY_URL`, trailing slash stripped).
+ * Do not export a module-level constant — it would freeze the default and ignore env.
  */
 export function getGatewayUrl(): string {
     return getConfig().GATEWAY_URL;
 }
-
-// Backward compatibility - lazy evaluation via getter
-export const BIT2ME_GATEWAY_URL = DEFAULT_GATEWAY_URL;

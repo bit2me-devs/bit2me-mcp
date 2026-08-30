@@ -55,7 +55,9 @@
         "secret-scan": "bash -c 'if command -v gitleaks >/dev/null 2>&1; then gitleaks protect --staged --verbose --redact; else echo \"ERROR: gitleaks is required for the pre-commit secret scan. Install it from https://github.com/gitleaks/gitleaks (e.g. \\`brew install gitleaks\\` or \\`apt install gitleaks\\`).\" >&2; exit 1; fi' --",
         "clean": "rm -rf build coverage",
         "publint": "publint",
-        "validate": "pnpm run typecheck && pnpm run lint && pnpm run publint && pnpm test",
+        "check-file-size": "bash scripts/check-file-size.sh",
+        "check-file-size-strict": "bash scripts/check-file-size.sh --strict",
+        "validate": "pnpm run typecheck && pnpm run lint && pnpm run publint && pnpm test && bash scripts/check-file-size.sh --strict",
         "prepare": "husky"
     },
     "keywords": [

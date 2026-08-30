@@ -12,20 +12,20 @@ import {
     ListToolsRequestSchema,
     ListPromptsRequestSchema,
     GetPromptRequestSchema,
+    ListResourcesRequestSchema,
+    ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-const packageJsonPath = join(dirname(fileURLToPath(import.meta.url)), "../package.json");
-const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-export const VERSION = packageJson.version;
-
 import { getConfig, logConfig } from "./config.js";
 import { initLogger, logger } from "./utils/logger.js";
 import { initAudit } from "./utils/audit.js";
 import { dispatchTool, getAllTools } from "./tools/registry.js";
-import { prompts, handleGetPrompt } from "./prompts/index.js";
+import { handleGetPrompt } from "./prompts/index.js";
+import { getPrompts } from "./prompts/visible.js";
+import { listResources, readResource } from "./resources/index.js";
+import { ValidationError } from "./utils/errors.js";
+import { PACKAGE_VERSION } from "./package-version.js";
+
+export const VERSION = PACKAGE_VERSION;
 
 // --- STARTUP VALIDATION ---
 
@@ -64,7 +64,7 @@ try {
 
 const server = new Server(
     { name: "bit2me-mcp-server", version: VERSION },
-    { capabilities: { tools: {}, prompts: {} } }
+    { capabilities: { tools: {}, prompts: {}, resources: {} } }
 );
 
 // --- TOOL LISTING ---
@@ -78,11 +78,22 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 // --- PROMPT MANAGEMENT ---
 
 server.setRequestHandler(ListPromptsRequestSchema, async () => {
-    return { prompts };
+    return { prompts: getPrompts() };
 });
 
 server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-    return handleGetPrompt(request.params.name, request.params.arguments);
+    const name = request.params.name;
+    if (!getPrompts().some((prompt) => prompt.name === name)) {
+        throw new ValidationError(`Prompt not found: ${name}`, "name", name);
+    }
+    try {
+        return handleGetPrompt(name, request.params.arguments);
+    } catch (error) {
+        if (error instanceof RangeError) {
+            throw new ValidationError(error.message, "arguments");
+        }
+        throw error;
+    }
 });
 
 // --- TOOL IMPLEMENTATION ---
@@ -92,13 +103,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     try {
         return await dispatchTool(name, (args ?? {}) as Record<string, unknown>);
-    } catch (error: any) {
-        logger.error(`Error executing tool: ${name}`, { error: error.message });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error(`Error executing tool: ${name}`, { error: message });
         return {
-            content: [{ type: "text", text: `Error executing ${name}: ${error.message}` }],
+            content: [{ type: "text", text: `Error executing ${name}: ${message}` }],
             isError: true,
         };
     }
+});
+
+// --- RESOURCES (stdio + HTTP JSON-RPC resources/*) ---
+
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    return listResources();
+});
+
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    return readResource(request.params.uri);
 });
 
 // --- START SERVER ---

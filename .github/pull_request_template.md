@@ -47,8 +47,8 @@
 - [ ] ✅ All tests pass (`pnpm test`)
 - [ ] ✅ Lint passes (`pnpm lint`)
 - [ ] ✅ Code formatted (`pnpm run lint:fix`)
-- [ ] 📖 Documentation updated (if needed). Tool changes: `data/tools.json` (Python/shell) + `pnpm build:docs`
-- [ ] 🚫 Did not bump `package.json` or edit generated files / root `CHANGELOG.md`
+- [ ] 📖 Documentation updated (if needed). Tool changes: `data/tools.json` (Python/shell) + `endpoints.js` + `pnpm build:docs` (commit `TOOLS_DOCUMENTATION.md` only). Count/prompt changes: README + `landing/index.html`
+- [ ] 🚫 Did not bump `package.json`, edit `/CHANGELOG.md`, or commit `landing/tools-data.js` / `llms*.txt`
 - [ ] 🔒 No sensitive data exposed
 - [ ] ♿ Accessibility considered (landing HTML only; N/A for the MCP server)
 

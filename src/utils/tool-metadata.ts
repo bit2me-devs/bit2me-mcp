@@ -6,6 +6,8 @@ import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
+import { annotationsForTool } from "./tool-annotations.js";
+import { processToolDeprecation } from "./schemas/tool.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -30,6 +32,10 @@ export interface ToolMetadata {
     };
     exampleArgs: Record<string, unknown>;
     exampleResponse: unknown;
+    deprecated?: boolean;
+    deprecationMessage?: string;
+    deprecatedSince?: string;
+    replacedBy?: string;
 }
 
 export interface CategoryMetadata {
@@ -126,6 +132,7 @@ export function metadataToTool(metadata: ToolMetadata): Tool {
         name: metadata.name,
         description: metadata.description,
         inputSchema: inputSchema,
+        annotations: annotationsForTool(metadata),
     };
 
     // Add custom attributes if present (for internal use, not part of MCP spec)
@@ -133,7 +140,16 @@ export function metadataToTool(metadata: ToolMetadata): Tool {
         (tool as Tool & { attributes?: ToolAttributes }).attributes = metadata.attributes;
     }
 
-    return tool;
+    if (metadata.deprecated !== true) {
+        return tool;
+    }
+    return processToolDeprecation({
+        ...tool,
+        deprecated: true,
+        ...(metadata.deprecationMessage ? { deprecationMessage: metadata.deprecationMessage } : {}),
+        ...(metadata.deprecatedSince ? { deprecatedSince: metadata.deprecatedSince } : {}),
+        ...(metadata.replacedBy ? { replacedBy: metadata.replacedBy } : {}),
+    });
 }
 
 /**
@@ -158,14 +174,6 @@ export function getToolAttributes(toolName: string): ToolAttributes | undefined 
 export function getCategoryTools(categoryId: string): Tool[] {
     const toolsMetadata = getCategoryToolsMetadata(categoryId);
     return toolsMetadata.map(metadataToTool);
-}
-
-/**
- * Get all tools in MCP Tool format
- */
-export function getAllTools(): Tool[] {
-    const metadata = loadToolsMetadata();
-    return metadata.categories.flatMap((cat) => cat.tools.map(metadataToTool));
 }
 
 /**

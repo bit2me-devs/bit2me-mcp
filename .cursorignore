@@ -26,6 +26,9 @@ assets/
 # Documentación voluminosa autogenerada
 TOOLS_DOCUMENTATION.md
 CHANGELOG.md
+landing/tools-data.js
+landing/llms.txt
+landing/llms-full.txt
 
 # Logs y temporales
 *.log

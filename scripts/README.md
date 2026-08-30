@@ -8,18 +8,19 @@ Canonical map: [`docs/README.md`](../docs/README.md). This folder only documents
 
 **Command:** `pnpm run build:docs`
 
-**Purpose:** Regenerates derived assets from the centralized tools metadata.
+**Purpose:** Regenerates derived assets from the centralized tools metadata. Thin entry: helpers live in `scripts/docs-gen/` (`version.js`, `landing.js`, `markdown.js`, `endpoints.js`).
 
 **Generates:**
 
-- `landing/tools-data.js` — Tools catalogue for the landing page (includes schemas and examples).
-- `TOOLS_DOCUMENTATION.md` (repository root) — Auto-generated tool documentation with descriptions, endpoints and response schemas.
+- `TOOLS_DOCUMENTATION.md` (committed) — tool documentation with descriptions, endpoints and response schemas.
+- `landing/tools-data.js` (gitignored) — catalogue for the landing. GitHub Pages runs this script; locally only if you preview `landing/`.
 
 **Source:**
 
-- `data/tools.json` - Central metadata file
+- `data/tools.json` — catalogue
+- `scripts/docs-gen/endpoints.js` — Bit2Me path (or local-only note) per tool. Keys must match the catalogue 1:1 (`tests/sync-chains.test.ts`).
 
-**Usage:** Run after modifying `data/tools.json` to regenerate the landing catalogue.
+**Usage:** Run after modifying `data/tools.json` (and `endpoints.js` if you added/renamed a tool) to regenerate the landing catalogue.
 
 ---
 
@@ -29,7 +30,7 @@ Canonical map: [`docs/README.md`](../docs/README.md). This folder only documents
 
 **Purpose:** Generates documentation files for LLMs from markdown.
 
-**Generates:**
+**Generates** (gitignored; Pages runs this job):
 
 - `landing/llms-full.txt` — complete dump
 - `landing/llms.txt` — short index
@@ -40,6 +41,14 @@ Canonical map: [`docs/README.md`](../docs/README.md). This folder only documents
 - `README.md`
 - `AGENTS.md`
 - `CHANGELOG.md` (npm / Semantic Release)
+
+---
+
+### `check-file-size.sh`
+
+**Command:** `make check-file-size` / `make check-file-size-strict` / Husky `--strict --staged`
+
+**Purpose:** Reject source files over 200 lines (`*.ts`, `*.js`, tests, `.sh`, `.py`). Distinct from `.husky/check-file-size.sh` (500KB bytes).
 
 ---
 
@@ -75,19 +84,16 @@ NODE_ENV=production node scripts/minify-html.js
     # Edit data/tools.json with python3 or the shell (file is huge)
     ```
 
-2. **Regenerate documentation:**
+2. **Regenerate committed docs** (`TOOLS_DOCUMENTATION.md`):
 
     ```bash
     pnpm run build:docs
     ```
 
-3. **Regenerate LLM documentation (if you change `docs/README.md` / README / AGENTS.md / root CHANGELOG.md):**
+    `landing/tools-data.js` is also written but gitignored. Run the same command (plus `pnpm run build:llms`) only if you preview the landing locally. GitHub Pages generates both.
 
-    ```bash
-    pnpm run build:llms
-    ```
+3. **Build the project:**
 
-4. **Build the project:**
     ```bash
     pnpm run build
     ```

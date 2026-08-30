@@ -11,7 +11,7 @@
  */
 
 import { bit2meRequest } from "./bit2me.js";
-import { cache, CacheCategory, tenantScopedKey } from "../utils/cache.js";
+import { cache, CacheCategory, cacheKey } from "../utils/cache.js";
 
 export interface CachedGetOptions {
     /** Override the default request timeout for this call. */
@@ -23,12 +23,11 @@ export interface CachedGetOptions {
 }
 
 /**
- * Wraps a `bit2meRequest("GET", ...)` with the shared cache manager and
- * a tenant-scoped key so tenants cannot observe each other's cached
- * payloads (see `tenantScopedKey` for the partitioning contract).
+ * Wraps a `bit2meRequest("GET", ...)` with the shared cache manager
+ * and a stable `cacheKey(endpoint, params)`.
  *
  * Resolution order:
- *  1. Cache hit on `(tenantId, endpoint, params)` → return cached value.
+ *  1. Cache hit on `(endpoint, params)` → return cached value.
  *  2. Cache miss → call the upstream, store the response with the
  *     category's default TTL, return it.
  *
@@ -47,7 +46,7 @@ export async function cachedGet<T = any>(
     category: CacheCategory,
     options: CachedGetOptions = {}
 ): Promise<T> {
-    const key = tenantScopedKey([endpoint, params ?? {}]);
+    const key = cacheKey([endpoint, params ?? {}]);
     const cached = cache.get<T>(key, category);
     if (cached !== null) {
         return cached;

@@ -130,8 +130,8 @@ We use **Vitest**. Coverage **gate** (do not lower): 70% lines/functions/stateme
 ## House rules (do not skip)
 
 - **Do not bump** `package.json` or edit the root `CHANGELOG.md`. Version = npm + git tag. See [docs/stack/release.md](./docs/stack/release.md).
-- **Do not edit** `TOOLS_DOCUMENTATION.md`, `landing/tools-data.js`, or `landing/llms*.txt` by hand.
-- **New files** in `src/`, `tests/`, `scripts/`: ≤200 lines. Do not grow `pro.ts`, `broker.ts`, `format.ts`, `bit2me.ts`, `response-mappers.ts`, or `http.ts` — extract a sibling.
+- **Do not edit** `TOOLS_DOCUMENTATION.md` by hand. Do not commit `landing/tools-data.js` or `landing/llms*.txt` (gitignored; Pages runs `build:docs` / `build:llms`).
+- **New files** in `src/`, `tests/`, `scripts/`: ≤200 lines. Barrels (`pro.ts`, `http.ts`, `response-mappers.ts`, `schemas.ts`) only re-export. `bit2me.ts` orchestrates `bit2meRequest`. Grow a cohesive sibling, not the barrel. `pnpm validate` includes `check-file-size --strict`.
 - Reviewers: [`.github/CODEOWNERS`](./.github/CODEOWNERS).
 
 ## Code Quality & Security
@@ -163,14 +163,14 @@ This project uses a centralized metadata system for all tool definitions. The so
 
 1. **Edit `data/tools.json`** with `python3` or the shell (the file is huge; do not re-indent it all). Add or modify the tool in the appropriate category.
 2. **Update TypeScript handlers**: Modify the corresponding handler function in `src/tools/*.ts` if needed.
-3. **Regenerate derived assets**: Run `pnpm run build:docs` to regenerate:
-    - `landing/tools-data.js` (used by the landing page)
-    - `TOOLS_DOCUMENTATION.md` (tool documentation with descriptions, endpoints and response schemas)
-4. **Follow [AGENTS.md — Adding a New Tool](./AGENTS.md#adding-a-new-tool)** for handlers, registry (`registerCategory`), mappers, tests, and WRITE rules (`confirm` preview + `idempotency_key`).
+3. **Map the REST path** in `scripts/docs-gen/endpoints.js` (one key per tool). Local-only tools get a note, not an HTTP path.
+4. **Regenerate committed docs**: Run `pnpm run build:docs` and commit `TOOLS_DOCUMENTATION.md`. `landing/tools-data.js` is gitignored (generate it only for a local landing preview).
+5. **Counts**: if the tool total or a category count changes, update `README.md` and the hand-edited strings in `landing/index.html`. `tests/sync-chains.test.ts` checks both.
+6. **Follow [AGENTS.md — Adding a New Tool](./AGENTS.md#adding-a-new-tool)** for handlers, registry (`registerCategory`), mappers, tests, and WRITE rules (`confirm` preview + `idempotency_key`).
 
 ### Important Notes
 
-- **Never edit generated files manually**: `landing/tools-data.js` and `TOOLS_DOCUMENTATION.md` are auto-generated. Always edit `data/tools.json` and run `pnpm run build:docs`.
+- **Never edit `TOOLS_DOCUMENTATION.md` manually**. Always edit `data/tools.json` and run `pnpm run build:docs`. Do not commit `landing/tools-data.js` / `llms*.txt`.
 - **Keep examples up to date**: When modifying tool responses, update the `exampleResponse` in `data/tools.json`.
 - **Test your changes**: After modifying metadata, run `pnpm run build:docs` and verify the generated files are correct.
 

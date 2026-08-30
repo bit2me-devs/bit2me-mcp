@@ -10,7 +10,7 @@
 
 /**
  * Strip the query string from an endpoint path. The query may carry
- * pocket ids, trade ids and other tenant-specific identifiers we do
+ * pocket ids, trade ids and other account-specific identifiers we do
  * not want surfaced through error messages.
  */
 function redactEndpoint(endpoint: string): string {

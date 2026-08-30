@@ -17,13 +17,6 @@ vi.mock("../src/config.js", () => {
         GATEWAY_URL: "https://gateway.bit2me.com",
     };
     return {
-        config: new Proxy(
-            {},
-            {
-                get: (_target: unknown, prop: string) => mockConfig[prop as keyof typeof mockConfig],
-            }
-        ),
-        BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
         getGatewayUrl: () => "https://gateway.bit2me.com",
         getConfig: () => mockConfig,
     };

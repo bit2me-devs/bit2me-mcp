@@ -5,7 +5,7 @@
     {
       "id": "general",
       "name": "General",
-      "icon": "ℹ️",
+      "icon": "\u2139\ufe0f",
       "description": "General information tools including asset details, account information, and portfolio valuation.",
       "tools": [
         {
@@ -129,20 +129,24 @@
             "properties": {
               "fiat_symbol": {
                 "type": "string",
-                "description": "Base fiat symbol (e.g., EUR, USD)"
+                "description": "Deprecated alias of quote_symbol. Prefer quote_symbol."
               },
               "force_refresh": {
                 "type": "boolean",
                 "description": "Bypass the materialized portfolio cache and force a fresh aggregation. Defaults to false."
+              },
+              "quote_symbol": {
+                "type": "string",
+                "description": "Fiat quote symbol (e.g., EUR, USD). Alias: fiat_symbol."
               }
             }
           },
           "exampleArgs": {
-            "fiat_symbol": "EUR"
+            "quote_symbol": "EUR"
           },
           "exampleResponse": {
             "request": {
-              "fiat_symbol": "EUR"
+              "quote_symbol": "EUR"
             },
             "result": {
               "quote_symbol": "EUR",
@@ -216,7 +220,7 @@
                     },
                     "converted_balance": {
                       "type": "string",
-                      "description": "Total value of this asset in the quote currency (balance × price_unit)"
+                      "description": "Total value of this asset in the quote currency (balance \u00d7 price_unit)"
                     }
                   }
                 }
@@ -232,8 +236,8 @@
         },
         {
           "name": "general_health",
-          "description": "Check the system health. Returns global status (online/degraded/offline), Bit2Me server reachability, and MCP server status.",
-          "type": "READ",
+          "description": "Local process health of this MCP server: status, version, uptime, and circuit-breaker/cache/rate-limiter stats. Does not call Bit2Me.",
+          "type": "META",
           "attributes": {
             "requires_auth": false,
             "complexity": "low"
@@ -386,7 +390,7 @@
     {
       "id": "broker",
       "name": "Broker (Simple Trading)",
-      "icon": "💱",
+      "icon": "\ud83d\udcb1",
       "description": "Tools for simple trading operations and broker prices. Includes market data (prices, charts) and trading actions (buy, sell, swap) for the Wallet/Broker service. These prices include spread and are different from Pro Trading prices.",
       "tools": [
         {
@@ -1200,7 +1204,7 @@
     {
       "id": "wallet",
       "name": "Wallet (Storage)",
-      "icon": "👛",
+      "icon": "\ud83d\udc5b",
       "description": "Tools for managing wallet balances, movements, and addresses. For trading operations and cards, see Broker Tools.",
       "tools": [
         {
@@ -1630,7 +1634,7 @@
     {
       "id": "pro",
       "name": "Pro (Advanced Trading)",
-      "icon": "📈",
+      "icon": "\ud83d\udcc8",
       "description": "Advanced trading tools for Pro Trading. Includes order management, market data (order book, candles, tickers), and fund transfers between Wallet and Pro Trading. Pro Trading offers lower fees and more control than Broker.",
       "tools": [
         {
@@ -1955,7 +1959,7 @@
                 },
                 "cost": {
                   "type": "string",
-                  "description": "Total cost of executed trades in quote currency (price × filled_amount)"
+                  "description": "Total cost of executed trades in quote currency (price \u00d7 filled_amount)"
                 },
                 "is_maker": {
                   "type": "boolean",
@@ -3118,7 +3122,7 @@
     {
       "id": "earn",
       "name": "Earn (Staking)",
-      "icon": "💰",
+      "icon": "\ud83d\udcb0",
       "description": "Staking and yield generation tools. Deposit crypto to earn rewards, view positions, track movements, and manage reward configurations. Positions represent locked funds generating yield, different from Wallet pockets.",
       "tools": [
         {
@@ -4261,7 +4265,7 @@
     {
       "id": "loan",
       "name": "Loans",
-      "icon": "🏦",
+      "icon": "\ud83c\udfe6",
       "description": "Crypto-backed loan tools. Use cryptocurrency as collateral to borrow funds. Manage loans, simulate LTV scenarios, track movements, and adjust guarantees. Lower LTV means lower risk.",
       "tools": [
         {

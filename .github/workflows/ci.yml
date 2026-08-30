@@ -34,7 +34,16 @@ jobs:
               run: pnpm install --frozen-lockfile
 
             - name: Type check
+              run: pnpm run typecheck
+
+            - name: Lint
               run: pnpm run lint
+
+            - name: Package lint
+              run: pnpm run publint
+
+            - name: File size limit
+              run: bash scripts/check-file-size.sh --strict
 
             - name: Build
               run: pnpm run build

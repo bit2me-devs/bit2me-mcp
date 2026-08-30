@@ -18,15 +18,12 @@ import {
 describe("Fuzzing: Response Mappers", () => {
     // Helper to ensure the function doesn't crash (uncaught exception)
     // It's okay if it throws a ValidationError, but it shouldn't throw TypeError like "cannot read property of undefined"
-    const safeMap = (mapper: (data: any) => any, input: any) => {
+    const safeMap = (mapper: (data: unknown) => unknown, input: unknown) => {
         try {
             mapper(input);
             return true;
-        } catch (error: any) {
-            // We accept errors, but we want to ensure specific types of crashes don't happen if we want to be strict.
-            // For this fuzzing pass, we primarily want to ensure the process doesn't exit/crash unrecoverably.
-            // In JS, catching creates that safety.
-            // Ideally, we would check that error is instanceof ValidationError, but legacy code might throw others.
+        } catch {
+            // ValidationError or mapper throw is fine; the property must not crash the process.
             return true;
         }
     };

@@ -1,282 +1,55 @@
 /**
- * Interfaces for Tool Arguments
- * Provides type safety for tool handlers instead of using 'any'
+ * Tool argument interfaces — barrel. Implementations live in args-*.ts
  */
-
-// ============================================================================
-// MARKET TOOLS ARGS
-// ============================================================================
-
-export interface MarketTickerArgs {
-    base_symbol: string;
-    quote_symbol?: string;
-}
-
-export interface MarketChartArgs {
-    pair: string;
-    timeframe: string;
-}
-
-export interface MarketAssetsDetailsArgs {
-    symbol?: string;
-    include_testnet?: boolean;
-    show_exchange?: boolean;
-}
-
-export interface MarketCurrencyRateArgs {
-    base_symbol?: string;
-    quote_symbol?: string;
-    date?: string;
-}
-
-// ============================================================================
-// WALLET TOOLS ARGS
-// ============================================================================
-
-export interface WalletGetPocketsArgs {
-    pocket_id?: string;
-    symbol?: string;
-}
-
-export interface WalletPocketAddressesArgs {
-    pocket_id: string;
-    network: string;
-}
-
-export interface WalletNetworksArgs {
-    symbol: string;
-}
-
-export interface WalletCardsArgs {
-    card_id?: string;
-    limit?: number;
-    offset?: number;
-}
-
-export interface WalletMovementsArgs {
-    movement_id?: string;
-    symbol?: string;
-    limit?: number;
-    offset?: number;
-}
-
-export interface WalletBuyCryptoArgs {
-    origin_pocket_id: string;
-    destination_pocket_id: string;
-    amount: string;
-}
-
-export interface WalletSellCryptoArgs {
-    origin_pocket_id: string;
-    destination_pocket_id: string;
-    amount: string;
-}
-
-export interface WalletSwapCryptoArgs {
-    origin_pocket_id: string;
-    destination_pocket_id: string;
-    amount: string;
-}
-
-export interface WalletBuyCryptoWithCardArgs {
-    card_id: string;
-    destination_pocket_id: string;
-    amount: string;
-    currency: string;
-}
-
-export interface WriteToolArgs {
-    confirm?: boolean;
-    idempotency_key?: string;
-}
-
-export interface WalletConfirmOperationArgs {
-    proforma_id: string;
-    idempotency_key?: string;
-}
-
-// ============================================================================
-// EARN TOOLS ARGS
-// ============================================================================
-
-/** Args for earn_get_movements - all movements across all positions */
-export interface EarnMovementsArgs {
-    user_symbol?: string;
-    symbol?: string;
-    related_symbol?: string;
-    position_id?: string;
-    start_date?: string;
-    end_date?: string;
-    type?: "deposit" | "reward" | "withdrawal" | "discount-funds" | "discount-rewards";
-    limit?: number;
-    offset?: number;
-    sort_by?: "createdAt";
-}
-
-/** Args for earn_get_position_movements - movements for a specific position */
-export interface EarnPositionMovementsArgs {
-    position_id: string;
-    limit?: number;
-    offset?: number;
-}
-
-export interface EarnMovementsSummaryArgs {
-    type: string;
-}
-
-export interface EarnDepositArgs extends WriteToolArgs {
-    pocket_id: string;
-    symbol: string;
-    amount: string;
-}
-
-export interface EarnWithdrawArgs extends WriteToolArgs {
-    pocket_id: string;
-    symbol: string;
-    amount: string;
-}
-
-export interface EarnPositionRewardsConfigArgs {
-    position_id: string;
-}
-
-export interface EarnPositionRewardsSummaryArgs {
-    position_id: string;
-    user_currency?: string;
-}
-
-// ============================================================================
-// LOAN TOOLS ARGS
-// ============================================================================
-
-export interface LoanSimulationArgs {
-    guarantee_symbol: string;
-    loan_symbol: string;
-    user_symbol: string;
-    guarantee_amount?: string;
-    loan_amount?: string;
-}
-
-export interface LoanMovementsArgs {
-    order_id?: string;
-    limit?: number;
-    offset?: number;
-}
-
-export interface LoanOrdersArgs {
-    order_id?: string;
-    limit?: number;
-    offset?: number;
-}
-
-export interface LoanCreateArgs extends WriteToolArgs {
-    guarantee_symbol: string;
-    loan_symbol: string;
-    amount_type: "fixed_collateral" | "fixed_loan";
-    guarantee_amount?: string;
-    loan_amount?: string;
-    user_symbol?: string;
-}
-
-export interface LoanIncreaseGuaranteeArgs extends WriteToolArgs {
-    order_id: string;
-    guarantee_amount: string;
-}
-
-export interface LoanPaybackArgs extends WriteToolArgs {
-    order_id: string;
-    payback_amount: string;
-}
-
-// ============================================================================
-// PRO TOOLS ARGS
-// ============================================================================
-
-export interface ProTradesArgs {
-    pair?: string;
-    side?: "buy" | "sell";
-    order_type?: "limit" | "stop-limit" | "market";
-    limit?: number;
-    offset?: number;
-    sort?: "ASC" | "DESC";
-    start_date?: string;
-    end_date?: string;
-}
-
-export interface ProOrderTradesArgs {
-    order_id: string;
-}
-
-export interface ProOpenOrdersArgs {
-    order_id?: string;
-    pair?: string;
-}
-
-export interface ProCreateOrderArgs extends WriteToolArgs {
-    pair: string;
-    side: "buy" | "sell";
-    type: "limit" | "market" | "stop-limit";
-    amount: string;
-    price?: string;
-    stop_price?: string;
-}
-
-export interface ProCancelOrderArgs extends WriteToolArgs {
-    order_id: string;
-}
-
-export interface ProCancelAllOrdersArgs extends WriteToolArgs {
-    pair?: string;
-}
-
-export interface ProDepositArgs extends WriteToolArgs {
-    symbol: string;
-    amount: string;
-}
-
-export interface ProWithdrawArgs extends WriteToolArgs {
-    symbol: string;
-    amount: string;
-    to_pocket_id?: string;
-}
-
-export interface ProMarketConfigArgs {
-    pair?: string;
-}
-
-export interface ProOrderBookArgs {
-    pair: string;
-}
-
-export interface ProPublicTradesArgs {
-    pair: string;
-    limit?: number;
-    sort?: "ASC" | "DESC";
-}
-
-export interface ProCandlesArgs {
-    pair: string;
-    timeframe: string;
-    limit?: number;
-    startTime?: number;
-    endTime?: number;
-}
-
-export interface ProTickerArgs {
-    pair?: string;
-}
-
-// ============================================================================
-// AGGREGATION TOOLS ARGS
-// ============================================================================
-
-export interface PortfolioValuationArgs {
-    quote_symbol?: string;
-    /**
-     * Bypass the materialized portfolio cache and force a fresh
-     * aggregation. Useful right after a significant deposit/withdraw
-     * when the user wants to see the new total without waiting for the
-     * cache TTL to expire.
-     */
-    force_refresh?: boolean;
-}
+export type { WriteToolArgs } from "./args-write.js";
+export type {
+    MarketTickerArgs,
+    MarketChartArgs,
+    MarketAssetsDetailsArgs,
+    MarketCurrencyRateArgs,
+    PortfolioValuationArgs,
+} from "./args-market.js";
+export type {
+    WalletGetPocketsArgs,
+    WalletPocketAddressesArgs,
+    WalletNetworksArgs,
+    WalletCardsArgs,
+    WalletMovementsArgs,
+    WalletBuyCryptoArgs,
+    WalletSellCryptoArgs,
+    WalletSwapCryptoArgs,
+    WalletBuyCryptoWithCardArgs,
+    WalletConfirmOperationArgs,
+} from "./args-wallet.js";
+export type {
+    EarnMovementsArgs,
+    EarnPositionMovementsArgs,
+    EarnMovementsSummaryArgs,
+    EarnDepositArgs,
+    EarnWithdrawArgs,
+    EarnPositionRewardsConfigArgs,
+    EarnPositionRewardsSummaryArgs,
+} from "./args-earn.js";
+export type {
+    LoanSimulationArgs,
+    LoanMovementsArgs,
+    LoanOrdersArgs,
+    LoanCreateArgs,
+    LoanIncreaseGuaranteeArgs,
+    LoanPaybackArgs,
+} from "./args-loan.js";
+export type {
+    ProTradesArgs,
+    ProOrderTradesArgs,
+    ProOpenOrdersArgs,
+    ProCreateOrderArgs,
+    ProCancelOrderArgs,
+    ProCancelAllOrdersArgs,
+    ProDepositArgs,
+    ProWithdrawArgs,
+    ProMarketConfigArgs,
+    ProOrderBookArgs,
+    ProPublicTradesArgs,
+    ProCandlesArgs,
+    ProTickerArgs,
+} from "./args-pro.js";

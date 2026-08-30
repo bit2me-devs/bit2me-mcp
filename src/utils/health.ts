@@ -30,29 +30,7 @@ import { apiCircuitBreaker, CircuitState, getGroupCircuitBreakerStats } from "./
 import { getCorrelationId } from "./context.js";
 import { cache } from "./cache.js";
 import { endpointRateLimiter } from "./rate-limiter-config.js";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
-
-/**
- * Resolve the package version once at module load. Reading
- * `process.env.npm_package_version` only works when the binary is
- * launched through pnpm/npm scripts; for globally-installed CLIs we
- * have to walk up to `package.json`.
- */
-const PACKAGE_VERSION = (() => {
-    if (process.env.npm_package_version) return process.env.npm_package_version;
-    try {
-        const here = dirname(fileURLToPath(import.meta.url));
-        // src/utils/ at runtime becomes build/utils/, so package.json is
-        // two levels up either way.
-        const pkgPath = join(here, "..", "..", "package.json");
-        const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as { version?: string };
-        return pkg.version ?? "unknown";
-    } catch {
-        return "unknown";
-    }
-})();
+import { PACKAGE_VERSION } from "../package-version.js";
 
 export type ServiceStatus = "ok" | "degraded";
 

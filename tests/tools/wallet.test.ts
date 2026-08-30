@@ -7,7 +7,6 @@ const VALID_UUID_2 = "123e4567-e89b-12d3-a456-426614174001";
 
 vi.mock("../../src/services/bit2me.js");
 vi.mock("../../src/config.js", () => ({
-    BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
     getConfig: () => ({
         INCLUDE_RAW_RESPONSE: false,
     }),

@@ -29,7 +29,6 @@ vi.mock("../src/services/bit2me.js", async (importOriginal) => {
     };
 });
 vi.mock("../src/config.js", () => ({
-    BIT2ME_GATEWAY_URL: "https://gateway.bit2me.com",
     getConfig: () => ({ INCLUDE_RAW_RESPONSE: false }),
 }));
 
@@ -47,7 +46,7 @@ describe("broker_get_asset_data — error redaction", () => {
         // Simulate an axios-style error carrying sensitive payload data
         // in `response.data`. The previous implementation would have
         // `JSON.stringify`-ed this into the thrown message.
-        const upstream: any = new Error("Request failed with status code 500");
+        const upstream: Error & { response?: { data: unknown } } = new Error("Request failed with status code 500");
         upstream.response = { data: { internalPocketId: SECRET_HINT, debugTrace: "stack..." } };
         vi.mocked(bit2meService.getTicker).mockRejectedValue(upstream);
 
@@ -86,7 +85,7 @@ describe("broker_get_asset_chart — error redaction", () => {
         const { handleBrokerTool } = await import("../src/tools/broker.js");
         const bit2meService = await import("../src/services/bit2me.js");
 
-        const upstream: any = new Error("Request failed with status code 500");
+        const upstream: Error & { response?: { data: unknown } } = new Error("Request failed with status code 500");
         upstream.response = { data: { traceId: SECRET_HINT, dbStatement: "SELECT *" } };
         vi.mocked(bit2meService.bit2meRequest).mockRejectedValue(upstream);
 

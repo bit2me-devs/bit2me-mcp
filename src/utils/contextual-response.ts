@@ -11,7 +11,7 @@
  * 3. Ease of reasoning: self-contained data for chain-of-thought
  */
 
-import { getConfig } from "../config.js";
+import { wrapResponseWithRaw } from "./mappers/raw.js";
 
 /**
  * Request context that will be echoed in the response
@@ -59,24 +59,16 @@ export interface ContextualResponseOptions {
  * @returns Contextual response with request echo, result, and optional metadata
  */
 export function buildContextualResponse<T>(options: ContextualResponseOptions): ContextualResponse<T> {
-    const config = getConfig();
-
     const response: ContextualResponse<T> = {
         request: options.request,
         result: options.result,
     };
 
-    // Add metadata if provided
     if (options.metadata) {
         response.metadata = options.metadata;
     }
 
-    // Add raw response only if configured
-    if (config.INCLUDE_RAW_RESPONSE && options.rawResponse !== undefined) {
-        response.raw_response = options.rawResponse;
-    }
-
-    return response;
+    return wrapResponseWithRaw(response, options.rawResponse);
 }
 
 /**

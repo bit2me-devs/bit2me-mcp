@@ -3,8 +3,6 @@
  *
  *  - {@link ConcurrencyLimiter}: FIFO semaphore with bounded permits.
  *  - {@link GroupBulkhead}: per-EndpointGroup concurrency cap.
- *  - {@link TenantBulkhead}: per-tenant concurrency cap with stdio
- *    bypass when no tenant id is in scope.
  *
  * The assertions verify the *temporal contract* (max in-flight is bounded
  * by `capacity`) without depending on wall clock timing.
@@ -12,7 +10,7 @@
 
 import { describe, it, expect, beforeEach } from "vitest";
 import { ConcurrencyLimiter } from "../src/utils/concurrency-limiter.js";
-import { GroupBulkhead, TenantBulkhead } from "../src/utils/bulkhead.js";
+import { GroupBulkhead } from "../src/utils/bulkhead.js";
 
 /**
  * Build a deferred future that the test can resolve manually. Used to
@@ -149,55 +147,5 @@ describe("GroupBulkhead", () => {
         for (const group of ["market_data", "wallet", "trading", "earn", "loan", "account", "default"]) {
             expect(snapshot).toHaveProperty(group);
         }
-    });
-});
-
-describe("TenantBulkhead", () => {
-    beforeEach(() => {
-        delete process.env.BULKHEAD_TENANT_MAX;
-    });
-
-    it("does not enforce any cap when tenantId is undefined", async () => {
-        const bulkhead = new TenantBulkhead();
-        const result = await bulkhead.run(undefined, async () => "passthrough");
-        expect(result).toBe("passthrough");
-    });
-
-    it("isolates tenants: tenant A saturation does not stall tenant B", async () => {
-        process.env.BULKHEAD_TENANT_MAX = "1";
-        const bulkhead = new TenantBulkhead();
-
-        const aGate = deferred<void>();
-        const aTask = bulkhead.run("tenant-a", async () => {
-            await aGate.promise;
-        });
-
-        await expect(bulkhead.run("tenant-b", async () => "ok")).resolves.toBe("ok");
-
-        aGate.resolve();
-        await aTask;
-    });
-
-    it("aggregateStats counts all active tenants", async () => {
-        process.env.BULKHEAD_TENANT_MAX = "1";
-        const bulkhead = new TenantBulkhead();
-
-        const aGate = deferred<void>();
-        const bGate = deferred<void>();
-        const a = bulkhead.run("tenant-a", async () => {
-            await aGate.promise;
-        });
-        const b = bulkhead.run("tenant-b", async () => {
-            await bGate.promise;
-        });
-        await new Promise((r) => setImmediate(r));
-
-        const stats = bulkhead.aggregateStats();
-        expect(stats.tenants).toBe(2);
-        expect(stats.inFlight).toBe(2);
-
-        aGate.resolve();
-        bGate.resolve();
-        await Promise.all([a, b]);
     });
 });
