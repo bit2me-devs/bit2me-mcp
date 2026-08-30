@@ -1,0 +1,3 @@
+# Required reviewers for changes to main (Scorecard Branch-Protection / Code-Review).
+# Either maintainer can satisfy the CODEOWNERS check.
+* @bit2me-dev @seguxb2m
