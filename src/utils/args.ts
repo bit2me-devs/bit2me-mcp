@@ -85,8 +85,14 @@ export interface WalletBuyCryptoWithCardArgs {
     currency: string;
 }
 
+export interface WriteToolArgs {
+    confirm?: boolean;
+    idempotency_key?: string;
+}
+
 export interface WalletConfirmOperationArgs {
     proforma_id: string;
+    idempotency_key?: string;
 }
 
 // ============================================================================
@@ -118,13 +124,13 @@ export interface EarnMovementsSummaryArgs {
     type: string;
 }
 
-export interface EarnDepositArgs {
+export interface EarnDepositArgs extends WriteToolArgs {
     pocket_id: string;
     symbol: string;
     amount: string;
 }
 
-export interface EarnWithdrawArgs {
+export interface EarnWithdrawArgs extends WriteToolArgs {
     pocket_id: string;
     symbol: string;
     amount: string;
@@ -163,7 +169,7 @@ export interface LoanOrdersArgs {
     offset?: number;
 }
 
-export interface LoanCreateArgs {
+export interface LoanCreateArgs extends WriteToolArgs {
     guarantee_symbol: string;
     loan_symbol: string;
     amount_type: "fixed_collateral" | "fixed_loan";
@@ -172,12 +178,12 @@ export interface LoanCreateArgs {
     user_symbol?: string;
 }
 
-export interface LoanIncreaseGuaranteeArgs {
+export interface LoanIncreaseGuaranteeArgs extends WriteToolArgs {
     order_id: string;
     guarantee_amount: string;
 }
 
-export interface LoanPaybackArgs {
+export interface LoanPaybackArgs extends WriteToolArgs {
     order_id: string;
     payback_amount: string;
 }
@@ -206,7 +212,7 @@ export interface ProOpenOrdersArgs {
     pair?: string;
 }
 
-export interface ProCreateOrderArgs {
+export interface ProCreateOrderArgs extends WriteToolArgs {
     pair: string;
     side: "buy" | "sell";
     type: "limit" | "market" | "stop-limit";
@@ -215,20 +221,20 @@ export interface ProCreateOrderArgs {
     stop_price?: string;
 }
 
-export interface ProCancelOrderArgs {
+export interface ProCancelOrderArgs extends WriteToolArgs {
     order_id: string;
 }
 
-export interface ProCancelAllOrdersArgs {
+export interface ProCancelAllOrdersArgs extends WriteToolArgs {
     pair?: string;
 }
 
-export interface ProDepositArgs {
+export interface ProDepositArgs extends WriteToolArgs {
     symbol: string;
     amount: string;
 }
 
-export interface ProWithdrawArgs {
+export interface ProWithdrawArgs extends WriteToolArgs {
     symbol: string;
     amount: string;
     to_pocket_id?: string;

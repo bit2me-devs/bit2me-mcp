@@ -102,6 +102,10 @@ describe("Edge Cases", () => {
             expect(() => validateAmount("-5")).toThrow(ValidationError);
             expect(() => validateAmount("abc")).toThrow(ValidationError);
             expect(() => validateAmount("")).toThrow(ValidationError);
+            expect(() => validateAmount("0")).toThrow(ValidationError);
+            expect(() => validateAmount("10abc")).toThrow(ValidationError);
+            expect(() => validateAmount("1e9")).toThrow(ValidationError);
+            expect(() => validateAmount("1e-8")).toThrow(ValidationError);
         });
     });
 

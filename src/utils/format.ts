@@ -221,45 +221,7 @@ export function validateFiat(fiat: string): void {
     }
 }
 
-/**
- * Validates amount format (positive number as string)
- * @param amount - The amount to validate
- * @param name - Name of the parameter for error messages
- * @throws ValidationError if format is invalid
- */
-/**
- * Reasonable upper bound for any single trade / order / withdrawal /
- * loan amount. Anything above this is far more likely to be a typo or
- * misunderstanding from the LLM than a legitimate retail order, so we
- * reject it on the client side rather than ship a 9-figure mistake to
- * the upstream API.
- *
- * 1e12 is large enough to never be hit by realistic crypto amounts
- * (12-digit base units) but small enough to catch obvious LLM hiccups
- * like accidental scientific notation or extra zeros.
- */
-export const MAX_AMOUNT = 1e12;
-
-export function validateAmount(amount: string | number, name: string = "amount"): void {
-    if (amount === undefined || amount === null) {
-        throw new ValidationError(`${name} is required`, name, amount);
-    }
-    const amountStr = typeof amount === "number" ? amount.toString() : amount;
-    if (typeof amountStr !== "string" || amountStr.trim() === "") {
-        throw new ValidationError(`${name} must be a non-empty string`, name, amount);
-    }
-    const numValue = parseFloat(amountStr);
-    if (isNaN(numValue) || numValue < 0) {
-        throw new ValidationError(`${name} must be a valid positive number`, name, amount);
-    }
-    if (numValue > MAX_AMOUNT) {
-        throw new ValidationError(
-            `${name} (${amountStr}) exceeds the maximum allowed value of ${MAX_AMOUNT}`,
-            name,
-            amount
-        );
-    }
-}
+export { MAX_AMOUNT, validateAmount } from "./amount.js";
 
 /**
  * Validate that two ISO-8601 dates form a sensible inclusive range.
@@ -303,11 +265,7 @@ export function validateDateRange(
 
     if (startDate && endDate) {
         if (startDate.getTime() > endDate.getTime()) {
-            throw new ValidationError(
-                `${startName} must be before or equal to ${endName}`,
-                startName,
-                { start, end }
-            );
+            throw new ValidationError(`${startName} must be before or equal to ${endName}`, startName, { start, end });
         }
         const diffDays = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
         if (diffDays > maxRangeDays) {

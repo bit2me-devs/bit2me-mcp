@@ -510,29 +510,7 @@ export async function bit2meRequest<T = any>(
     }
 }
 
-/**
- * Generate or extract an idempotency key for a write operation.
- *
- * Tools that mutate state (orders, withdrawals, transfers, ...) must call
- * this and pass the result down to `bit2meRequest({ idempotencyKey })` so
- * that an accidental retry of the same operation cannot result in a
- * duplicate execution upstream.
- *
- * If the caller supplied `idempotency_key` in the args we honour it (the
- * MCP client is expected to keep that value stable across retries of the
- * same logical action). Otherwise we synthesise a fresh UUID per call.
- */
-export function resolveIdempotencyKey(args: { idempotency_key?: unknown } | undefined | null): string {
-    if (
-        args &&
-        typeof args === "object" &&
-        typeof args.idempotency_key === "string" &&
-        args.idempotency_key.length > 0
-    ) {
-        return args.idempotency_key;
-    }
-    return crypto.randomUUID();
-}
+export { resolveIdempotencyKey } from "../utils/write-guards.js";
 
 // ============================================================================
 // HELPER FUNCTIONS

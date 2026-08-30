@@ -641,6 +641,11 @@ const toolsData = [
                         "desc": "Amount to spend from origin pocket (in origin currency)",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -650,7 +655,8 @@ const toolsData = [
                 "exampleArgs": {
                     "origin_pocket_id": "pocket-eur-uuid",
                     "destination_pocket_id": "pocket-btc-uuid",
-                    "amount": "100.00"
+                    "amount": "100.00",
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -743,6 +749,11 @@ const toolsData = [
                         "desc": "Amount to sell from origin pocket (in origin cryptocurrency)",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -752,7 +763,8 @@ const toolsData = [
                 "exampleArgs": {
                     "origin_pocket_id": "pocket-btc-uuid",
                     "destination_pocket_id": "pocket-eur-uuid",
-                    "amount": "0.001"
+                    "amount": "0.001",
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -845,6 +857,11 @@ const toolsData = [
                         "desc": "Amount to swap from origin pocket (in origin cryptocurrency)",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -854,7 +871,8 @@ const toolsData = [
                 "exampleArgs": {
                     "origin_pocket_id": "pocket-btc-uuid",
                     "destination_pocket_id": "pocket-eth-uuid",
-                    "amount": "0.001"
+                    "amount": "0.001",
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -937,6 +955,11 @@ const toolsData = [
                         "desc": "Proforma UUID returned by broker_quote_* operations",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -944,7 +967,8 @@ const toolsData = [
                     }
                 },
                 "exampleArgs": {
-                    "proforma_id": "proforma-uuid-1234-5678"
+                    "proforma_id": "proforma-uuid-1234-5678",
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -2059,7 +2083,7 @@ const toolsData = [
             {
                 "name": "pro_create_order",
                 "type": "WRITE",
-                "desc": "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE]",
+                "desc": "Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE] Requires confirm=true.",
                 "args": {
                     "pair": {
                         "type": "string",
@@ -2100,6 +2124,16 @@ const toolsData = [
                         "desc": "Trigger price for stop-limit orders (order activates when market reaches this price)",
                         "required": false
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -2111,7 +2145,9 @@ const toolsData = [
                     "side": "buy",
                     "type": "limit",
                     "amount": "0.1",
-                    "price": "60000"
+                    "price": "60000",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -2204,11 +2240,21 @@ const toolsData = [
             {
                 "name": "pro_cancel_order",
                 "type": "WRITE",
-                "desc": "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE]",
+                "desc": "Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE] Requires confirm=true.",
                 "args": {
                     "order_id": {
                         "type": "string",
                         "desc": "Order UUID to filter or retrieve specific order details",
+                        "required": true
+                    },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
                         "required": true
                     },
                     "jwt": {
@@ -2218,7 +2264,9 @@ const toolsData = [
                     }
                 },
                 "exampleArgs": {
-                    "order_id": "order-uuid-1234-5678"
+                    "order_id": "order-uuid-1234-5678",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -2267,12 +2315,22 @@ const toolsData = [
             {
                 "name": "pro_cancel_all_orders",
                 "type": "WRITE",
-                "desc": "Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders. [PRIVATE]",
+                "desc": "Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders. [PRIVATE] Requires confirm=true.",
                 "args": {
                     "pair": {
                         "type": "string",
                         "desc": "Filter by trading pair (e.g., BTC-USD)",
                         "required": false
+                    },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
                     },
                     "jwt": {
                         "type": "string",
@@ -2281,7 +2339,9 @@ const toolsData = [
                     }
                 },
                 "exampleArgs": {
-                    "pair": "BTC-USD"
+                    "pair": "BTC-USD",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -2318,7 +2378,7 @@ const toolsData = [
             {
                 "name": "pro_deposit",
                 "type": "WRITE",
-                "desc": "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
+                "desc": "Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] Requires confirm=true.",
                 "args": {
                     "symbol": {
                         "type": "string",
@@ -2330,6 +2390,16 @@ const toolsData = [
                         "desc": "Amount to transfer (as string for decimal precision)",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -2338,7 +2408,9 @@ const toolsData = [
                 },
                 "exampleArgs": {
                     "symbol": "EUR",
-                    "amount": "500.00"
+                    "amount": "500.00",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -2400,7 +2472,7 @@ const toolsData = [
             {
                 "name": "pro_withdraw",
                 "type": "WRITE",
-                "desc": "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
+                "desc": "Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] Requires confirm=true.",
                 "args": {
                     "symbol": {
                         "type": "string",
@@ -2417,6 +2489,16 @@ const toolsData = [
                         "desc": "Destination pocket UUID in Simple Wallet (optional)",
                         "required": false
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -2426,7 +2508,9 @@ const toolsData = [
                 "exampleArgs": {
                     "symbol": "EUR",
                     "amount": "500.00",
-                    "to_pocket_id": "pocket-uuid-1234"
+                    "to_pocket_id": "pocket-uuid-1234",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -3846,7 +3930,7 @@ const toolsData = [
             {
                 "name": "earn_deposit",
                 "type": "WRITE",
-                "desc": "Deposit funds from Simple Wallet pocket to Earn (Staking). Funds will start earning rewards based on the asset's APY. Returns operation details with type: deposit. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
+                "desc": "Deposit funds from Simple Wallet pocket to Earn (Staking). Funds will start earning rewards based on the asset's APY. Returns operation details with type: deposit. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] Requires confirm=true.",
                 "args": {
                     "pocket_id": {
                         "type": "string",
@@ -3863,6 +3947,16 @@ const toolsData = [
                         "desc": "Amount to deposit into Earn (as string for decimal precision)",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -3872,7 +3966,9 @@ const toolsData = [
                 "exampleArgs": {
                     "pocket_id": "pocket-uuid-1234",
                     "symbol": "BTC",
-                    "amount": "0.1"
+                    "amount": "0.1",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -3944,7 +4040,7 @@ const toolsData = [
             {
                 "name": "earn_withdraw",
                 "type": "WRITE",
-                "desc": "Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Funds will stop earning rewards after withdrawal. Returns operation details with type: withdrawal. Use earn_get_positions to check your Earn balance. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE]",
+                "desc": "Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Funds will stop earning rewards after withdrawal. Returns operation details with type: withdrawal. Use earn_get_positions to check your Earn balance. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] Requires confirm=true.",
                 "args": {
                     "pocket_id": {
                         "type": "string",
@@ -3961,6 +4057,16 @@ const toolsData = [
                         "desc": "Amount to withdraw from Earn (as string for decimal precision)",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -3970,7 +4076,9 @@ const toolsData = [
                 "exampleArgs": {
                     "pocket_id": "pocket-uuid-1234",
                     "symbol": "BTC",
-                    "amount": "0.1"
+                    "amount": "0.1",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -4826,7 +4934,7 @@ const toolsData = [
             {
                 "name": "loan_create",
                 "type": "WRITE",
-                "desc": "Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Specify amount_type to determine calculation mode: 'fixed_collateral' (guarantee amount is fixed, loan amount is calculated) or 'fixed_loan' (loan amount is fixed, guarantee amount is calculated). This avoids mathematical errors where the model tries to guess the exact LTV manually. Returns loan order details with status. [PRIVATE]",
+                "desc": "Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Specify amount_type to determine calculation mode: 'fixed_collateral' (guarantee amount is fixed, loan amount is calculated) or 'fixed_loan' (loan amount is fixed, guarantee amount is calculated). This avoids mathematical errors where the model tries to guess the exact LTV manually. Returns loan order details with status. [PRIVATE] Requires confirm=true.",
                 "args": {
                     "guarantee_symbol": {
                         "type": "string",
@@ -4863,6 +4971,16 @@ const toolsData = [
                         "required": false,
                         "default": "EUR"
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -4873,7 +4991,9 @@ const toolsData = [
                     "guarantee_symbol": "BTC",
                     "loan_symbol": "EUR",
                     "amount_type": "fixed_collateral",
-                    "guarantee_amount": "0.5"
+                    "guarantee_amount": "0.5",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -4962,7 +5082,7 @@ const toolsData = [
             {
                 "name": "loan_increase_guarantee",
                 "type": "WRITE",
-                "desc": "Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID. [PRIVATE]",
+                "desc": "Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID. [PRIVATE] Requires confirm=true.",
                 "args": {
                     "order_id": {
                         "type": "string",
@@ -4974,6 +5094,16 @@ const toolsData = [
                         "desc": "Additional collateral amount to add (as string for decimal precision)",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -4982,7 +5112,9 @@ const toolsData = [
                 },
                 "exampleArgs": {
                     "order_id": "loan-order-uuid-1234",
-                    "guarantee_amount": "0.5"
+                    "guarantee_amount": "0.5",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -5040,7 +5172,7 @@ const toolsData = [
             {
                 "name": "loan_payback",
                 "type": "WRITE",
-                "desc": "Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders to get the order ID, or loan_get_orders with order_id filter to check current loan amount and details. [PRIVATE]",
+                "desc": "Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders to get the order ID, or loan_get_orders with order_id filter to check current loan amount and details. [PRIVATE] Requires confirm=true.",
                 "args": {
                     "order_id": {
                         "type": "string",
@@ -5052,6 +5184,16 @@ const toolsData = [
                         "desc": "Amount to repay (as string for decimal precision)",
                         "required": true
                     },
+                    "idempotency_key": {
+                        "type": "string",
+                        "desc": "Stable key for this logical action (UUID recommended). Reuse the same value when retrying after a timeout so Bit2Me does not execute twice. Auto-generated if omitted.",
+                        "required": false
+                    },
+                    "confirm": {
+                        "type": "boolean",
+                        "desc": "Must be true to execute. Ask the user first, then call again with confirm=true. Prevents accidental one-shot mutations by the LLM.",
+                        "required": true
+                    },
                     "jwt": {
                         "type": "string",
                         "desc": "Optional session token for authentication. API keys are recommended for most use cases.",
@@ -5060,7 +5202,9 @@ const toolsData = [
                 },
                 "exampleArgs": {
                     "order_id": "loan-order-uuid-1234",
-                    "payback_amount": "10000.00"
+                    "payback_amount": "10000.00",
+                    "confirm": true,
+                    "idempotency_key": "example-retry-1"
                 },
                 "response": {
                     "request": {
@@ -5118,7 +5262,7 @@ const toolsData = [
 ];
 
 // Package version
-const packageVersion = '4.3.0';
+const packageVersion = '4.3.3';
 
 // Export for use in landing page
 if (typeof window !== 'undefined') {

@@ -196,6 +196,7 @@ describe("Other Tool Handlers", () => {
                 pocket_id: VALID_UUID,
                 symbol: "BTC",
                 amount: "1",
+                confirm: true,
             });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
@@ -214,6 +215,7 @@ describe("Other Tool Handlers", () => {
                 pocket_id: VALID_UUID,
                 symbol: "BTC",
                 amount: "1",
+                confirm: true,
             });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
@@ -327,6 +329,7 @@ describe("Other Tool Handlers", () => {
                 loan_symbol: "EUR",
                 loan_amount: "100",
                 amount_type: "fixed_collateral",
+                confirm: true,
             });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
@@ -369,7 +372,11 @@ describe("Other Tool Handlers", () => {
 
         it("should handle loan_increase_guarantee", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleLoanTool("loan_increase_guarantee", { order_id: VALID_UUID, guarantee_amount: "1" });
+            await handleLoanTool("loan_increase_guarantee", {
+                order_id: VALID_UUID,
+                guarantee_amount: "1",
+                confirm: true,
+            });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 `/v1/loan/${VALID_UUID}/guarantee/increase`,
@@ -383,7 +390,7 @@ describe("Other Tool Handlers", () => {
 
         it("should handle loan_payback", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleLoanTool("loan_payback", { order_id: VALID_UUID, payback_amount: "100" });
+            await handleLoanTool("loan_payback", { order_id: VALID_UUID, payback_amount: "100", confirm: true });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 `/v1/loan/${VALID_UUID}/payback`,
@@ -410,7 +417,13 @@ describe("Other Tool Handlers", () => {
 
         it("should handle pro_create_order", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({ id: VALID_UUID });
-            await handleProTool("pro_create_order", { pair: "BTC-USD", side: "buy", type: "market", amount: "1" });
+            await handleProTool("pro_create_order", {
+                pair: "BTC-USD",
+                side: "buy",
+                type: "market",
+                amount: "1",
+                confirm: true,
+            });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 "/v1/trading/order",
@@ -452,7 +465,7 @@ describe("Other Tool Handlers", () => {
 
         it("should handle pro_cancel_order", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleProTool("pro_cancel_order", { order_id: VALID_UUID });
+            await handleProTool("pro_cancel_order", { order_id: VALID_UUID, confirm: true });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 `DELETE`,
                 `/v1/trading/order/${VALID_UUID}`,
@@ -466,7 +479,7 @@ describe("Other Tool Handlers", () => {
 
         it("should handle pro_cancel_all_orders", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleProTool("pro_cancel_all_orders", {});
+            await handleProTool("pro_cancel_all_orders", { confirm: true });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "DELETE",
                 "/v1/trading/order",
@@ -480,7 +493,7 @@ describe("Other Tool Handlers", () => {
 
         it("should handle pro_deposit", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleProTool("pro_deposit", { symbol: "EUR", amount: "100" });
+            await handleProTool("pro_deposit", { symbol: "EUR", amount: "100", confirm: true });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 "/v1/trading/wallet/deposit",
@@ -494,7 +507,7 @@ describe("Other Tool Handlers", () => {
 
         it("should handle pro_withdraw", async () => {
             vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({});
-            await handleProTool("pro_withdraw", { symbol: "EUR", amount: "100" });
+            await handleProTool("pro_withdraw", { symbol: "EUR", amount: "100", confirm: true });
             expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
                 "POST",
                 "/v1/trading/wallet/withdraw",

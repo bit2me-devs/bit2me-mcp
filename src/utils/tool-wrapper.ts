@@ -4,6 +4,7 @@ import { contextManager, runWithContext, getContext, type RequestContext } from 
 import { clearRequestCache } from "./request-cache.js";
 import { recordAudit } from "./audit.js";
 import { getToolMetadata } from "./tool-metadata.js";
+import { REQUIRES_CONFIRM, requireConfirm, resolveIdempotencyKey } from "./write-guards.js";
 
 /**
  * Decide whether a tool's invocation must be audited.
@@ -91,14 +92,22 @@ export async function executeTool<T>(
     };
 
     return runWithContext(ctx, async () => {
-        logger.debug(`Executing tool: ${name}`, {
-            args: sanitizeArgsForLogging(args),
-            correlationId: ctx.correlationId,
-            hasSession: !!ctx.sessionToken,
-        });
         const startTime = Date.now();
 
         try {
+            if (isWriteTool(name)) {
+                args.idempotency_key = resolveIdempotencyKey(args);
+            }
+            if (REQUIRES_CONFIRM.has(name)) {
+                requireConfirm(args);
+            }
+
+            logger.debug(`Executing tool: ${name}`, {
+                args: sanitizeArgsForLogging(args),
+                correlationId: ctx.correlationId,
+                hasSession: !!ctx.sessionToken,
+            });
+
             const result = await executor();
             const duration = Date.now() - startTime;
 

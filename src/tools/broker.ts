@@ -392,6 +392,10 @@ export async function handleBrokerTool(name: string, args: any) {
 
         if (name === "broker_confirm_quote") {
             const params = args as WalletConfirmOperationArgs;
+            if (!params.proforma_id) {
+                throw new ValidationError("proforma_id is required", "proforma_id");
+            }
+            validateUUID(params.proforma_id, "proforma_id");
             const requestContext = {
                 proforma_id: params.proforma_id,
             };
