@@ -4,7 +4,6 @@ node_modules/
 
 # Rama feat/go-migration — no indexar en main
 go/
-.claude/
 
 # Builds y artefactos
 build/

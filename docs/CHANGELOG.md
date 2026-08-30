@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-30 13:32 UTC] — Rules y skills de Cursor quedan fuera del repo
+
+- `.gitignore` ignora `.cursor/` y `.claude/` por completo. Se deja de versionar `mcp-threat-model.mdc`. Las rules/skills viven solo en local.
+
 ## [2026-08-30 13:30 UTC] — Limpieza de restos de feat/go-migration en el working tree
 
 - Se quitan binarios `go/bin` y skills/rules de checkout que no están en GitHub `main`. La rama `feat/go-migration` sigue intacta. `.gitignore` ignora `/go/` y `.claude/` en main.
