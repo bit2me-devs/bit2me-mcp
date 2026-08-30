@@ -63,6 +63,9 @@ tmp/
 docs/*
 !docs/stack/
 !docs/adr/
+!docs/done-tasks/
+!docs/done-tasks/**
+!docs/CHANGELOG.md
 
 # Assets locales (imágenes temporales)
 assets/
