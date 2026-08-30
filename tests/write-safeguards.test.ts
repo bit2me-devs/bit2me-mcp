@@ -3,7 +3,7 @@ import { handleProTool } from "../src/tools/pro.js";
 import { handleBrokerTool } from "../src/tools/broker.js";
 import * as bit2meService from "../src/services/bit2me.js";
 import { ValidationError } from "../src/utils/errors.js";
-import { resolveIdempotencyKey, requireConfirm } from "../src/utils/write-guards.js";
+import { resolveIdempotencyKey, requireConfirm, writeRequiresConfirm } from "../src/utils/write-guards.js";
 
 const VALID_UUID = "123e4567-e89b-12d3-a456-426614174000";
 
@@ -37,6 +37,14 @@ describe("Write-tool safeguards", () => {
         expect(() => requireConfirm({ confirm: true })).not.toThrow();
     });
 
+    it("defaults new WRITE tools to confirm; broker quotes stay exempt", () => {
+        expect(writeRequiresConfirm("pro_create_order")).toBe(true);
+        expect(writeRequiresConfirm("loan_payback")).toBe(true);
+        expect(writeRequiresConfirm("broker_quote_buy")).toBe(false);
+        expect(writeRequiresConfirm("broker_confirm_quote")).toBe(false);
+        expect(writeRequiresConfirm("pro_get_balance")).toBe(false);
+    });
+
     it("resolveIdempotencyKey reuses a safe caller key", () => {
         expect(resolveIdempotencyKey({ idempotency_key: VALID_UUID })).toBe(VALID_UUID);
     });
@@ -46,15 +54,28 @@ describe("Write-tool safeguards", () => {
         expect(() => resolveIdempotencyKey({ idempotency_key: "a".repeat(129) })).toThrow(ValidationError);
     });
 
-    it("does not call the API when confirm is missing", async () => {
-        await expect(
-            handleProTool("pro_create_order", {
-                pair: "BTC-USD",
-                side: "buy",
-                type: "market",
-                amount: "1",
-            })
-        ).rejects.toThrow(/confirm=true/);
+    it("returns a preview and does not call the API when confirm is missing", async () => {
+        const result = await handleProTool("pro_create_order", {
+            pair: "BTC-USD",
+            side: "buy",
+            type: "market",
+            amount: "1",
+        });
+        const payload = JSON.parse(result.content[0].text);
+        expect(payload.status).toBe("needs_confirmation");
+        expect(payload.proposed_args).toEqual({
+            pair: "BTC-USD",
+            side: "buy",
+            type: "market",
+            amount: "1",
+        });
+        expect(bit2meService.bit2meRequest).not.toHaveBeenCalled();
+    });
+
+    it("does not treat confirm='true' as approval", async () => {
+        const result = await handleProTool("pro_cancel_all_orders", { confirm: "true" });
+        const payload = JSON.parse(result.content[0].text);
+        expect(payload.status).toBe("needs_confirmation");
         expect(bit2meService.bit2meRequest).not.toHaveBeenCalled();
     });
 

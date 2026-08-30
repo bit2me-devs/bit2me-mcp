@@ -152,7 +152,11 @@ describe("Broker Tools Handler", () => {
                 destination: { pocket: VALID_UUID_2 },
                 amount: "100",
                 currency: "EUR",
-            })
+            }),
+            undefined,
+            undefined,
+            undefined,
+            expect.objectContaining({ idempotencyKey: expect.any(String) })
         );
     });
 
@@ -173,7 +177,11 @@ describe("Broker Tools Handler", () => {
                 destination: { pocket: VALID_UUID_2 },
                 amount: "0.001",
                 currency: "BTC",
-            })
+            }),
+            undefined,
+            undefined,
+            undefined,
+            expect.objectContaining({ idempotencyKey: expect.any(String) })
         );
     });
 
@@ -196,7 +204,11 @@ describe("Broker Tools Handler", () => {
                 currency: "BTC",
                 type: "SEA",
                 userCurrency: "EUR",
-            })
+            }),
+            undefined,
+            undefined,
+            undefined,
+            expect.objectContaining({ idempotencyKey: expect.any(String) })
         );
     });
 

@@ -14,7 +14,7 @@ Un agente puede llamar `pro_create_order` o `earn_withdraw` en un solo paso. Sin
 
 ### Architecture
 
-- `src/utils/write-guards.ts` — `requireConfirm`, `resolveIdempotencyKey` (sanitiza el header) y el set `REQUIRES_CONFIRM`.
+- `src/utils/write-guards.ts` — `writeRequiresConfirm` (todo WRITE salvo quotes de Broker), preview `needs_confirmation`, `resolveIdempotencyKey`.
 - `src/utils/tool-wrapper.ts` — estampa la clave efectiva en `args` (handler y audit comparten la misma) y exige `confirm` antes del executor.
 - `src/utils/amount.ts` — `validateAmount` con `decimal.js`; `format.ts` reexporta.
 - `data/tools.json` — `confirm` requerido en las 10 tools irreversibles; `idempotency_key` opcional en las 14 WRITE.
@@ -38,6 +38,10 @@ Alineado con el modelo de amenaza local: no es un hallazgo multi-tenant. Es defe
 Tras publicar, los clientes MCP verán `confirm` en el schema. Las llamadas WRITE de Pro/Earn/Loan sin `confirm: true` fallan con `ValidationError` y no llegan a Bit2Me.
 
 ## Change log
+
+### 2026-08-30 13:27 UTC — Segunda pasada (preview, schema, default-secure)
+
+`confirm` deja de estar en `required` y en `exampleArgs` (el modelo ya no lo copia a la primera). Si falta, el wrapper devuelve un resultado `needs_confirmation` sin llamar a Bit2Me (no un error que invite a reintentar). Toda tool WRITE exige confirm salvo las quotes de Broker. `validateAmount` limita a 40 caracteres. Las proformas de Broker envían `Idempotency-Key`.
 
 ### 2026-08-30 13:22 UTC — Confirm, idempotencia estable e importes estrictos
 

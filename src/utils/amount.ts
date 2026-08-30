@@ -9,6 +9,8 @@ export const MAX_AMOUNT = 1e12;
 
 const DIGITS_ONLY = /^\d+$/;
 const MAX_AMOUNT_DEC = new Decimal(MAX_AMOUNT);
+/** Cap before Decimal parse — blocks oversized strings from the LLM. */
+const MAX_AMOUNT_CHARS = 40;
 
 /** Canonical decimal: no exponent, no leading zeros, no trailing dot. */
 function isCanonicalDecimalString(value: string): boolean {
@@ -38,6 +40,9 @@ export function validateAmount(amount: string | number, name: string = "amount")
         value = new Decimal(amount);
     } else if (typeof amount === "string") {
         const trimmed = amount.trim();
+        if (trimmed.length > MAX_AMOUNT_CHARS) {
+            throw new ValidationError(`${name} exceeds ${MAX_AMOUNT_CHARS} characters`, name, amount);
+        }
         if (trimmed === "" || !isCanonicalDecimalString(trimmed)) {
             throw new ValidationError(
                 `${name} must be a canonical positive decimal (e.g. "10.5"), not "${amount}"`,

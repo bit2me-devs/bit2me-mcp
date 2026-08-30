@@ -1,27 +1,23 @@
 import { randomUUID } from "node:crypto";
 import { ValidationError } from "./errors.js";
+import { getToolMetadata } from "./tool-metadata.js";
 
 /**
- * Irreversible Pro / Earn / Loan writes. Broker quotes stay two-step
- * (quote → confirm) and do not use this flag.
+ * Broker quotes are already two-step (proforma → confirm). Every other
+ * WRITE tool requires an explicit confirm after the user agrees.
  */
-export const REQUIRES_CONFIRM = new Set([
-    "pro_create_order",
-    "pro_cancel_order",
-    "pro_cancel_all_orders",
-    "pro_deposit",
-    "pro_withdraw",
-    "earn_deposit",
-    "earn_withdraw",
-    "loan_create",
-    "loan_increase_guarantee",
-    "loan_payback",
+const CONFIRM_EXEMPT_WRITE = new Set([
+    "broker_quote_buy",
+    "broker_quote_sell",
+    "broker_quote_swap",
+    "broker_confirm_quote",
 ]);
 
-/**
- * WRITE tools that move funds must be called with `confirm: true` after
- * the user agrees. Prevents a one-shot LLM mutation.
- */
+export function writeRequiresConfirm(name: string): boolean {
+    if (CONFIRM_EXEMPT_WRITE.has(name)) return false;
+    return getToolMetadata(name)?.type === "WRITE";
+}
+
 export function requireConfirm(args: Record<string, unknown> | undefined | null): void {
     if (args?.confirm !== true) {
         throw new ValidationError(
@@ -32,10 +28,37 @@ export function requireConfirm(args: Record<string, unknown> | undefined | null)
     }
 }
 
+const PREVIEW_OMIT = new Set(["confirm", "jwt", "idempotency_key"]);
+
+/** Successful MCP result: no upstream call. The model should show this and wait. */
+export function buildNeedsConfirmationResult(name: string, args: Record<string, unknown>) {
+    const proposed_args: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(args)) {
+        if (!PREVIEW_OMIT.has(key)) proposed_args[key] = value;
+    }
+    return {
+        content: [
+            {
+                type: "text" as const,
+                text: JSON.stringify(
+                    {
+                        status: "needs_confirmation",
+                        tool: name,
+                        proposed_args,
+                        next_step:
+                            "Show this preview to the user. If they approve, call again with the same arguments and confirm=true. Do not set confirm=true unless the user agreed.",
+                    },
+                    null,
+                    2
+                ),
+            },
+        ],
+    };
+}
+
 const IDEMPOTENCY_KEY_RE = /^[A-Za-z0-9._\-:]+$/;
 const IDEMPOTENCY_KEY_MAX = 128;
 
-/** Reject CRLF / oversize keys before they are copied into Idempotency-Key. */
 export function assertSafeIdempotencyKey(value: string): void {
     if (value.length === 0 || value.length > IDEMPOTENCY_KEY_MAX) {
         throw new ValidationError(
@@ -53,10 +76,6 @@ export function assertSafeIdempotencyKey(value: string): void {
     }
 }
 
-/**
- * Honour a caller-supplied key (stable across retries) or mint a UUID.
- * The tool wrapper stamps `args.idempotency_key` so handlers and audit share it.
- */
 export function resolveIdempotencyKey(args: { idempotency_key?: unknown } | undefined | null): string {
     if (
         args &&

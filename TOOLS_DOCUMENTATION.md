@@ -773,7 +773,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### pro_create_order
 
-> Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE] Requires confirm=true.
+> Create Limit/Market/Stop order in PRO Trading. Returns order ID. For Limit orders, 'price' is required. For Stop-Limit orders, both 'price' and 'stop_price' are required. Market orders execute immediately at current price. Use pro_get_open_orders to check order status. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -817,7 +817,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### pro_cancel_order
 
-> Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE] Requires confirm=true.
+> Cancel a specific PRO order by ID. Only open/pending orders can be cancelled. Returns cancellation status. Use pro_get_open_orders first to see which orders can be cancelled. Order status ENUM: open (order is active and waiting to be filled), filled (order was completely executed), cancelled (order was cancelled or expired). [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -845,7 +845,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### pro_cancel_all_orders
 
-> Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders. [PRIVATE] Requires confirm=true.
+> Cancel all open orders in Pro Trading. Optional pair filter to cancel only orders for a specific market. Returns count of cancelled orders. Use with caution as this affects all pending orders. [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -870,7 +870,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### pro_deposit
 
-> Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] Requires confirm=true.
+> Deposit funds from Simple Wallet to Pro Trading account. Funds must be available in Simple Wallet first (check with wallet_get_pockets). Transfer is immediate. Use pro_get_balance to verify the deposit. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -903,7 +903,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### pro_withdraw
 
-> Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] Requires confirm=true.
+> Withdraw funds from Pro Trading account back to Simple Wallet. Funds must be available in Pro Trading (check with pro_get_balance). Transfer is immediate. Use wallet_get_pockets to verify the withdrawal. Transfer status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -1405,7 +1405,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### earn_deposit
 
-> Deposit funds from Simple Wallet pocket to Earn (Staking). Funds will start earning rewards based on the asset's APY. Returns operation details with type: deposit. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] Requires confirm=true.
+> Deposit funds from Simple Wallet pocket to Earn (Staking). Funds will start earning rewards based on the asset's APY. Returns operation details with type: deposit. Use wallet_get_pockets to find your pocket ID and earn_get_positions to see available Earn strategies. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -1442,7 +1442,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### earn_withdraw
 
-> Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Funds will stop earning rewards after withdrawal. Returns operation details with type: withdrawal. Use earn_get_positions to check your Earn balance. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] Requires confirm=true.
+> Withdraw funds from Earn (Staking) back to Simple Wallet pocket. Funds will stop earning rewards after withdrawal. Returns operation details with type: withdrawal. Use earn_get_positions to check your Earn balance. Operation status ENUM: pending (operation in progress), completed (successfully finished), failed (operation failed or was cancelled). [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -1748,7 +1748,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### loan_create
 
-> Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Specify amount_type to determine calculation mode: 'fixed_collateral' (guarantee amount is fixed, loan amount is calculated) or 'fixed_loan' (loan amount is fixed, guarantee amount is calculated). This avoids mathematical errors where the model tries to guess the exact LTV manually. Returns loan order details with status. [PRIVATE] Requires confirm=true.
+> Create a new loan by providing cryptocurrency as guarantee (collateral) to receive loan currency (can be any supported currency like USDC, EURC, or fiat). Specify amount_type to determine calculation mode: 'fixed_collateral' (guarantee amount is fixed, loan amount is calculated) or 'fixed_loan' (loan amount is fixed, guarantee amount is calculated). This avoids mathematical errors where the model tries to guess the exact LTV manually. Returns loan order details with status. [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -1791,7 +1791,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### loan_increase_guarantee
 
-> Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID. [PRIVATE] Requires confirm=true.
+> Increase the guarantee (collateral) amount for an existing loan. This improves the LTV ratio and reduces risk. Returns updated loan details. Use loan_get_orders first to get the order ID. [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 
@@ -1823,7 +1823,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### loan_payback
 
-> Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders to get the order ID, or loan_get_orders with order_id filter to check current loan amount and details. [PRIVATE] Requires confirm=true.
+> Pay back (return) part or all of a loan. Reduces the loan amount and may release guarantee if fully paid. Returns updated loan details. Use loan_get_orders to get the order ID, or loan_get_orders with order_id filter to check current loan amount and details. [PRIVATE] First call without confirm=true returns a preview; set confirm=true only after the user agrees.
 
 #### Response Fields
 

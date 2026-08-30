@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { bit2meRequest, getTicker, resolveIdempotencyKey } from "../services/bit2me.js";
+import { postWalletProforma } from "./broker-proforma.js";
 import { cachedGet } from "../services/cached-request.js";
 import { CacheCategory, cache, tenantScopedKey } from "../utils/cache.js";
 import { memoizePerRequest } from "../utils/request-cache.js";
@@ -300,7 +301,7 @@ export async function handleBrokerTool(name: string, args: any) {
                 destination_pocket_id: params.destination_pocket_id,
                 amount: params.amount,
             };
-            const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
+            const data = await postWalletProforma(body, args);
             const optimized = mapProformaResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -341,7 +342,7 @@ export async function handleBrokerTool(name: string, args: any) {
                 destination_pocket_id: params.destination_pocket_id,
                 amount: params.amount,
             };
-            const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
+            const data = await postWalletProforma(body, args);
             const optimized = mapProformaResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
@@ -384,7 +385,7 @@ export async function handleBrokerTool(name: string, args: any) {
                 destination_pocket_id: params.destination_pocket_id,
                 amount: params.amount,
             };
-            const data = await bit2meRequest("POST", "/v1/wallet/transaction/proforma", body);
+            const data = await postWalletProforma(body, args);
             const optimized = mapProformaResponse(data);
             const contextual = buildSimpleContextualResponse(requestContext, optimized, data);
             return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };

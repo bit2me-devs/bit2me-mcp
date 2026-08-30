@@ -4,7 +4,7 @@ import { contextManager, runWithContext, getContext, type RequestContext } from 
 import { clearRequestCache } from "./request-cache.js";
 import { recordAudit } from "./audit.js";
 import { getToolMetadata } from "./tool-metadata.js";
-import { REQUIRES_CONFIRM, requireConfirm, resolveIdempotencyKey } from "./write-guards.js";
+import { buildNeedsConfirmationResult, resolveIdempotencyKey, writeRequiresConfirm } from "./write-guards.js";
 
 /**
  * Decide whether a tool's invocation must be audited.
@@ -98,8 +98,22 @@ export async function executeTool<T>(
             if (isWriteTool(name)) {
                 args.idempotency_key = resolveIdempotencyKey(args);
             }
-            if (REQUIRES_CONFIRM.has(name)) {
-                requireConfirm(args);
+            if (writeRequiresConfirm(name) && args.confirm !== true) {
+                const duration = Date.now() - startTime;
+                metricsCollector.recordToolExecution(name, duration, true);
+                const idempotency = typeof args.idempotency_key === "string" ? args.idempotency_key : undefined;
+                void recordAudit({
+                    tool: name,
+                    outcome: "error",
+                    args: sanitizeArgsForLogging(args),
+                    error: "needs_confirmation",
+                    ...(idempotency ? { idempotencyKey: idempotency } : {}),
+                }).catch((auditErr) => {
+                    logger.warn("Audit write failed", {
+                        error: auditErr instanceof Error ? auditErr.message : String(auditErr),
+                    });
+                });
+                return buildNeedsConfirmationResult(name, args) as T;
             }
 
             logger.debug(`Executing tool: ${name}`, {
