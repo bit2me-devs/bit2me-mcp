@@ -39,14 +39,16 @@ jobs:
             - name: Lint
               run: pnpm run lint
 
-            - name: Package lint
-              run: pnpm run publint
-
             - name: File size limit
               run: bash scripts/check-file-size.sh --strict
 
             - name: Build
               run: pnpm run build
+
+            # publint packs the tarball and checks exports/bin. Those files
+            # only exist after `pnpm run build` (CI is a clean checkout).
+            - name: Package lint
+              run: pnpm run publint
 
             - name: Run tests
               run: pnpm test
