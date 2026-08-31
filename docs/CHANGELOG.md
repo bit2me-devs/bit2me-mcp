@@ -2,6 +2,10 @@
 
 Entradas de trazabilidad de iniciativas. El changelog de release npm sigue en `/CHANGELOG.md` (Semantic Release).
 
+## [2026-08-31 05:20 UTC] — feat para publicar el árbol modular
+
+- Commit `feat` para que Semantic Release corte versión del split y el hardening ya en main. See [RELEASE_MODULAR](done-tasks/RELEASE_MODULAR.md).
+
 ## [2026-08-30 23:08 UTC] — Higiene: constantes y exports muertos
 
 - Se poda `constants.ts` y se dejan internos los helpers de un solo fichero. See [TEST_HYGIENE](done-tasks/TEST_HYGIENE.md).
