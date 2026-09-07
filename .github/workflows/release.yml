@@ -34,7 +34,7 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+              uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
 
             - name: Setup Node.js
               # Node.js 24 ships with npm >= 11.5.1, which is the minimum
@@ -77,7 +77,7 @@ jobs:
                   cosign sign-blob --yes sbom.cdx.json   --output-signature sbom.cdx.json.sig    --output-certificate sbom.cdx.json.pem || true
 
             - name: Attest Build Provenance
-              uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+              uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
               with:
                   subject-path: |
                       build/index.js
@@ -142,7 +142,7 @@ jobs:
                   fetch-tags: true
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+              uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
 
             - name: Setup Node
               uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -172,4 +172,4 @@ jobs:
 
             - name: Desplegar a GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+              uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
