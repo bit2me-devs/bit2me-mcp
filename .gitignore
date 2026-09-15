@@ -59,17 +59,8 @@ test-credentials.js
 tmp/
 *.tmp
 
-# Scratch under docs/ is gitignored. Tracked exceptions:
-# docs/README.md (map), docs/stack/, docs/adr/, docs/done-tasks/, docs/CHANGELOG.md
-docs/*
-!docs/README.md
-!docs/stack/
-!docs/stack/**
-!docs/adr/
-!docs/adr/**
-!docs/done-tasks/
-!docs/done-tasks/**
-!docs/CHANGELOG.md
+# Local-only documentation (map, ADRs, playbooks, initiative diary)
+docs/
 
 # Assets locales (imágenes temporales)
 assets/
