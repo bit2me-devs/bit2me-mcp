@@ -14,7 +14,13 @@
  *  - `horizon_weeks`   1-3 digit positive integer.
  *  - `tool`            snake_case MCP tool name (optional confirm_write).
  */
-const PROMPT_ARG_RULES: Record<string, RegExp> = {
+export const PROMPT_ARG_NAMES = ["fiat", "symbols", "year", "asset", "budget", "horizon_weeks", "tool"] as const;
+
+export function isKnownPromptArg(key: string): key is (typeof PROMPT_ARG_NAMES)[number] {
+    return (PROMPT_ARG_NAMES as readonly string[]).includes(key);
+}
+
+const PROMPT_ARG_RULES: { [K in (typeof PROMPT_ARG_NAMES)[number]]: RegExp } = {
     fiat: /^[A-Za-z]{3}$/,
     // eslint-disable-next-line security/detect-unsafe-regex -- Safe: bounded {1,10} and {0,15}, no nested quantifiers, no backtracking risk.
     symbols: /^[A-Za-z0-9]{1,10}(,[A-Za-z0-9]{1,10}){0,15}$/,
@@ -33,10 +39,10 @@ const PROMPT_ARG_RULES: Record<string, RegExp> = {
  */
 function validatePromptArg(key: string, value: string): string {
     const trimmed = value.trim();
-    const rule = PROMPT_ARG_RULES[key];
-    if (!rule) {
+    if (!isKnownPromptArg(key)) {
         throw new RangeError(`Unknown prompt argument: ${key}`);
     }
+    const rule = PROMPT_ARG_RULES[key];
     if (!rule.test(trimmed)) {
         throw new RangeError(`Invalid prompt argument: ${key}`);
     }
