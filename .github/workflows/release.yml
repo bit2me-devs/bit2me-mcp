@@ -34,14 +34,14 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+              uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
             - name: Setup Node.js
               # Node.js 24 ships with npm >= 11.5.1, which is the minimum
               # required for OIDC trusted publishing. Sticking with Node 22
               # forced an in-place self-upgrade of npm that fails on hosted
               # runners (https://github.com/npm/cli/issues/4815).
-              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
                   node-version: "24"
                   cache: "pnpm"
@@ -77,7 +77,7 @@ jobs:
                   cosign sign-blob --yes sbom.cdx.json   --output-signature sbom.cdx.json.sig    --output-certificate sbom.cdx.json.pem || true
 
             - name: Attest Build Provenance
-              uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+              uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
               with:
                   subject-path: |
                       build/index.js
@@ -87,7 +87,7 @@ jobs:
                       sbom.cdx.xml
 
             - name: Upload SBOM and signatures as artifacts
-              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
               with:
                   name: supply-chain
                   path: |
@@ -142,10 +142,10 @@ jobs:
                   fetch-tags: true
 
             - name: Setup pnpm
-              uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+              uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
             - name: Setup Node
-              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
               with:
                   node-version: "20"
                   cache: "pnpm"
@@ -172,4 +172,4 @@ jobs:
 
             - name: Desplegar a GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+              uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
