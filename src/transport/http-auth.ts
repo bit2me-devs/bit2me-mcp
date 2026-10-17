@@ -63,6 +63,8 @@ export function extractCredentials(req: FastifyRequest, mode: HttpAuthMode | und
 const LOCKOUT_HMAC_KEY: Buffer = crypto.randomBytes(32);
 
 function hashIdentifier(value: string): string {
+    // Lockout label, not a stored password. The key is random and process-local.
+    // codeql[js/insufficient-password-hash]
     return crypto.createHmac("sha256", LOCKOUT_HMAC_KEY).update(value).digest("hex").slice(0, 16);
 }
 

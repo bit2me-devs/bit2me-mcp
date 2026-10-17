@@ -115,6 +115,27 @@ describe("HTTP MCP JSON-RPC methods", () => {
         expect((res.json() as { result: unknown }).result).toEqual({});
     });
 
+    it("rejects prompt arguments whose names are not in the catalog", async () => {
+        const res = await app.inject({
+            method: "POST",
+            url: "/mcp",
+            headers: { authorization: "Bearer test-token", "content-type": "application/json" },
+            payload: JSON.stringify({
+                jsonrpc: "2.0",
+                id: 1,
+                method: "prompts/get",
+                params: {
+                    name: "analyze_portfolio",
+                    arguments: { fiat: "EUR", constructor: "Object", extra: "nope" },
+                },
+            }),
+        });
+        const err = res.json() as { error: { code: number; message: string } };
+        expect(err.error.code).toBe(-32602);
+        expect(err.error.message).toMatch(/Unknown prompt argument: constructor/);
+        expect(Object.prototype).not.toHaveProperty("polluted");
+    });
+
     it("rejects prompts/get with non-object arguments", async () => {
         const res = await mcp("prompts/get", { name: "analyze_portfolio", arguments: ["EUR"] });
         expect((res.json() as { error: { message: string } }).error.message).toMatch(/arguments must be an object/);

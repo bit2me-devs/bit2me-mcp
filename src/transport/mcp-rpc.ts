@@ -1,4 +1,5 @@
 import { LATEST_PROTOCOL_VERSION, SUPPORTED_PROTOCOL_VERSIONS } from "@modelcontextprotocol/sdk/types.js";
+import { isKnownPromptArg, PROMPT_ARG_NAMES } from "../prompts/args.js";
 import { handleGetPrompt } from "../prompts/index.js";
 import { getPrompts } from "../prompts/visible.js";
 import { listResources, readResource, SERVER_NAME, SERVER_VERSION } from "../resources/index.js";
@@ -16,8 +17,15 @@ function jsonRpcError(id: JsonRpcId, code: number, message: string) {
 }
 
 function stringRecord(value: Record<string, unknown>): Record<string, string> {
+    for (const key of Object.keys(value)) {
+        if (!isKnownPromptArg(key)) {
+            throw new RangeError(`Unknown prompt argument: ${key}`);
+        }
+    }
     const out: Record<string, string> = {};
-    for (const [key, item] of Object.entries(value)) {
+    for (const key of PROMPT_ARG_NAMES) {
+        if (!Object.hasOwn(value, key)) continue;
+        const item = value[key];
         if (typeof item !== "string") {
             throw new ValidationError(`Invalid params: arguments.${key} must be a string`, "arguments", item);
         }
