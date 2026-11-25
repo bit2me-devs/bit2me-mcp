@@ -24,6 +24,7 @@ export interface WalletMovementsArgs {
     movement_id?: string;
     symbol?: string;
     limit?: number;
+    cursor?: string;
     offset?: number;
 }
 

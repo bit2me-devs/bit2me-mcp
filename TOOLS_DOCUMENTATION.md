@@ -583,7 +583,7 @@ _Note: Write operation tools are included in their respective categories._
 
 ### wallet_get_movements
 
-> History of Wallet operations. Optional movement_id for specific details, symbol filter, limit/offset for pagination. Returns type, amount, symbol, status, date. Status ENUM: pending, completed, failed. [PRIVATE]
+> History of Wallet operations. Optional movement_id for specific details, symbol filter, limit and cursor for pagination (pass metadata.next_cursor of the previous page as cursor). Returns type, amount, symbol, status, date. Status ENUM: pending, completed, failed. [PRIVATE]
 
 #### Example Response
 
@@ -591,8 +591,7 @@ _Note: Write operation tools are included in their respective categories._
 {
     "request": {
         "symbol": "EUR",
-        "limit": 10,
-        "offset": 0
+        "limit": 10
     },
     "result": [
         {
@@ -621,15 +620,15 @@ _Note: Write operation tools are included in their respective categories._
         }
     ],
     "metadata": {
-        "total_records": 150,
+        "total_records": 10,
         "limit": 10,
-        "offset": 0,
-        "has_more": true
+        "has_more": true,
+        "next_cursor": "eyJjcmVhdGVkQXQiOiIyMDI0LTAzLTI3VDA5OjEyOjQ0LjEyMFoifQ=="
     }
 }
 ```
 
-**Bit2Me API:** `GET /v1/wallet/transaction` | `GET /v1/wallet/transaction/:movement_id`
+**Bit2Me API:** `GET /v3/wallet/transaction` | `GET /v1/wallet/transaction/:movement_id`
 
 ---
 
@@ -969,7 +968,7 @@ _Note: Write operation tools are included in their respective categories._
 }
 ```
 
-**Bit2Me API:** `GET /v1/trading/market-config`
+**Bit2Me API:** `GET /v2/trading/market-config`
 
 ### pro_get_order_book
 
@@ -1862,4 +1861,4 @@ _Note: Write operation tools are included in their respective categories._
 
 ---
 
-_Auto-generated on 2026-08-30._
+_Auto-generated on 2026-11-25._

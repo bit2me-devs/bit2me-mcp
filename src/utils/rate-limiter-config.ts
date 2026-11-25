@@ -24,6 +24,7 @@ const ENDPOINT_RATE_LIMITS: Map<string, EndpointRateLimit> = new Map([
 
     // Wallet endpoints - moderate limits
     ["/v1/wallet/pocket", { requestsPerInterval: 5, intervalMs: 1000 }],
+    ["/v3/wallet/transaction", { requestsPerInterval: 5, intervalMs: 1000 }],
     ["/v2/wallet/transaction", { requestsPerInterval: 5, intervalMs: 1000 }],
     ["/v1/wallet/transaction", { requestsPerInterval: 5, intervalMs: 1000 }],
 
