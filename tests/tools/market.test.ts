@@ -25,7 +25,7 @@ describe("Pro Trading Market Tools", () => {
 
         expect(bit2meService.bit2meRequest).toHaveBeenCalledWith(
             "GET",
-            expect.stringContaining("/v1/trading/market-config"),
+            expect.stringContaining("/v2/trading/market-config"),
             expect.objectContaining({ symbol: "BTC-USD" })
         );
     });

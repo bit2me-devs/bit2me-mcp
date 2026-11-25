@@ -23,7 +23,7 @@ export async function handleProGetMarketConfig(args: Record<string, unknown>) {
     const cacheKey = `pro_market_config:${params.pair ? normalizePair(params.pair) : "ALL"}`;
     let data = cache.get<unknown>(cacheKey);
     if (!data) {
-        data = await bit2meRequest("GET", "/v1/trading/market-config", queryParams);
+        data = await bit2meRequest("GET", "/v2/trading/market-config", queryParams);
         cache.set(cacheKey, data, CacheCategory.STATIC);
     }
 

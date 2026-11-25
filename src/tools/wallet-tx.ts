@@ -1,12 +1,7 @@
 import { bit2meRequest } from "../services/bit2me.js";
 import { MAX_PAGINATION_LIMIT } from "../constants.js";
-import {
-    normalizeSymbol,
-    validatePaginationLimit,
-    validatePaginationOffset,
-    validateUUID,
-    validateSymbol,
-} from "../utils/format.js";
+import { normalizeSymbol, validatePaginationLimit, validateUUID, validateSymbol } from "../utils/format.js";
+import { ValidationError } from "../utils/errors.js";
 import { mapWalletMovementsResponse, mapWalletMovementDetailsResponse } from "../utils/response-mappers.js";
 import { buildFilteredContextualResponse, buildPaginatedContextualResponse } from "../utils/contextual-response.js";
 import { WalletMovementsArgs } from "../utils/args.js";
@@ -33,9 +28,15 @@ export async function handleWalletGetMovements(args: Record<string, unknown>) {
         return { content: [{ type: "text", text: JSON.stringify(contextual, null, 2) }] };
     }
 
-    // Otherwise, get paginated list of movements
+    // Otherwise, get one page of movements. The v3 endpoint pages with a cursor, not an offset.
+    if (params.offset !== undefined && params.offset !== 0) {
+        throw new ValidationError(
+            "offset is no longer supported: pass the next_cursor of the previous page as cursor",
+            "offset",
+            params.offset
+        );
+    }
     const limit = validatePaginationLimit(params.limit, MAX_PAGINATION_LIMIT);
-    const offset = validatePaginationOffset(params.offset);
 
     if (params.symbol) {
         validateSymbol(params.symbol);
@@ -44,23 +45,20 @@ export async function handleWalletGetMovements(args: Record<string, unknown>) {
     const queryParams: Record<string, unknown> = {};
     if (params.symbol) queryParams.currency = normalizeSymbol(params.symbol);
     queryParams.limit = limit;
-    queryParams.offset = offset;
+    if (params.cursor) queryParams.cursor = params.cursor;
 
-    const data = await bit2meRequest("GET", "/v2/wallet/transaction", queryParams);
+    const data = await bit2meRequest("GET", "/v3/wallet/transaction", queryParams);
 
-    // v2 endpoint returns { data: [...], total: number } according to docs
+    // v3 returns { data: [...], pageInfo: { hasNextPage, endCursor } }
     const rawData = data as Record<string, unknown>;
-    const movementsArray = rawData.data ?? rawData.transactions ?? [];
-    const metadata =
-        rawData.metadata && typeof rawData.metadata === "object" ? (rawData.metadata as Record<string, unknown>) : {};
-
-    const optimized = mapWalletMovementsResponse(movementsArray);
-
-    // Extract total from root 'total' or metadata
-    const totalRecords = Number(rawData.total || metadata.total || metadata.total_records || optimized.length);
+    const pageInfo =
+        rawData.pageInfo && typeof rawData.pageInfo === "object" ? (rawData.pageInfo as Record<string, unknown>) : {};
+    const optimized = mapWalletMovementsResponse(rawData.data ?? []);
+    const hasMore = pageInfo.hasNextPage === true;
+    const nextCursor = hasMore && typeof pageInfo.endCursor === "string" ? pageInfo.endCursor : null;
 
     requestContext.limit = limit;
-    requestContext.offset = offset;
+    if (params.cursor) requestContext.cursor = params.cursor;
     if (params.symbol) {
         requestContext.symbol = normalizeSymbol(params.symbol);
     }
@@ -69,10 +67,10 @@ export async function handleWalletGetMovements(args: Record<string, unknown>) {
         requestContext,
         optimized,
         {
-            total_records: totalRecords,
+            total_records: optimized.length,
             limit,
-            offset,
-            has_more: offset + limit < totalRecords,
+            has_more: hasMore,
+            next_cursor: nextCursor,
         },
         data
     );

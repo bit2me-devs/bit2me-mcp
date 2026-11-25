@@ -1477,7 +1477,7 @@
         },
         {
           "name": "wallet_get_movements",
-          "description": "History of Wallet operations. Optional movement_id for specific details, symbol filter, limit/offset for pagination. Returns type, amount, symbol, status, date. Status ENUM: pending, completed, failed. [PRIVATE]",
+          "description": "History of Wallet operations. Optional movement_id for specific details, symbol filter, limit and cursor for pagination (pass metadata.next_cursor of the previous page as cursor). Returns type, amount, symbol, status, date. Status ENUM: pending, completed, failed. [PRIVATE]",
           "type": "READ",
           "attributes": {
             "requires_auth": true,
@@ -1498,26 +1498,23 @@
               },
               "limit": {
                 "type": "number",
-                "description": "Number of records to return (default: 10)",
+                "description": "Number of records to return (default: 10, max: 100)",
                 "default": 10
               },
-              "offset": {
-                "type": "number",
-                "description": "Offset for pagination (default: 0)",
-                "default": 0
+              "cursor": {
+                "type": "string",
+                "description": "Cursor of the page to read: the metadata.next_cursor of the previous response. Omit it for the first page."
               }
             }
           },
           "exampleArgs": {
             "symbol": "EUR",
-            "limit": 10,
-            "offset": 0
+            "limit": 10
           },
           "exampleResponse": {
             "request": {
               "symbol": "EUR",
-              "limit": 10,
-              "offset": 0
+              "limit": 10
             },
             "result": [
               {
@@ -1546,10 +1543,10 @@
               }
             ],
             "metadata": {
-              "total_records": 150,
+              "total_records": 10,
               "limit": 10,
-              "offset": 0,
-              "has_more": true
+              "has_more": true,
+              "next_cursor": "eyJjcmVhdGVkQXQiOiIyMDI0LTAzLTI3VDA5OjEyOjQ0LjEyMFoifQ=="
             }
           },
           "responseSchema": {

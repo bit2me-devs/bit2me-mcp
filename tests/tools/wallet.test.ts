@@ -97,17 +97,39 @@ describe("Wallet Tools Handler", () => {
     it("should handle wallet_get_movements", async () => {
         const mockResponse = {
             data: [{ id: VALID_UUID, denomination: { amount: "100", currency: "EUR" } }],
-            total: 1,
+            pageInfo: { hasNextPage: true, endCursor: "next-page" },
         };
         vi.mocked(bit2meService.bit2meRequest).mockResolvedValue(mockResponse);
 
-        await handleWalletTool("wallet_get_movements", { symbol: "EUR", limit: 5 });
+        const result = await handleWalletTool("wallet_get_movements", { symbol: "EUR", limit: 5 });
 
-        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v2/wallet/transaction", {
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v3/wallet/transaction", {
             currency: "EUR",
             limit: 5,
-            offset: 0,
         });
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.metadata).toMatchObject({ has_more: true, next_cursor: "next-page", limit: 5 });
+    });
+
+    it("should pass the cursor and report the last page of wallet_get_movements", async () => {
+        vi.mocked(bit2meService.bit2meRequest).mockResolvedValue({
+            data: [],
+            pageInfo: { hasNextPage: false, endCursor: null },
+        });
+
+        const result = await handleWalletTool("wallet_get_movements", { cursor: "next-page" });
+
+        expect(bit2meService.bit2meRequest).toHaveBeenCalledWith("GET", "/v3/wallet/transaction", {
+            limit: 10,
+            cursor: "next-page",
+        });
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.metadata).toMatchObject({ has_more: false, next_cursor: null });
+    });
+
+    it("should reject an offset in wallet_get_movements", async () => {
+        await expect(handleWalletTool("wallet_get_movements", { offset: 10 })).rejects.toThrow("cursor");
+        expect(bit2meService.bit2meRequest).not.toHaveBeenCalled();
     });
 
     it("should handle wallet_get_movements with movement_id filter", async () => {
