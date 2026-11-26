@@ -109,7 +109,9 @@ jobs:
                   # plus the `id-token: write` permission granted at job
                   # level above.
                   NPM_CONFIG_PROVENANCE: true
-              run: pnpm dlx semantic-release
+              # Run the version pinned in pnpm-lock.yaml. `pnpm dlx` fetches the
+              # latest release, and semantic-release 26 needs Node >= 26.13.
+              run: pnpm exec semantic-release
 
             # NOTE: Auto-pushes back to main are intentionally NOT performed
             # here. The "main" ruleset only allows admin users to bypass and
